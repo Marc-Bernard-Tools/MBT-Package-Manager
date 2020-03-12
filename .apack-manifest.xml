@@ -2,11 +2,11 @@
 <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
  <asx:values>
   <DATA>
-   <GROUP_ID>github.com/mbtools</GROUP_ID>
-   <ARTIFACT_ID>mbt-foundation</ARTIFACT_ID>
-   <VERSION>1.1.0</VERSION>
+   <GROUP_ID>github.com/mbtools/marc-bernard-tools</GROUP_ID>
+   <ARTIFACT_ID>com.marcbernardtools.abap.bc</ARTIFACT_ID>
+   <VERSION>1.0.0</VERSION>
    <REPOSITORY_TYPE>abapGit</REPOSITORY_TYPE>
-   <GIT_URL>https://github.com/mbtools/mbt-foundation.git</GIT_URL>
+   <GIT_URL>https://github.com/mbtools/marc-bernard-tools.git</GIT_URL>
   </DATA>
  </asx:values>
 </asx:abap>

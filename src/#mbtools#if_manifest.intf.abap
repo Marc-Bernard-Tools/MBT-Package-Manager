@@ -25,6 +25,7 @@ INTERFACE /mbtools/if_manifest
       id           TYPE i,
       name         TYPE string,
       version      TYPE string,
+      title        TYPE string,
       description  TYPE string,
       mbt_url      TYPE string,
       namespace    TYPE namespace,

@@ -4,172 +4,183 @@
 *
 * Implementation of a registry for storing arbitrary values (similar
 * to the MS Windows registry)
-* Author: Martin Ceronio (2015), http://ceronio.net
+*
+* Original Author: (c) Martin Ceronio (2015), http://ceronio.net
 * Released under MIT License: https://opensource.org/licenses/MIT
+*
+* Ported to namespace and enhanced by Marc Bernard Tools
 ************************************************************************
-class /MBTOOLS/CL_REGISTRY definition
-  public
-  create protected .
 
-public section.
+CLASS /mbtools/cl_registry DEFINITION
+  PUBLIC
+  CREATE PROTECTED .
 
-  types:
-    BEGIN OF ts_keyval,
+  PUBLIC SECTION.
+
+    TYPES:
+      BEGIN OF ts_keyval,
         key   TYPE string,
         value TYPE string,
       END OF ts_keyval .
-  types:
-    tt_keyval TYPE SORTED TABLE OF ts_keyval WITH UNIQUE KEY key .
-  types:
+    TYPES:
+      tt_keyval TYPE SORTED TABLE OF ts_keyval WITH UNIQUE KEY key .
+    TYPES:
 * For keeping track of references to sub-entries, we maintain a shadow
 * table with the same keys
-    BEGIN OF ts_keyobj,
+      BEGIN OF ts_keyobj,
         key   TYPE string,
         value TYPE REF TO /mbtools/cl_registry,
       END OF ts_keyobj .
-  types:
-    tt_keyobj TYPE SORTED TABLE OF ts_keyobj WITH UNIQUE KEY key .
+    TYPES:
+      tt_keyobj TYPE SORTED TABLE OF ts_keyobj WITH UNIQUE KEY key .
 
-  constants C_VERSION type STRING value '1.1.0' ##NO_TEXT.
+    CONSTANTS c_version TYPE string VALUE '1.1.0' ##NO_TEXT.
+    CONSTANTS c_name TYPE string VALUE 'MBT_Registry' ##NO_TEXT.
 * Predefined key for the registry root:
-  class-data REGISTRY_ROOT type INDX_SRTFD read-only value 'REGISTRY_ROOT' ##NO_TEXT.
-  data SUB_ENTRIES type TT_KEYVAL read-only .
-  data VALUES type TT_KEYVAL read-only .
-  data INTERNAL_KEY type INDX_SRTFD read-only .
-  data PARENT_KEY type INDX_SRTFD read-only .
-  data ENTRY_ID type STRING read-only .                   "User-friendly ID of the subnode
+    CLASS-DATA registry_root TYPE indx_srtfd READ-ONLY VALUE 'REGISTRY_ROOT' ##NO_TEXT.
+    DATA sub_entries TYPE tt_keyval READ-ONLY .
+    DATA values TYPE tt_keyval READ-ONLY .
+    DATA internal_key TYPE indx_srtfd READ-ONLY .
+    DATA parent_key TYPE indx_srtfd READ-ONLY .
+    DATA entry_id TYPE string READ-ONLY .                   "User-friendly ID of the subnode
+    DATA regs TYPE /mbtools/regs READ-ONLY.
 
-  methods CONSTRUCTOR
-    importing
-      !INTERNAL_KEY type ANY .
-  methods RELOAD .
+    METHODS constructor
+      IMPORTING
+        !internal_key TYPE any .
+    METHODS reload .
 *      lock raising /mbtools/cx_registry_err,
 * Saves entry and all dirty sub-entries
-  methods SAVE
-    raising
-      /MBTOOLS/CX_REGISTRY_ERR .
-  methods GET_PARENT
-    returning
-      value(PARENT) type ref to /MBTOOLS/CL_REGISTRY .
-  methods CREATE_BY_PATH
-    importing
-      !PATH type STRING
-    returning
-      value(ENTRY) type ref to /MBTOOLS/CL_REGISTRY
-    raising
-      /MBTOOLS/CX_REGISTRY_ERR .
+    METHODS save
+      RAISING
+        /mbtools/cx_registry_err .
+    METHODS get_parent
+      RETURNING
+        VALUE(parent) TYPE REF TO /mbtools/cl_registry .
+    METHODS create_by_path
+      IMPORTING
+        !path        TYPE string
+      RETURNING
+        VALUE(entry) TYPE REF TO /mbtools/cl_registry
+      RAISING
+        /mbtools/cx_registry_err .
 *--------------------------------------------------------------------*
 * Methods dealing with sub-entries of the registry entry
-  methods GET_SUBENTRY
-    importing
-      !KEY type CLIKE
-    returning
-      value(ENTRY) type ref to /MBTOOLS/CL_REGISTRY .
-  methods ADD_SUBENTRY
-    importing
-      !KEY type CLIKE
-    returning
-      value(ENTRY) type ref to /MBTOOLS/CL_REGISTRY
-    raising
-      /MBTOOLS/CX_REGISTRY_ENTRY_EX .
+    METHODS get_subentry
+      IMPORTING
+        !key         TYPE clike
+      RETURNING
+        VALUE(entry) TYPE REF TO /mbtools/cl_registry .
+    METHODS add_subentry
+      IMPORTING
+        !key         TYPE clike
+      RETURNING
+        VALUE(entry) TYPE REF TO /mbtools/cl_registry
+      RAISING
+        /mbtools/cx_registry_entry_ex .
 * Removes sub-entry and all entries underneath
-  methods REMOVE_SUBENTRY
-    importing
-      !KEY type CLIKE
-    raising
-      /MBTOOLS/CX_REGISTRY_ERR .
-  methods REMOVE_SUBENTRIES
-    raising
-      /MBTOOLS/CX_REGISTRY_ERR .
-  methods COPY_SUBENTRY
-    importing
-      !SOURCE_KEY type CLIKE
-      !TARGET_KEY type CLIKE
-    returning
-      value(TARGET_ENTRY) type ref to /MBTOOLS/CL_REGISTRY
-    raising
-      /MBTOOLS/CX_REGISTRY_ERR .
-  methods GET_SUBENTRY_KEYS
-    returning
-      value(KEYS) type STRING_TABLE .
-  methods GET_SUBENTRIES
-    returning
-      value(SUB_ENTRIES) type TT_KEYOBJ .
+    METHODS remove_subentry
+      IMPORTING
+        !key TYPE clike
+      RAISING
+        /mbtools/cx_registry_err .
+    METHODS remove_subentries
+      RAISING
+        /mbtools/cx_registry_err .
+    METHODS copy_subentry
+      IMPORTING
+        !source_key         TYPE clike
+        !target_key         TYPE clike
+      RETURNING
+        VALUE(target_entry) TYPE REF TO /mbtools/cl_registry
+      RAISING
+        /mbtools/cx_registry_err .
+    METHODS get_subentry_keys
+      RETURNING
+        VALUE(keys) TYPE string_table .
+    METHODS get_subentries
+      RETURNING
+        VALUE(sub_entries) TYPE tt_keyobj .
 * Methods for dealing with values in the registry entry:
 * Get keys of all values
-  methods GET_VALUE_KEYS
-    returning
-      value(KEYS) type STRING_TABLE .
+    METHODS get_value_keys
+      RETURNING
+        VALUE(keys) TYPE string_table .
 * Get all values
-  methods GET_VALUES
-    returning
-      value(VALUES) type TT_KEYVAL .
+    METHODS get_values
+      RETURNING
+        VALUE(values) TYPE tt_keyval .
 * Set all values in one go:
-  methods SET_VALUES
-    importing
-      !VALUES type TT_KEYVAL .
+    METHODS set_values
+      IMPORTING
+        !values TYPE tt_keyval .
 * Get single value by key
-  methods GET_VALUE
-    importing
-      !KEY type CLIKE
-    returning
-      value(VALUE) type STRING
-    raising
-      /MBTOOLS/CX_REGISTRY_NOENTRY .
+    METHODS get_value
+      IMPORTING
+        !key         TYPE clike
+      RETURNING
+        VALUE(value) TYPE string
+      RAISING
+        /mbtools/cx_registry_noentry .
 * Set/overwrite single value
-  methods SET_VALUE
-    importing
-      !KEY type CLIKE
-      !VALUE type ANY .
+    METHODS set_value
+      IMPORTING
+        !key   TYPE clike
+        !value TYPE any .
 * Delete single value by key
-  methods DELETE_VALUE
-    importing
-      !KEY type CLIKE .
-  class-methods GET_ENTRY_BY_INTERNAL_KEY
-    importing
-      !KEY type ANY
-    returning
-      value(ENTRY) type ref to /MBTOOLS/CL_REGISTRY .
-  class-methods GET_ROOT
-    returning
-      value(ROOT) type ref to /MBTOOLS/CL_REGISTRY .
-  methods EXPORT
-    changing
-      !C_FILE type STRING_TABLE .
-  methods GET_SUBENTRY_BY_PATH
-    importing
-      !PATH type STRING
-    returning
-      value(ENTRY) type ref to /MBTOOLS/CL_REGISTRY
-    raising
-      /MBTOOLS/CX_REGISTRY_ERR .
-protected section.
+    METHODS delete_value
+      IMPORTING
+        !key TYPE clike .
+    CLASS-METHODS get_entry_by_internal_key
+      IMPORTING
+        !key         TYPE any
+      RETURNING
+        VALUE(entry) TYPE REF TO /mbtools/cl_registry .
+    CLASS-METHODS get_root
+      RETURNING
+        VALUE(root) TYPE REF TO /mbtools/cl_registry .
+    METHODS export
+      CHANGING
+        !c_file TYPE string_table .
+    METHODS get_subentry_by_path
+      IMPORTING
+        !path        TYPE string
+      RETURNING
+        VALUE(entry) TYPE REF TO /mbtools/cl_registry
+      RAISING
+        /mbtools/cx_registry_err .
 
-  data DELETED type ABAP_BOOL .
+  PROTECTED SECTION.
+
+    DATA deleted TYPE abap_bool .
 *    data: sub_entrobj type tt_keyobj.
 * Class-wide buffer of instances of registry entries
-  class-data REGISTRY_ENTRIES type TT_KEYOBJ .
-  data READ_ONLY type ABAP_BOOL .
+    CLASS-DATA registry_entries TYPE tt_keyobj .
+    DATA read_only TYPE abap_bool .
 
-  methods SET_OPTIMISTIC_LOCK
-    raising
-      /MBTOOLS/CX_REGISTRY_LOCK .
-  methods PROMOTE_LOCK
-    raising
-      /MBTOOLS/CX_REGISTRY_LOCK .
-  methods RELEASE_LOCK .
-  methods COPY_SUBENTRY_DEEP
-    importing
-      !SOURCE type ref to /MBTOOLS/CL_REGISTRY
-      !TARGET type ref to /MBTOOLS/CL_REGISTRY .
+    METHODS set_optimistic_lock
+      RAISING
+        /mbtools/cx_registry_lock .
+    METHODS promote_lock
+      RAISING
+        /mbtools/cx_registry_lock .
+    METHODS release_lock .
+    METHODS copy_subentry_deep
+      IMPORTING
+        !source TYPE REF TO /mbtools/cl_registry
+        !target TYPE REF TO /mbtools/cl_registry .
 * Remove the registry entry from the database:
 * The DELETE method is protected because you must always delete an entry
 * as the sub-entry of its parent so that the link is removed from the
 * parent
-  methods DELETE
-    raising
-      /MBTOOLS/CX_REGISTRY_ERR .
+    METHODS delete
+      RAISING
+        /mbtools/cx_registry_err .
+
   PRIVATE SECTION.
+
+    CONSTANTS: c_relid TYPE indx_relid VALUE 'ZR'.
+
 ENDCLASS.
 
 
@@ -215,10 +226,16 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * Create an entry on the database for the new entry
     DATA: lt_empty_vals TYPE tt_keyval.
     DATA: lv_srtfd TYPE indx_srtfd.
+*>>>INS
+    DATA: regs TYPE /mbtools/regs.
+    regs-chdate = sy-datum.
+    regs-chtime = sy-uzeit.
+    regs-chname = sy-uname.
+*<<<INS
     lv_srtfd = kv-value.
     EXPORT values = lt_empty_vals sub_entries = lt_empty_vals
       parent = internal_key entry_id = key
-      TO DATABASE /mbtools/indx(zr) ID lv_srtfd.
+      TO DATABASE /mbtools/regs(zr) FROM regs ID lv_srtfd.
 
     CREATE OBJECT entry
       EXPORTING
@@ -358,7 +375,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
 * Remove DB entry for the current entry
     promote_lock( ).
-    DELETE FROM DATABASE /mbtools/indx(zr) ID internal_key.
+    DELETE FROM DATABASE /mbtools/regs(zr) ID internal_key.
 * Object removes itself from the global table too so that that reference no longer exists
     DELETE registry_entries WHERE key = internal_key.
 * Set the object to deleted to prevent any operations on any remaining
@@ -466,17 +483,27 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * GET_ROOT - retrieve root entry of registry
 *--------------------------------------------------------------------*
 
+    LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
+
 * If the root doesn't exist yet, create it
     DATA: values TYPE tt_keyval.
     DATA: sub_entries TYPE tt_keyval.
     DATA: parent_key TYPE indx_srtfd VALUE space.
     DATA: entry_id TYPE string.
+
     IMPORT values = values sub_entries = sub_entries
-      FROM DATABASE /mbtools/indx(zr) ID registry_root.
+      FROM DATABASE /mbtools/regs(zr) ID registry_root.
     IF sy-subrc NE 0.
+*>>>INS
+      DATA: regs TYPE /mbtools/regs.
+      regs-chdate = sy-datum.
+      regs-chtime = sy-uzeit.
+      regs-chname = sy-uname.
+*<<<INS
       entry_id = registry_root.
-      EXPORT values = values sub_entries = sub_entries parent = parent_key entry_id = entry_id
-        TO DATABASE /mbtools/indx(zr) ID registry_root.
+      EXPORT values = values sub_entries = sub_entries
+        parent = parent_key entry_id = entry_id
+        TO DATABASE /mbtools/regs(zr) FROM regs ID registry_root.
     ENDIF.
 
 * Retrieve the root entry of the registry
@@ -494,6 +521,9 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     DATA: subkey TYPE string.
 
     subkeys = get_subentry_keys( ).
+*>>>INS
+    SORT subkeys.
+*<<<INS
     LOOP AT subkeys INTO subkey.
       ko-key = subkey.
       ko-value = get_subentry( subkey ).
@@ -609,10 +639,10 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * PROMOTE_LOCK - Get exclusive lock just before saving
 *--------------------------------------------------------------------*
-    CALL FUNCTION 'ENQUEUE_/MBTOOLS/ESINDX'
+    CALL FUNCTION 'ENQUEUE_/MBTOOLS/E_REGS'
       EXPORTING
-        mode_/mbtools/indx = 'R'
-        relid              = 'ZR'
+        mode_/mbtools/regs = 'R'
+        relid              = c_relid
         srtfd              = internal_key
       EXCEPTIONS
         foreign_lock       = 1
@@ -628,9 +658,9 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * RELEASE_LOCK - called after deleting or before re-acquiring
 *--------------------------------------------------------------------*
-    CALL FUNCTION 'DEQUEUE_/MBTOOLS/ESINDX'
+    CALL FUNCTION 'DEQUEUE_/MBTOOLS/E_REGS'
       EXPORTING
-        relid = 'ZR'
+        relid = c_relid
         srtfd = internal_key.
   ENDMETHOD.                    "release_lock
 
@@ -640,11 +670,14 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * RELOAD - reload values and sub-entries from database, set new lock
 *--------------------------------------------------------------------*
     IMPORT values = me->values sub_entries = me->sub_entries parent = parent_key entry_id = entry_id
-      FROM DATABASE /mbtools/indx(zr) ID internal_key.
+      FROM DATABASE /mbtools/regs(zr) ID internal_key.
     IF sy-subrc NE 0.
       RAISE EXCEPTION TYPE /mbtools/cx_registry_noentry.
     ENDIF.
-
+*>>>INS
+    SELECT SINGLE * FROM /mbtools/regs INTO me->regs
+      WHERE relid = 'ZR' AND srtfd = internal_key AND srtf2 = 0.
+*<<<INS
     set_optimistic_lock( ).
   ENDMETHOD.                    "reload
 
@@ -711,10 +744,16 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     IF me->deleted = abap_true.
       RAISE EXCEPTION TYPE /mbtools/cx_registry_entry_del.
     ENDIF.
-
+*>>>INS
+    DATA: regs TYPE /mbtools/regs.
+    regs-chdate = sy-datum.
+    regs-chtime = sy-uzeit.
+    regs-chname = sy-uname.
+*<<<INS
     promote_lock( ).
-    EXPORT values = me->values sub_entries = me->sub_entries parent = parent_key entry_id = entry_id
-      TO DATABASE /mbtools/indx(zr) ID internal_key.
+    EXPORT values = me->values sub_entries = me->sub_entries
+      parent = parent_key entry_id = entry_id
+      TO DATABASE /mbtools/regs(zr) FROM regs ID internal_key.
     set_optimistic_lock( ).
   ENDMETHOD.                    "save
 
@@ -725,9 +764,9 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * Existing lock must be released before acquiring a new one
     release_lock( ).
-    CALL FUNCTION 'ENQUEUE_/MBTOOLS/ESINDX'
+    CALL FUNCTION 'ENQUEUE_/MBTOOLS/E_REGS'
       EXPORTING
-        mode_/mbtools/indx = 'O'
+        mode_/mbtools/regs = 'O'
         relid              = 'ZR'
         srtfd              = internal_key
       EXCEPTIONS

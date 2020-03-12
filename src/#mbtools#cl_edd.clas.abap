@@ -6,72 +6,73 @@
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-class /MBTOOLS/CL_EDD definition
-  public
-  final
-  create public .
+CLASS /mbtools/cl_edd DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  constants CO_EDD_HOST type STRING value 'https://marcbernardtools.com/' ##NO_TEXT.
-  constants CO_ACTION_ACTIVATE type STRING value 'activate_license' ##NO_TEXT.
-  constants CO_ACTION_DEACTIVATE type STRING value 'deactivate_license' ##NO_TEXT.
-  constants CO_ACTION_CHECK type STRING value 'check_license' ##NO_TEXT.
-  constants CO_ACTION_VERSION type STRING value 'get_version' ##NO_TEXT.
-  constants CO_PARAM_ACTION type STRING value '$action$' ##NO_TEXT.
-  constants CO_PARAM_ID type STRING value '$id$' ##NO_TEXT.
-  constants CO_PARAM_KEY type STRING value '$key$' ##NO_TEXT.
-  constants CO_PARAM_URL type STRING value '$url$' ##NO_TEXT.
-  constants CO_PARAM_SYSTEM type STRING value '$system$' ##NO_TEXT.
+    CONSTANTS c_name TYPE string VALUE 'MBT_EDD_API' ##NO_TEXT.
+    CONSTANTS co_edd_host TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.
+    CONSTANTS co_action_activate TYPE string VALUE 'activate_license' ##NO_TEXT.
+    CONSTANTS co_action_deactivate TYPE string VALUE 'deactivate_license' ##NO_TEXT.
+    CONSTANTS co_action_check TYPE string VALUE 'check_license' ##NO_TEXT.
+    CONSTANTS co_action_version TYPE string VALUE 'get_version' ##NO_TEXT.
+    CONSTANTS co_param_action TYPE string VALUE '$action$' ##NO_TEXT.
+    CONSTANTS co_param_id TYPE string VALUE '$id$' ##NO_TEXT.
+    CONSTANTS co_param_key TYPE string VALUE '$key$' ##NO_TEXT.
+    CONSTANTS co_param_url TYPE string VALUE '$url$' ##NO_TEXT.
+    CONSTANTS co_param_system TYPE string VALUE '$system$' ##NO_TEXT.
 
-  class-methods ACTIVATE_LICENSE
-    importing
-      !I_ID type STRING
-      !I_LICENSE type STRING
-    exporting
-      !E_VALID type ABAP_BOOL
-      !E_EXPIRE type D
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  class-methods DEACTIVATE_LICENSE
-    importing
-      !I_ID type STRING
-      !I_LICENSE type STRING
-    exporting
-      !E_VALID type ABAP_BOOL
-      !E_EXPIRE type D
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  class-methods CHECK_LICENSE
-    importing
-      !I_ID type STRING
-      !I_LICENSE type STRING
-    exporting
-      !E_VALID type ABAP_BOOL
-      !E_EXPIRE type D
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  class-methods GET_VERSION
-    importing
-      !I_ID type STRING
-      !I_LICENSE type STRING
-    exporting
-      !E_VALID type ABAP_BOOL
-      !E_EXPIRE type D
-    raising
-      /MBTOOLS/CX_EXCEPTION .
+    CLASS-METHODS activate_license
+      IMPORTING
+        !i_id      TYPE string
+        !i_license TYPE string
+      EXPORTING
+        !e_valid   TYPE abap_bool
+        !e_expire  TYPE d
+      RAISING
+        /mbtools/cx_exception .
+    CLASS-METHODS deactivate_license
+      IMPORTING
+        !i_id      TYPE string
+        !i_license TYPE string
+      EXPORTING
+        !e_valid   TYPE abap_bool
+        !e_expire  TYPE d
+      RAISING
+        /mbtools/cx_exception .
+    CLASS-METHODS check_license
+      IMPORTING
+        !i_id      TYPE string
+        !i_license TYPE string
+      EXPORTING
+        !e_valid   TYPE abap_bool
+        !e_expire  TYPE d
+      RAISING
+        /mbtools/cx_exception .
+    CLASS-METHODS get_version
+      IMPORTING
+        !i_id      TYPE string
+        !i_license TYPE string
+      EXPORTING
+        !e_valid   TYPE abap_bool
+        !e_expire  TYPE d
+      RAISING
+        /mbtools/cx_exception .
   PROTECTED SECTION.
-private section.
+  PRIVATE SECTION.
 
-  class-methods GET_ENDPOINT
-    importing
-      !I_ACTION type STRING
-      !I_ID type STRING
-      !I_LICENSE type STRING
-    returning
-      value(R_ENDPOINT) type STRING
-    raising
-      /MBTOOLS/CX_EXCEPTION .
+    CLASS-METHODS get_endpoint
+      IMPORTING
+        !i_action         TYPE string
+        !i_id             TYPE string
+        !i_license        TYPE string
+      RETURNING
+        VALUE(r_endpoint) TYPE string
+      RAISING
+        /mbtools/cx_exception .
 ENDCLASS.
 
 
@@ -83,6 +84,8 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     DATA:
       endpoint TYPE string.
+
+    LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
     CALL METHOD get_endpoint
       EXPORTING
@@ -100,6 +103,8 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
     DATA:
       endpoint TYPE string.
 
+    LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
+
     CALL METHOD get_endpoint
       EXPORTING
         i_action   = co_action_check
@@ -116,6 +121,8 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
     DATA:
       endpoint TYPE string.
 
+    LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
+
     CALL METHOD get_endpoint
       EXPORTING
         i_action   = co_action_deactivate
@@ -127,7 +134,7 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD GET_ENDPOINT.
+  METHOD get_endpoint.
 
     DATA:
       subrc       TYPE sy-subrc,
@@ -163,6 +170,7 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
     ENDIF.
 
     REPLACE co_param_system WITH system_id INTO r_endpoint.
+    CONDENSE r_endpoint NO-GAPS.
 
   ENDMETHOD.
 
@@ -171,6 +179,8 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     DATA:
       endpoint TYPE string.
+
+    LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
     CALL METHOD get_endpoint
       EXPORTING

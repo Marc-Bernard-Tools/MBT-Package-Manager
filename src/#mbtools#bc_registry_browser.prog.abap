@@ -2,13 +2,14 @@
 * /MBTOOLS/BC_REGISTRY_BROWSER
 * MBT Registry Browser
 *
-* Viewer and editor for registry stored in /MBTOOLS/INDX
-* Author: Martin Ceronio (2015), http://ceronio.net
+* Viewer and editor for registry stored in /MBTOOLS/REGS
+*
+* Original Author: (c) Martin Ceronio (2015), http://ceronio.net
 * Released under MIT License: https://opensource.org/licenses/MIT
 *
-* Last update: 2020-02-07
+* Ported to namespace and enhanced by Marc Bernard Tools
 ************************************************************************
-REPORT /mbtools/bc_registry_browser.
+REPORT /mbtools/bc_registry_browser MESSAGE-ID /mbtools/bc.
 
 CONSTANTS:
   c_version TYPE string VALUE '1.0.0'.
@@ -58,7 +59,7 @@ CLASS event_handler DEFINITION.
       handle_node_expand FOR EVENT expand_nc OF cl_gui_alv_tree
         IMPORTING node_key sender,
       handle_table_toolbar FOR EVENT toolbar OF cl_gui_alv_grid
-        IMPORTING e_object e_interactive sender,
+        IMPORTING e_object e_interactive, " sender,
       handle_table_command FOR EVENT user_command OF cl_gui_alv_grid
         IMPORTING e_ucomm,
       handle_node_selected FOR EVENT selection_changed OF cl_gui_alv_tree
@@ -187,7 +188,7 @@ CLASS event_handler IMPLEMENTATION.
     ELSEIF fcode = 'EXPORT'.
 
       CONSTANTS:
-       c_registry_title TYPE string VALUE 'MBT Registry 1.0' ##NO_TEXT.
+        c_registry_title TYPE string VALUE 'MBT Registry 1.0' ##NO_TEXT.
 
       DATA:
         l_file     TYPE string,
@@ -258,6 +259,15 @@ CLASS event_handler IMPLEMENTATION.
       IF sy-subrc <> 0.
 *       Implement suitable error handling here
       ENDIF.
+
+*   Show last changed at, on, by
+    ELSEIF fcode = 'INFO'.
+
+      DATA: ls_regs TYPE /mbtools/regs.
+
+      ls_regs = gr_sel_reg_entry->regs.
+
+      MESSAGE i001 WITH ls_regs-chdate ls_regs-chtime ls_regs-chname.
 *<<<INS
     ENDIF.
 
@@ -710,6 +720,9 @@ FORM create_tree.
   ls_ttb-function = 'EXPORT'. "Export Entry
   ls_ttb-icon     = icon_export.
   APPEND ls_ttb TO lt_ttb.
+  ls_ttb-function = 'INFO'. "Info
+  ls_ttb-icon     = icon_information.
+  APPEND ls_ttb TO lt_ttb.
 *<<<INS
   CALL METHOD gr_tree_toolbar->add_button_group
     EXPORTING
@@ -741,16 +754,36 @@ FORM create_tree.
       cntl_system_error         = 2
       illegal_event_combination = 3.
   IF sy-subrc <> 0.
-    MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
-               WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+    MESSAGE 'Error registering events for tree'(019) TYPE 'E'.
   ENDIF.
 
   SET HANDLER event_handler=>handle_node_expand FOR gr_tree.
   SET HANDLER event_handler=>handle_node_selected FOR gr_tree.
   SET HANDLER event_handler=>handle_tree_command FOR gr_tree_toolbar.
 
-  CALL METHOD gr_tree->frontend_update.
+*>>>INS
+* Expand root node
+  CALL METHOD event_handler=>handle_node_expand
+    EXPORTING
+      node_key = '          1'
+      sender   = gr_tree.
 
+  CALL METHOD gr_tree->expand_node
+    EXPORTING
+      i_node_key          = '          1'
+    EXCEPTIONS
+      failed              = 1
+      illegal_level_count = 2
+      cntl_system_error   = 3
+      node_not_found      = 4
+      cannot_expand_leaf  = 5
+      OTHERS              = 6.
+  IF sy-subrc <> 0.
+    MESSAGE 'Error expanding root node'(013) TYPE 'E'.
+  ENDIF.
+*<<<INS
+
+  CALL METHOD gr_tree->frontend_update.
 ENDFORM.                    "create_tree
 
 *&---------------------------------------------------------------------*

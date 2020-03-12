@@ -3,101 +3,106 @@
 * MBT Utilities
 *
 * (c) MBT 2020 https://marcbernardtools.com/
-* Last update: 2020-01-07
 ************************************************************************
-class /MBTOOLS/CL_UTILITIES definition
-  public
-  final
-  create public .
+CLASS /mbtools/cl_utilities DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  types:
-    BEGIN OF ty_str_release_patch,
+    TYPES:
+      BEGIN OF ty_str_release_patch,
         release TYPE n LENGTH 3,
         version TYPE n LENGTH 5,
         patch   TYPE n LENGTH 5,
       END OF ty_str_release_patch .
 
-  constants C_VERSION type STRING value '1.0.0' ##NO_TEXT.
-  constants:
-    BEGIN OF c_property,
-                 year           TYPE string VALUE 'YEAR',
-                 month          TYPE string VALUE 'MONTH',
-                 day            TYPE string VALUE 'DAY',
-                 hour           TYPE string VALUE 'HOUR',
-                 minute         TYPE string VALUE 'MINUTE',
-                 second         TYPE string VALUE 'SECOND',
-                 database       TYPE string VALUE 'DATABASE',
-                 database_patch TYPE string VALUE 'DATABASE_PATCH',
-                 dbsl           TYPE string VALUE 'DBSL',
-                 dbsl_patch     TYPE string VALUE 'DBSL_PATCH',
-                 hana           TYPE string VALUE 'HANA',
-                 hana_sp        TYPE string VALUE 'HANA_SP',
-                 hana_revision  TYPE string VALUE 'HANA_REVISION',
-                 hana_patch     TYPE string VALUE 'HANA_PATCH',
-                 spam           TYPE string VALUE 'SPAM',
-                 spam_version   TYPE string VALUE 'SPAM_VERSION',
-                 kernel         TYPE string VALUE 'KERNEL',
-                 kernel_patch   TYPE string VALUE 'KERNEL_PATCH',
-                 kernel_bits    TYPE string VALUE 'KERNEL_BITS',
-                 unicode        TYPE string VALUE 'UNICODE',
-               END OF c_property .
+    CONSTANTS:
+      BEGIN OF c_property,
+        year             TYPE string VALUE 'YEAR',
+        month            TYPE string VALUE 'MONTH',
+        day              TYPE string VALUE 'DAY',
+        hour             TYPE string VALUE 'HOUR',
+        minute           TYPE string VALUE 'MINUTE',
+        second           TYPE string VALUE 'SECOND',
+        database_version TYPE string VALUE 'DATABASE_VERSION',
+        database_release TYPE string VALUE 'DATABASE_RELEASE',
+        database_patch   TYPE string VALUE 'DATABASE_PATCH',
+        dbsl_release     TYPE string VALUE 'DBSL_RELEASE',
+        dbsl_patch       TYPE string VALUE 'DBSL_PATCH',
+        hana_release     TYPE string VALUE 'HANA_RELEASE',
+        hana_sp          TYPE string VALUE 'HANA_SP',
+        hana_revision    TYPE string VALUE 'HANA_REVISION',
+        hana_patch       TYPE string VALUE 'HANA_PATCH',
+        spam_release     TYPE string VALUE 'SPAM_RELEASE',
+        spam_version     TYPE string VALUE 'SPAM_VERSION',
+        kernel_release   TYPE string VALUE 'KERNEL_RELEASE',
+        kernel_patch     TYPE string VALUE 'KERNEL_PATCH',
+        kernel_bits      TYPE string VALUE 'KERNEL_BITS',
+        unicode          TYPE string VALUE 'UNICODE',
+      END OF c_property .
+    CONSTANTS c_unknown TYPE string VALUE 'UNKNOWN' ##NO_TEXT.
 
-  class-methods CALL_BROWSER
-    importing
-      !IV_URL type CSEQUENCE .
-  class-methods IS_BATCH
-    returning
-      value(RV_BATCH) type ABAP_BOOL .
-  class-methods IS_SYSTEM_MODIFIABLE
-    returning
-      value(RV_MODIFIABLE) type ABAP_BOOL .
-  class-methods IS_SYSTEM_TEST_OR_PROD
-    returning
-      value(RV_TEST_PROD) type ABAP_BOOL .
-  class-methods IS_SNOTE_ALLOWED
-    returning
-      value(RV_SNOTE_ALLOWED) type ABAP_BOOL .
-  class-methods IS_UPGRAGE_RUNNING
-    returning
-      value(RV_UPGRADE_RUNNING) type ABAP_BOOL .
-  class-methods IS_SPAM_LOCKED
-    returning
-      value(RV_SPAM_LOCKED) type ABAP_BOOL .
-  class-methods GET_PROPERTY
-    importing
-      value(I_PROPERTY) type CLIKE
-    exporting
-      !E_VALUE type STRING
-      !E_VALUE_FLOAT type F
-      !E_VALUE_INTEGER type I
-      !E_SUBRC type SY-SUBRC .
-  class-methods GET_DB_RELEASE
-    exporting
-      !ES_DBINFO type DBRELINFO
-      !ES_HANA_RELEASE type TY_STR_RELEASE_PATCH .
-  class-methods GET_SPAM_RELEASE
-    returning
-      value(RS_DETAILS) type TY_STR_RELEASE_PATCH .
-  class-methods GET_KERNEL_RELEASE
-    returning
-      value(RS_DETAILS) type TY_STR_RELEASE_PATCH .
-  class-methods GET_SWCOMP_RELEASE
-    importing
-      value(I_COMPONENT) type CLIKE
-    returning
-      value(R_RELEASE) type STRING .
-  class-methods GET_SWCOMP_SUPPORT_PACKAGE
-    importing
-      value(I_COMPONENT) type CLIKE
-    returning
-      value(R_SUPPORT_PACKAGE) type STRING .
-  class-methods GET_PROFILE_PARAMETER
-    importing
-      value(I_PARAMETER) type CLIKE
-    returning
-      value(R_VALUE) type STRING .
+    CLASS-METHODS call_browser
+      IMPORTING
+        !iv_url TYPE csequence .
+    CLASS-METHODS is_batch
+      RETURNING
+        VALUE(rv_batch) TYPE abap_bool .
+    CLASS-METHODS is_system_modifiable
+      RETURNING
+        VALUE(rv_modifiable) TYPE abap_bool .
+    CLASS-METHODS is_system_test_or_prod
+      RETURNING
+        VALUE(rv_test_prod) TYPE abap_bool .
+    CLASS-METHODS is_snote_allowed
+      RETURNING
+        VALUE(rv_snote_allowed) TYPE abap_bool .
+    CLASS-METHODS is_upgrage_running
+      RETURNING
+        VALUE(rv_upgrade_running) TYPE abap_bool .
+    CLASS-METHODS is_spam_locked
+      RETURNING
+        VALUE(rv_spam_locked) TYPE abap_bool .
+    CLASS-METHODS get_property
+      IMPORTING
+        VALUE(i_property) TYPE clike
+      EXPORTING
+        !e_value          TYPE string
+        !e_value_float    TYPE f
+        !e_value_integer  TYPE i
+        !e_subrc          TYPE sy-subrc .
+    CLASS-METHODS get_syst_field
+      IMPORTING
+        VALUE(i_field) TYPE clike
+      RETURNING
+        VALUE(r_value) TYPE string .
+    CLASS-METHODS get_db_release
+      EXPORTING
+        !es_dbinfo       TYPE dbrelinfo
+        !es_hana_release TYPE ty_str_release_patch .
+    CLASS-METHODS get_spam_release
+      RETURNING
+        VALUE(rs_details) TYPE ty_str_release_patch .
+    CLASS-METHODS get_kernel_release
+      RETURNING
+        VALUE(rs_details) TYPE ty_str_release_patch .
+    CLASS-METHODS get_swcomp_release
+      IMPORTING
+        VALUE(i_component) TYPE clike
+      RETURNING
+        VALUE(r_release)   TYPE string .
+    CLASS-METHODS get_swcomp_support_package
+      IMPORTING
+        VALUE(i_component)       TYPE clike
+      RETURNING
+        VALUE(r_support_package) TYPE string .
+    CLASS-METHODS get_profile_parameter
+      IMPORTING
+        VALUE(i_parameter) TYPE clike
+      RETURNING
+        VALUE(r_value)     TYPE string .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -228,23 +233,44 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
   ENDMETHOD.                    "get_kernel_release
 
 
-  METHOD GET_PROFILE_PARAMETER.
+  METHOD get_profile_parameter.
 
-    DATA l_subrc TYPE sy-subrc.
+    DATA:
+      lt_parameters TYPE spfl_parameter_list_t,
+      l_subrc       TYPE sy-subrc.
 
-    CALL FUNCTION 'SPFL_PARAMETER_GET_VALUE'
-      EXPORTING
-        name  = i_parameter
+    FIELD-SYMBOLS:
+      <ls_parameter> TYPE spfl_parameter_list.
+
+    CALL METHOD cl_spfl_profile_parameter=>get_all_parameter
       IMPORTING
-        value = r_value
-        rc    = l_subrc.
+        parameter_sub = lt_parameters.
+
+    LOOP AT lt_parameters ASSIGNING <ls_parameter>.
+      TRANSLATE <ls_parameter>-name TO UPPER CASE.
+    ENDLOOP.
+
+    SORT lt_parameters BY name.
+
+    READ TABLE lt_parameters ASSIGNING <ls_parameter>
+      WITH KEY name = i_parameter BINARY SEARCH.
+    IF sy-subrc = 0.
+      IF NOT <ls_parameter>-user_value IS INITIAL.
+        r_value = <ls_parameter>-user_value.
+      ELSE.
+        r_value = <ls_parameter>-default_value.
+      ENDIF.
+    ELSE.
+      r_value = c_unknown.
+    ENDIF.
 
   ENDMETHOD.
 
 
-  METHOD GET_PROPERTY.
+  METHOD get_property.
 
     DATA:
+      l_property        TYPE string,
       l_version         TYPE string,
       ls_dbinfo         TYPE dbrelinfo,
       ls_hana_release   TYPE ty_str_release_patch,
@@ -254,8 +280,11 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
 
     CLEAR: e_value, e_value_float, e_value_integer, e_subrc.
 
+    l_property = i_property.
+    TRANSLATE l_property TO UPPER CASE.
+
     TRY.
-        CASE i_property.
+        CASE l_property.
           WHEN c_property-year.
             e_value = sy-datum+0(4).
           WHEN c_property-month.
@@ -268,17 +297,20 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
             e_value = sy-uzeit+2(2).
           WHEN c_property-second.
             e_value = sy-uzeit+4(2).
-          WHEN c_property-database OR c_property-database_patch OR c_property-dbsl OR c_property-dbsl_patch.
+          WHEN c_property-database_version OR c_property-database_release OR c_property-database_patch
+            OR c_property-dbsl_release OR c_property-dbsl_patch.
             CALL METHOD get_db_release
               IMPORTING
                 es_dbinfo = ls_dbinfo.
-            IF i_property = c_property-database.
+            IF l_property = c_property-database_version.
+              l_version = ls_dbinfo-srvrel.
+            ELSEIF l_property = c_property-database_release.
               FIND FIRST OCCURRENCE OF REGEX '(\d+)\.\d+\.*' IN ls_dbinfo-srvrel
                 SUBMATCHES l_version.
-            ELSEIF i_property = c_property-database_patch.
+            ELSEIF l_property = c_property-database_patch.
               FIND FIRST OCCURRENCE OF REGEX '\d+\.(\d+)\.*' IN ls_dbinfo-srvrel
                 SUBMATCHES l_version.
-            ELSEIF i_property = c_property-dbsl.
+            ELSEIF l_property = c_property-dbsl_release.
               SPLIT ls_dbinfo-dbsl_vers AT '.' INTO l_version sy-lisel.
             ELSE.
               SPLIT ls_dbinfo-dbsl_vers AT '.' INTO sy-lisel l_version.
@@ -288,31 +320,31 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
             ELSE.
               e_subrc = 2.
             ENDIF.
-          WHEN c_property-hana OR c_property-hana_sp OR c_property-hana_revision OR c_property-hana_patch.
+          WHEN c_property-hana_release OR c_property-hana_sp OR c_property-hana_revision OR c_property-hana_patch.
             CALL METHOD get_db_release
               IMPORTING
                 es_hana_release = ls_hana_release.
-            IF i_property = c_property-hana.
+            IF l_property = c_property-hana_release.
               e_value = ls_hana_release-release DIV 100.
-            ELSEIF i_property = c_property-hana_sp.
+            ELSEIF l_property = c_property-hana_sp.
               e_value = ls_hana_release-release MOD 100.
-            ELSEIF i_property = c_property-hana_revision.
+            ELSEIF l_property = c_property-hana_revision.
               e_value = ls_hana_release-version.
             ELSE.
               e_value = ls_hana_release-patch.
             ENDIF.
-          WHEN c_property-spam OR c_property-spam_version.
+          WHEN c_property-spam_release OR c_property-spam_version.
             ls_spam_release = get_spam_release( ).
-            IF i_property = c_property-spam.
+            IF l_property = c_property-spam_release.
               e_value = ls_spam_release-release.
             ELSE.
               e_value = ls_spam_release-version.
             ENDIF.
-          WHEN c_property-kernel OR c_property-kernel_patch OR c_property-kernel_bits.
+          WHEN c_property-kernel_release OR c_property-kernel_patch OR c_property-kernel_bits.
             ls_kernel_release = get_kernel_release( ).
-            IF i_property = c_property-kernel.
+            IF l_property = c_property-kernel_release.
               e_value = ls_kernel_release-release.
-            ELSEIF i_property = c_property-kernel_patch.
+            ELSEIF l_property = c_property-kernel_patch.
               e_value = ls_kernel_release-patch.
             ELSE.
               e_value = ls_kernel_release-version.
@@ -324,17 +356,21 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
               e_value = 1.
             ENDIF.
           WHEN OTHERS.
-            e_value = get_swcomp_release( i_property ).
+            e_value = get_syst_field( l_property ).
 
-            IF e_value IS INITIAL.
-              e_value = get_swcomp_support_package( i_property ).
+            IF e_value = c_unknown.
+              e_value = get_swcomp_release( l_property ).
             ENDIF.
 
-            IF e_value IS INITIAL.
-              e_value = get_profile_parameter( i_property ).
+            IF e_value = c_unknown.
+              e_value = get_swcomp_support_package( l_property ).
             ENDIF.
 
-            IF e_value IS INITIAL.
+            IF e_value = c_unknown.
+              e_value = get_profile_parameter( l_property ).
+            ENDIF.
+
+            IF e_value = c_unknown.
               e_subrc = 4.
             ENDIF.
         ENDCASE.
@@ -348,6 +384,8 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
           e_value_integer = e_value.
           e_value_float = e_value.
         CATCH cx_root.
+          "not a numeric value, just ignore
+          e_subrc = 0.
       ENDTRY.
     ENDIF.
 
@@ -375,7 +413,7 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
   ENDMETHOD.                    "get_spam_release
 
 
-  METHOD GET_SWCOMP_RELEASE.
+  METHOD get_swcomp_release.
 
     DATA ls_cvers TYPE cvers.
 
@@ -387,12 +425,14 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
       component = i_component.
     IF sy-subrc = 0.
       r_release = ls_cvers-release.
+    ELSE.
+      r_release = c_unknown.
     ENDIF.
 
   ENDMETHOD.
 
 
-  METHOD GET_SWCOMP_SUPPORT_PACKAGE.
+  METHOD get_swcomp_support_package.
 
     DATA ls_cvers TYPE cvers.
 
@@ -407,6 +447,40 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
       component = ls_cvers-component.
     IF sy-subrc = 0.
       r_support_package = ls_cvers-extrelease.
+    ELSE.
+      r_support_package = c_unknown.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD get_syst_field.
+
+    DATA lv_field TYPE fieldname.
+
+    FIELD-SYMBOLS <value> TYPE any.
+
+    lv_field = i_field.
+
+    TRANSLATE lv_field TO UPPER CASE.
+
+    IF lv_field CS 'SY-' OR lv_field CS 'SYST-'.
+      REPLACE 'SY-' WITH '' INTO lv_field.
+      REPLACE 'SYST-' WITH '' INTO lv_field.
+      CONDENSE lv_field NO-GAPS.
+
+      ASSIGN COMPONENT lv_field OF STRUCTURE syst TO <value>.
+      IF sy-subrc = 0.
+        TRY.
+            r_value = <value>.
+          CATCH cx_root.
+            r_value = c_unknown.
+        ENDTRY.
+      ELSE.
+        r_value = c_unknown.
+      ENDIF.
+    ELSE.
+      r_value = c_unknown.
     ENDIF.
 
   ENDMETHOD.

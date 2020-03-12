@@ -19,13 +19,16 @@ public section.
   aliases MBT_MANIFEST
     for /MBTOOLS/IF_MANIFEST~DESCRIPTOR .
 
-  constants C_NAME type STRING value 'MBT_Foundation' ##NO_TEXT.
-  constants C_VERSION type STRING value '1.1.0' ##NO_TEXT.
+  constants C_NAME type STRING value 'MARC_BERNARD_TOOLS' ##NO_TEXT.
+  constants C_VERSION type STRING value '1.0.0' ##NO_TEXT.
+  constants C_TITLE type STRING value 'Marc Bernard Tools' ##NO_TEXT.
+  constants C_DESCRIPTION type STRING value 'Essential tools for SAP® customers by Marc Bernard Tools' ##NO_TEXT.
 *   Registry General
   constants CO_REG_GENERAL type STRING value 'General^' ##NO_TEXT.
   constants CO_KEY_NAME type STRING value 'Name' ##NO_TEXT.
   constants CO_KEY_OBJECT type STRING value 'Object' ##NO_TEXT.
-  constants CO_KEY_TEXT type STRING value 'Text' ##NO_TEXT.
+  constants CO_KEY_TITLE type STRING value 'Title' ##NO_TEXT.
+  constants CO_KEY_DESCRIPTION type STRING value 'Description' ##NO_TEXT.
   constants CO_KEY_URI type STRING value 'URI' ##NO_TEXT.
   constants CO_KEY_VERSION type STRING value 'Version' ##NO_TEXT.
   constants CO_KEY_NAMESPACE type STRING value 'Namespace' ##NO_TEXT.
@@ -96,10 +99,10 @@ public section.
       value(I_NAME) type STRING
     returning
       value(R_REMOVED) type ABAP_BOOL .
-protected section.
-private section.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 
-  class-data REG_ROOT type ref to /MBTOOLS/CL_REGISTRY .
+    CLASS-DATA reg_root TYPE REF TO /mbtools/cl_registry .
 ENDCLASS.
 
 
@@ -150,6 +153,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
   METHOD class_constructor.
 
+    LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
+
 *   Get root of registry
     reg_root = /mbtools/cl_registry=>get_root( ).
 
@@ -157,23 +162,24 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
 
   METHOD constructor.
-*   APACK
+    " APACK
     apack_manifest = VALUE #(
-      group_id    = 'github.com/mbtools'
-      artifact_id = 'mbt-foundation'
+      group_id    = 'github.com/mbtools/marc-bernard-tools'
+      artifact_id = 'com.marcbernardtools.abap.bc'
       version     = c_version
-      git_url     = 'https://github.com/mbtools/mbt-foundation.git'
-    ).
-*   MBT
+      git_url     = 'https://github.com/mbtools/marc-bernard-tools.git'
+    ) ##NO_TEXT.
+    " MBT
     mbt_manifest = VALUE #(
       id          = 1
       name        = c_name
       version     = c_version
-      description = 'Foundation for Marc Bernard Tools'
-      mbt_url     = 'https://marcbernardtools.com/tool/mbt-foundation/'
+      title       = c_title
+      description = c_description
+      mbt_url     = 'https://marcbernardtools.com/tool/marc-bernard-tools/'
       namespace   = '/MBTOOLS/'
       package     = '/MBTOOLS/BC'
-    ).
+    ) ##NO_TEXT.
   ENDMETHOD.
 
 
@@ -221,7 +227,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD is_active.
 
     DATA:
-      reg_tool   TYPE REF TO /mbtools/cl_registry,
+      reg_tool  TYPE REF TO /mbtools/cl_registry,
       reg_entry TYPE REF TO /mbtools/cl_registry,
       val       TYPE string.
 
@@ -419,13 +425,14 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           reg_entry = reg_tool->add_subentry( co_reg_general ).
         ENDIF.
         IF reg_entry IS BOUND.
-          reg_entry->set_value( key = co_key_object    value = i_object ).
-          reg_entry->set_value( key = co_key_name      value = manifest->descriptor-name ).
-          reg_entry->set_value( key = co_key_package   value = manifest->descriptor-package ).
-          reg_entry->set_value( key = co_key_namespace value = manifest->descriptor-namespace ).
-          reg_entry->set_value( key = co_key_version   value = manifest->descriptor-version ).
-          reg_entry->set_value( key = co_key_text      value = manifest->descriptor-description ).
-          reg_entry->set_value( key = co_key_uri       value = manifest->descriptor-mbt_url ).
+          reg_entry->set_value( key = co_key_object      value = i_object ).
+          reg_entry->set_value( key = co_key_name        value = manifest->descriptor-name ).
+          reg_entry->set_value( key = co_key_package     value = manifest->descriptor-package ).
+          reg_entry->set_value( key = co_key_namespace   value = manifest->descriptor-namespace ).
+          reg_entry->set_value( key = co_key_version     value = manifest->descriptor-version ).
+          reg_entry->set_value( key = co_key_title       value = manifest->descriptor-title ).
+          reg_entry->set_value( key = co_key_description value = manifest->descriptor-description ).
+          reg_entry->set_value( key = co_key_uri         value = manifest->descriptor-mbt_url ).
           reg_entry->save( ).
         ENDIF.
 
