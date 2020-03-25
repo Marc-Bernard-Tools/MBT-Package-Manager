@@ -26,17 +26,19 @@ CLASS /mbtools/cl_utilities DEFINITION
         hour             TYPE string VALUE 'HOUR',
         minute           TYPE string VALUE 'MINUTE',
         second           TYPE string VALUE 'SECOND',
-        database_version TYPE string VALUE 'DATABASE_VERSION',
-        database_release TYPE string VALUE 'DATABASE_RELEASE',
-        database_patch   TYPE string VALUE 'DATABASE_PATCH',
+        database         TYPE string VALUE 'DB',
+        database_release TYPE string VALUE 'DB_RELEASE',
+        database_patch   TYPE string VALUE 'DB_PATCH',
         dbsl_release     TYPE string VALUE 'DBSL_RELEASE',
         dbsl_patch       TYPE string VALUE 'DBSL_PATCH',
+        hana             TYPE string VALUE 'HANA',
         hana_release     TYPE string VALUE 'HANA_RELEASE',
         hana_sp          TYPE string VALUE 'HANA_SP',
         hana_revision    TYPE string VALUE 'HANA_REVISION',
         hana_patch       TYPE string VALUE 'HANA_PATCH',
         spam_release     TYPE string VALUE 'SPAM_RELEASE',
         spam_version     TYPE string VALUE 'SPAM_VERSION',
+        kernel           TYPE string VALUE 'KERNEL',
         kernel_release   TYPE string VALUE 'KERNEL_RELEASE',
         kernel_patch     TYPE string VALUE 'KERNEL_PATCH',
         kernel_bits      TYPE string VALUE 'KERNEL_BITS',
@@ -297,12 +299,12 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
             e_value = sy-uzeit+2(2).
           WHEN c_property-second.
             e_value = sy-uzeit+4(2).
-          WHEN c_property-database_version OR c_property-database_release OR c_property-database_patch
+          WHEN c_property-database OR c_property-database_release OR c_property-database_patch
             OR c_property-dbsl_release OR c_property-dbsl_patch.
             CALL METHOD get_db_release
               IMPORTING
                 es_dbinfo = ls_dbinfo.
-            IF l_property = c_property-database_version.
+            IF l_property = c_property-database.
               l_version = ls_dbinfo-srvrel.
             ELSEIF l_property = c_property-database_release.
               FIND FIRST OCCURRENCE OF REGEX '(\d+)\.\d+\.*' IN ls_dbinfo-srvrel
@@ -320,11 +322,13 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
             ELSE.
               e_subrc = 2.
             ENDIF.
-          WHEN c_property-hana_release OR c_property-hana_sp OR c_property-hana_revision OR c_property-hana_patch.
+          WHEN c_property-hana OR c_property-hana_release OR c_property-hana_sp OR c_property-hana_revision OR c_property-hana_patch.
             CALL METHOD get_db_release
               IMPORTING
                 es_hana_release = ls_hana_release.
-            IF l_property = c_property-hana_release.
+            IF l_property = c_property-hana.
+              e_value = ls_hana_release-release.
+            ELSEIF l_property = c_property-hana_release.
               e_value = ls_hana_release-release DIV 100.
             ELSEIF l_property = c_property-hana_sp.
               e_value = ls_hana_release-release MOD 100.
@@ -340,9 +344,11 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
             ELSE.
               e_value = ls_spam_release-version.
             ENDIF.
-          WHEN c_property-kernel_release OR c_property-kernel_patch OR c_property-kernel_bits.
+          WHEN c_property-kernel OR c_property-kernel_release OR c_property-kernel_patch OR c_property-kernel_bits.
             ls_kernel_release = get_kernel_release( ).
-            IF l_property = c_property-kernel_release.
+            IF l_property = c_property-kernel.
+              e_value = ls_kernel_release.
+            ELSEIF l_property = c_property-kernel_release.
               e_value = ls_kernel_release-release.
             ELSEIF l_property = c_property-kernel_patch.
               e_value = ls_kernel_release-patch.
