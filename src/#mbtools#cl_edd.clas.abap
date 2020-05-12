@@ -14,6 +14,7 @@ CLASS /mbtools/cl_edd DEFINITION
   PUBLIC SECTION.
 
     CONSTANTS c_name TYPE string VALUE 'MBT_EDD_API' ##NO_TEXT.
+    CONSTANTS c_version TYPE string VALUE '1.0.0' ##NO_TEXT.
     CONSTANTS co_edd_host TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.
     CONSTANTS co_action_activate TYPE string VALUE 'activate_license' ##NO_TEXT.
     CONSTANTS co_action_deactivate TYPE string VALUE 'deactivate_license' ##NO_TEXT.

@@ -4,40 +4,67 @@
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-CLASS /mbtools/cl_sap DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class /MBTOOLS/CL_SAP definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    TYPES:
-      ty_object_texts TYPE STANDARD TABLE OF ko100 WITH DEFAULT KEY .
+  types:
+    ty_object_texts TYPE STANDARD TABLE OF ko100 WITH DEFAULT KEY .
 
-    CLASS-METHODS class_constructor .
-
-    CLASS-METHODS get_object_text
-      IMPORTING
-        VALUE(i_object) TYPE trobjtype
-      RETURNING
-        VALUE(r_text)   TYPE ddtext .
-
-    CLASS-METHODS get_object_texts
-      RETURNING
-        VALUE(r_object_texts) TYPE ty_object_texts .
-
-    CLASS-METHODS is_sap_note
-      IMPORTING
-        !i_input        TYPE csequence
-      RETURNING
-        VALUE(r_result) TYPE abap_bool .
-
-    CLASS-METHODS object_name_check
-      IMPORTING
-        !i_input        TYPE csequence
-      RETURNING
-        VALUE(r_result) TYPE string .
-
+  class-methods CLASS_CONSTRUCTOR .
+  class-methods GET_OBJECT_WO_NAMESPACE
+    importing
+      !I_OBJ_NAME type CSEQUENCE
+    returning
+      value(R_RESULT) type SOBJ_NAME .
+  class-methods GET_NAMESPACE
+    importing
+      !I_OBJ_NAME type CSEQUENCE
+    returning
+      value(R_RESULT) type NAMESPACE .
+  class-methods GET_OBJECT_TEXT
+    importing
+      value(I_OBJECT) type TROBJTYPE
+    returning
+      value(R_TEXT) type DDTEXT .
+  class-methods GET_OBJECT_TEXTS
+    returning
+      value(R_OBJECT_TEXTS) type TY_OBJECT_TEXTS .
+  class-methods IS_DEVC_DELETED
+    importing
+      !I_OBJ_NAME type CSEQUENCE
+    returning
+      value(R_RESULT) type ABAP_BOOL .
+  class-methods IS_FUGR_DELETED
+    importing
+      !I_OBJ_NAME type CSEQUENCE
+    returning
+      value(R_RESULT) type ABAP_BOOL .
+  class-methods IS_SAP_NOTE
+    importing
+      !I_INPUT type CSEQUENCE
+    returning
+      value(R_RESULT) type ABAP_BOOL .
+  class-methods IS_TOBJ_DELETED
+    importing
+      !I_OBJ_NAME type CSEQUENCE
+    returning
+      value(R_RESULT) type ABAP_BOOL .
+  class-methods OBJECT_NAME_CHECK
+    importing
+      !I_INPUT type CSEQUENCE
+    returning
+      value(R_RESULT) type STRING .
+  class-methods SHOW_OBJECT
+    importing
+      !I_PGMID type TADIR-PGMID
+      !I_OBJECT type TADIR-OBJECT
+      !I_OBJ_NAME type TADIR-OBJ_NAME
+    returning
+      value(R_EXIT) type ABAP_BOOL .
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -104,6 +131,20 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_namespace.
+
+    DATA: obj_name TYPE string.
+
+    IF i_obj_name CS '/'.
+      SPLIT i_obj_name+1 AT '/' INTO r_result obj_name.
+      r_result = '/' && r_result.
+    ELSE.
+      r_result = ''.
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD get_object_text.
 
     DATA object_text TYPE ko100.
@@ -124,6 +165,75 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_object_wo_namespace.
+
+    DATA: namespace TYPE namespace.
+
+    IF i_obj_name CS '/'.
+      SPLIT i_obj_name+1 AT '/' INTO namespace r_result.
+    ELSE.
+      r_result = i_obj_name.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD is_devc_deleted.
+
+    DATA: devclass TYPE devclass.
+
+    SELECT SINGLE devclass FROM tdevc INTO devclass
+      WHERE devclass = i_obj_name.
+
+    r_result = boolc( sy-subrc <> 0 ).
+
+  ENDMETHOD.
+
+
+  METHOD is_fugr_deleted.
+
+    DATA: area      TYPE rs38l-area,
+          namespace TYPE rs38l-namespace,
+          group     TYPE rs38l-area,
+          program   TYPE program.
+
+    area = i_obj_name.
+
+    CALL FUNCTION 'FUNCTION_INCLUDE_SPLIT'
+      EXPORTING
+        complete_area                = area
+      IMPORTING
+        namespace                    = namespace
+        group                        = group
+      EXCEPTIONS
+        include_not_exists           = 1
+        group_not_exists             = 2
+        no_selections                = 3
+        no_function_include          = 4
+        no_function_pool             = 5
+        delimiter_wrong_position     = 6
+        no_customer_function_group   = 7
+        no_customer_function_include = 8
+        reserved_name_customer       = 9
+        namespace_too_long           = 10
+        area_length_error            = 11
+        OTHERS                       = 12.
+    IF sy-subrc <> 0.
+      r_result = abap_true.
+      RETURN. "assume deleted
+    ENDIF.
+
+    CONCATENATE namespace 'SAPL' group INTO program.
+
+    SELECT SINGLE name FROM trdir INTO program
+      WHERE name = program.
+    IF sy-subrc <> 0.
+      r_result = abap_true.
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD is_sap_note.
 
     " Interpret any number between 1 and 4999999 as an SAP Note
@@ -133,6 +243,23 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
     ELSE.
       r_result = abap_false.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD is_tobj_deleted.
+
+    DATA:
+      objectname TYPE objh-objectname,
+      type_pos   TYPE i.
+
+    type_pos = strlen( i_obj_name ) - 1.
+
+    SELECT SINGLE objectname FROM objh INTO objectname
+      WHERE objectname = i_obj_name(type_pos)
+      AND objecttype = i_obj_name+type_pos.             "#EC CI_GENBUFF
+
+    r_result = boolc( sy-subrc <> 0 ).
 
   ENDMETHOD.
 
@@ -152,6 +279,47 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
       number      = r_result.
       note_number = number.
       r_result    = note_number.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD show_object.
+
+    DATA:
+      e071_obj_name TYPE e071-obj_name.
+
+    " First try: workbench tools
+    CALL FUNCTION 'RS_TOOL_ACCESS'
+      EXPORTING
+        operation           = 'SHOW'
+        object_name         = i_obj_name
+        object_type         = i_object
+      EXCEPTIONS
+        not_executed        = 1
+        invalid_object_type = 2
+        OTHERS              = 3.
+    IF sy-subrc = 0.
+      r_exit = abap_true.
+      RETURN.
+    ENDIF.
+
+    " Second try: transport tool
+    e071_obj_name = i_obj_name.
+
+    CALL FUNCTION 'TR_OBJECT_JUMP_TO_TOOL'
+      EXPORTING
+        iv_action         = 'SHOW'
+        iv_pgmid          = i_pgmid
+        iv_object         = i_object
+        iv_obj_name       = e071_obj_name
+      EXCEPTIONS
+        jump_not_possible = 1
+        OTHERS            = 2.
+    IF sy-subrc = 0.
+      r_exit = abap_true.
+    ELSE.
+      MESSAGE s000 WITH 'Navigation not available'(001).
     ENDIF.
 
   ENDMETHOD.

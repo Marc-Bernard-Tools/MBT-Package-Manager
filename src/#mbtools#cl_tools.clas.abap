@@ -4,101 +4,106 @@
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-class /MBTOOLS/CL_TOOLS definition
-  public
-  final
-  create public .
+CLASS /mbtools/cl_tools DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  interfaces ZIF_APACK_MANIFEST .
-  interfaces /MBTOOLS/IF_MANIFEST .
+    INTERFACES zif_apack_manifest .
+    INTERFACES /mbtools/if_manifest .
 
-  aliases APACK_MANIFEST
-    for ZIF_APACK_MANIFEST~DESCRIPTOR .
-  aliases MBT_MANIFEST
-    for /MBTOOLS/IF_MANIFEST~DESCRIPTOR .
+    ALIASES apack_manifest
+      FOR zif_apack_manifest~descriptor .
+    ALIASES mbt_manifest
+      FOR /mbtools/if_manifest~descriptor .
 
-  constants C_NAME type STRING value 'MARC_BERNARD_TOOLS' ##NO_TEXT.
-  constants C_VERSION type STRING value '1.0.0' ##NO_TEXT.
-  constants C_TITLE type STRING value 'Marc Bernard Tools' ##NO_TEXT.
-  constants C_DESCRIPTION type STRING value 'Essential tools for SAP® customers by Marc Bernard Tools' ##NO_TEXT.
+    CONSTANTS c_name TYPE string VALUE 'MARC_BERNARD_TOOLS' ##NO_TEXT.
+    CONSTANTS c_version TYPE string VALUE '1.0.0' ##NO_TEXT.
+    CONSTANTS c_title TYPE string VALUE 'Marc Bernard Tools' ##NO_TEXT.
+    CONSTANTS c_description TYPE string VALUE 'Essential Tools for SAP® Customers & Partners by Marc Bernard Tools' ##NO_TEXT.
+    CONSTANTS c_home TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.
+    CONSTANTS c_uri TYPE string VALUE 'https://marcbernardtools.com/downloads/marc-bernard-tools/' ##NO_TEXT.
+    CONSTANTS c_terms TYPE string VALUE 'https://marcbernardtools.com/company/terms-software/' ##NO_TEXT.
+    CONSTANTS c_package TYPE devclass VALUE '/MBTOOLS/BC' ##NO_TEXT.
+
 *   Registry General
-  constants CO_REG_GENERAL type STRING value 'General^' ##NO_TEXT.
-  constants CO_KEY_NAME type STRING value 'Name' ##NO_TEXT.
-  constants CO_KEY_OBJECT type STRING value 'Object' ##NO_TEXT.
-  constants CO_KEY_TITLE type STRING value 'Title' ##NO_TEXT.
-  constants CO_KEY_DESCRIPTION type STRING value 'Description' ##NO_TEXT.
-  constants CO_KEY_URI type STRING value 'URI' ##NO_TEXT.
-  constants CO_KEY_VERSION type STRING value 'Version' ##NO_TEXT.
-  constants CO_KEY_NAMESPACE type STRING value 'Namespace' ##NO_TEXT.
-  constants CO_KEY_PACKAGE type STRING value 'Package' ##NO_TEXT.
+    CONSTANTS co_reg_general TYPE string VALUE 'General^' ##NO_TEXT.
+    CONSTANTS co_key_name TYPE string VALUE 'Name' ##NO_TEXT.
+    CONSTANTS co_key_object TYPE string VALUE 'Object' ##NO_TEXT.
+    CONSTANTS co_key_title TYPE string VALUE 'Title' ##NO_TEXT.
+    CONSTANTS co_key_description TYPE string VALUE 'Description' ##NO_TEXT.
+    CONSTANTS co_key_uri TYPE string VALUE 'URI' ##NO_TEXT.
+    CONSTANTS co_key_version TYPE string VALUE 'Version' ##NO_TEXT.
+    CONSTANTS co_key_namespace TYPE string VALUE 'Namespace' ##NO_TEXT.
+    CONSTANTS co_key_package TYPE string VALUE 'Package' ##NO_TEXT.
 *   Registry Properties
-  constants CO_REG_PROPERTIES type STRING value 'Properties^' ##NO_TEXT.
-  constants CO_KEY_INSTALL_TIME type STRING value 'InstallTimestamp' ##NO_TEXT.
-  constants CO_KEY_INSTALL_USER type STRING value 'InstallUser' ##NO_TEXT.
-  constants CO_KEY_UNINSTALL_TIME type STRING value 'UninstallTimestamp' ##NO_TEXT.
-  constants CO_KEY_UNINSTALL_USER type STRING value 'UninstallUser' ##NO_TEXT.
-  constants CO_KEY_UPDATE_TIME type STRING value 'UpdateTimestamp' ##NO_TEXT.
-  constants CO_KEY_UPDATE_USER type STRING value 'UpdateUser' ##NO_TEXT.
+    CONSTANTS co_reg_properties TYPE string VALUE 'Properties^' ##NO_TEXT.
+    CONSTANTS co_key_install_time TYPE string VALUE 'InstallTimestamp' ##NO_TEXT.
+    CONSTANTS co_key_install_user TYPE string VALUE 'InstallUser' ##NO_TEXT.
+    CONSTANTS co_key_uninstall_time TYPE string VALUE 'UninstallTimestamp' ##NO_TEXT.
+    CONSTANTS co_key_uninstall_user TYPE string VALUE 'UninstallUser' ##NO_TEXT.
+    CONSTANTS co_key_update_time TYPE string VALUE 'UpdateTimestamp' ##NO_TEXT.
+    CONSTANTS co_key_update_user TYPE string VALUE 'UpdateUser' ##NO_TEXT.
 *   Registry Switches
-  constants CO_REG_SWITCHES type STRING value 'Switches' ##NO_TEXT.
-  constants CO_KEY_ACTIVE type STRING value 'Active' ##NO_TEXT.
-  constants CO_KEY_DEBUG type STRING value 'Debug' ##NO_TEXT.
-  constants CO_KEY_TRACE type STRING value 'Trace' ##NO_TEXT.
+    CONSTANTS co_reg_switches TYPE string VALUE 'Switches' ##NO_TEXT.
+    CONSTANTS co_key_active TYPE string VALUE 'Active' ##NO_TEXT.
+    CONSTANTS co_key_debug TYPE string VALUE 'Debug' ##NO_TEXT.
+    CONSTANTS co_key_trace TYPE string VALUE 'Trace' ##NO_TEXT.
 *   Registry License
-  constants CO_REG_LICENSE type STRING value 'License^' ##NO_TEXT.
-  constants CO_KEY_LIC_ID type STRING value 'ID' ##NO_TEXT.
-  constants CO_KEY_LIC_KEY type STRING value 'LicenseKey' ##NO_TEXT.
-  constants CO_KEY_LIC_VALID type STRING value 'LicenseValid' ##NO_TEXT.
-  constants CO_KEY_LIC_EXPIRE type STRING value 'LicenseExpiration' ##NO_TEXT.
+    CONSTANTS co_reg_license TYPE string VALUE 'License^' ##NO_TEXT.
+    CONSTANTS co_key_lic_id TYPE string VALUE 'ID' ##NO_TEXT.
+    CONSTANTS co_key_lic_key TYPE string VALUE 'LicenseKey' ##NO_TEXT.
+    CONSTANTS co_key_lic_valid TYPE string VALUE 'LicenseValid' ##NO_TEXT.
+    CONSTANTS co_key_lic_expire TYPE string VALUE 'LicenseExpiration' ##NO_TEXT.
 *   Evaluation
-  constants CO_EVAL_DAYS type I value 30 ##NO_TEXT.
-  constants CO_EVAL_USERS type I value 10 ##NO_TEXT.
+    CONSTANTS co_eval_days TYPE i VALUE 30 ##NO_TEXT.
+    CONSTANTS co_eval_users TYPE i VALUE 10 ##NO_TEXT.
 
-  class-methods CLASS_CONSTRUCTOR .
-  methods CONSTRUCTOR .
-  class-methods REGISTER
-    importing
-      value(I_OBJECT) type STRING
-    returning
-      value(R_REGISTERED) type ABAP_BOOL .
-  class-methods UNREGISTER
-    importing
-      value(I_OBJECT) type STRING
-    returning
-      value(R_UNREGISTERED) type ABAP_BOOL .
-  class-methods ACTIVATE
-    importing
-      value(I_OBJECT) type STRING
-    returning
-      value(R_ACTIVATED) type ABAP_BOOL .
-  class-methods DEACTIVATE
-    importing
-      value(I_OBJECT) type STRING
-    returning
-      value(R_DEACTIVATED) type ABAP_BOOL .
-  class-methods IS_ACTIVE
-    importing
-      value(I_NAME) type STRING
-    returning
-      value(R_ACTIVE) type ABAP_BOOL .
-  class-methods IS_LICENSED
-    importing
-      value(I_NAME) type STRING
-    returning
-      value(R_LICENSED) type ABAP_BOOL .
-  class-methods LICENSE_ADD
-    importing
-      value(I_NAME) type STRING
-      value(I_LICENSE) type STRING
-    returning
-      value(R_LICENSED) type ABAP_BOOL .
-  class-methods LICENSE_REMOVE
-    importing
-      value(I_NAME) type STRING
-    returning
-      value(R_REMOVED) type ABAP_BOOL .
+    CLASS-METHODS class_constructor .
+    METHODS constructor .
+    CLASS-METHODS register
+      IMPORTING
+        VALUE(i_object)     TYPE string
+      RETURNING
+        VALUE(r_registered) TYPE abap_bool .
+    CLASS-METHODS unregister
+      IMPORTING
+        VALUE(i_object)       TYPE string
+      RETURNING
+        VALUE(r_unregistered) TYPE abap_bool .
+    CLASS-METHODS activate
+      IMPORTING
+        VALUE(i_object)    TYPE string
+      RETURNING
+        VALUE(r_activated) TYPE abap_bool .
+    CLASS-METHODS deactivate
+      IMPORTING
+        VALUE(i_object)      TYPE string
+      RETURNING
+        VALUE(r_deactivated) TYPE abap_bool .
+    CLASS-METHODS is_active
+      IMPORTING
+        VALUE(i_name)   TYPE string
+      RETURNING
+        VALUE(r_active) TYPE abap_bool .
+    CLASS-METHODS is_licensed
+      IMPORTING
+        VALUE(i_name)     TYPE string
+      RETURNING
+        VALUE(r_licensed) TYPE abap_bool .
+    CLASS-METHODS license_add
+      IMPORTING
+        VALUE(i_name)     TYPE string
+        VALUE(i_license)  TYPE string
+      RETURNING
+        VALUE(r_licensed) TYPE abap_bool .
+    CLASS-METHODS license_remove
+      IMPORTING
+        VALUE(i_name)    TYPE string
+      RETURNING
+        VALUE(r_removed) TYPE abap_bool .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
