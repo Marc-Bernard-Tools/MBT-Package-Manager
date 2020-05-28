@@ -19,27 +19,23 @@ CLASS /mbtools/cl_tools DEFINITION
     ALIASES mbt_manifest
       FOR /mbtools/if_manifest~descriptor .
 
-*   Global Constant
+    " Global Constant
     CONSTANTS c_github TYPE string VALUE 'github.com/mbtools' ##NO_TEXT.
     CONSTANTS c_home TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.
     CONSTANTS c_terms TYPE string VALUE 'https://marcbernardtools.com/company/terms-software/' ##NO_TEXT.
     CONSTANTS c_namespace TYPE devclass VALUE '/MBTOOLS/' ##NO_TEXT.
+    CONSTANTS c_tool_manager TYPE seoclsname VALUE '/MBTOOLS/CL_TOOLS' ##NO_TEXT.
     CONSTANTS c_manifest TYPE seoclsname VALUE '/MBTOOLS/IF_MANIFEST' ##NO_TEXT.
-*   Tool Constants
-    CONSTANTS c_version TYPE string VALUE '1.0.0' ##NO_TEXT.
-    CONSTANTS c_title TYPE string VALUE 'Marc Bernard Tools' ##NO_TEXT.
-    CONSTANTS c_description TYPE string VALUE 'Essential Tools for SAP® Customers & Partners by Marc Bernard Tools' ##NO_TEXT.
-    CONSTANTS c_download_id TYPE i VALUE 4480 ##NO_TEXT.
-*   Registry General
+    " Registry General
     CONSTANTS co_reg_general TYPE string VALUE 'General^' ##NO_TEXT.
     CONSTANTS co_key_name TYPE string VALUE 'Name' ##NO_TEXT.
-    CONSTANTS co_key_object TYPE string VALUE 'Object' ##NO_TEXT.
+    CONSTANTS co_key_class TYPE string VALUE 'Class' ##NO_TEXT.
     CONSTANTS co_key_title TYPE string VALUE 'Title' ##NO_TEXT.
     CONSTANTS co_key_description TYPE string VALUE 'Description' ##NO_TEXT.
     CONSTANTS co_key_version TYPE string VALUE 'Version' ##NO_TEXT.
     CONSTANTS co_key_namespace TYPE string VALUE 'Namespace' ##NO_TEXT.
     CONSTANTS co_key_package TYPE string VALUE 'Package' ##NO_TEXT.
-*   Registry Properties
+    " Registry Properties
     CONSTANTS co_reg_properties TYPE string VALUE 'Properties^' ##NO_TEXT.
     CONSTANTS co_key_install_time TYPE string VALUE 'InstallTimestamp' ##NO_TEXT.
     CONSTANTS co_key_install_user TYPE string VALUE 'InstallUser' ##NO_TEXT.
@@ -47,133 +43,142 @@ CLASS /mbtools/cl_tools DEFINITION
     CONSTANTS co_key_uninstall_user TYPE string VALUE 'UninstallUser' ##NO_TEXT.
     CONSTANTS co_key_update_time TYPE string VALUE 'UpdateTimestamp' ##NO_TEXT.
     CONSTANTS co_key_update_user TYPE string VALUE 'UpdateUser' ##NO_TEXT.
-*   Registry Switches
+    " Registry Switches
     CONSTANTS co_reg_switches TYPE string VALUE 'Switches' ##NO_TEXT.
     CONSTANTS co_key_active TYPE string VALUE 'Active' ##NO_TEXT.
     CONSTANTS co_key_debug TYPE string VALUE 'Debug' ##NO_TEXT.
     CONSTANTS co_key_trace TYPE string VALUE 'Trace' ##NO_TEXT.
-*   Registry License
+    " Registry License
     CONSTANTS co_reg_license TYPE string VALUE 'License^' ##NO_TEXT.
     CONSTANTS co_key_lic_id TYPE string VALUE 'ID' ##NO_TEXT.
     CONSTANTS co_key_lic_key TYPE string VALUE 'LicenseKey' ##NO_TEXT.
     CONSTANTS co_key_lic_valid TYPE string VALUE 'LicenseValid' ##NO_TEXT.
     CONSTANTS co_key_lic_expire TYPE string VALUE 'LicenseExpiration' ##NO_TEXT.
-*   Evaluation
+    " Evaluation
     CONSTANTS co_eval_days TYPE i VALUE 30 ##NO_TEXT.
     CONSTANTS co_eval_users TYPE i VALUE 10 ##NO_TEXT.
 
+    " Constructor
     CLASS-METHODS class_constructor .
-    METHODS constructor .
-    CLASS-METHODS register
+    METHODS constructor
       IMPORTING
-        VALUE(i_object)     TYPE string
-      RETURNING
-        VALUE(r_registered) TYPE abap_bool .
-    CLASS-METHODS register_all
-      RETURNING
-        VALUE(r_registered) TYPE abap_bool .
-    CLASS-METHODS unregister
+        !i_tool TYPE REF TO object .
+    " Class Get
+    CLASS-METHODS get_tool
       IMPORTING
-        VALUE(i_object)       TYPE string
+        VALUE(i_title) TYPE csequence
       RETURNING
-        VALUE(r_unregistered) TYPE abap_bool .
-    CLASS-METHODS unregister_all
-      RETURNING
-        VALUE(r_unregistered) TYPE abap_bool .
-    CLASS-METHODS activate
-      IMPORTING
-        VALUE(i_object)    TYPE string
-      RETURNING
-        VALUE(r_activated) TYPE abap_bool .
-    CLASS-METHODS deactivate
-      IMPORTING
-        VALUE(i_object)      TYPE string
-      RETURNING
-        VALUE(r_deactivated) TYPE abap_bool .
-    CLASS-METHODS is_active
-      IMPORTING
-        VALUE(i_title)  TYPE string
-      RETURNING
-        VALUE(r_active) TYPE abap_bool .
-    CLASS-METHODS is_licensed
-      IMPORTING
-        VALUE(i_title)    TYPE string
-      RETURNING
-        VALUE(r_licensed) TYPE abap_bool .
-    CLASS-METHODS license_add
-      IMPORTING
-        VALUE(i_title)    TYPE string
-        VALUE(i_license)  TYPE string
-      RETURNING
-        VALUE(r_licensed) TYPE abap_bool .
-    CLASS-METHODS license_remove
-      IMPORTING
-        VALUE(i_title)   TYPE string
-      RETURNING
-        VALUE(r_removed) TYPE abap_bool .
-    CLASS-METHODS get_slug
-      IMPORTING
-        !i_title      TYPE string
-      RETURNING
-        VALUE(r_slug) TYPE string .
-    CLASS-METHODS get_name
-      IMPORTING
-        !i_title      TYPE string
-      RETURNING
-        VALUE(r_name) TYPE string .
-    CLASS-METHODS get_package
-      IMPORTING
-        !i_class         TYPE REF TO object
-      RETURNING
-        VALUE(r_package) TYPE devclass .
-    CLASS-METHODS get_class
-      IMPORTING
-        VALUE(i_title) TYPE string OPTIONAL
-        VALUE(i_name)  TYPE string OPTIONAL
-      RETURNING
-        VALUE(r_class) TYPE devclass .
-    CLASS-METHODS get_url_repo
-      IMPORTING
-        !i_title     TYPE string
-      RETURNING
-        VALUE(r_url) TYPE string .
-    CLASS-METHODS get_url_tool
-      IMPORTING
-        !i_title     TYPE string
-      RETURNING
-        VALUE(r_url) TYPE string .
-    CLASS-METHODS get_url_docs
-      IMPORTING
-        !i_title     TYPE string
-      RETURNING
-        VALUE(r_url) TYPE string .
-    CLASS-METHODS build_apack_manifest
-      IMPORTING
-        !i_class          TYPE REF TO object
-      RETURNING
-        VALUE(r_manifest) TYPE zif_apack_manifest=>ty_descriptor .
-    CLASS-METHODS build_mbt_manifest
-      IMPORTING
-        !i_class          TYPE REF TO object
-      RETURNING
-        VALUE(r_manifest) TYPE /mbtools/if_manifest=>ty_descriptor .
+        VALUE(r_tool)  TYPE REF TO /mbtools/cl_tools .
     CLASS-METHODS get_tools
       IMPORTING
-        VALUE(i_pattern) TYPE string OPTIONAL
+        VALUE(i_pattern) TYPE csequence OPTIONAL
       RETURNING
         VALUE(r_tools)   TYPE /mbtools/tools_with_text .
     CLASS-METHODS f4_tools
       IMPORTING
-        VALUE(i_pattern) TYPE string OPTIONAL
+        VALUE(i_pattern) TYPE csequence OPTIONAL
       RETURNING
-        VALUE(r_name)    TYPE string .
+        VALUE(r_title)   TYPE string .
+    " Class Regiser/Unregister
+    CLASS-METHODS register_all
+      RETURNING
+        VALUE(r_registered) TYPE abap_bool .
+    CLASS-METHODS unregister_all
+      RETURNING
+        VALUE(r_unregistered) TYPE abap_bool .
+    " Class Manifests
     CLASS-METHODS get_manifests
       RETURNING
         VALUE(r_manifests) TYPE /mbtools/manifests .
+    " Tool Manifest
+    METHODS build_apack_manifest
+      RETURNING
+        VALUE(r_manifest) TYPE zif_apack_manifest=>ty_descriptor .
+    METHODS build_mbt_manifest
+      RETURNING
+        VALUE(r_manifest) TYPE /mbtools/if_manifest=>ty_descriptor .
+    " Tool Register/Unregister
+    METHODS register
+      RETURNING
+        VALUE(r_registered) TYPE abap_bool .
+    METHODS unregister
+      RETURNING
+        VALUE(r_unregistered) TYPE abap_bool .
+    " Tool Activate/Deactivate
+    METHODS activate
+      RETURNING
+        VALUE(r_activated) TYPE abap_bool .
+    METHODS deactivate
+      RETURNING
+        VALUE(r_deactivated) TYPE abap_bool .
+    METHODS is_active
+      RETURNING
+        VALUE(r_active) TYPE abap_bool .
+    " Tool License
+    METHODS is_licensed
+      RETURNING
+        VALUE(r_licensed) TYPE abap_bool .
+    METHODS license_add
+      IMPORTING
+        VALUE(i_license)  TYPE string
+      RETURNING
+        VALUE(r_licensed) TYPE abap_bool .
+    METHODS license_remove
+      RETURNING
+        VALUE(r_removed) TYPE abap_bool .
+    " Tool Get
+    METHODS get_id
+      RETURNING
+        VALUE(r_id) TYPE string .
+    METHODS get_slug
+      RETURNING
+        VALUE(r_slug) TYPE string .
+    METHODS get_name
+      RETURNING
+        VALUE(r_name) TYPE string .
+    METHODS get_title
+      RETURNING
+        VALUE(r_title) TYPE string .
+    METHODS get_version
+      RETURNING
+        VALUE(r_version) TYPE string .
+    METHODS get_description
+      RETURNING
+        VALUE(r_description) TYPE string .
+    METHODS get_class
+      RETURNING
+        VALUE(r_class) TYPE string .
+    METHODS get_package
+      RETURNING
+        VALUE(r_package) TYPE devclass .
+    METHODS get_url_repo
+      RETURNING
+        VALUE(r_url) TYPE string .
+    METHODS get_url_tool
+      RETURNING
+        VALUE(r_url) TYPE string .
+    METHODS get_url_docs
+      RETURNING
+        VALUE(r_url) TYPE string .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
+    TYPES:
+      ty_classes TYPE STANDARD TABLE OF seoclsname WITH DEFAULT KEY .
+
     CLASS-DATA reg_root TYPE REF TO /mbtools/cl_registry .
+    DATA mr_tool TYPE REF TO object .
+    DATA m_id TYPE /mbtools/if_manifest=>ty_descriptor-name .
+    DATA m_title TYPE /mbtools/if_manifest=>ty_descriptor-title .
+    DATA m_name TYPE /mbtools/if_manifest=>ty_descriptor-name .
+    DATA m_version TYPE /mbtools/if_manifest=>ty_descriptor-version .
+    DATA m_description TYPE /mbtools/if_manifest=>ty_descriptor-description .
+
+    CLASS-METHODS get_implementations
+      IMPORTING
+        VALUE(i_quiet)    TYPE abap_bool DEFAULT abap_true
+      RETURNING
+        VALUE(rt_classes) TYPE ty_classes .
 ENDCLASS.
 
 
@@ -184,23 +189,12 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD activate.
 
     DATA:
-      tool      TYPE REF TO object,
-      manifest  TYPE REF TO /mbtools/if_manifest,
       reg_tool  TYPE REF TO /mbtools/cl_registry,
       reg_entry TYPE REF TO /mbtools/cl_registry.
 
     TRY.
-        " Get instance of tool
-        CREATE OBJECT tool TYPE (i_object).
-        IF tool IS BOUND.
-          manifest ?= tool.
-        ELSE.
-          r_activated = abap_false.
-          RETURN.
-        ENDIF.
-
         " Is tool already registered?
-        reg_tool = reg_root->get_subentry( manifest->descriptor-name ).
+        reg_tool = reg_root->get_subentry( m_name ).
         IF NOT reg_tool IS BOUND.
           r_activated = abap_false.
           RETURN.
@@ -224,66 +218,32 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
   METHOD build_apack_manifest.
 
-    FIELD-SYMBOLS: <title> TYPE any.
-
-    ASSIGN i_class->('C_TITLE') TO <title>.
-    ASSERT sy-subrc = 0. " constant is missing
-
-    r_manifest = VALUE #(
-      group_id       = c_github
-      artifact_id    = get_name( <title> )
-      version        = c_version
-      git_url        = get_url_repo( <title> )
-*      target_package = get_package( i_class )
-    ).
+    r_manifest-group_id       = c_github.
+    r_manifest-artifact_id    = m_name.
+    r_manifest-version        = m_version.
+    r_manifest-git_url        = get_url_repo( ).
+*   r_manifest-target_package = get_package( ).
 
   ENDMETHOD.
 
 
   METHOD build_mbt_manifest.
 
-    DATA:
-      class_desc TYPE REF TO cl_abap_typedescr,
-      class_name TYPE string.
-
-    FIELD-SYMBOLS:
-      <id>          TYPE i,
-      <title>       TYPE string,
-      <version>     TYPE string,
-      <description> TYPE string.
-
-    ASSIGN i_class->('C_DOWNLOAD_ID') TO <id>.
-    ASSERT sy-subrc = 0. " constant is missing
-
-    ASSIGN i_class->('C_TITLE') TO <title>.
-    ASSERT sy-subrc = 0. " constant is missing
-
-    ASSIGN i_class->('C_VERSION') TO <version>.
-    ASSERT sy-subrc = 0. " constant is missing
-
-    ASSIGN i_class->('C_DESCRIPTION') TO <description>.
-    ASSERT sy-subrc = 0. " constant is missing
-
-    class_desc = cl_abap_classdescr=>describe_by_object_ref( i_class ).
-    class_name = class_desc->get_relative_name( ).
-
-    r_manifest = VALUE #(
-      id          = <id>
-      name        = get_name( <title> )
-      version     = <version>
-      title       = <title>
-      description = <description>
-      namespace   = c_namespace
-      package     = get_package( i_class )
-      class       = class_name
-    ).
+    r_manifest-id          = m_id.
+    r_manifest-name        = m_name.
+    r_manifest-version     = m_version.
+    r_manifest-title       = m_title.
+    r_manifest-description = m_description.
+    r_manifest-namespace   = c_namespace.
+    r_manifest-package     = get_package( ).
+    r_manifest-class       = get_class( ).
 
   ENDMETHOD.
 
 
   METHOD class_constructor.
 
-    LOG-POINT ID /mbtools/bc SUBKEY c_title FIELDS sy-datum sy-uzeit sy-uname.
+    LOG-POINT ID /mbtools/bc SUBKEY /mbtools/cl_base=>c_title FIELDS sy-datum sy-uzeit sy-uname.
 
     " Get root of registry
     reg_root = /mbtools/cl_registry=>get_root( ).
@@ -292,35 +252,49 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
 
   METHOD constructor.
-    apack_manifest = build_apack_manifest( me ).
-    mbt_manifest = build_mbt_manifest( me ).
 
-    " We want this to be first in the registry
-    " I.e. MARC_BERNARD_TOOLS is before MBT_... in the sort order but Marc_Bernard_Tools isn't
-    mbt_manifest-name = to_upper( mbt_manifest-name ).
+    FIELD-SYMBOLS:
+      <id>          TYPE i,
+      <title>       TYPE string,
+      <version>     TYPE string,
+      <description> TYPE string.
+
+    mr_tool = i_tool.
+
+    " Each tool class must include four constants
+    ASSIGN mr_tool->('C_DOWNLOAD_ID') TO <id>.
+    ASSERT sy-subrc = 0. " constant is missing
+    m_id = <id>.
+
+    ASSIGN mr_tool->('C_TITLE') TO <title>.
+    ASSERT sy-subrc = 0. " constant is missing
+    m_title = <title>.
+    m_name = get_name( ).
+
+    ASSIGN mr_tool->('C_VERSION') TO <version>.
+    ASSERT sy-subrc = 0. " constant is missing
+    m_version = <version>.
+
+    ASSIGN mr_tool->('C_DESCRIPTION') TO <description>.
+    ASSERT sy-subrc = 0. " constant is missing
+    m_description = <description>.
+
+    " Build the full manifests based on these constants
+    apack_manifest = build_apack_manifest( ).
+    mbt_manifest   = build_mbt_manifest( ).
+
   ENDMETHOD.
 
 
   METHOD deactivate.
 
     DATA:
-      tool      TYPE REF TO object,
-      manifest  TYPE REF TO /mbtools/if_manifest,
       reg_tool  TYPE REF TO /mbtools/cl_registry,
       reg_entry TYPE REF TO /mbtools/cl_registry.
 
     TRY.
-        " Get instance of tool
-        CREATE OBJECT tool TYPE (i_object).
-        IF tool IS BOUND.
-          manifest ?= tool.
-        ELSE.
-          r_deactivated = abap_false.
-          RETURN.
-        ENDIF.
-
         " Is tool already registered?
-        reg_tool = reg_root->get_subentry( manifest->descriptor-name ).
+        reg_tool = reg_root->get_subentry( m_name ).
         IF NOT reg_tool IS BOUND.
           r_deactivated = abap_false.
           RETURN.
@@ -370,7 +344,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       RETURN.
     ENDIF.
     LOOP AT returns INTO return.
-      r_name = return-fieldval.
+      r_title = return-fieldval.
+      EXIT.
     ENDLOOP.
 
   ENDMETHOD.
@@ -378,41 +353,42 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
   METHOD get_class.
 
-    DATA:
-      tool            TYPE REF TO object,
-      manifest        TYPE REF TO /mbtools/if_manifest,
-      implementation  TYPE seoclsname,
-      implementations TYPE TABLE OF seoclsname.
+    DATA: class_desc TYPE REF TO cl_abap_typedescr.
 
-    " Get all classes that implement the MBT Manifest
-    SELECT clsname FROM seometarel INTO TABLE implementations
-      WHERE seometarel~version    = '1'
-        AND seometarel~refclsname = c_manifest.
-    IF sy-subrc <> 0.
+    class_desc = cl_abap_classdescr=>describe_by_object_ref( mr_tool ).
+    r_class = class_desc->get_relative_name( ).
+
+  ENDMETHOD.
+
+
+  METHOD get_description.
+
+    r_description = m_description.
+
+  ENDMETHOD.
+
+
+  METHOD get_id.
+
+    " Upper case, Underscore, Namespaced
+    r_id =  to_upper( c_namespace && m_title ).
+
+    REPLACE ALL OCCURRENCES OF ` ` IN r_id WITH '_'.
+
+  ENDMETHOD.
+
+
+  METHOD get_implementations.
+
+    " Get all classes that implement the MBT Manifest (except for the MBT Tool Manager)
+    SELECT clsname FROM seometarel INTO TABLE rt_classes
+      WHERE version    = '1'
+        AND refclsname = c_manifest
+        AND clsname   <> c_tool_manager.
+    IF sy-subrc <> 0 AND i_quiet IS INITIAL.
+      MESSAGE s000(/mbtools/bc) WITH 'No tools found'.
       RETURN.
     ENDIF.
-
-    LOOP AT implementations INTO implementation.
-
-      TRY.
-          " Get instance of tool
-          CREATE OBJECT tool TYPE (implementation).
-          IF tool IS BOUND.
-            manifest ?= tool.
-          ELSE.
-            CONTINUE. "ignore
-          ENDIF.
-
-          IF manifest->descriptor-title = i_title OR manifest->descriptor-name = i_name.
-            r_class = implementation.
-            RETURN.
-          ENDIF.
-
-        CATCH cx_root.
-          CONTINUE. "ignore
-      ENDTRY.
-
-    ENDLOOP.
 
   ENDMETHOD.
 
@@ -420,22 +396,12 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD get_manifests.
 
     DATA:
-      implementation  TYPE seoclsname,
-      implementations TYPE TABLE OF seoclsname,
-      tool            TYPE REF TO object,
-      manifest        TYPE REF TO /mbtools/if_manifest,
-      manifest_descr  TYPE /mbtools/manifest.
+      implementation TYPE seoclsname,
+      tool           TYPE REF TO object,
+      manifest       TYPE REF TO /mbtools/if_manifest,
+      manifest_descr TYPE /mbtools/manifest.
 
-    " Get all classes that implement the MBT Manifest
-    SELECT clsname FROM seometarel INTO TABLE implementations
-      WHERE seometarel~version    = '1'
-        AND seometarel~refclsname = c_manifest.
-    IF sy-subrc <> 0.
-      MESSAGE s000(/mbtools/bc) WITH 'No tools found'.
-      RETURN.
-    ENDIF.
-
-    LOOP AT implementations INTO implementation.
+    LOOP AT get_implementations( ) INTO implementation.
 
       TRY.
           " Get instance of tool
@@ -463,35 +429,78 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
   METHOD get_name.
 
-    r_name = i_title.
+    " Mixed case, underscore
+    r_name = m_title.
 
     REPLACE ALL OCCURRENCES OF ` ` IN r_name WITH '_'.
+
+    " We want the base class to be first in the registry
+    " 'Marc_Bernard_Tools' would be after 'MBT Tool XYZ' in the sort order but isn't
+    IF m_title = /mbtools/cl_base=>c_title.
+      r_name = to_upper( r_name ).
+    ENDIF.
 
   ENDMETHOD.
 
 
   METHOD get_package.
 
-    DATA:
-      class_desc TYPE REF TO cl_abap_typedescr,
-      class_name TYPE string.
+    DATA: class TYPE string.
 
-    class_desc = cl_abap_classdescr=>describe_by_object_ref( i_class ).
-
-    class_name = class_desc->get_relative_name( ).
+    class = get_class( ).
 
     SELECT SINGLE devclass FROM tadir INTO r_package
-      WHERE pgmid = 'R3TR' AND object = 'CLAS' AND obj_name = class_name.
-    ASSERT sy-subrc = 0.  " If it dumps, you didn't pass a reference to a class
+      WHERE pgmid = 'R3TR' AND object = 'CLAS' AND obj_name = class.
+    ASSERT sy-subrc = 0.
 
   ENDMETHOD.
 
 
   METHOD get_slug.
 
-    r_slug = to_lower( i_title ).
+    " Lower case, dash
+    r_slug = to_lower( m_title ).
 
-    REPLACE ALL OCCURRENCES OF space IN r_slug WITH '-'.
+    REPLACE ALL OCCURRENCES OF ` ` IN r_slug WITH '-'.
+
+  ENDMETHOD.
+
+
+  METHOD get_title.
+
+    r_title = m_title.
+
+  ENDMETHOD.
+
+
+  METHOD get_tool.
+
+    DATA:
+      implementation TYPE seoclsname,
+      tool           TYPE REF TO object,
+      manifest       TYPE REF TO /mbtools/if_manifest.
+
+    LOOP AT get_implementations( ) INTO implementation.
+
+      TRY.
+          " Get instance of tool
+          CREATE OBJECT tool TYPE (implementation).
+          IF tool IS BOUND.
+            manifest ?= tool.
+          ELSE.
+            CONTINUE. "ignore
+          ENDIF.
+
+          IF manifest->descriptor-title = i_title.
+            CREATE OBJECT r_tool EXPORTING i_tool = tool.
+            RETURN.
+          ENDIF.
+
+        CATCH cx_root.
+          CONTINUE. "ignore
+      ENDTRY.
+
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -499,22 +508,15 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD get_tools.
 
     DATA:
-      implementation  TYPE seoclsname,
-      implementations TYPE TABLE OF seoclsname,
-      tool            TYPE REF TO object,
-      manifest        TYPE REF TO /mbtools/if_manifest,
-      tool_with_text  TYPE /mbtools/tool_with_text.
+      implementation TYPE seoclsname,
+      tool           TYPE REF TO object,
+      manifest       TYPE REF TO /mbtools/if_manifest,
+      tool_with_text TYPE /mbtools/tool_with_text.
 
-    " Get all classes that implement the MBT Manifest
-    SELECT clsname FROM seometarel INTO TABLE implementations
-      WHERE seometarel~version    = '1'
-        AND seometarel~refclsname = c_manifest.
-    IF sy-subrc <> 0.
-      MESSAGE s000(/mbtools/bc) WITH 'No tools found'.
-      RETURN.
-    ENDIF.
+    FIELD-SYMBOLS:
+      <tool> TYPE /mbtools/tool_with_text.
 
-    LOOP AT implementations INTO implementation.
+    LOOP AT get_implementations( ) INTO implementation.
 
       TRY.
           " Get instance of tool
@@ -526,7 +528,13 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           ENDIF.
 
           CLEAR tool_with_text.
-          tool_with_text-name = manifest->descriptor-name.
+
+          " Change base tool so it will be first in sort order
+          IF manifest->descriptor-title = /mbtools/cl_base=>c_title.
+            tool_with_text-name = to_upper( manifest->descriptor-title ).
+          ELSE.
+            tool_with_text-name = manifest->descriptor-title.
+          ENDIF.
 
           IF i_pattern IS INITIAL OR tool_with_text-name CP i_pattern.
             tool_with_text-version     = manifest->descriptor-version.
@@ -542,13 +550,19 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     SORT r_tools BY name.
 
+    " Change name of base tool back to what it was
+    READ TABLE r_tools ASSIGNING <tool> INDEX 1.
+    IF sy-subrc = 0.
+      <tool>-name = /mbtools/cl_base=>c_title.
+    ENDIF.
+
   ENDMETHOD.
 
 
   METHOD get_url_docs.
 
     " Link to documentation page on marcbernardtools.com
-    r_url = c_home && 'docs/' && get_slug( i_title ) && '/'.
+    r_url = c_home && 'docs/' && get_slug( ) && '/'.
 
   ENDMETHOD.
 
@@ -556,7 +570,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD get_url_repo.
 
     " Link to repository on GitHub.com
-    r_url = 'https://' && c_github && '/' && get_name( i_title ) && '.git'.
+    r_url = 'https://' && c_github && '/' && m_name && '.git'.
 
   ENDMETHOD.
 
@@ -564,7 +578,14 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD get_url_tool.
 
     " Link to tool page on marcbernardtools.com
-    r_url = c_home && 'downloads/' && get_slug( i_title ) && '/'.
+    r_url = c_home && 'downloads/' && get_slug( ) && '/'.
+
+  ENDMETHOD.
+
+
+  METHOD get_version.
+
+    r_version = m_version.
 
   ENDMETHOD.
 
@@ -578,7 +599,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        reg_tool = reg_root->get_subentry( get_name( i_title ) ).
+        reg_tool = reg_root->get_subentry( m_name ).
         CHECK reg_tool IS BOUND.
 
         " Switches entry
@@ -622,7 +643,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        reg_tool = reg_root->get_subentry( get_name( i_title ) ).
+        reg_tool = reg_root->get_subentry( m_name ).
         CHECK reg_tool IS BOUND.
 
         " Properties
@@ -666,7 +687,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        reg_tool = reg_root->get_subentry( get_name( i_title ) ).
+        reg_tool = reg_root->get_subentry( m_name ).
         CHECK reg_tool IS BOUND.
 
         " License
@@ -710,7 +731,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        reg_tool = reg_root->get_subentry( get_name( i_title ) ).
+        reg_tool = reg_root->get_subentry( m_name ).
         CHECK reg_tool IS BOUND.
 
         " License
@@ -736,29 +757,18 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD register.
 
     DATA:
-      tool      TYPE REF TO object,
-      manifest  TYPE REF TO /mbtools/if_manifest,
       reg_tool  TYPE REF TO /mbtools/cl_registry,
       reg_entry TYPE REF TO /mbtools/cl_registry,
       timestamp TYPE timestamp.
 
     TRY.
-        " Get instance of tool
-        CREATE OBJECT tool TYPE (i_object).
-        IF tool IS BOUND.
-          manifest ?= tool.
-        ELSE.
-          r_registered = abap_false.
-          RETURN.
-        ENDIF.
-
         " Is tool already registered?
-        reg_tool = reg_root->get_subentry( manifest->descriptor-name ).
+        reg_tool = reg_root->get_subentry( m_name ).
         IF reg_tool IS BOUND.
           r_registered = abap_true.
         ELSE.
           " Create registry entries
-          reg_tool = reg_root->add_subentry( manifest->descriptor-name ).
+          reg_tool = reg_root->add_subentry( m_name ).
           CHECK reg_tool IS BOUND.
         ENDIF.
 
@@ -769,13 +779,13 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           reg_entry = reg_tool->add_subentry( co_reg_general ).
         ENDIF.
         IF reg_entry IS BOUND.
-          reg_entry->set_value( key = co_key_object      value = i_object ).
-          reg_entry->set_value( key = co_key_name        value = manifest->descriptor-name ).
-          reg_entry->set_value( key = co_key_package     value = manifest->descriptor-package ).
-          reg_entry->set_value( key = co_key_namespace   value = manifest->descriptor-namespace ).
-          reg_entry->set_value( key = co_key_version     value = manifest->descriptor-version ).
-          reg_entry->set_value( key = co_key_title       value = manifest->descriptor-title ).
-          reg_entry->set_value( key = co_key_description value = manifest->descriptor-description ).
+          reg_entry->set_value( key = co_key_name        value = m_name ).
+          reg_entry->set_value( key = co_key_version     value = m_version ).
+          reg_entry->set_value( key = co_key_title       value = m_title ).
+          reg_entry->set_value( key = co_key_description value = m_description ).
+          reg_entry->set_value( key = co_key_namespace   value = c_namespace ).
+          reg_entry->set_value( key = co_key_package     value = get_package( ) ).
+          reg_entry->set_value( key = co_key_class       value = get_class( ) ).
           reg_entry->save( ).
         ENDIF.
 
@@ -814,7 +824,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           " License
           reg_entry = reg_tool->add_subentry( co_reg_license ).
           IF reg_entry IS BOUND.
-            reg_entry->set_value( key = co_key_lic_id     value = manifest->descriptor-id ).
+            reg_entry->set_value( key = co_key_lic_id     value = m_id ).
             reg_entry->set_value( key = co_key_lic_expire value = '99991231' ).
             reg_entry->set_value( key = co_key_lic_key    value = '' ).
             reg_entry->set_value( key = co_key_lic_valid  value = '' ).
@@ -837,7 +847,6 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD register_all.
 
     DATA:
-      name       TYPE string,
       tool       TYPE /mbtools/tool_with_text,
       tools      TYPE TABLE OF /mbtools/tool_with_text,
       registered TYPE abap_bool.
@@ -847,8 +856,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     r_registered = abap_true.
 
     LOOP AT tools INTO tool.
-      name = tool-name.
-      registered = register( i_object = get_class( i_name = name ) ).
+      registered = get_tool( tool-name )->register( ).
       IF registered = abap_false.
         r_registered = abap_false.
       ENDIF.
@@ -860,29 +868,18 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD unregister.
 
     DATA:
-      tool     TYPE REF TO object,
-      manifest TYPE REF TO /mbtools/if_manifest,
       reg_tool TYPE REF TO /mbtools/cl_registry.
 
     TRY.
-        " Get instance of tool
-        CREATE OBJECT tool TYPE (i_object).
-        IF tool IS BOUND.
-          manifest ?= tool.
-        ELSE.
-          r_unregistered = abap_false.
-          RETURN.
-        ENDIF.
-
         " Is tool still registered?
-        reg_tool = reg_root->get_subentry( manifest->descriptor-name ).
+        reg_tool = reg_root->get_subentry( m_name ).
         IF NOT reg_tool IS BOUND.
           r_unregistered = abap_true.
           RETURN.
         ENDIF.
 
         " Remove registry branch
-        reg_root->remove_subentry( manifest->descriptor-name ).
+        reg_root->remove_subentry( m_name ).
         CHECK reg_tool IS BOUND.
 
         r_unregistered = abap_true.
@@ -897,7 +894,6 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD unregister_all.
 
     DATA:
-      name         TYPE string,
       tool         TYPE /mbtools/tool_with_text,
       tools        TYPE TABLE OF /mbtools/tool_with_text,
       unregistered TYPE abap_bool.
@@ -907,8 +903,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     r_unregistered = abap_true.
 
     LOOP AT tools INTO tool.
-      name = tool-name.
-      unregistered = unregister( i_object = get_class( i_name = name ) ).
+      unregistered = get_tool( tool-name )->unregister( ).
       IF unregistered = abap_false.
         r_unregistered = abap_false.
       ENDIF.

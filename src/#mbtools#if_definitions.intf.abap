@@ -1,3 +1,9 @@
+************************************************************************
+* /MBTOOLS/IF_DEFINITIONS
+* MBT Definitions
+*
+* (c) MBT 2020 https://marcbernardtools.com/
+************************************************************************
 INTERFACE /mbtools/if_definitions
   PUBLIC .
 

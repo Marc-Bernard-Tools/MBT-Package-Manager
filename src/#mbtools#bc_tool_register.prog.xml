@@ -25,20 +25,20 @@
     </item>
     <item>
      <ID>S</ID>
-     <KEY>P_NAME</KEY>
+     <KEY>P_REG</KEY>
+     <ENTRY>Register</ENTRY>
+     <LENGTH>21</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_TITLE</KEY>
      <ENTRY>Tool</ENTRY>
      <LENGTH>12</LENGTH>
     </item>
     <item>
      <ID>S</ID>
-     <KEY>P_REG</KEY>
-     <ENTRY>Register Tool</ENTRY>
-     <LENGTH>21</LENGTH>
-    </item>
-    <item>
-     <ID>S</ID>
      <KEY>P_UNREG</KEY>
-     <ENTRY>Unregister Tool</ENTRY>
+     <ENTRY>Unregister</ENTRY>
      <LENGTH>23</LENGTH>
     </item>
    </TPOOL>

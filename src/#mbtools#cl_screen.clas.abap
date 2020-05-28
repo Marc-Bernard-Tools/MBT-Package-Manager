@@ -1,52 +1,72 @@
-class /MBTOOLS/CL_SCREEN definition
-  public
-  create public .
+************************************************************************
+* /MBTOOLS/CL_SCREEN
+* MBT Screen
+*
+* (c) MBT 2020 https://marcbernardtools.com/
+************************************************************************
+CLASS /mbtools/cl_screen DEFINITION
+  PUBLIC
+  CREATE PUBLIC .
 
-public section.
-  type-pools CNDP .
+  PUBLIC SECTION.
+    TYPE-POOLS cndp .
 
-  types:
-    ty_screen_field TYPE c LENGTH 83 .
+    TYPES:
+      ty_screen_field TYPE c LENGTH 83 .
 
-  class-data GV_COPYRIGHT type STRING .
-  class-data GV_ABOUT type STRING .
-  class-data GV_DOCUMENTATION type STRING .
-  class-data GV_TERMS type STRING .
+    CLASS-DATA gv_copyright TYPE string .
+    CLASS-DATA gv_about TYPE string .
+    CLASS-DATA gv_documentation TYPE string .
+    CLASS-DATA gv_tool_page TYPE string .
+    CLASS-DATA gv_website TYPE string .
+    CLASS-DATA gv_terms TYPE string .
 
-  class-methods CLASS_CONSTRUCTOR .
-  class-methods ICON
-    importing
-      value(IV_ICON) type ICON_D
-      value(IV_TEXT) type CSEQUENCE optional
-      value(IV_QUICK) type CSEQUENCE optional
-    returning
-      value(RV_RESULT) type TY_SCREEN_FIELD .
-  class-methods HEADER
-    importing
-      value(IV_ICON) type ICON_D
-      value(IV_TEXT) type CSEQUENCE optional
-    returning
-      value(RV_RESULT) type TY_SCREEN_FIELD .
-  class-methods LOGO
-    importing
-      value(I_SHOW) type ABAP_BOOL default ABAP_TRUE
-      value(I_TOP) type I optional
-      value(I_LEFT) type I optional .
-  class-methods BANNER
-    importing
-      value(I_TOOL) type STRING optional
-      value(I_SHOW) type ABAP_BOOL default ABAP_TRUE
-      value(I_TOP) type I optional
-      value(I_LEFT) type I optional .
+    CLASS-METHODS class_constructor .
+    CLASS-METHODS icon
+      IMPORTING
+        VALUE(iv_icon)   TYPE icon_d
+        VALUE(iv_text)   TYPE csequence OPTIONAL
+        VALUE(iv_quick)  TYPE csequence OPTIONAL
+      RETURNING
+        VALUE(rv_result) TYPE ty_screen_field .
+    CLASS-METHODS header
+      IMPORTING
+        VALUE(iv_icon)   TYPE icon_d
+        VALUE(iv_text)   TYPE csequence OPTIONAL
+      RETURNING
+        VALUE(rv_result) TYPE ty_screen_field .
+    CLASS-METHODS logo
+      IMPORTING
+        VALUE(i_show) TYPE abap_bool DEFAULT abap_true
+        VALUE(i_top)  TYPE i OPTIONAL
+        VALUE(i_left) TYPE i OPTIONAL .
+    CLASS-METHODS banner
+      IMPORTING
+        VALUE(i_tool) TYPE string OPTIONAL
+        VALUE(i_show) TYPE abap_bool DEFAULT abap_true
+        VALUE(i_top)  TYPE i OPTIONAL
+        VALUE(i_left) TYPE i OPTIONAL .
+    CLASS-METHODS init
+      IMPORTING
+        !ir_tool     TYPE REF TO /mbtools/cl_tools
+      EXPORTING
+        !e_text      TYPE ty_screen_field
+        !e_about     TYPE ty_screen_field
+        !e_title     TYPE ty_screen_field
+        !e_version   TYPE ty_screen_field
+        !e_copyright TYPE ty_screen_field
+        !e_docu      TYPE ty_screen_field
+        !e_tool      TYPE ty_screen_field
+        !e_home      TYPE ty_screen_field .
   PROTECTED SECTION.
-private section.
+  PRIVATE SECTION.
 
-  class-data GO_LOGO_DOCK type ref to CL_GUI_DOCKING_CONTAINER .
-  class-data GO_LOGO type ref to CL_GUI_PICTURE .
-  class-data GV_LOGO_URL type /MBTOOLS/VALUE .
-  class-data GO_BANNER_DOCK type ref to CL_GUI_DOCKING_CONTAINER .
-  class-data GO_BANNER type ref to CL_GUI_PICTURE .
-  class-data GV_BANNER_URL type /MBTOOLS/VALUE .
+    CLASS-DATA go_logo_dock TYPE REF TO cl_gui_docking_container .
+    CLASS-DATA go_logo TYPE REF TO cl_gui_picture .
+    CLASS-DATA gv_logo_url TYPE /mbtools/value .
+    CLASS-DATA go_banner_dock TYPE REF TO cl_gui_docking_container .
+    CLASS-DATA go_banner TYPE REF TO cl_gui_picture .
+    CLASS-DATA gv_banner_url TYPE /mbtools/value .
 ENDCLASS.
 
 
@@ -94,7 +114,7 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
 
     IF gv_banner_url IS INITIAL.
       query-name  = '_OBJECT_ID'.
-      query-value = '/MBTOOLS/' && i_tool.
+      query-value = i_tool.
       APPEND query TO query_table.
 
       CALL FUNCTION 'WWW_GET_MIME_OBJECT'
@@ -140,6 +160,8 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
     gv_about          = 'About'(001).
     gv_documentation  = 'Documentation'(002).
     gv_terms          = 'Terms'(003).
+    gv_tool_page      = 'Tool Page'(004).
+    gv_website        = 'MBT Website'(005).
   ENDMETHOD.
 
 
@@ -165,6 +187,36 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
         info   = lv_info
       IMPORTING
         result = rv_result.
+  ENDMETHOD.
+
+
+  METHOD init.
+
+    e_text = ir_tool->get_description( ).
+
+    e_about = header(
+      iv_icon = icon_system_help
+      iv_text = 'About' ).
+
+    e_title     = ir_tool->get_title( ).
+    e_version   = | Version { ir_tool->get_version( ) } |.
+    e_copyright = gv_copyright.
+
+    e_docu = icon(
+      iv_icon  = icon_system_extended_help
+      iv_text  = gv_documentation
+      iv_quick = ir_tool->get_title( ) ).
+
+    e_tool = icon(
+      iv_icon  = icon_tools
+      iv_text  = gv_tool_page
+      iv_quick = ir_tool->get_title( ) ).
+
+    e_home = icon(
+      iv_icon  = icon_url
+      iv_text  = /mbtools/cl_base=>c_title
+      iv_quick = gv_website ).
+
   ENDMETHOD.
 
 

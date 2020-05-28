@@ -289,8 +289,22 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
       obj_name      TYPE /mbtools/if_definitions=>ty_name,
       e071_obj_name TYPE e071-obj_name.
 
-    pgmid    = i_pgmid.
-    object   = i_object.
+    " Check if object exist (maybe as part object)
+    READ TABLE object_texts TRANSPORTING NO FIELDS
+      WITH KEY pgmid = i_pgmid object = i_object.
+    IF sy-subrc = 0.
+      pgmid  = i_pgmid.
+    ELSE.
+      READ TABLE object_texts TRANSPORTING NO FIELDS
+        WITH KEY pgmid = 'LIMU' object = i_object.
+      IF sy-subrc = 0.
+        pgmid = 'LIMU'.
+      ELSE.
+        RETURN.
+      ENDIF.
+    ENDIF.
+
+    object = i_object.
     obj_name = i_obj_name.
 
     " First try: workbench tools

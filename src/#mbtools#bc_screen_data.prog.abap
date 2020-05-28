@@ -1,8 +1,7 @@
 *&---------------------------------------------------------------------*
-*&  Include           /MBTOOLS/BC_TREE_T01
+*&  Include           /MBTOOLS/BC_SCREEN_DATA
 *&---------------------------------------------------------------------*
 
 DATA:
-  g_ok_code     TYPE sy-ucomm,
-  g_title_text  TYPE sy-title,
-  g_title_value TYPE sy-title.
+  gr_tool   TYPE REF TO /mbtools/cl_tools,
+  g_ok_code TYPE sy-ucomm.

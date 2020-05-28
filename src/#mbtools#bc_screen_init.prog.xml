@@ -3,18 +3,16 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <PROGDIR>
-    <NAME>/MBTOOLS/BC_TREE_T02</NAME>
+    <NAME>/MBTOOLS/BC_SCREEN_INIT</NAME>
     <SUBC>I</SUBC>
-    <APPL>S</APPL>
-    <RSTAT>K</RSTAT>
     <RLOAD>E</RLOAD>
     <UCCHECK>X</UCCHECK>
    </PROGDIR>
    <TPOOL>
     <item>
      <ID>R</ID>
-     <ENTRY>MBT Tree (PBO &amp; PAI)</ENTRY>
-     <LENGTH>39</LENGTH>
+     <ENTRY>MBT Screen Initialize</ENTRY>
+     <LENGTH>21</LENGTH>
     </item>
    </TPOOL>
   </asx:values>

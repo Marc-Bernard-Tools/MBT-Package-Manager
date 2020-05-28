@@ -4,108 +4,109 @@
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-CLASS /mbtools/cl_tree DEFINITION
-  PUBLIC
-  CREATE PUBLIC .
+class /MBTOOLS/CL_TREE definition
+  public
+  create public .
 
-  PUBLIC SECTION.
-    TYPE-POOLS icon .
+public section.
+  type-pools ICON .
+  type-pools RSRQT .
 
-    DATA gv_container_name TYPE char25 VALUE 'TREE_CONTAINER' ##NO_TEXT.
-    DATA gr_custom_container TYPE REF TO cl_gui_custom_container .
-    DATA gr_tree TYPE REF TO cl_gui_alv_tree .
+  data GV_CONTAINER_NAME type CHAR25 value 'TREE_CONTAINER' ##NO_TEXT.
+  data GR_CUSTOM_CONTAINER type ref to CL_GUI_CUSTOM_CONTAINER .
+  data GR_TREE type ref to CL_GUI_ALV_TREE .
 
-    METHODS handle_node_double_click
-        FOR EVENT node_double_click OF cl_gui_alv_tree
-      IMPORTING
-        !node_key .
-    METHODS handle_item_double_click
-        FOR EVENT item_double_click OF cl_gui_alv_tree
-      IMPORTING
-        !node_key
-        !fieldname .
-    METHODS constructor .
-    METHODS pbo.
-    METHODS pai
-      IMPORTING
-        !i_ok_code TYPE sy-ucomm.
-    METHODS display .
-    METHODS download .
-    METHODS print .
-    METHODS destroy .
-    METHODS expand
-      IMPORTING
-        VALUE(i_level) TYPE i .
-    METHODS expand_all .
-    METHODS add_top_node
-      IMPORTING
-        VALUE(i_title) TYPE csequence
-        VALUE(i_icon)  TYPE icon_d OPTIONAL
-        VALUE(i_text)  TYPE any OPTIONAL
-        VALUE(i_value) TYPE any OPTIONAL
-        VALUE(i_type)  TYPE csequence OPTIONAL .
-    METHODS add_sub_node
-      IMPORTING
-        VALUE(i_title) TYPE csequence
-        VALUE(i_icon)  TYPE icon_d OPTIONAL
-        VALUE(i_text)  TYPE any OPTIONAL
-        VALUE(i_value) TYPE any OPTIONAL
-        VALUE(i_type)  TYPE csequence OPTIONAL .
-    METHODS add_detail
-      IMPORTING
-        VALUE(i_title)  TYPE csequence
-        VALUE(i_icon)   TYPE icon_d OPTIONAL
-        VALUE(i_text)   TYPE any OPTIONAL
-        VALUE(i_value)  TYPE any OPTIONAL
-        VALUE(i_level)  TYPE i OPTIONAL
-        VALUE(i_sign)   TYPE abap_bool DEFAULT abap_false
-        VALUE(i_hidden) TYPE abap_bool DEFAULT abap_false
-        VALUE(i_type)   TYPE csequence OPTIONAL .
-    METHODS pick_node .
-    METHODS find_node .
-    METHODS set_key
-      IMPORTING
-        !iv_key TYPE lvc_nkey .
-    METHODS get_key
-      RETURNING
-        VALUE(rv_key) TYPE lvc_nkey .
-    METHODS next_key .
+  methods HANDLE_NODE_DOUBLE_CLICK
+    for event NODE_DOUBLE_CLICK of CL_GUI_ALV_TREE
+    importing
+      !NODE_KEY .
+  methods HANDLE_ITEM_DOUBLE_CLICK
+    for event ITEM_DOUBLE_CLICK of CL_GUI_ALV_TREE
+    importing
+      !NODE_KEY
+      !FIELDNAME .
+  methods CONSTRUCTOR .
+  methods PBO .
+  methods PAI
+    importing
+      !I_OK_CODE type SY-UCOMM .
+  methods DISPLAY .
+  methods DOWNLOAD .
+  methods PRINT .
+  methods DESTROY .
+  methods EXPAND
+    importing
+      value(I_LEVEL) type I .
+  methods EXPAND_ALL .
+  methods ADD_TOP_NODE
+    importing
+      value(I_TITLE) type CSEQUENCE
+      value(I_ICON) type ICON_D optional
+      value(I_TEXT) type ANY optional
+      value(I_VALUE) type ANY optional
+      value(I_TYPE) type CSEQUENCE optional .
+  methods ADD_SUB_NODE
+    importing
+      value(I_TITLE) type CSEQUENCE
+      value(I_ICON) type ICON_D optional
+      value(I_TEXT) type ANY optional
+      value(I_VALUE) type ANY optional
+      value(I_TYPE) type CSEQUENCE optional .
+  methods ADD_DETAIL
+    importing
+      value(I_TITLE) type CSEQUENCE
+      value(I_ICON) type ICON_D optional
+      value(I_TEXT) type ANY optional
+      value(I_VALUE) type ANY optional
+      value(I_LEVEL) type I optional
+      value(I_SIGN) type ABAP_BOOL default ABAP_FALSE
+      value(I_HIDDEN) type ABAP_BOOL default ABAP_FALSE
+      value(I_TYPE) type CSEQUENCE optional .
+  methods PICK_NODE .
+  methods FIND_NODE .
+  methods SET_KEY
+    importing
+      !IV_KEY type LVC_NKEY .
+  methods GET_KEY
+    returning
+      value(RV_KEY) type LVC_NKEY .
+  methods NEXT_KEY .
   PROTECTED SECTION.
 
-  PRIVATE SECTION.
+private section.
 
-    DATA mv_tree_structure TYPE tabname VALUE '/MBTOOLS/TREE_CONTROL' ##NO_TEXT.
-    DATA ms_outtab TYPE /mbtools/tree_control .
-    DATA mt_outtab TYPE STANDARD TABLE OF /mbtools/tree_control .
-    DATA mv_node_key TYPE lvc_nkey .
-    DATA mv_relat_key TYPE lvc_nkey .
-    DATA mt_fieldcat TYPE lvc_t_fcat .
-    DATA mt_item_layout TYPE lvc_t_layi .
-    DATA mt_typtab TYPE lvc_t_chit .
-    DATA mv_tree_level TYPE i .
-    DATA mv_done TYPE abap_bool .
+  data MV_TREE_STRUCTURE type TABNAME value '/MBTOOLS/TREE_CONTROL' ##NO_TEXT.
+  data MS_OUTTAB type /MBTOOLS/TREE_CONTROL .
+  data:
+    mt_outtab TYPE STANDARD TABLE OF /mbtools/tree_control .
+  data MV_NODE_KEY type LVC_NKEY .
+  data MV_RELAT_KEY type LVC_NKEY .
+  data MT_FIELDCAT type LVC_T_FCAT .
+  data MT_ITEM_LAYOUT type LVC_T_LAYI .
+  data MT_TYPTAB type LVC_T_CHIT .
+  data MV_TREE_LEVEL type I .
+  data MV_DONE type ABAP_BOOL .
 
-    METHODS init .
-    METHODS add_node
-      IMPORTING
-        VALUE(is_outtab) TYPE any
-        VALUE(i_icon)    TYPE icon_d OPTIONAL
-        VALUE(i_color)   TYPE i OPTIONAL
-        VALUE(i_level)   TYPE i OPTIONAL
-        VALUE(i_sign)    TYPE abap_bool DEFAULT abap_false
-        VALUE(i_hidden)  TYPE abap_bool DEFAULT abap_false .
-    METHODS add
-      IMPORTING
-        VALUE(i_title)  TYPE csequence
-        VALUE(i_icon)   TYPE icon_d OPTIONAL
-        VALUE(i_text)   TYPE any OPTIONAL
-        VALUE(i_value)  TYPE any OPTIONAL
-        VALUE(i_color)  TYPE i OPTIONAL
-        VALUE(i_level)  TYPE i OPTIONAL
-        VALUE(i_sign)   TYPE abap_bool DEFAULT abap_false
-        VALUE(i_hidden) TYPE abap_bool DEFAULT abap_false
-        VALUE(i_type)   TYPE csequence OPTIONAL .
-
+  methods INIT .
+  methods ADD_NODE
+    importing
+      value(IS_OUTTAB) type ANY
+      value(I_ICON) type ICON_D optional
+      value(I_COLOR) type I optional
+      value(I_LEVEL) type I optional
+      value(I_SIGN) type ABAP_BOOL default ABAP_FALSE
+      value(I_HIDDEN) type ABAP_BOOL default ABAP_FALSE .
+  methods ADD
+    importing
+      value(I_TITLE) type CSEQUENCE
+      value(I_ICON) type ICON_D optional
+      value(I_TEXT) type ANY optional
+      value(I_VALUE) type ANY optional
+      value(I_COLOR) type I optional
+      value(I_LEVEL) type I optional
+      value(I_SIGN) type ABAP_BOOL default ABAP_FALSE
+      value(I_HIDDEN) type ABAP_BOOL default ABAP_FALSE
+      value(I_TYPE) type CSEQUENCE optional .
 ENDCLASS.
 
 
@@ -489,32 +490,17 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
       WITH KEY nodekey = node_key.                      "#EC CI_HASHSEQ
     CHECK sy-subrc = 0.
 
-    CASE ls_typtab-fieldname.
-      WHEN /mbtools/if_objects=>c_infocube.
-        /mbtools/cl_sap=>show_object(
-          i_object   = ls_typtab-fieldname
-          i_obj_name = l_value ).
+    IF /mbtools/cl_sap=>show_object( i_object   = ls_typtab-fieldname
+                                     i_obj_name = l_value ).
+      RETURN.
+    ENDIF.
 
+    CASE ls_typtab-fieldname.
       WHEN /mbtools/if_objects=>c_dimension.
         l_length = strlen( l_value ) - 1.
         l_value = l_value(l_length).
         /mbtools/cl_sap=>show_object(
           i_object   = /mbtools/if_objects=>c_infocube
-          i_obj_name = l_value ).
-
-      WHEN /mbtools/if_objects=>c_multiprov.
-        /mbtools/cl_sap=>show_object(
-          i_object   = ls_typtab-fieldname
-          i_obj_name = l_value ).
-
-      WHEN /mbtools/if_objects=>c_ods.
-        /mbtools/cl_sap=>show_object(
-          i_object   = ls_typtab-fieldname
-          i_obj_name = l_value ).
-
-      WHEN /mbtools/if_objects=>c_infoset.
-        /mbtools/cl_sap=>show_object(
-          i_object   = ls_typtab-fieldname
           i_obj_name = l_value ).
 
       WHEN /mbtools/if_objects=>c_aggrlevel.
@@ -570,11 +556,6 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
           EXPORTING
             i_plseq = l_plseq
             i_fcode = 'DISPLAY'.
-
-      WHEN /mbtools/if_objects=>c_hybridprovider.
-        /mbtools/cl_sap=>show_object(
-          i_object   = ls_typtab-fieldname
-          i_obj_name = l_value ).
 
       WHEN /mbtools/if_objects=>c_lpo.
         TRY.
@@ -637,31 +618,6 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
             object_not_found = 3
             OTHERS           = 4.
         CHECK sy-subrc = 0.
-
-      WHEN /mbtools/if_objects=>c_data_element.
-        /mbtools/cl_sap=>show_object(
-          i_object   = ls_typtab-fieldname
-          i_obj_name = l_value ).
-
-      WHEN /mbtools/if_objects=>c_table.
-        SET PARAMETER ID 'DTB' FIELD l_value.
-        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'SE16' ).
-
-      WHEN /mbtools/if_objects=>c_abap_function.
-        /mbtools/cl_sap=>show_object(
-          i_pgmid    = 'LIMU'
-          i_object   = ls_typtab-fieldname
-          i_obj_name = l_value ).
-
-      WHEN /mbtools/if_objects=>c_abap_program.
-        /mbtools/cl_sap=>show_object(
-          i_object   = ls_typtab-fieldname
-          i_obj_name = l_value ).
-
-      WHEN /mbtools/if_objects=>c_abap_class OR /mbtools/if_objects=>c_abap_interface.
-        /mbtools/cl_sap=>show_object(
-          i_object   = ls_typtab-fieldname
-          i_obj_name = l_value ).
 
       WHEN OTHERS.
 
