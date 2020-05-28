@@ -4,67 +4,64 @@
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-class /MBTOOLS/CL_SAP definition
-  public
-  final
-  create public .
+CLASS /mbtools/cl_sap DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  types:
-    ty_object_texts TYPE STANDARD TABLE OF ko100 WITH DEFAULT KEY .
-
-  class-methods CLASS_CONSTRUCTOR .
-  class-methods GET_OBJECT_WO_NAMESPACE
-    importing
-      !I_OBJ_NAME type CSEQUENCE
-    returning
-      value(R_RESULT) type SOBJ_NAME .
-  class-methods GET_NAMESPACE
-    importing
-      !I_OBJ_NAME type CSEQUENCE
-    returning
-      value(R_RESULT) type NAMESPACE .
-  class-methods GET_OBJECT_TEXT
-    importing
-      value(I_OBJECT) type TROBJTYPE
-    returning
-      value(R_TEXT) type DDTEXT .
-  class-methods GET_OBJECT_TEXTS
-    returning
-      value(R_OBJECT_TEXTS) type TY_OBJECT_TEXTS .
-  class-methods IS_DEVC_DELETED
-    importing
-      !I_OBJ_NAME type CSEQUENCE
-    returning
-      value(R_RESULT) type ABAP_BOOL .
-  class-methods IS_FUGR_DELETED
-    importing
-      !I_OBJ_NAME type CSEQUENCE
-    returning
-      value(R_RESULT) type ABAP_BOOL .
-  class-methods IS_SAP_NOTE
-    importing
-      !I_INPUT type CSEQUENCE
-    returning
-      value(R_RESULT) type ABAP_BOOL .
-  class-methods IS_TOBJ_DELETED
-    importing
-      !I_OBJ_NAME type CSEQUENCE
-    returning
-      value(R_RESULT) type ABAP_BOOL .
-  class-methods OBJECT_NAME_CHECK
-    importing
-      !I_INPUT type CSEQUENCE
-    returning
-      value(R_RESULT) type STRING .
-  class-methods SHOW_OBJECT
-    importing
-      !I_PGMID type TADIR-PGMID
-      !I_OBJECT type TADIR-OBJECT
-      !I_OBJ_NAME type TADIR-OBJ_NAME
-    returning
-      value(R_EXIT) type ABAP_BOOL .
+    CLASS-METHODS class_constructor .
+    CLASS-METHODS get_object_wo_namespace
+      IMPORTING
+        !i_obj_name     TYPE csequence
+      RETURNING
+        VALUE(r_result) TYPE /mbtools/if_definitions=>ty_name.
+    CLASS-METHODS get_namespace
+      IMPORTING
+        !i_obj_name     TYPE csequence
+      RETURNING
+        VALUE(r_result) TYPE namespace .
+    CLASS-METHODS get_object_text
+      IMPORTING
+        VALUE(i_object) TYPE csequence
+      RETURNING
+        VALUE(r_text)   TYPE ddtext .
+    CLASS-METHODS get_object_texts
+      RETURNING
+        VALUE(r_object_texts) TYPE /mbtools/if_definitions=>ty_object_texts .
+    CLASS-METHODS is_devc_deleted
+      IMPORTING
+        !i_obj_name     TYPE csequence
+      RETURNING
+        VALUE(r_result) TYPE abap_bool .
+    CLASS-METHODS is_fugr_deleted
+      IMPORTING
+        !i_obj_name     TYPE csequence
+      RETURNING
+        VALUE(r_result) TYPE abap_bool .
+    CLASS-METHODS is_sap_note
+      IMPORTING
+        !i_input        TYPE csequence
+      RETURNING
+        VALUE(r_result) TYPE abap_bool .
+    CLASS-METHODS is_tobj_deleted
+      IMPORTING
+        !i_obj_name     TYPE csequence
+      RETURNING
+        VALUE(r_result) TYPE abap_bool .
+    CLASS-METHODS object_name_check
+      IMPORTING
+        !i_input        TYPE csequence
+      RETURNING
+        VALUE(r_result) TYPE string .
+    CLASS-METHODS show_object
+      IMPORTING
+        !i_pgmid      TYPE csequence DEFAULT 'R3TR'
+        !i_object     TYPE csequence
+        !i_obj_name   TYPE csequence
+      RETURNING
+        VALUE(r_exit) TYPE abap_bool .
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -72,7 +69,7 @@ public section.
     CONSTANTS c_note_min TYPE cwbntnumm VALUE '1' ##NO_TEXT.
     CONSTANTS c_note_max TYPE cwbntnumm VALUE '3999999' ##NO_TEXT.
 
-    CLASS-DATA object_texts TYPE ty_object_texts .
+    CLASS-DATA object_texts TYPE /mbtools/if_definitions=>ty_object_texts .
 
 ENDCLASS.
 
@@ -83,7 +80,7 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
 
   METHOD class_constructor.
 
-    DATA object_text TYPE ko100.
+    DATA object_text TYPE /mbtools/if_definitions=>ty_object_text.
 
     " Read standard texts of object
     CALL FUNCTION 'TR_OBJECT_TABLE'
@@ -147,7 +144,7 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
 
   METHOD get_object_text.
 
-    DATA object_text TYPE ko100.
+    DATA object_text TYPE /mbtools/if_definitions=>ty_object_text.
 
     READ TABLE object_texts INTO object_text
       WITH KEY object = i_object.
@@ -287,14 +284,21 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
   METHOD show_object.
 
     DATA:
+      pgmid         TYPE /mbtools/if_definitions=>ty_pgmid,
+      object        TYPE /mbtools/if_definitions=>ty_object,
+      obj_name      TYPE /mbtools/if_definitions=>ty_name,
       e071_obj_name TYPE e071-obj_name.
+
+    pgmid    = i_pgmid.
+    object   = i_object.
+    obj_name = i_obj_name.
 
     " First try: workbench tools
     CALL FUNCTION 'RS_TOOL_ACCESS'
       EXPORTING
         operation           = 'SHOW'
-        object_name         = i_obj_name
-        object_type         = i_object
+        object_type         = object
+        object_name         = obj_name
       EXCEPTIONS
         not_executed        = 1
         invalid_object_type = 2
@@ -310,8 +314,8 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
     CALL FUNCTION 'TR_OBJECT_JUMP_TO_TOOL'
       EXPORTING
         iv_action         = 'SHOW'
-        iv_pgmid          = i_pgmid
-        iv_object         = i_object
+        iv_pgmid          = pgmid
+        iv_object         = object
         iv_obj_name       = e071_obj_name
       EXCEPTIONS
         jump_not_possible = 1

@@ -527,6 +527,7 @@ FORM save_values.
     gr_sel_reg_entry->set_values( lt_value ).
     TRY.
         gr_sel_reg_entry->save( ).
+        MESSAGE 'Values saved'(021) TYPE 'S'. "<<<INS
         gt_value_ori = gt_value. "Store last values again "<<<INS
       CATCH /mbtools/cx_registry_lock.
         MESSAGE 'Values have been overwritten since last change and are refreshed'(004) TYPE 'I'.

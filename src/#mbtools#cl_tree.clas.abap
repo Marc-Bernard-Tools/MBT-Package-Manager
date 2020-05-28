@@ -10,7 +10,6 @@ CLASS /mbtools/cl_tree DEFINITION
 
   PUBLIC SECTION.
     TYPE-POOLS icon .
-    TYPE-POOLS rsrqt .
 
     DATA gv_container_name TYPE char25 VALUE 'TREE_CONTAINER' ##NO_TEXT.
     DATA gr_custom_container TYPE REF TO cl_gui_custom_container .
@@ -24,85 +23,89 @@ CLASS /mbtools/cl_tree DEFINITION
         FOR EVENT item_double_click OF cl_gui_alv_tree
       IMPORTING
         !node_key
-        !fieldname.
-    METHODS constructor.
+        !fieldname .
+    METHODS constructor .
+    METHODS pbo.
+    METHODS pai
+      IMPORTING
+        !i_ok_code TYPE sy-ucomm.
     METHODS display .
-    METHODS pick_node .
-    METHODS find_node .
     METHODS download .
     METHODS print .
     METHODS destroy .
-    METHODS expand_all.
-    METHODS expand IMPORTING VALUE(i_level) TYPE i.
-    METHODS add_sub_node
+    METHODS expand
       IMPORTING
-        VALUE(i_icon)  TYPE icon_d DEFAULT icon_dummy
-        VALUE(i_title) TYPE csequence
-        VALUE(i_text)  TYPE any OPTIONAL
-        VALUE(i_value) TYPE any OPTIONAL
-        VALUE(i_type)  TYPE csequence OPTIONAL.
+        VALUE(i_level) TYPE i .
+    METHODS expand_all .
     METHODS add_top_node
       IMPORTING
-        VALUE(i_icon)  TYPE icon_d DEFAULT icon_dummy
         VALUE(i_title) TYPE csequence
+        VALUE(i_icon)  TYPE icon_d OPTIONAL
+        VALUE(i_text)  TYPE any OPTIONAL
+        VALUE(i_value) TYPE any OPTIONAL
+        VALUE(i_type)  TYPE csequence OPTIONAL .
+    METHODS add_sub_node
+      IMPORTING
+        VALUE(i_title) TYPE csequence
+        VALUE(i_icon)  TYPE icon_d OPTIONAL
         VALUE(i_text)  TYPE any OPTIONAL
         VALUE(i_value) TYPE any OPTIONAL
         VALUE(i_type)  TYPE csequence OPTIONAL .
     METHODS add_detail
       IMPORTING
-        VALUE(i_icon)   TYPE icon_d DEFAULT icon_dummy
         VALUE(i_title)  TYPE csequence
-        VALUE(i_text)   TYPE any
-        VALUE(i_value)  TYPE any
-        VALUE(i_level)  TYPE i
+        VALUE(i_icon)   TYPE icon_d OPTIONAL
+        VALUE(i_text)   TYPE any OPTIONAL
+        VALUE(i_value)  TYPE any OPTIONAL
+        VALUE(i_level)  TYPE i OPTIONAL
         VALUE(i_sign)   TYPE abap_bool DEFAULT abap_false
         VALUE(i_hidden) TYPE abap_bool DEFAULT abap_false
-        VALUE(i_type)   TYPE csequence OPTIONAL.
-
-    METHODS set_key IMPORTING iv_key TYPE lvc_nkey.
-    METHODS get_key RETURNING VALUE(rv_key) TYPE lvc_nkey.
-    METHODS next_key.
+        VALUE(i_type)   TYPE csequence OPTIONAL .
+    METHODS pick_node .
+    METHODS find_node .
+    METHODS set_key
+      IMPORTING
+        !iv_key TYPE lvc_nkey .
+    METHODS get_key
+      RETURNING
+        VALUE(rv_key) TYPE lvc_nkey .
+    METHODS next_key .
   PROTECTED SECTION.
 
   PRIVATE SECTION.
 
-    DATA mv_tree_structure TYPE tabname VALUE '/MBTOOLS/TREE_CONTROL' .
+    DATA mv_tree_structure TYPE tabname VALUE '/MBTOOLS/TREE_CONTROL' ##NO_TEXT.
     DATA ms_outtab TYPE /mbtools/tree_control .
-    DATA mt_outtab TYPE STANDARD TABLE OF /mbtools/tree_control.
+    DATA mt_outtab TYPE STANDARD TABLE OF /mbtools/tree_control .
     DATA mv_node_key TYPE lvc_nkey .
     DATA mv_relat_key TYPE lvc_nkey .
     DATA mt_fieldcat TYPE lvc_t_fcat .
     DATA mt_item_layout TYPE lvc_t_layi .
     DATA mt_typtab TYPE lvc_t_chit .
-    DATA mv_tree_level TYPE i.
+    DATA mv_tree_level TYPE i .
     DATA mv_done TYPE abap_bool .
 
-    METHODS call_transaction
-      IMPORTING
-        i_tcode TYPE sy-tcode.
-
+    METHODS init .
     METHODS add_node
       IMPORTING
         VALUE(is_outtab) TYPE any
-        VALUE(i_icon)    TYPE icon_d DEFAULT icon_dummy
-        VALUE(i_color)   TYPE i
-        VALUE(i_level)   TYPE i
+        VALUE(i_icon)    TYPE icon_d OPTIONAL
+        VALUE(i_color)   TYPE i OPTIONAL
+        VALUE(i_level)   TYPE i OPTIONAL
         VALUE(i_sign)    TYPE abap_bool DEFAULT abap_false
-        VALUE(i_hidden)  TYPE abap_bool DEFAULT abap_false.
-
+        VALUE(i_hidden)  TYPE abap_bool DEFAULT abap_false .
     METHODS add
       IMPORTING
-        VALUE(i_icon)   TYPE icon_d DEFAULT icon_dummy
         VALUE(i_title)  TYPE csequence
-        VALUE(i_text)   TYPE any
-        VALUE(i_value)  TYPE any
-        VALUE(i_color)  TYPE i
-        VALUE(i_level)  TYPE i
+        VALUE(i_icon)   TYPE icon_d OPTIONAL
+        VALUE(i_text)   TYPE any OPTIONAL
+        VALUE(i_value)  TYPE any OPTIONAL
+        VALUE(i_color)  TYPE i OPTIONAL
+        VALUE(i_level)  TYPE i OPTIONAL
         VALUE(i_sign)   TYPE abap_bool DEFAULT abap_false
         VALUE(i_hidden) TYPE abap_bool DEFAULT abap_false
         VALUE(i_type)   TYPE csequence OPTIONAL .
 
-    METHODS init .
 ENDCLASS.
 
 
@@ -113,7 +116,8 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
   METHOD add.
 
     DATA:
-      ls_typtab TYPE lvc_s_chit.
+      ls_typtab TYPE lvc_s_chit,
+      l_type    TYPE c.
 
     " Node types
     ls_typtab-nodekey   = mv_node_key.
@@ -121,12 +125,26 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     INSERT ls_typtab INTO TABLE mt_typtab.
 
     " Output data
-    " - here we convert text and value to type char 255
-    " - however, ALV tree currently limits output to char 128
+    " - convert text and value to type char 255
+    "   although ALV tree currently limits output to char 128
+    " - format numeric data
     CLEAR ms_outtab.
     ms_outtab-object = i_title.
-    ms_outtab-text   = i_text.
-    ms_outtab-value  = i_value.
+
+    DESCRIBE FIELD i_text TYPE l_type.
+    IF l_type CA 'bspdfDT'.
+      WRITE i_text TO ms_outtab-text LEFT-JUSTIFIED.
+    ELSE.
+      ms_outtab-text = i_text.
+    ENDIF.
+
+    DESCRIBE FIELD i_value TYPE l_type.
+    IF l_type CA 'bspdf'.
+      ms_outtab-value = i_value.
+      SHIFT ms_outtab-value LEFT DELETING LEADING space.
+    ELSE.
+      ms_outtab-value = i_value.
+    ENDIF.
 
     " Add node to tree
     CALL METHOD add_node
@@ -158,7 +176,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD add_node .
+  METHOD add_node.
 
     DATA:
       l_node_text    TYPE lvc_value,
@@ -299,31 +317,6 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD call_transaction.
-
-    DATA l_tcode TYPE sy-tcode.
-
-    SELECT SINGLE tcode FROM tstc INTO l_tcode WHERE tcode = i_tcode.
-    IF sy-subrc = 0.
-      CALL FUNCTION 'AUTHORITY_CHECK_TCODE'
-        EXPORTING
-          tcode  = i_tcode
-        EXCEPTIONS
-          ok     = 0
-          not_ok = 2
-          OTHERS = 3.
-      IF sy-subrc = 0.
-        CALL TRANSACTION i_tcode.
-      ELSE.
-        MESSAGE i172(00) WITH i_tcode.
-      ENDIF.
-    ELSE.
-      MESSAGE i010(01) WITH i_tcode.
-    ENDIF.
-
-  ENDMETHOD.
-
-
   METHOD constructor.
     mv_tree_level = 2.
 
@@ -407,6 +400,8 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
     " Finally display tree on frontend
     CALL METHOD gr_tree->frontend_update.
+
+    CALL METHOD cl_gui_cfw=>flush.
 
     mv_done = abap_true.
 
@@ -495,66 +490,63 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     CHECK sy-subrc = 0.
 
     CASE ls_typtab-fieldname.
-      WHEN rsrqt_c_infocube.
-        SET PARAMETER ID 'RSI' FIELD l_value.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'RSDCUBE'.
+      WHEN /mbtools/if_objects=>c_infocube.
+        /mbtools/cl_sap=>show_object(
+          i_object   = ls_typtab-fieldname
+          i_obj_name = l_value ).
 
-      WHEN rsrqt_c_dimension.
+      WHEN /mbtools/if_objects=>c_dimension.
         l_length = strlen( l_value ) - 1.
         l_value = l_value(l_length).
-        SET PARAMETER ID 'RSI' FIELD l_value.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'RSDCUBE'.
+        /mbtools/cl_sap=>show_object(
+          i_object   = /mbtools/if_objects=>c_infocube
+          i_obj_name = l_value ).
 
-      WHEN rsrqt_c_multiprov.
-        SET PARAMETER ID 'RSM' FIELD l_value.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'RSDMPRO'.
+      WHEN /mbtools/if_objects=>c_multiprov.
+        /mbtools/cl_sap=>show_object(
+          i_object   = ls_typtab-fieldname
+          i_obj_name = l_value ).
 
-      WHEN rsrqt_c_ods.
-        SET PARAMETER ID 'RSDODSOBJECT' FIELD l_value.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'RSDODS'.
+      WHEN /mbtools/if_objects=>c_ods.
+        /mbtools/cl_sap=>show_object(
+          i_object   = ls_typtab-fieldname
+          i_obj_name = l_value ).
 
-      WHEN rsrqt_c_infoset.
-        SET PARAMETER ID 'RSQ_INFOSET' FIELD l_value.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'RSISET'.
+      WHEN /mbtools/if_objects=>c_infoset.
+        /mbtools/cl_sap=>show_object(
+          i_object   = ls_typtab-fieldname
+          i_obj_name = l_value ).
 
-      WHEN rsrqt_c_aggrlevel.
+      WHEN /mbtools/if_objects=>c_aggrlevel.
         l_provider = l_value.
         CALL FUNCTION 'RSPLW_ALVL_MAINTAIN'
           EXPORTING
             i_aggrlevel = l_provider
             i_fcode     = 'DISPLAY'.
 
-      WHEN rsrqt_c_sel_object.
+      WHEN /mbtools/if_objects=>c_sel_object.
         l_compuid = l_value.
         CALL FUNCTION 'RSPLW_SOB_MAINTAIN'
           EXPORTING
             i_compuid = l_compuid
             i_fcode   = 'DISPLAY'.
 
-      WHEN rsrqt_c_variable.
+      WHEN /mbtools/if_objects=>c_variable.
         l_vnam = l_value.
         CALL FUNCTION 'RSPLW_VAR_DISPLAY'
           EXPORTING
             i_vnam = l_vnam.
 
-      WHEN rsrqt_c_plan_provider OR rsrqt_c_char_relationship OR rsrqt_c_data_slice.
+      WHEN /mbtools/if_objects=>c_plan_provider
+        OR /mbtools/if_objects=>c_char_relationship
+        OR /mbtools/if_objects=>c_data_slice.
         l_provider = l_value.
         CALL FUNCTION 'RSPLW_PROV_MAINTAIN'
           EXPORTING
             i_provider = l_provider
             i_mode     = 'DISPLAY'.
 
-      WHEN rsrqt_c_plan_service_type.
+      WHEN /mbtools/if_objects=>c_plan_service_type.
         l_srvtype = l_value.
         TRY.
             CALL FUNCTION 'RSPLFD_PLST_MAINT'
@@ -565,27 +557,26 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
           CATCH cx_rs_msg.                              "#EC NO_HANDLER
         ENDTRY.
 
-      WHEN rsrqt_c_plan_service.
+      WHEN /mbtools/if_objects=>c_plan_service.
         l_service = l_value.
         CALL FUNCTION 'RSPLW_PLFCT_MAINTAIN'
           EXPORTING
             i_service = l_service
             i_fcode   = 'DISPLAY'.
 
-      WHEN rsrqt_c_plan_sequence.
+      WHEN /mbtools/if_objects=>c_plan_sequence.
         l_plseq = l_value.
         CALL FUNCTION 'RSPLW_SEQ_MAINTAIN'
           EXPORTING
             i_plseq = l_plseq
             i_fcode = 'DISPLAY'.
 
-      WHEN rsrqt_c_hybridprovider.
-        SET PARAMETER ID 'RSHYBRPROV' FIELD l_value.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'RSDHYBRM'.
+      WHEN /mbtools/if_objects=>c_hybridprovider.
+        /mbtools/cl_sap=>show_object(
+          i_object   = ls_typtab-fieldname
+          i_obj_name = l_value ).
 
-      WHEN rsrqt_c_lpo.
+      WHEN /mbtools/if_objects=>c_lpo.
         TRY.
             l_lpo = l_value.
             CREATE OBJECT l_r_lpogui.
@@ -595,7 +586,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
           CATCH cx_rslpo_root.                          "#EC NO_HANDLER
         ENDTRY.
 
-      WHEN rsrqt_c_infoobject.
+      WHEN /mbtools/if_objects=>c_infoobject.
         l_iobjnm = l_value.
         CALL FUNCTION 'RSD_IOBJNM_PARSE'
           EXPORTING
@@ -603,52 +594,36 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
           IMPORTING
             e_iobjnm = l_iobjnm.
         SET PARAMETER ID 'RSC' FIELD l_iobjnm.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'RSD1'.
+        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSD1' ).
 
-      WHEN rsrqt_c_hierarchy.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'RSH1'.
+      WHEN /mbtools/if_objects=>c_hierarchy.
+        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSH1' ).
 
-      WHEN rsrqt_c_query.
+      WHEN /mbtools/if_objects=>c_query.
         SET PARAMETER ID 'GID' FIELD l_value.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'RSRT'.
+        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSRT' ).
 
-      WHEN rsrqt_c_ctrt.
+      WHEN /mbtools/if_objects=>c_ctrt.
         SET PARAMETER ID 'NBR' FIELD l_value.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'RSCUR'.
+        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSCUR' ).
 
-      WHEN rsrqt_c_uomt.
+      WHEN /mbtools/if_objects=>c_uomt.
         SET PARAMETER ID 'RSUOM' FIELD l_value.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'RSUOM'.
+        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSUOM' ).
 
-      WHEN rsrqt_c_thjt.
+      WHEN /mbtools/if_objects=>c_thjt.
 *      SET PARAMETER ID 'XXX' FIELD l_value.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'RSTHJTMAINT'.
+        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSTHJTMAINT' ).
 
-      WHEN rsrqt_c_user_id.
+      WHEN /mbtools/if_objects=>c_user_id.
         SET PARAMETER ID 'XUS' FIELD l_value.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'SU01'.
+        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'SU01' ).
 
-      WHEN rsrqt_c_role.
+      WHEN /mbtools/if_objects=>c_role.
         SET PARAMETER ID 'PROFILE_GENERATOR' FIELD l_value.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'PFCG'.
+        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'PFCG' ).
 
-      WHEN rsrqt_c_number_range.
+      WHEN /mbtools/if_objects=>c_number_range.
         l_nrobj = l_value.
         l_mode  = 'U'.
         CALL FUNCTION 'NUMBER_RANGE_OBJECT_MAINTAIN'
@@ -663,35 +638,30 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
             OTHERS           = 4.
         CHECK sy-subrc = 0.
 
-      WHEN rsrqt_c_data_element.
-        SET PARAMETER ID 'DTYP' FIELD l_value.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'SE11'.
+      WHEN /mbtools/if_objects=>c_data_element.
+        /mbtools/cl_sap=>show_object(
+          i_object   = ls_typtab-fieldname
+          i_obj_name = l_value ).
 
-      WHEN rsrqt_c_table.
+      WHEN /mbtools/if_objects=>c_table.
         SET PARAMETER ID 'DTB' FIELD l_value.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'SE16'.
+        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'SE16' ).
 
-      WHEN rsrqt_c_abap_function.
-        SET PARAMETER ID 'LIB' FIELD l_value.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'SE37'.
+      WHEN /mbtools/if_objects=>c_abap_function.
+        /mbtools/cl_sap=>show_object(
+          i_pgmid    = 'LIMU'
+          i_object   = ls_typtab-fieldname
+          i_obj_name = l_value ).
 
-      WHEN rsrqt_c_abap_program.
-        SET PARAMETER ID 'RID' FIELD l_value.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'SE38'.
+      WHEN /mbtools/if_objects=>c_abap_program.
+        /mbtools/cl_sap=>show_object(
+          i_object   = ls_typtab-fieldname
+          i_obj_name = l_value ).
 
-      WHEN rsrqt_c_abap_class OR rsrqt_c_abap_interface.
-        SET PARAMETER ID 'CLASS' FIELD l_value.
-        CALL METHOD call_transaction
-          EXPORTING
-            i_tcode = 'SE24'.
+      WHEN /mbtools/if_objects=>c_abap_class OR /mbtools/if_objects=>c_abap_interface.
+        /mbtools/cl_sap=>show_object(
+          i_object   = ls_typtab-fieldname
+          i_obj_name = l_value ).
 
       WHEN OTHERS.
 
@@ -840,6 +810,45 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
   METHOD next_key.
     mv_relat_key = mv_node_key - 1.
+  ENDMETHOD.
+
+
+  METHOD pai.
+    CASE i_ok_code.
+
+        " Finish program
+      WHEN 'BACK' OR 'EXIT' OR 'CANC'.
+        CALL METHOD destroy.
+        LEAVE TO SCREEN 0.
+
+        " Pick node/item
+      WHEN 'PICK'.
+        CALL METHOD pick_node.
+
+        " Find node/item
+      WHEN 'FIND'.
+        CALL METHOD find_node.
+
+        " Download
+      WHEN 'DOWN'.
+        CALL METHOD download.
+
+        " Print
+      WHEN 'PRINT'.
+        CALL METHOD print.
+
+        " Dispatch to tree control
+      WHEN OTHERS.
+        CALL METHOD cl_gui_cfw=>dispatch.
+
+    ENDCASE.
+
+    CALL METHOD cl_gui_cfw=>flush.
+  ENDMETHOD.
+
+
+  METHOD pbo.
+    display( ).
   ENDMETHOD.
 
 

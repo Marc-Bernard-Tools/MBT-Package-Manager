@@ -28,7 +28,7 @@
      <ID>I</ID>
      <KEY>003</KEY>
      <ENTRY>Select a node from the tree first</ENTRY>
-     <LENGTH>80</LENGTH>
+     <LENGTH>50</LENGTH>
     </item>
     <item>
      <ID>I</ID>
@@ -40,31 +40,31 @@
      <ID>I</ID>
      <KEY>005</KEY>
      <ENTRY>Error when setting up registry toolbar</ENTRY>
-     <LENGTH>80</LENGTH>
+     <LENGTH>50</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>006</KEY>
      <ENTRY>Target registry entry key</ENTRY>
-     <LENGTH>80</LENGTH>
+     <LENGTH>50</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>007</KEY>
      <ENTRY>New registry entry key</ENTRY>
-     <LENGTH>80</LENGTH>
+     <LENGTH>50</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>008</KEY>
      <ENTRY>Error during request for value</ENTRY>
-     <LENGTH>80</LENGTH>
+     <LENGTH>50</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>009</KEY>
      <ENTRY>Confirm deletion</ENTRY>
-     <LENGTH>80</LENGTH>
+     <LENGTH>50</LENGTH>
     </item>
     <item>
      <ID>I</ID>
@@ -76,55 +76,61 @@
      <ID>I</ID>
      <KEY>011</KEY>
      <ENTRY>Error updating registry</ENTRY>
-     <LENGTH>80</LENGTH>
+     <LENGTH>50</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>012</KEY>
      <ENTRY>Root node cannot be deleted</ENTRY>
-     <LENGTH>80</LENGTH>
+     <LENGTH>50</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>013</KEY>
      <ENTRY>Error expanding root node</ENTRY>
-     <LENGTH>80</LENGTH>
+     <LENGTH>50</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>014</KEY>
      <ENTRY>Error building tree</ENTRY>
-     <LENGTH>80</LENGTH>
+     <LENGTH>50</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>015</KEY>
      <ENTRY>The registry entry already exists</ENTRY>
-     <LENGTH>80</LENGTH>
+     <LENGTH>50</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>017</KEY>
      <ENTRY>Confirm data loss</ENTRY>
-     <LENGTH>80</LENGTH>
+     <LENGTH>50</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>018</KEY>
      <ENTRY>Data has changed. Save first?</ENTRY>
-     <LENGTH>80</LENGTH>
+     <LENGTH>50</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>019</KEY>
      <ENTRY>Error registering events for tree</ENTRY>
-     <LENGTH>80</LENGTH>
+     <LENGTH>50</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>020</KEY>
      <ENTRY>Registry Export</ENTRY>
-     <LENGTH>80</LENGTH>
+     <LENGTH>50</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>021</KEY>
+     <ENTRY>Values saved</ENTRY>
+     <LENGTH>50</LENGTH>
     </item>
     <item>
      <ID>R</ID>

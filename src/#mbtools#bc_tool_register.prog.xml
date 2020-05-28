@@ -19,9 +19,15 @@
     </item>
     <item>
      <ID>S</ID>
-     <KEY>P_OBJECT</KEY>
-     <ENTRY>Tool (Object)</ENTRY>
-     <LENGTH>21</LENGTH>
+     <KEY>P_ALL</KEY>
+     <ENTRY>All Tools</ENTRY>
+     <LENGTH>17</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_NAME</KEY>
+     <ENTRY>Tool</ENTRY>
+     <LENGTH>12</LENGTH>
     </item>
     <item>
      <ID>S</ID>

@@ -49,6 +49,9 @@ CLASS /mbtools/cl_utilities DEFINITION
     CLASS-METHODS call_browser
       IMPORTING
         !iv_url TYPE csequence .
+    CLASS-METHODS call_transaction
+      IMPORTING
+        !iv_tcode TYPE sy-tcode.
     CLASS-METHODS is_batch
       RETURNING
         VALUE(rv_batch) TYPE abap_bool .
@@ -143,6 +146,31 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.                    "call_browser
+
+
+  METHOD call_transaction.
+
+    DATA l_tcode TYPE sy-tcode.
+
+    SELECT SINGLE tcode FROM tstc INTO l_tcode WHERE tcode = iv_tcode.
+    IF sy-subrc = 0.
+      CALL FUNCTION 'AUTHORITY_CHECK_TCODE'
+        EXPORTING
+          tcode  = iv_tcode
+        EXCEPTIONS
+          ok     = 0
+          not_ok = 2
+          OTHERS = 3.
+      IF sy-subrc = 0.
+        CALL TRANSACTION iv_tcode.
+      ELSE.
+        MESSAGE i172(00) WITH iv_tcode.
+      ENDIF.
+    ELSE.
+      MESSAGE i010(01) WITH iv_tcode.
+    ENDIF.
+
+  ENDMETHOD.
 
 
   METHOD get_db_release.

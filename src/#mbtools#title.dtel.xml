@@ -3,21 +3,21 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <DD04V>
-    <ROLLNAME>/MBTOOLS/OBJECT</ROLLNAME>
+    <ROLLNAME>/MBTOOLS/TITLE</ROLLNAME>
     <DDLANGUAGE>E</DDLANGUAGE>
     <HEADLEN>55</HEADLEN>
     <SCRLEN1>10</SCRLEN1>
     <SCRLEN2>20</SCRLEN2>
     <SCRLEN3>40</SCRLEN3>
-    <DDTEXT>MBT Object (100)</DDTEXT>
-    <REPTEXT>Object</REPTEXT>
-    <SCRTEXT_S>Object</SCRTEXT_S>
-    <SCRTEXT_M>Object</SCRTEXT_M>
-    <SCRTEXT_L>Object</SCRTEXT_L>
+    <DDTEXT>MBT Title of Tool</DDTEXT>
+    <REPTEXT>Tool</REPTEXT>
+    <SCRTEXT_S>Tool</SCRTEXT_S>
+    <SCRTEXT_M>Tool</SCRTEXT_M>
+    <SCRTEXT_L>Tool</SCRTEXT_L>
     <DTELMASTER>E</DTELMASTER>
     <DATATYPE>CHAR</DATATYPE>
-    <LENG>000100</LENG>
-    <OUTPUTLEN>000100</OUTPUTLEN>
+    <LENG>000255</LENG>
+    <OUTPUTLEN>000255</OUTPUTLEN>
    </DD04V>
   </asx:values>
  </asx:abap>
