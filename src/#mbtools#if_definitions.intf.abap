@@ -8,17 +8,20 @@ INTERFACE /mbtools/if_definitions
   PUBLIC .
 
   TYPES:
-    ty_pgmid TYPE adir_key-pgmid.
+    ty_pgmid TYPE adir_key-pgmid. "char 4
 
   TYPES:
-    ty_object       TYPE adir_key-object,
+    ty_object       TYPE adir_key-object, "char 4
     ty_objects      TYPE STANDARD TABLE OF ty_object WITH DEFAULT KEY,
     ty_object_range TYPE RANGE OF ty_object.
 
   TYPES:
-    ty_name       TYPE adir_key-obj_name,
+    ty_name       TYPE adir_key-obj_name, "char 40
     ty_names      TYPE STANDARD TABLE OF ty_name WITH DEFAULT KEY,
     ty_name_range TYPE RANGE OF ty_name.
+
+  TYPES:
+    ty_longname TYPE trobj_name. "char 120
 
   TYPES:
     ty_tadir_key  TYPE adir_key,

@@ -1,12 +1,10 @@
 ************************************************************************
-* /MBTOOLS/BC_TOOL_REGISTER
-* MBT Tool Registation
+* /MBTOOLS/BC_TOOL_MANAGER
+* MBT Tool Manager
 *
-* (c) Marc Bernard Tools 2020
-* last update: 2020-02-11
+* (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-
-REPORT /mbtools/bc_tool_register.
+REPORT /mbtools/bc_tool_manager.
 
 TABLES:
   sscrfields, icon, icont.
@@ -28,8 +26,11 @@ SELECTION-SCREEN:
   END OF BLOCK b210,
   BEGIN OF BLOCK b220 WITH FRAME.
 PARAMETERS:
-  p_reg   RADIOBUTTON GROUP g1 DEFAULT 'X',
-  p_unreg RADIOBUTTON GROUP g1.
+  p_show  RADIOBUTTON GROUP g1 DEFAULT 'X',
+  p_reg   RADIOBUTTON GROUP g1,
+  p_unreg RADIOBUTTON GROUP g1,
+  p_act   RADIOBUTTON GROUP g1,
+  p_deact RADIOBUTTON GROUP g1.
 SELECTION-SCREEN:
     END OF BLOCK b220,
   END OF SCREEN 200.
@@ -73,8 +74,8 @@ INITIALIZATION.
     iv_icon = icon_tools
     iv_text = 'Tools' ).
 
-  scr_t200 = 'Select "All Tools" or one particular tool'.
-  scr_t201 = 'that you want to register or unregister'.
+  scr_t200 = 'Select "All Tools" or one particular tool and the'.
+  scr_t201 = 'action you want to perform'.
 
 *-----------------------------------------------------------------------
 
@@ -105,50 +106,69 @@ START-OF-SELECTION.
   /mbtools/cl_screen=>banner( i_show = abap_false ).
 
   IF p_all = abap_true.
+    gv_tool = 'Tools were'.
 
-    IF p_reg = abap_true.
+    CASE abap_true.
+      WHEN p_reg.
 
-      CALL METHOD /mbtools/cl_tools=>register_all
-        RECEIVING
-          r_registered = gv_flag.
+        CALL METHOD /mbtools/cl_tools=>register_all
+          RECEIVING
+            r_registered = gv_flag.
 
-      gv_tool   = 'Tools were'.
-      gv_action = 'registered'.
+        gv_action = 'registered'.
 
-    ELSE.
+      WHEN p_unreg.
 
-      CALL METHOD /mbtools/cl_tools=>unregister_all
-        RECEIVING
-          r_unregistered = gv_flag.
+        CALL METHOD /mbtools/cl_tools=>unregister_all
+          RECEIVING
+            r_unregistered = gv_flag.
 
-      gv_tool   = 'Tools were'.
-      gv_action = 'unregistered'.
+        gv_action = 'unregistered'.
 
-    ENDIF.
+      WHEN p_act.
+      WHEN p_deact.
+
+    ENDCASE.
 
   ELSE.
 
     gr_tool = /mbtools/cl_tools=>get_tool( i_title = p_title ).
+    gv_tool = 'Tool was'.
 
-    IF p_reg = abap_true.
+    CASE abap_true.
+      WHEN p_reg.
 
-      CALL METHOD gr_tool->register
-        RECEIVING
-          r_registered = gv_flag.
+        CALL METHOD gr_tool->register
+          RECEIVING
+            r_registered = gv_flag.
 
-      gv_tool   = 'Tool was'.
-      gv_action = 'registered'.
+        gv_action = 'registered'.
 
-    ELSE.
+      WHEN p_unreg.
 
-      CALL METHOD gr_tool->unregister
-        RECEIVING
-          r_unregistered = gv_flag.
+        CALL METHOD gr_tool->unregister
+          RECEIVING
+            r_unregistered = gv_flag.
 
-      gv_tool   = 'Tool was'.
-      gv_action = 'unregistered'.
+        gv_action = 'unregistered'.
 
-    ENDIF.
+      WHEN p_act.
+
+        CALL METHOD gr_tool->activate
+          RECEIVING
+            r_activated = gv_flag.
+
+        gv_action = 'activated'.
+
+      WHEN p_deact.
+
+        CALL METHOD gr_tool->deactivate
+          RECEIVING
+            r_deactivated = gv_flag.
+
+        gv_action = 'deactivated'.
+
+    ENDCASE.
 
   ENDIF.
 

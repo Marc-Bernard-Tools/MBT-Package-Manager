@@ -11,20 +11,11 @@ CLASS /mbtools/cl_tools DEFINITION
 
   PUBLIC SECTION.
 
-    INTERFACES if_apack_manifest .
-    INTERFACES /mbtools/if_manifest .
-
-    ALIASES apack_manifest
-      FOR if_apack_manifest~descriptor .
-    ALIASES mbt_manifest
-      FOR /mbtools/if_manifest~descriptor .
-
     " Global Constant
     CONSTANTS c_github TYPE string VALUE 'github.com/mbtools' ##NO_TEXT.
     CONSTANTS c_home TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.
     CONSTANTS c_terms TYPE string VALUE 'https://marcbernardtools.com/company/terms-software/' ##NO_TEXT.
     CONSTANTS c_namespace TYPE devclass VALUE '/MBTOOLS/' ##NO_TEXT.
-    CONSTANTS c_tool_manager TYPE seoclsname VALUE '/MBTOOLS/CL_TOOLS' ##NO_TEXT.
     CONSTANTS c_manifest TYPE seoclsname VALUE '/MBTOOLS/IF_MANIFEST' ##NO_TEXT.
     " Registry General
     CONSTANTS co_reg_general TYPE string VALUE 'General^' ##NO_TEXT.
@@ -57,6 +48,9 @@ CLASS /mbtools/cl_tools DEFINITION
     " Evaluation
     CONSTANTS co_eval_days TYPE i VALUE 30 ##NO_TEXT.
     CONSTANTS co_eval_users TYPE i VALUE 10 ##NO_TEXT.
+
+    DATA apack_manifest TYPE /mbtools/if_apack_manifest=>ty_descriptor READ-ONLY.
+    DATA mbt_manifest TYPE /mbtools/if_manifest=>ty_descriptor READ-ONLY.
 
     " Constructor
     CLASS-METHODS class_constructor .
@@ -93,7 +87,7 @@ CLASS /mbtools/cl_tools DEFINITION
     " Tool Manifest
     METHODS build_apack_manifest
       RETURNING
-        VALUE(r_manifest) TYPE zif_apack_manifest=>ty_descriptor .
+        VALUE(r_manifest) TYPE /mbtools/if_apack_manifest=>ty_descriptor .
     METHODS build_mbt_manifest
       RETURNING
         VALUE(r_manifest) TYPE /mbtools/if_manifest=>ty_descriptor .
@@ -174,6 +168,7 @@ CLASS /mbtools/cl_tools DEFINITION
     DATA m_version TYPE /mbtools/if_manifest=>ty_descriptor-version .
     DATA m_description TYPE /mbtools/if_manifest=>ty_descriptor-description .
 
+
     CLASS-METHODS get_implementations
       IMPORTING
         VALUE(i_quiet)    TYPE abap_bool DEFAULT abap_true
@@ -244,6 +239,9 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD class_constructor.
 
     LOG-POINT ID /mbtools/bc SUBKEY /mbtools/cl_base=>c_title FIELDS sy-datum sy-uzeit sy-uname.
+
+    " APACK interface
+    /mbtools/cl_apack_manifest=>run( ).
 
     " Get root of registry
     reg_root = /mbtools/cl_registry=>get_root( ).
@@ -383,8 +381,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     " Get all classes that implement the MBT Manifest (except for the MBT Tool Manager)
     SELECT clsname FROM seometarel INTO TABLE rt_classes
       WHERE version    = '1'
-        AND refclsname = c_manifest
-        AND clsname   <> c_tool_manager.
+        AND refclsname = c_manifest.
     IF sy-subrc <> 0 AND i_quiet IS INITIAL.
       MESSAGE s000(/mbtools/bc) WITH 'No tools found'.
       RETURN.

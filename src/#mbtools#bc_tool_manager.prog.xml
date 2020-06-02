@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <PROGDIR>
-    <NAME>/MBTOOLS/BC_TOOL_REGISTER</NAME>
+    <NAME>/MBTOOLS/BC_TOOL_MANAGER</NAME>
     <SUBC>1</SUBC>
     <APPL>S</APPL>
     <RSTAT>K</RSTAT>
@@ -14,7 +14,13 @@
    <TPOOL>
     <item>
      <ID>R</ID>
-     <ENTRY>MBT Tool Registration</ENTRY>
+     <ENTRY>MBT Tool Manager</ENTRY>
+     <LENGTH>16</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_ACT</KEY>
+     <ENTRY>Activate Tool</ENTRY>
      <LENGTH>21</LENGTH>
     </item>
     <item>
@@ -25,8 +31,14 @@
     </item>
     <item>
      <ID>S</ID>
+     <KEY>P_DEACT</KEY>
+     <ENTRY>Deactivate Tool</ENTRY>
+     <LENGTH>23</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
      <KEY>P_REG</KEY>
-     <ENTRY>Register</ENTRY>
+     <ENTRY>Register Tool</ENTRY>
      <LENGTH>21</LENGTH>
     </item>
     <item>
@@ -38,7 +50,7 @@
     <item>
      <ID>S</ID>
      <KEY>P_UNREG</KEY>
-     <ENTRY>Unregister</ENTRY>
+     <ENTRY>Unregister Tool</ENTRY>
      <LENGTH>23</LENGTH>
     </item>
    </TPOOL>

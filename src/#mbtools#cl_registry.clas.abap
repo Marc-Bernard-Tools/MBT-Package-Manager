@@ -10,7 +10,6 @@
 *
 * Ported to namespace and enhanced by Marc Bernard Tools
 ************************************************************************
-
 CLASS /mbtools/cl_registry DEFINITION
   PUBLIC
   CREATE PROTECTED .
