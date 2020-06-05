@@ -10,10 +10,11 @@ CLASS /mbtools/cl_tree DEFINITION
 
   PUBLIC SECTION.
     TYPE-POOLS icon .
+    TYPE-POOLS rsrqt .
 
-    DATA gv_container_name TYPE char25 VALUE 'TREE_CONTAINER' ##NO_TEXT.
-    DATA gr_custom_container TYPE REF TO cl_gui_custom_container .
-    DATA gr_tree TYPE REF TO cl_gui_alv_tree .
+    DATA mv_container_name TYPE char25 VALUE 'GO_TREE_CONTAINER' ##NO_TEXT.
+    DATA mo_custom_container TYPE REF TO cl_gui_custom_container .
+    DATA mo_tree TYPE REF TO cl_gui_alv_tree .
 
     METHODS handle_node_double_click
         FOR EVENT node_double_click OF cl_gui_alv_tree
@@ -28,39 +29,39 @@ CLASS /mbtools/cl_tree DEFINITION
     METHODS pbo .
     METHODS pai
       IMPORTING
-        !i_ok_code TYPE sy-ucomm .
+        !iv_ok_code TYPE sy-ucomm .
     METHODS display .
     METHODS download .
     METHODS print .
     METHODS destroy .
     METHODS expand
       IMPORTING
-        VALUE(i_level) TYPE i .
+        VALUE(iv_level) TYPE i .
     METHODS expand_all .
     METHODS add_top_node
       IMPORTING
-        VALUE(i_title) TYPE csequence
-        VALUE(i_icon)  TYPE icon_d OPTIONAL
-        VALUE(i_text)  TYPE any OPTIONAL
-        VALUE(i_value) TYPE any OPTIONAL
-        VALUE(i_type)  TYPE csequence OPTIONAL .
+        VALUE(iv_title) TYPE csequence
+        VALUE(iv_icon)  TYPE icon_d OPTIONAL
+        VALUE(iv_text)  TYPE any OPTIONAL
+        VALUE(iv_value) TYPE any OPTIONAL
+        VALUE(iv_type)  TYPE csequence OPTIONAL .
     METHODS add_sub_node
       IMPORTING
-        VALUE(i_title) TYPE csequence
-        VALUE(i_icon)  TYPE icon_d OPTIONAL
-        VALUE(i_text)  TYPE any OPTIONAL
-        VALUE(i_value) TYPE any OPTIONAL
-        VALUE(i_type)  TYPE csequence OPTIONAL .
+        VALUE(iv_title) TYPE csequence
+        VALUE(iv_icon)  TYPE icon_d OPTIONAL
+        VALUE(iv_text)  TYPE any OPTIONAL
+        VALUE(iv_value) TYPE any OPTIONAL
+        VALUE(iv_type)  TYPE csequence OPTIONAL .
     METHODS add_detail
       IMPORTING
-        VALUE(i_title)  TYPE csequence
-        VALUE(i_icon)   TYPE icon_d OPTIONAL
-        VALUE(i_text)   TYPE any OPTIONAL
-        VALUE(i_value)  TYPE any OPTIONAL
-        VALUE(i_level)  TYPE i OPTIONAL
-        VALUE(i_sign)   TYPE abap_bool DEFAULT abap_false
-        VALUE(i_hidden) TYPE abap_bool DEFAULT abap_false
-        VALUE(i_type)   TYPE csequence OPTIONAL .
+        VALUE(iv_title)  TYPE csequence
+        VALUE(iv_icon)   TYPE icon_d OPTIONAL
+        VALUE(iv_text)   TYPE any OPTIONAL
+        VALUE(iv_value)  TYPE any OPTIONAL
+        VALUE(iv_level)  TYPE i OPTIONAL
+        VALUE(iv_sign)   TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_hidden) TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_type)   TYPE csequence OPTIONAL .
     METHODS pick_node .
     METHODS find_node .
     METHODS set_key
@@ -83,29 +84,29 @@ CLASS /mbtools/cl_tree DEFINITION
     DATA mt_fieldcat TYPE lvc_t_fcat .
     DATA mt_item_layout TYPE lvc_t_layi .
     DATA mt_typtab TYPE lvc_t_chit .
-    DATA mv_tree_level TYPE i .
+    DATA mv_tree_level TYPE i VALUE 0 ##NO_TEXT.
     DATA mv_done TYPE abap_bool .
 
     METHODS init .
     METHODS add_node
       IMPORTING
         VALUE(is_outtab) TYPE any
-        VALUE(i_icon)    TYPE icon_d OPTIONAL
-        VALUE(i_color)   TYPE i OPTIONAL
-        VALUE(i_level)   TYPE i OPTIONAL
-        VALUE(i_sign)    TYPE abap_bool DEFAULT abap_false
-        VALUE(i_hidden)  TYPE abap_bool DEFAULT abap_false .
+        VALUE(iv_icon)   TYPE icon_d OPTIONAL
+        VALUE(iv_color)  TYPE i OPTIONAL
+        VALUE(iv_level)  TYPE i OPTIONAL
+        VALUE(iv_sign)   TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_hidden) TYPE abap_bool DEFAULT abap_false .
     METHODS add
       IMPORTING
-        VALUE(i_title)  TYPE csequence
-        VALUE(i_icon)   TYPE icon_d OPTIONAL
-        VALUE(i_text)   TYPE any OPTIONAL
-        VALUE(i_value)  TYPE any OPTIONAL
-        VALUE(i_color)  TYPE i OPTIONAL
-        VALUE(i_level)  TYPE i OPTIONAL
-        VALUE(i_sign)   TYPE abap_bool DEFAULT abap_false
-        VALUE(i_hidden) TYPE abap_bool DEFAULT abap_false
-        VALUE(i_type)   TYPE csequence OPTIONAL .
+        VALUE(iv_title)  TYPE csequence
+        VALUE(iv_icon)   TYPE icon_d OPTIONAL
+        VALUE(iv_text)   TYPE any OPTIONAL
+        VALUE(iv_value)  TYPE any OPTIONAL
+        VALUE(iv_color)  TYPE i OPTIONAL
+        VALUE(iv_level)  TYPE i OPTIONAL
+        VALUE(iv_sign)   TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_hidden) TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_type)   TYPE csequence OPTIONAL .
 ENDCLASS.
 
 
@@ -121,7 +122,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
     " Node types
     ls_typtab-nodekey   = mv_node_key.
-    ls_typtab-fieldname = i_type.
+    ls_typtab-fieldname = iv_type.
     INSERT ls_typtab INTO TABLE mt_typtab.
 
     " Output data
@@ -129,32 +130,32 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     "   although ALV tree currently limits output to char 128
     " - format numeric data
     CLEAR ms_outtab.
-    ms_outtab-object = i_title.
+    ms_outtab-object = iv_title.
 
-    DESCRIBE FIELD i_text TYPE l_type.
+    DESCRIBE FIELD iv_text TYPE l_type.
     IF l_type CA 'bspdfDT'.
-      WRITE i_text TO ms_outtab-text LEFT-JUSTIFIED.
+      WRITE iv_text TO ms_outtab-text LEFT-JUSTIFIED.
     ELSE.
-      ms_outtab-text = i_text.
+      ms_outtab-text = iv_text.
     ENDIF.
 
-    DESCRIBE FIELD i_value TYPE l_type.
+    DESCRIBE FIELD iv_value TYPE l_type.
     IF l_type CA 'bspdf'.
-      ms_outtab-value = i_value.
+      ms_outtab-value = iv_value.
       SHIFT ms_outtab-value LEFT DELETING LEADING space.
     ELSE.
-      ms_outtab-value = i_value.
+      ms_outtab-value = iv_value.
     ENDIF.
 
     " Add node to tree
     CALL METHOD add_node
       EXPORTING
         is_outtab = ms_outtab
-        i_icon    = i_icon
-        i_color   = i_color
-        i_level   = i_level
-        i_sign    = i_sign
-        i_hidden  = i_hidden.
+        iv_icon   = iv_icon
+        iv_color  = iv_color
+        iv_level  = iv_level
+        iv_sign   = iv_sign
+        iv_hidden = iv_hidden.
 
   ENDMETHOD.
 
@@ -163,15 +164,15 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
     CALL METHOD add
       EXPORTING
-        i_icon   = i_icon
-        i_title  = i_title
-        i_text   = i_text
-        i_value  = i_value
-        i_color  = 3
-        i_level  = i_level
-        i_sign   = i_sign
-        i_hidden = i_hidden
-        i_type   = i_type.
+        iv_icon   = iv_icon
+        iv_title  = iv_title
+        iv_text   = iv_text
+        iv_value  = iv_value
+        iv_color  = 3
+        iv_level  = iv_level
+        iv_sign   = iv_sign
+        iv_hidden = iv_hidden
+        iv_type   = iv_type.
 
   ENDMETHOD.
 
@@ -179,32 +180,33 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
   METHOD add_node.
 
     DATA:
-      l_node_text    TYPE lvc_value,
+      lv_node_text   TYPE lvc_value,
       ls_node_layout TYPE lvc_s_layn.
 
     FIELD-SYMBOLS:
-      <l_field>        TYPE any,
+      <lv_field>       TYPE any,
       <ls_fieldcat>    TYPE lvc_s_fcat,
       <ls_item_layout> TYPE lvc_s_layi.
 
     " Out data
     ms_outtab = is_outtab.
-    ms_outtab-node_key = mv_node_key.
-    ms_outtab-relatkey = mv_relat_key.
+    ms_outtab-node_key   = mv_node_key.
+    ms_outtab-relatkey   = mv_relat_key.
+    ms_outtab-tree_level = iv_level.
 
-    IF i_sign = abap_true.
+    IF iv_sign = abap_true.
       LOOP AT mt_fieldcat ASSIGNING <ls_fieldcat> FROM 4.
-        ASSIGN COMPONENT <ls_fieldcat>-fieldname OF STRUCTURE ms_outtab TO <l_field>.
-        IF sy-subrc = 0 AND NOT <l_field> IS INITIAL.
-          CONCATENATE '- (' <l_field> ')' INTO <l_field> SEPARATED BY space.
+        ASSIGN COMPONENT <ls_fieldcat>-fieldname OF STRUCTURE ms_outtab TO <lv_field>.
+        IF sy-subrc = 0 AND NOT <lv_field> IS INITIAL.
+          CONCATENATE '- (' <lv_field> ')' INTO <lv_field> SEPARATED BY space.
         ENDIF.
       ENDLOOP.
     ENDIF.
 
     " Output layout
     LOOP AT mt_item_layout ASSIGNING <ls_item_layout>.
-      IF i_hidden IS INITIAL.
-        CASE i_color.
+      IF iv_hidden IS INITIAL.
+        CASE iv_color.
           WHEN 0.
             <ls_item_layout>-style = cl_gui_column_tree=>style_inherited.
           WHEN 1.
@@ -220,18 +222,18 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     ENDLOOP.
 
     " Get node text
-    ASSIGN COMPONENT 3 OF STRUCTURE ms_outtab TO <l_field>.
+    ASSIGN COMPONENT 3 OF STRUCTURE ms_outtab TO <lv_field>.
     IF sy-subrc = 0.
-      l_node_text = <l_field>.
+      lv_node_text = <lv_field>.
     ENDIF.
 
     " Get node icon
     CLEAR ls_node_layout.
 
-    IF i_icon BETWEEN icon_equal_green AND icon_pattern_exclude_red.
+    IF iv_icon BETWEEN icon_equal_green AND icon_pattern_exclude_red.
       CALL FUNCTION 'ICON_CREATE'
         EXPORTING
-          name                  = i_icon
+          name                  = iv_icon
         IMPORTING
           result                = ls_node_layout-n_image
         EXCEPTIONS
@@ -241,8 +243,8 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     ELSE.
       CALL FUNCTION 'ICON_CREATE'
         EXPORTING
-          name                  = i_icon
-          info                  = l_node_text
+          name                  = iv_icon
+          info                  = lv_node_text
         IMPORTING
           result                = ls_node_layout-n_image
         EXCEPTIONS
@@ -254,14 +256,14 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     ls_node_layout-exp_image = ls_node_layout-n_image.
 
     " Add node to tree
-    CALL METHOD gr_tree->add_node
+    CALL METHOD mo_tree->add_node
       EXPORTING
         i_relat_node_key     = mv_relat_key
         i_relationship       = cl_gui_column_tree=>relat_last_child
         is_outtab_line       = ms_outtab
         is_node_layout       = ls_node_layout
         it_item_layout       = mt_item_layout
-        i_node_text          = l_node_text
+        i_node_text          = lv_node_text
       IMPORTING
         e_new_node_key       = mv_node_key
       EXCEPTIONS
@@ -281,15 +283,15 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
     CALL METHOD add
       EXPORTING
-        i_icon   = i_icon
-        i_title  = i_title
-        i_text   = ''
-        i_value  = i_value
-        i_color  = 2
-        i_level  = 0
-        i_sign   = space
-        i_hidden = space
-        i_type   = i_type.
+        iv_icon   = iv_icon
+        iv_title  = iv_title
+        iv_text   = ''
+        iv_value  = iv_value
+        iv_color  = 2
+        iv_level  = 0
+        iv_sign   = space
+        iv_hidden = space
+        iv_type   = iv_type.
 
   ENDMETHOD.
 
@@ -301,15 +303,15 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
     CALL METHOD add
       EXPORTING
-        i_icon   = i_icon
-        i_title  = i_title
-        i_text   = i_text
-        i_value  = i_value
-        i_color  = 1
-        i_level  = 0
-        i_sign   = space
-        i_hidden = space
-        i_type   = i_type.
+        iv_icon   = iv_icon
+        iv_title  = iv_title
+        iv_text   = iv_text
+        iv_value  = iv_value
+        iv_color  = 1
+        iv_level  = 0
+        iv_sign   = space
+        iv_hidden = space
+        iv_type   = iv_type.
 
     " Initialize relationship counter
     mv_relat_key = 1.
@@ -318,27 +320,29 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
 
   METHOD constructor.
+
     mv_tree_level = 2.
 
     init( ).
+
   ENDMETHOD.
 
 
   METHOD destroy .
 
     " Destroy tree control
-    IF NOT gr_tree IS INITIAL.
+    IF NOT mo_tree IS INITIAL.
 
-      CALL METHOD gr_tree->free.
-      CLEAR gr_tree.
+      CALL METHOD mo_tree->free.
+      CLEAR mo_tree.
 
     ENDIF.
 
     " Destroy tree container
-    IF NOT gr_custom_container IS INITIAL.
+    IF NOT mo_custom_container IS INITIAL.
 
-      CALL METHOD gr_custom_container->free.
-      CLEAR gr_custom_container.
+      CALL METHOD mo_custom_container->free.
+      CLEAR mo_custom_container.
 
     ENDIF.
 
@@ -348,21 +352,21 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
   METHOD display .
 
     DATA:
-      l_root TYPE lvc_nkey.
+      lv_root TYPE lvc_nkey.
 
     CHECK mv_done IS INITIAL.
 
     " Calculate totals (is this really necessary?)
-    CALL METHOD gr_tree->update_calculations
+    CALL METHOD mo_tree->update_calculations
       EXPORTING
         no_frontend_update = abap_true.
 
     " Expand tree
-    l_root = 1.
+    lv_root = 1.
     IF mv_tree_level IS INITIAL.
-      CALL METHOD gr_tree->expand_node
+      CALL METHOD mo_tree->expand_node
         EXPORTING
-          i_node_key          = l_root
+          i_node_key          = lv_root
           i_expand_subtree    = abap_true
         EXCEPTIONS
           failed              = 1
@@ -372,9 +376,9 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
           cannot_expand_leaf  = 5
           OTHERS              = 6.
     ELSE.
-      CALL METHOD gr_tree->expand_node
+      CALL METHOD mo_tree->expand_node
         EXPORTING
-          i_node_key          = l_root
+          i_node_key          = lv_root
           i_level_count       = mv_tree_level
         EXCEPTIONS
           failed              = 1
@@ -388,18 +392,18 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
       IF sy-subrc = 4.
         CALL METHOD add_top_node
           EXPORTING
-            i_icon  = icon_dummy
-            i_title = 'No selection'(002).
+            iv_icon  = icon_dummy
+            iv_title = 'No selection'(002).
       ELSE.
         MESSAGE e000 WITH 'Error in EXPAND_NODE' ##NO_TEXT.
       ENDIF.
     ENDIF.
 
     " Optimize column width
-    CALL METHOD gr_tree->column_optimize.
+    CALL METHOD mo_tree->column_optimize.
 
     " Finally display tree on frontend
-    CALL METHOD gr_tree->frontend_update.
+    CALL METHOD mo_tree->frontend_update.
 
     CALL METHOD cl_gui_cfw=>flush.
 
@@ -412,40 +416,52 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
     MESSAGE i000 WITH 'Download the View Using "System > List > Save"'(t01).
 
-    CALL METHOD gr_tree->set_function_code
+    CALL METHOD mo_tree->set_function_code
       EXPORTING
         i_ucomm            = cl_gui_alv_tree=>mc_fc_print_prev
       EXCEPTIONS
         function_not_found = 1
         OTHERS             = 2.
+    IF sy-subrc <> 0.
+      MESSAGE i000 WITH 'Function not available'(t02).
+    ENDIF.
 
   ENDMETHOD.
 
 
   METHOD expand.
-    mv_tree_level = i_level.
+
+    mv_tree_level = iv_level.
+
   ENDMETHOD.
 
 
   METHOD expand_all.
+
     mv_tree_level = 0.
+
   ENDMETHOD.
 
 
   METHOD find_node .
 
-    CALL METHOD gr_tree->set_function_code
+    CALL METHOD mo_tree->set_function_code
       EXPORTING
         i_ucomm            = cl_gui_alv_tree=>mc_fc_find
       EXCEPTIONS
         function_not_found = 1
         OTHERS             = 2.
+    IF sy-subrc <> 0.
+      MESSAGE i000 WITH 'Function not available'(t02).
+    ENDIF.
 
   ENDMETHOD.
 
 
   METHOD get_key.
+
     rv_key = mv_relat_key.
+
   ENDMETHOD.
 
 
@@ -463,154 +479,153 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
     " this method handles the node double click event of the tree control instance
     DATA:
-      l_value    LIKE ms_outtab-value,
-      ls_typtab  TYPE lvc_s_chit,
-      l_nrobj    TYPE nrobj,
-      l_iobjnm   TYPE rsiobjnm,
-      l_mode     TYPE c LENGTH 1,
-      l_compuid  TYPE sysuuid_25,
-      l_vnam     TYPE rszvnam,
-      l_service  TYPE rsplf_srvnm,
-      l_plseq    TYPE rspls_seqnm,
-      l_provider TYPE rsinfoprov,
-      l_srvtype  TYPE rsplf_srvtypenm,
-      l_r_lpogui TYPE REF TO cl_rslpo_gui,
-      l_lpo      TYPE rslponame,
-      l_tcode    TYPE sy-tcode,
-      l_length   TYPE i.
+      lv_value    LIKE ms_outtab-value,
+      ls_typtab   TYPE lvc_s_chit,
+      lv_nrobj    TYPE nrobj,
+      lv_iobjnm   TYPE rsiobjnm,
+      lv_mode     TYPE c LENGTH 1,
+      lv_compuid  TYPE sysuuid_25,
+      lv_vnam     TYPE rszvnam,
+      lv_service  TYPE rsplf_srvnm,
+      lv_plseq    TYPE rspls_seqnm,
+      lv_provider TYPE rsinfoprov,
+      lv_srvtype  TYPE rsplf_srvtypenm,
+      lo_lpogui   TYPE REF TO cl_rslpo_gui,
+      lv_lpo      TYPE rslponame,
+      lv_length   TYPE i.
 
     READ TABLE mt_outtab INTO ms_outtab
       WITH KEY node_key = node_key.
     CHECK sy-subrc = 0.
 
-    l_value = ms_outtab-value.
+    lv_value = ms_outtab-value.
 
     READ TABLE mt_typtab INTO ls_typtab
       WITH KEY nodekey = node_key.                      "#EC CI_HASHSEQ
     CHECK sy-subrc = 0.
 
-    IF /mbtools/cl_sap=>show_object( i_object   = ls_typtab-fieldname
-                                     i_obj_name = l_value ).
+    IF /mbtools/cl_sap=>show_object( iv_object   = ls_typtab-fieldname
+                                     iv_obj_name = lv_value ).
       RETURN.
     ENDIF.
 
     CASE ls_typtab-fieldname.
       WHEN /mbtools/if_objects=>c_dimension.
-        l_length = strlen( l_value ) - 1.
-        l_value = l_value(l_length).
+        lv_length = strlen( lv_value ) - 1.
+        lv_value = lv_value(lv_length).
         /mbtools/cl_sap=>show_object(
-          i_object   = /mbtools/if_objects=>c_infocube
-          i_obj_name = l_value ).
+          iv_object   = /mbtools/if_objects=>c_infocube
+          iv_obj_name = lv_value ).
 
       WHEN /mbtools/if_objects=>c_aggrlevel.
-        l_provider = l_value.
+        lv_provider = lv_value.
         CALL FUNCTION 'RSPLW_ALVL_MAINTAIN'
           EXPORTING
-            i_aggrlevel = l_provider
+            i_aggrlevel = lv_provider
             i_fcode     = 'DISPLAY'.
 
       WHEN /mbtools/if_objects=>c_sel_object.
-        l_compuid = l_value.
+        lv_compuid = lv_value.
         CALL FUNCTION 'RSPLW_SOB_MAINTAIN'
           EXPORTING
-            i_compuid = l_compuid
+            i_compuid = lv_compuid
             i_fcode   = 'DISPLAY'.
 
       WHEN /mbtools/if_objects=>c_variable.
-        l_vnam = l_value.
+        lv_vnam = lv_value.
         CALL FUNCTION 'RSPLW_VAR_DISPLAY'
           EXPORTING
-            i_vnam = l_vnam.
+            i_vnam = lv_vnam.
 
       WHEN /mbtools/if_objects=>c_plan_provider
         OR /mbtools/if_objects=>c_char_relationship
         OR /mbtools/if_objects=>c_data_slice.
-        l_provider = l_value.
+        lv_provider = lv_value.
         CALL FUNCTION 'RSPLW_PROV_MAINTAIN'
           EXPORTING
-            i_provider = l_provider
+            i_provider = lv_provider
             i_mode     = 'DISPLAY'.
 
       WHEN /mbtools/if_objects=>c_plan_service_type.
-        l_srvtype = l_value.
+        lv_srvtype = lv_value.
         TRY.
             CALL FUNCTION 'RSPLFD_PLST_MAINT'
               EXPORTING
-                i_srvtypenm = l_srvtype
+                i_srvtypenm = lv_srvtype
                 i_display   = rs_c_true.
           CATCH cx_rs_version_not_found.                "#EC NO_HANDLER
           CATCH cx_rs_msg.                              "#EC NO_HANDLER
         ENDTRY.
 
       WHEN /mbtools/if_objects=>c_plan_service.
-        l_service = l_value.
+        lv_service = lv_value.
         CALL FUNCTION 'RSPLW_PLFCT_MAINTAIN'
           EXPORTING
-            i_service = l_service
+            i_service = lv_service
             i_fcode   = 'DISPLAY'.
 
       WHEN /mbtools/if_objects=>c_plan_sequence.
-        l_plseq = l_value.
+        lv_plseq = lv_value.
         CALL FUNCTION 'RSPLW_SEQ_MAINTAIN'
           EXPORTING
-            i_plseq = l_plseq
+            i_plseq = lv_plseq
             i_fcode = 'DISPLAY'.
 
       WHEN /mbtools/if_objects=>c_lpo.
         TRY.
-            l_lpo = l_value.
-            CREATE OBJECT l_r_lpogui.
-            CALL METHOD l_r_lpogui->show_ui
+            lv_lpo = lv_value.
+            CREATE OBJECT lo_lpogui.
+            CALL METHOD lo_lpogui->show_ui
               EXPORTING
-                i_lpo = l_lpo.
+                i_lpo = lv_lpo.
           CATCH cx_rslpo_root.                          "#EC NO_HANDLER
         ENDTRY.
 
       WHEN /mbtools/if_objects=>c_infoobject.
-        l_iobjnm = l_value.
+        lv_iobjnm = lv_value.
         CALL FUNCTION 'RSD_IOBJNM_PARSE'
           EXPORTING
-            i_iobjnm = l_iobjnm
+            i_iobjnm = lv_iobjnm
           IMPORTING
-            e_iobjnm = l_iobjnm.
-        SET PARAMETER ID 'RSC' FIELD l_iobjnm.
+            e_iobjnm = lv_iobjnm.
+        SET PARAMETER ID 'RSC' FIELD lv_iobjnm.
         /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSD1' ).
 
       WHEN /mbtools/if_objects=>c_hierarchy.
         /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSH1' ).
 
       WHEN /mbtools/if_objects=>c_query.
-        SET PARAMETER ID 'GID' FIELD l_value.
+        SET PARAMETER ID 'GID' FIELD lv_value.
         /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSRT' ).
 
       WHEN /mbtools/if_objects=>c_ctrt.
-        SET PARAMETER ID 'NBR' FIELD l_value.
+        SET PARAMETER ID 'NBR' FIELD lv_value.
         /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSCUR' ).
 
       WHEN /mbtools/if_objects=>c_uomt.
-        SET PARAMETER ID 'RSUOM' FIELD l_value.
+        SET PARAMETER ID 'RSUOM' FIELD lv_value.
         /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSUOM' ).
 
       WHEN /mbtools/if_objects=>c_thjt.
-*      SET PARAMETER ID 'XXX' FIELD l_value.
+*      SET PARAMETER ID 'XXX' FIELD lv_value.
         /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSTHJTMAINT' ).
 
       WHEN /mbtools/if_objects=>c_user_id.
-        SET PARAMETER ID 'XUS' FIELD l_value.
+        SET PARAMETER ID 'XUS' FIELD lv_value.
         /mbtools/cl_utilities=>call_transaction( iv_tcode = 'SU01' ).
 
       WHEN /mbtools/if_objects=>c_role.
-        SET PARAMETER ID 'PROFILE_GENERATOR' FIELD l_value.
+        SET PARAMETER ID 'PROFILE_GENERATOR' FIELD lv_value.
         /mbtools/cl_utilities=>call_transaction( iv_tcode = 'PFCG' ).
 
       WHEN /mbtools/if_objects=>c_number_range.
-        l_nrobj = l_value.
-        l_mode  = 'U'.
+        lv_nrobj = lv_value.
+        lv_mode  = 'U'.
         CALL FUNCTION 'NUMBER_RANGE_OBJECT_MAINTAIN'
           EXPORTING
             display_only     = ' '
-            object           = l_nrobj
-            mode             = l_mode
+            object           = lv_nrobj
+            mode             = lv_mode
           EXCEPTIONS
             object_exists    = 1
             object_missing   = 2
@@ -640,13 +655,13 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
       <ls_item_layout> TYPE lvc_s_layi.
 
     " Create a container for the tree control
-    CHECK gr_tree IS INITIAL.
+    CHECK mo_tree IS INITIAL.
 
     " Link the container the custom control on the dynpro
     IF sy-batch IS INITIAL.
-      CREATE OBJECT gr_custom_container
+      CREATE OBJECT mo_custom_container
         EXPORTING
-          container_name              = gv_container_name
+          container_name              = mv_container_name
         EXCEPTIONS
           cntl_error                  = 1
           cntl_system_error           = 2
@@ -659,9 +674,9 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     ENDIF.
 
     " Create a tree control
-    CREATE OBJECT gr_tree
+    CREATE OBJECT mo_tree
       EXPORTING
-        parent                      = gr_custom_container
+        parent                      = mo_custom_container
         node_selection_mode         = cl_gui_column_tree=>node_sel_mode_multiple
         item_selection              = abap_true
         no_html_header              = abap_true
@@ -687,7 +702,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     ls_event-appl_event = abap_true.
     APPEND ls_event TO lt_events.
 
-    CALL METHOD gr_tree->set_registered_events
+    CALL METHOD mo_tree->set_registered_events
       EXPORTING
         events                    = lt_events
       EXCEPTIONS
@@ -699,8 +714,8 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     ENDIF.
 
     " Assign event handlers in the application class to each desired event
-    SET HANDLER me->handle_node_double_click FOR gr_tree.
-    SET HANDLER me->handle_item_double_click FOR gr_tree.
+    SET HANDLER me->handle_node_double_click FOR mo_tree.
+    SET HANDLER me->handle_item_double_click FOR mo_tree.
 
     " Get field catalog
     CALL FUNCTION 'LVC_FIELDCATALOG_MERGE'
@@ -720,8 +735,8 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     " Build column layout
     REFRESH mt_item_layout.
     LOOP AT mt_fieldcat ASSIGNING <ls_fieldcat>.
-      " Hide the key columns
-      IF sy-tabix <= 3.
+      " Hide the key columns and level
+      IF sy-tabix <= 3 OR <ls_fieldcat>-fieldname = 'TREE_LEVEL'.
         <ls_fieldcat>-no_out = abap_true.
       ENDIF.
 
@@ -747,7 +762,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
     " Create empty tree-control
     " Note: mt_outtab must be empty, since we add nodes dynamically
-    CALL METHOD gr_tree->set_table_for_first_display
+    CALL METHOD mo_tree->set_table_for_first_display
       EXPORTING
         is_hierarchy_header  = ls_hierarchy_header
         i_save               = 'A'
@@ -764,12 +779,15 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
 
   METHOD next_key.
+
     mv_relat_key = mv_node_key - 1.
+
   ENDMETHOD.
 
 
   METHOD pai.
-    CASE i_ok_code.
+
+    CASE iv_ok_code.
 
         " Finish program
       WHEN 'BACK' OR 'EXIT' OR 'CANC'.
@@ -799,11 +817,14 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     ENDCASE.
 
     CALL METHOD cl_gui_cfw=>flush.
+
   ENDMETHOD.
 
 
   METHOD pbo.
+
     display( ).
+
   ENDMETHOD.
 
 
@@ -812,11 +833,11 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     DATA:
       ls_selected_nodes TYPE lvc_s_nkey,
       lt_selected_nodes TYPE lvc_t_nkey,
-      l_node_key        TYPE lvc_nkey,
-      l_fieldname       TYPE lvc_fname.                     "#EC NEEDED
+      lv_node_key       TYPE lvc_nkey,
+      lv_fieldname      TYPE lvc_fname.                     "#EC NEEDED
 
     " Get node selection
-    CALL METHOD gr_tree->get_selected_nodes
+    CALL METHOD mo_tree->get_selected_nodes
       CHANGING
         ct_selected_nodes = lt_selected_nodes
       EXCEPTIONS
@@ -831,10 +852,10 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     CASE lines( lt_selected_nodes ).
       WHEN 0.
         " No node selected, now check item selection
-        CALL METHOD gr_tree->get_selected_item
+        CALL METHOD mo_tree->get_selected_item
           IMPORTING
-            e_selected_node   = l_node_key
-            e_fieldname       = l_fieldname
+            e_selected_node   = lv_node_key
+            e_fieldname       = lv_fieldname
           EXCEPTIONS
             no_item_selection = 1
             cntl_system_error = 2
@@ -845,7 +866,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
           WHEN 0.
             CALL METHOD me->handle_node_double_click
               EXPORTING
-                node_key = l_node_key.
+                node_key = lv_node_key.
           WHEN 1.
             MESSAGE i227(0h).
         ENDCASE.
@@ -869,17 +890,22 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
   METHOD print .
 
-    CALL METHOD gr_tree->set_function_code
+    CALL METHOD mo_tree->set_function_code
       EXPORTING
         i_ucomm            = cl_gui_alv_tree=>mc_fc_print_back
       EXCEPTIONS
         function_not_found = 1
         OTHERS             = 2.
+    IF sy-subrc <> 0.
+      MESSAGE i000 WITH 'Function not available'(t02).
+    ENDIF.
 
   ENDMETHOD.
 
 
   METHOD set_key.
+
     mv_relat_key = iv_key.
+
   ENDMETHOD.
 ENDCLASS.

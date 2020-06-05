@@ -1,6 +1,6 @@
 ************************************************************************
-* /MBTOOLS/BC_REGISTRY_BROWSER
-* MBT Registry Browser
+* /MBTOOLS/REGISTRY
+* MBT Registry
 *
 * Viewer and editor for registry stored in /MBTOOLS/REGS
 *
@@ -9,10 +9,7 @@
 *
 * Ported to namespace and enhanced by Marc Bernard Tools
 ************************************************************************
-REPORT /mbtools/bc_registry_browser MESSAGE-ID /mbtools/bc.
-
-CONSTANTS:
-  c_version TYPE string VALUE '1.0.0'.
+REPORT /mbtools/registry MESSAGE-ID /mbtools/bc.
 
 TYPE-POOLS: icon.
 

@@ -20,6 +20,12 @@
      <MSGNR>001</MSGNR>
      <TEXT>Last change on &amp;1 at &amp;2 by &amp;3 (system time)</TEXT>
     </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/MBTOOLS/BC</ARBGB>
+     <MSGNR>002</MSGNR>
+     <TEXT>There are no Marc Bernard Tools installed</TEXT>
+    </T100>
    </T100>
   </asx:values>
  </asx:abap>

@@ -7,16 +7,16 @@ MODULE pbo_100 OUTPUT.
   SET PF-STATUS 'MAIN'.
   SET TITLEBAR  'MAIN'.
 
-  /mbtools/cl_screen=>banner( i_show = abap_false ).
+  /mbtools/cl_screen=>banner( iv_show = abap_false ).
 
-  gr_app->pbo( ).
+  go_app->pbo( ).
 
 ENDMODULE.                 " PBO_0100  OUTPUT
 
 MODULE pai_100 INPUT.
 
-  gr_app->pai( i_ok_code = g_ok_code ).
+  go_app->pai( iv_ok_code = gv_ok_code ).
 
-  CLEAR g_ok_code.
+  CLEAR gv_ok_code.
 
 ENDMODULE.                 " PAI_0100  INPUT

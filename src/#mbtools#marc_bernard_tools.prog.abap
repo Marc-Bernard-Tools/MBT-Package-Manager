@@ -1,10 +1,10 @@
 ************************************************************************
-* /MBTOOLS/BC_TOOL_MANAGER
-* MBT Tool Manager
+* /MBTOOLS/MARC_BERNARD_TOOLS
+* Marc Bernard Tools
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-REPORT /mbtools/bc_tool_manager.
+REPORT /mbtools/marc_bernard_tools.
 
 TABLES:
   sscrfields, icon, icont.
@@ -87,7 +87,7 @@ AT SELECTION-SCREEN.
 
 AT SELECTION-SCREEN OUTPUT.
 
-  gr_app->initialize( i_all = p_all ).
+  gr_app->initialize( iv_all = p_all ).
 
   INCLUDE /mbtools/bc_screen_at_output.
 
@@ -97,15 +97,20 @@ AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_title.
 
   CALL METHOD /mbtools/cl_tools=>f4_tools
     EXPORTING
-      i_pattern = p_title
+      iv_pattern = p_title
     RECEIVING
-      r_title   = p_title.
+      rv_title   = p_title.
 
 START-OF-SELECTION.
 
-  /mbtools/cl_screen=>banner( i_show = abap_false ).
+  /mbtools/cl_screen=>banner( iv_show = abap_false ).
 
-  IF p_all = abap_true.
+  IF p_show = abap_true.
+
+*    CALL METHOD /mbtools/cl_tools=>show_status.
+
+  ELSEIF p_all = abap_true.
+
     gv_tool = 'Tools were'.
 
     CASE abap_true.
@@ -113,7 +118,7 @@ START-OF-SELECTION.
 
         CALL METHOD /mbtools/cl_tools=>register_all
           RECEIVING
-            r_registered = gv_flag.
+            rv_registered = gv_flag.
 
         gv_action = 'registered'.
 
@@ -121,7 +126,7 @@ START-OF-SELECTION.
 
         CALL METHOD /mbtools/cl_tools=>unregister_all
           RECEIVING
-            r_unregistered = gv_flag.
+            rv_unregistered = gv_flag.
 
         gv_action = 'unregistered'.
 
@@ -132,7 +137,7 @@ START-OF-SELECTION.
 
   ELSE.
 
-    gr_tool = /mbtools/cl_tools=>get_tool( i_title = p_title ).
+    gr_tool = /mbtools/cl_tools=>get_tool( p_title ).
     gv_tool = 'Tool was'.
 
     CASE abap_true.
@@ -140,7 +145,7 @@ START-OF-SELECTION.
 
         CALL METHOD gr_tool->register
           RECEIVING
-            r_registered = gv_flag.
+            rv_registered = gv_flag.
 
         gv_action = 'registered'.
 
@@ -148,7 +153,7 @@ START-OF-SELECTION.
 
         CALL METHOD gr_tool->unregister
           RECEIVING
-            r_unregistered = gv_flag.
+            rv_unregistered = gv_flag.
 
         gv_action = 'unregistered'.
 
@@ -156,7 +161,7 @@ START-OF-SELECTION.
 
         CALL METHOD gr_tool->activate
           RECEIVING
-            r_activated = gv_flag.
+            rv_activated = gv_flag.
 
         gv_action = 'activated'.
 
@@ -164,7 +169,7 @@ START-OF-SELECTION.
 
         CALL METHOD gr_tool->deactivate
           RECEIVING
-            r_deactivated = gv_flag.
+            rv_deactivated = gv_flag.
 
         gv_action = 'deactivated'.
 

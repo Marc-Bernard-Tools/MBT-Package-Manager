@@ -3,18 +3,18 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <TSTC>
-    <TCODE>/MBTOOLS/REG</TCODE>
-    <PGMNA>/MBTOOLS/REGISTRY</PGMNA>
+    <TCODE>/MBTOOLS/MBT</TCODE>
+    <PGMNA>/MBTOOLS/MARC_BERNARD_TOOLS</PGMNA>
     <DYPNO>1000</DYPNO>
     <CINFO>gA==</CINFO>
    </TSTC>
    <TSTCC>
-    <TCODE>/MBTOOLS/REG</TCODE>
+    <TCODE>/MBTOOLS/MBT</TCODE>
    </TSTCC>
    <TSTCT>
     <SPRSL>E</SPRSL>
-    <TCODE>/MBTOOLS/REG</TCODE>
-    <TTEXT>MBT Registry</TTEXT>
+    <TCODE>/MBTOOLS/MBT</TCODE>
+    <TTEXT>Marc Bernard Tools</TTEXT>
    </TSTCT>
   </asx:values>
  </asx:abap>

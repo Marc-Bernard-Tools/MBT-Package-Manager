@@ -13,6 +13,32 @@
     <RSTAT>K</RSTAT>
     <MSG_ID>/MBTOOLS/BC</MSG_ID>
    </VSEOCLASS>
+   <TPOOL>
+    <item>
+     <ID>I</ID>
+     <KEY>001</KEY>
+     <ENTRY>Objects</ENTRY>
+     <LENGTH>50</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>002</KEY>
+     <ENTRY>No selection</ENTRY>
+     <LENGTH>50</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>T01</KEY>
+     <ENTRY>Download the View Using &quot;System &gt; List &gt; Save&quot;</ENTRY>
+     <LENGTH>80</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>T02</KEY>
+     <ENTRY>Function not available</ENTRY>
+     <LENGTH>50</LENGTH>
+    </item>
+   </TPOOL>
    <DESCRIPTIONS>
     <SEOCOMPOTX>
      <CLSNAME>/MBTOOLS/CL_TREE</CLSNAME>
@@ -94,24 +120,6 @@
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/MBTOOLS/CL_TREE</CLSNAME>
-     <CMPNAME>GR_CUSTOM_CONTAINER</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>Container</DESCRIPT>
-    </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_TREE</CLSNAME>
-     <CMPNAME>GR_TREE</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>Tree Control</DESCRIPT>
-    </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_TREE</CLSNAME>
-     <CMPNAME>GV_CONTAINER_NAME</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>Name of Container</DESCRIPT>
-    </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_TREE</CLSNAME>
      <CMPNAME>HANDLE_ITEM_DOUBLE_CLICK</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Double click</DESCRIPT>
@@ -127,6 +135,18 @@
      <CMPNAME>INIT</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Initialize tree</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_TREE</CLSNAME>
+     <CMPNAME>MO_CUSTOM_CONTAINER</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Container</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_TREE</CLSNAME>
+     <CMPNAME>MO_TREE</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Tree Control</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/MBTOOLS/CL_TREE</CLSNAME>
@@ -160,6 +180,12 @@
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/MBTOOLS/CL_TREE</CLSNAME>
+     <CMPNAME>MV_CONTAINER_NAME</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Name of Container</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_TREE</CLSNAME>
      <CMPNAME>MV_DONE</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Exit Flag</DESCRIPT>
@@ -180,7 +206,7 @@
      <CLSNAME>/MBTOOLS/CL_TREE</CLSNAME>
      <CMPNAME>MV_TREE_LEVEL</CMPNAME>
      <LANGU>E</LANGU>
-     <DESCRIPT>Tree Level</DESCRIPT>
+     <DESCRIPT>Tree Expand Level</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/MBTOOLS/CL_TREE</CLSNAME>

@@ -17,9 +17,15 @@ CLASS /mbtools/cl_apack_manifest DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
-    CONSTANTS: c_apack_interface_version TYPE i VALUE 1.
-    CLASS-METHODS: run RAISING zcx_abapgit_exception.
-    METHODS: perform_migration RAISING zcx_abapgit_exception.
+
+    CONSTANTS c_apack_interface_version TYPE i VALUE 1 ##NO_TEXT.
+
+    CLASS-METHODS run
+      RAISING
+        /mbtools/cx_exception .
+    METHODS perform_migration
+      RAISING
+        /mbtools/cx_exception .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -28,13 +34,13 @@ CLASS /mbtools/cl_apack_manifest DEFINITION
     METHODS:
       interface_exists RETURNING VALUE(rv_interface_exists) TYPE abap_bool,
       interface_valid RETURNING VALUE(rv_interface_valid) TYPE abap_bool,
-      create_interface RAISING zcx_abapgit_exception,
+      create_interface RAISING /mbtools/cx_exception,
       add_interface_source_classic IMPORTING is_clskey TYPE seoclskey
-                                   RAISING   zcx_abapgit_exception,
+                                   RAISING   /mbtools/cx_exception,
       add_interface_source IMPORTING is_clskey TYPE seoclskey
-                           RAISING   zcx_abapgit_exception,
+                           RAISING   /mbtools/cx_exception,
       get_interface_source RETURNING VALUE(rt_source) TYPE zif_abapgit_definitions=>ty_string_tt,
-      add_intf_source_and_activate RAISING zcx_abapgit_exception.
+      add_intf_source_and_activate RAISING /mbtools/cx_exception.
 ENDCLASS.
 
 
@@ -69,7 +75,7 @@ CLASS /MBTOOLS/CL_APACK_MANIFEST IMPLEMENTATION.
         TRY.
             CALL METHOD lo_source->('IF_OO_CLIF_SOURCE~LOCK').
           CATCH cx_oo_access_permission.
-            zcx_abapgit_exception=>raise( 'source_new, access permission exception' ) ##NO_TEXT.
+            /mbtools/cx_exception=>raise( 'source_new, access permission exception' ) ##NO_TEXT.
         ENDTRY.
 
         lt_source_code = get_interface_source( ).
@@ -99,7 +105,7 @@ CLASS /MBTOOLS/CL_APACK_MANIFEST IMPLEMENTATION.
         class_not_existing = 1
         OTHERS             = 2.
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( 'error from CL_OO_SOURCE' ) ##NO_TEXT.
+      /mbtools/cx_exception=>raise( 'error from CL_OO_SOURCE' ) ##NO_TEXT.
     ENDIF.
 
     TRY.
@@ -109,9 +115,9 @@ CLASS /MBTOOLS/CL_APACK_MANIFEST IMPLEMENTATION.
         lo_source->save( ).
         lo_source->access_permission( seok_access_free ).
       CATCH cx_oo_access_permission.
-        zcx_abapgit_exception=>raise( 'permission error' ) ##NO_TEXT.
+        /mbtools/cx_exception=>raise( 'permission error' ) ##NO_TEXT.
       CATCH cx_oo_source_save_failure.
-        zcx_abapgit_exception=>raise( 'save failure' ) ##NO_TEXT.
+        /mbtools/cx_exception=>raise( 'save failure' ) ##NO_TEXT.
     ENDTRY.
   ENDMETHOD.
 
@@ -140,7 +146,7 @@ CLASS /MBTOOLS/CL_APACK_MANIFEST IMPLEMENTATION.
         OTHERS                 = 4.
 
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( 'error from RS_WORKING_OBJECTS_ACTIVATE' ) ##NO_TEXT.
+      /mbtools/cx_exception=>raise( 'error from RS_WORKING_OBJECTS_ACTIVATE' ) ##NO_TEXT.
     ENDIF.
 
   ENDMETHOD.
@@ -172,7 +178,7 @@ CLASS /MBTOOLS/CL_APACK_MANIFEST IMPLEMENTATION.
         other           = 6
         OTHERS          = 7.
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( 'Error from SEO_INTERFACE_CREATE_COMPLETE' ) ##NO_TEXT.
+      /mbtools/cx_exception=>raise( 'Error from SEO_INTERFACE_CREATE_COMPLETE' ) ##NO_TEXT.
     ENDIF.
 
     add_intf_source_and_activate( ).

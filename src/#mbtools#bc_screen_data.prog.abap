@@ -3,5 +3,5 @@
 *&---------------------------------------------------------------------*
 
 DATA:
-  gr_tool   TYPE REF TO /mbtools/cl_tools,
-  g_ok_code TYPE sy-ucomm.
+  go_tool    TYPE REF TO /mbtools/cl_tools,
+  gv_ok_code TYPE sy-ucomm.

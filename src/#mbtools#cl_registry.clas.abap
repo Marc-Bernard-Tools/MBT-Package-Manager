@@ -17,28 +17,28 @@ CLASS /mbtools/cl_registry DEFINITION
   PUBLIC SECTION.
 
     TYPES:
-      BEGIN OF ts_keyval,
+      BEGIN OF ty_keyval,
         key   TYPE string,
         value TYPE string,
-      END OF ts_keyval .
+      END OF ty_keyval .
     TYPES:
-      tt_keyval TYPE SORTED TABLE OF ts_keyval WITH UNIQUE KEY key .
+      ty_keyvals TYPE SORTED TABLE OF ty_keyval WITH UNIQUE KEY key .
     TYPES:
 * For keeping track of references to sub-entries, we maintain a shadow
 * table with the same keys
-      BEGIN OF ts_keyobj,
+      BEGIN OF ty_keyobj,
         key   TYPE string,
         value TYPE REF TO /mbtools/cl_registry,
-      END OF ts_keyobj .
+      END OF ty_keyobj .
     TYPES:
-      tt_keyobj TYPE SORTED TABLE OF ts_keyobj WITH UNIQUE KEY key .
+      ty_keyobjs TYPE SORTED TABLE OF ty_keyobj WITH UNIQUE KEY key .
 
     CONSTANTS c_version TYPE string VALUE '1.1.0' ##NO_TEXT.
     CONSTANTS c_name TYPE string VALUE 'MBT_Registry' ##NO_TEXT.
 * Predefined key for the registry root:
     CLASS-DATA registry_root TYPE indx_srtfd READ-ONLY VALUE 'REGISTRY_ROOT' ##NO_TEXT.
-    DATA sub_entries TYPE tt_keyval READ-ONLY .
-    DATA values TYPE tt_keyval READ-ONLY .
+    DATA sub_entries TYPE ty_keyvals READ-ONLY .
+    DATA values TYPE ty_keyvals READ-ONLY .
     DATA internal_key TYPE indx_srtfd READ-ONLY .
     DATA parent_key TYPE indx_srtfd READ-ONLY .
     DATA entry_id TYPE string READ-ONLY .                   "User-friendly ID of the subnode
@@ -99,7 +99,7 @@ CLASS /mbtools/cl_registry DEFINITION
         VALUE(keys) TYPE string_table .
     METHODS get_subentries
       RETURNING
-        VALUE(sub_entries) TYPE tt_keyobj .
+        VALUE(sub_entries) TYPE ty_keyobjs .
 * Methods for dealing with values in the registry entry:
 * Get keys of all values
     METHODS get_value_keys
@@ -108,11 +108,11 @@ CLASS /mbtools/cl_registry DEFINITION
 * Get all values
     METHODS get_values
       RETURNING
-        VALUE(values) TYPE tt_keyval .
+        VALUE(values) TYPE ty_keyvals .
 * Set all values in one go:
     METHODS set_values
       IMPORTING
-        !values TYPE tt_keyval .
+        !values TYPE ty_keyvals .
 * Get single value by key
     METHODS get_value
       IMPORTING
@@ -152,9 +152,9 @@ CLASS /mbtools/cl_registry DEFINITION
   PROTECTED SECTION.
 
     DATA deleted TYPE abap_bool .
-*    data: sub_entrobj type tt_keyobj.
+*    data: sub_entrobj type ty_keyobjs.
 * Class-wide buffer of instances of registry entries
-    CLASS-DATA registry_entries TYPE tt_keyobj .
+    CLASS-DATA registry_entries TYPE ty_keyobjs .
     DATA read_only TYPE abap_bool .
 
     METHODS set_optimistic_lock
@@ -191,8 +191,8 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * ADD_SUBENTRY - add a child entry with new key and save
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ts_keyval.
-    DATA: ko TYPE ts_keyobj. "Shadow table with object references
+    DATA: kv TYPE ty_keyval.
+*    DATA: ko TYPE ty_keyobj. "Shadow table with object references
 
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
@@ -223,7 +223,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     INSERT kv INTO TABLE sub_entries.
 
 * Create an entry on the database for the new entry
-    DATA: lt_empty_vals TYPE tt_keyval.
+    DATA: lt_empty_vals TYPE ty_keyvals.
     DATA: lv_srtfd TYPE indx_srtfd.
 *>>>INS
     DATA: regs TYPE /mbtools/regs.
@@ -265,7 +265,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     reload( ).
 
 * Object inserts itself into registry of entries
-    DATA: ko TYPE ts_keyobj.
+    DATA: ko TYPE ty_keyobj.
     ko-key = me->internal_key.
     ko-value = me.
     INSERT ko INTO TABLE registry_entries.
@@ -303,7 +303,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * COPY_SUBENTRY_DEEP - (protected) - copy a branch of the registry
 *         at the same level, including all values
 *--------------------------------------------------------------------*
-    DATA: ls_subentry TYPE ts_keyval.
+    DATA: ls_subentry TYPE ty_keyval.
     DATA: lr_source TYPE REF TO /mbtools/cl_registry.
     DATA: lr_target TYPE REF TO /mbtools/cl_registry.
 
@@ -357,7 +357,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *          preventing any further operations on this entry
 *--------------------------------------------------------------------*
 
-    DATA: sub_entry TYPE ts_keyval.
+    DATA: sub_entry TYPE ty_keyval.
     DATA: entry TYPE REF TO /mbtools/cl_registry.
 
 * Prevent any changes if this entry is marked as deleted
@@ -391,7 +391,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * DELETE_VALUE - remove single value by key
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ts_keyval.
+    DATA: kv TYPE ty_keyval.
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
       RAISE EXCEPTION TYPE /mbtools/cx_registry_entry_del.
@@ -406,7 +406,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *>>>INS
     DATA:
       reg_entry TYPE REF TO /mbtools/cl_registry,
-      kv        TYPE ts_keyval,
+      kv        TYPE ty_keyval,
       id        TYPE string,
       file_line TYPE string.
 
@@ -451,7 +451,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * GET_ENTRY_BY_INTERNAL_KEY - retrieve reg. entry by internal ID
 *--------------------------------------------------------------------*
-    DATA: ko TYPE ts_keyobj.
+    DATA: ko TYPE ty_keyobj.
 
 * Search global index of registry entry instances
     READ TABLE registry_entries INTO ko WITH KEY key = key.
@@ -485,8 +485,8 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
 * If the root doesn't exist yet, create it
-    DATA: values TYPE tt_keyval.
-    DATA: sub_entries TYPE tt_keyval.
+    DATA: values TYPE ty_keyvals.
+    DATA: sub_entries TYPE ty_keyvals.
     DATA: parent_key TYPE indx_srtfd VALUE space.
     DATA: entry_id TYPE string.
 
@@ -515,7 +515,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * GET_SUBENTRIES - return immediate children registry entries
 *--------------------------------------------------------------------*
-    DATA: ko TYPE ts_keyobj.
+    DATA: ko TYPE ty_keyobj.
     DATA: subkeys TYPE string_table.
     DATA: subkey TYPE string.
 
@@ -536,8 +536,8 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * GET_SUBENTRY - return single child entry by key
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ts_keyval.
-    DATA: ko TYPE ts_keyobj.
+    DATA: kv TYPE ty_keyval.
+    DATA: ko TYPE ty_keyobj.
 
 * Read internal store of sub-entries
     READ TABLE sub_entries INTO kv WITH KEY key = key.
@@ -596,7 +596,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * GET_SUBENTRY_KEYS - retrieve keys of all child registry entries
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ts_keyval.
+    DATA: kv TYPE ty_keyval.
     LOOP AT sub_entries INTO kv.
       APPEND kv-key TO keys.
     ENDLOOP.
@@ -607,7 +607,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * GET_VALUE - return a single value by key
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ts_keyval.
+    DATA: kv TYPE ty_keyval.
     READ TABLE values INTO kv WITH KEY key = key.
     IF sy-subrc = 0.
       value = kv-value.
@@ -627,7 +627,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * GET_VALUE_KEYS - retrieve keys of all values
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ts_keyval.
+    DATA: kv TYPE ty_keyval.
     LOOP AT values INTO kv.
       APPEND kv-key TO keys.
     ENDLOOP.
@@ -685,8 +685,8 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * REMOVE_SUBENTRIES - remove all child entries of this entry
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ts_keyval.
-    DATA: ko TYPE ts_keyobj. "Shadow table with object references
+    DATA: kv TYPE ty_keyval.
+*    DATA: ko TYPE ty_keyobj. "Shadow table with object references
 
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
@@ -703,8 +703,8 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * REMOVE_SUBENTRY - remove a single child registry entry by key
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ts_keyval.
-    FIELD-SYMBOLS: <ko> TYPE ts_keyobj. "Shadow table with object references
+    DATA: kv TYPE ty_keyval.
+*    FIELD-SYMBOLS: <ko> TYPE ty_keyobj. "Shadow table with object references
     DATA: sub_entry TYPE REF TO /mbtools/cl_registry.
 
 * Prevent any changes if this entry is marked as deleted
@@ -782,7 +782,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * SET_VALUE - store a single value by key
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ts_keyval.
+    DATA: kv TYPE ty_keyval.
 
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
