@@ -14,8 +14,11 @@
   ],
   "syntax": {
     "version": "v702",
-    "errorNamespace": "^(/MBTOOLS/(?!CL_SAP|CL_TOOLS|CL_TLOGO|IF_CTS)|LT?CL_|LIF_)",
+    "errorNamespace": "^(/MBTOOLS/(?!CL_SAP|CL_TOOLS|CL_TLOGO|IF_|REGS)|LT?CL_|LIF_)",
     "globalConstants": [
+      "apack_manifest",
+      "cndp_sap_subtype_unknown",
+      "icon_system_help",
       "seoc_version_inactive",
       "seok_access_modify",
       "seok_access_free" 
@@ -66,7 +69,11 @@
     "check_comments": false,
     "check_abstract": true,
     "check_ddic": true,
-    "check_include": true,
+    "check_include": {
+      "exclude": [
+        "#mbtools#bc_screen_pbo_pai.prog.abap"
+      ]
+    },
     "chain_mainly_declarations": true,
     "check_no_handler_pragma": true,
     "check_syntax": true,
