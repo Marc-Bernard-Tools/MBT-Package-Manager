@@ -540,7 +540,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
             CALL FUNCTION 'RSPLFD_PLST_MAINT'
               EXPORTING
                 i_srvtypenm = lv_srvtype
-                i_display   = rs_c_true.
+                i_display   = abap_true.
           CATCH cx_rs_version_not_found.                "#EC NO_HANDLER
           CATCH cx_rs_msg.                              "#EC NO_HANDLER
         ENDTRY.

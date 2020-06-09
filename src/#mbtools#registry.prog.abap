@@ -646,10 +646,10 @@ FORM create_table RAISING cx_salv_msg.
   SET HANDLER event_handler=>handle_table_command FOR gr_table.
   gr_table->set_toolbar_interactive( ).
 
-** Settings on table
-*  data: ls_layout type lvc_s_layo.
-*  ls_layout-cwidth_opt = abap_true.
-*  gr_table->set_frontend_layout( ls_layout ).
+* Settings on table
+*  "data: ls_layout type lvc_s_layo.
+*  "ls_layout-cwidth_opt = abap_true.
+*  "gr_table->set_frontend_layout( ls_layout ).
 
 ENDFORM.                    "create_table
 
@@ -737,7 +737,7 @@ FORM create_tree.
   PERFORM add_node USING '' gr_reg_root.
 
 * Register events and set handlers
-*  ls_event-eventid = cl_gui_simple_tree=>eventid_node_double_click.
+* "ls_event-eventid = cl_gui_simple_tree=>eventid_node_double_click.
   ls_event-eventid = cl_gui_simple_tree=>eventid_selection_changed.
   ls_event-appl_event = 'X'.
   APPEND ls_event TO lt_event.
@@ -789,7 +789,11 @@ ENDFORM.                    "create_tree
 *&---------------------------------------------------------------------*
 *       Get single value from user
 *----------------------------------------------------------------------*
-FORM value_input_dialog USING title CHANGING value returncode.
+FORM value_input_dialog
+  USING title TYPE csequence
+  CHANGING value TYPE csequence
+           returncode TYPE c.
+
   DATA: lt_fld TYPE TABLE OF sval.
   DATA: ls_fld TYPE sval.
 
