@@ -125,7 +125,7 @@ CLASS /mbtools/cl_registry DEFINITION
     METHODS set_value
       IMPORTING
         !key   TYPE clike
-        !value TYPE any .
+        !value TYPE any OPTIONAL.
 * Delete single value by key
     METHODS delete_value
       IMPORTING
@@ -293,7 +293,8 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
 * Using the source and the new target, do a deep copy that includes
 * copies of sub-entries and values
-    copy_subentry_deep( source = source_entry target = target_entry ).
+    copy_subentry_deep( source = source_entry
+                        target = target_entry ).
 
   ENDMETHOD.                    "copy_subentry
 
@@ -314,7 +315,8 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     LOOP AT source->sub_entries INTO ls_subentry.
       lr_source = source->get_subentry( ls_subentry-key ).
       lr_target = target->add_subentry( ls_subentry-key ).
-      copy_subentry_deep( source = lr_source target = lr_target ).
+      copy_subentry_deep( source = lr_source
+                          target = lr_target ).
     ENDLOOP.
 
 * Ensure that values are also saved

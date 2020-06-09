@@ -89,7 +89,7 @@ CLASS /mbtools/cl_sap DEFINITION
 
     CONSTANTS c_note_min TYPE cwbntnumm VALUE '1' ##NO_TEXT.
     CONSTANTS c_note_max TYPE cwbntnumm VALUE '3999999' ##NO_TEXT.
-    CLASS-DATA mt_object_texts TYPE /mbtools/if_definitions=>ty_object_texts .
+    CLASS-DATA gt_object_texts TYPE /mbtools/if_definitions=>ty_object_texts .
 ENDCLASS.
 
 
@@ -105,42 +105,42 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
     " Read standard texts of object
     CALL FUNCTION 'TR_OBJECT_TABLE'
       TABLES
-        wt_object_text = mt_object_texts.
+        wt_object_text = gt_object_texts.
 
     " Add texts for non-transportable objects (or from previous releases)
     ls_object_text-pgmid  = 'R3TR'.
     ls_object_text-object = 'LSYS'.
     ls_object_text-text   = 'Source System'(100).
-    COLLECT ls_object_text INTO mt_object_texts.
+    COLLECT ls_object_text INTO gt_object_texts.
     ls_object_text-object = 'ADMS'.
     ls_object_text-text   = 'BPC DM Selection'(101).
-    COLLECT ls_object_text INTO mt_object_texts.
+    COLLECT ls_object_text INTO gt_object_texts.
     ls_object_text-object = 'DRRU'.
     ls_object_text-text   = 'Remodeling Rule (SAP Delivery)'(102).
-    COLLECT ls_object_text INTO mt_object_texts.
+    COLLECT ls_object_text INTO gt_object_texts.
     ls_object_text-object = 'CPAK'.
     ls_object_text-text   = 'Class (ABAP Objects)'(103).
-    COLLECT ls_object_text INTO mt_object_texts.
+    COLLECT ls_object_text INTO gt_object_texts.
     ls_object_text-object = 'BMED'.
     ls_object_text-text   = '?'.
-    COLLECT ls_object_text INTO mt_object_texts.
+    COLLECT ls_object_text INTO gt_object_texts.
     ls_object_text-object = 'SLDB'.
     ls_object_text-text   = 'Logical Databases'(104).
-    COLLECT ls_object_text INTO mt_object_texts.
+    COLLECT ls_object_text INTO gt_object_texts.
     ls_object_text-object = 'ECSC'.
     ls_object_text-text   = 'eCATT System'(105).
-    COLLECT ls_object_text INTO mt_object_texts.
+    COLLECT ls_object_text INTO gt_object_texts.
     ls_object_text-object = 'SOTL'.
     ls_object_text-text   = 'Concept (Online Text Repository) - Long Texts'(106).
-    COLLECT ls_object_text INTO mt_object_texts.
+    COLLECT ls_object_text INTO gt_object_texts.
 
     " Add Workbench Development Objects
     SELECT type singular FROM euobjt INTO (ls_object_text-object, ls_object_text-text)
       WHERE spras = sy-langu.
-      COLLECT ls_object_text INTO mt_object_texts.
+      COLLECT ls_object_text INTO gt_object_texts.
     ENDSELECT.
 
-    SORT mt_object_texts.
+    SORT gt_object_texts.
 
   ENDMETHOD.
 
@@ -162,7 +162,7 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
     DATA:
       ls_object_text TYPE /mbtools/if_definitions=>ty_object_text.
 
-    READ TABLE mt_object_texts INTO ls_object_text
+    READ TABLE gt_object_texts INTO ls_object_text
       WITH KEY object = iv_object.
     IF sy-subrc = 0.
       rv_text = ls_object_text-text.
@@ -173,7 +173,7 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
 
   METHOD get_object_texts.
 
-    rt_object_texts = mt_object_texts.
+    rt_object_texts = gt_object_texts.
 
   ENDMETHOD.
 
@@ -451,12 +451,12 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
       lv_e071_obj_name TYPE e071-obj_name.
 
     " Check if object exist (maybe as part object)
-    READ TABLE mt_object_texts TRANSPORTING NO FIELDS
+    READ TABLE gt_object_texts TRANSPORTING NO FIELDS
       WITH KEY pgmid = iv_pgmid object = iv_object.
     IF sy-subrc = 0.
       lv_pgmid  = iv_pgmid.
     ELSE.
-      READ TABLE mt_object_texts TRANSPORTING NO FIELDS
+      READ TABLE gt_object_texts TRANSPORTING NO FIELDS
         WITH KEY pgmid = 'LIMU' object = iv_object.
       IF sy-subrc = 0.
         lv_pgmid = 'LIMU'.

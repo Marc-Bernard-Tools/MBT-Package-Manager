@@ -170,7 +170,7 @@ CLASS /mbtools/cl_tools DEFINITION
     TYPES:
       ty_classes TYPE STANDARD TABLE OF seoclsname WITH DEFAULT KEY .
 
-    CLASS-DATA mo_reg_root TYPE REF TO /mbtools/cl_registry .
+    CLASS-DATA go_reg_root TYPE REF TO /mbtools/cl_registry .
     DATA mo_tool TYPE REF TO object .
     DATA mv_id TYPE /mbtools/if_manifest=>ty_descriptor-id .
     DATA mv_bundle_id TYPE /mbtools/if_manifest=>ty_descriptor-bundle_id .
@@ -199,7 +199,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     TRY.
         " Is tool already registered?
-        lo_reg_tool = mo_reg_root->get_subentry( mv_name ).
+        lo_reg_tool = go_reg_root->get_subentry( mv_name ).
         IF NOT lo_reg_tool IS BOUND.
           rv_activated = abap_false.
           RETURN.
@@ -208,7 +208,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         " Switches
         lo_reg_entry = lo_reg_tool->get_subentry( c_reg-switches ).
         IF lo_reg_entry IS BOUND.
-          lo_reg_entry->set_value( key = c_reg-key_active value = abap_true ).
+          lo_reg_entry->set_value( key   = c_reg-key_active
+                                   value = abap_true ).
           lo_reg_entry->save( ).
         ENDIF.
 
@@ -256,7 +257,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         /mbtools/cl_apack_manifest=>run( ).
 
         " Get root of registry
-        mo_reg_root = /mbtools/cl_registry=>get_root( ).
+        go_reg_root = /mbtools/cl_registry=>get_root( ).
 
       CATCH /mbtools/cx_exception.
         " MBT Base is not installed properly. Contact Marc Bernard Tools
@@ -314,7 +315,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     TRY.
         " Is tool already registered?
-        lo_reg_tool = mo_reg_root->get_subentry( mv_name ).
+        lo_reg_tool = go_reg_root->get_subentry( mv_name ).
         IF NOT lo_reg_tool IS BOUND.
           rv_deactivated = abap_false.
           RETURN.
@@ -323,7 +324,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         " Switches
         lo_reg_entry = lo_reg_tool->get_subentry( c_reg-switches ).
         IF lo_reg_entry IS BOUND.
-          lo_reg_entry->set_value( key = c_reg-key_active value = abap_false ).
+          lo_reg_entry->set_value( key   = c_reg-key_active
+                                   value = abap_false ).
           lo_reg_entry->save( ).
         ENDIF.
 
@@ -622,7 +624,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = mo_reg_root->get_subentry( mv_name ).
+        lo_reg_tool = go_reg_root->get_subentry( mv_name ).
         CHECK lo_reg_tool IS BOUND.
 
         " Switches entry
@@ -667,7 +669,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = mo_reg_root->get_subentry( mv_name ).
+        lo_reg_tool = go_reg_root->get_subentry( mv_name ).
         CHECK lo_reg_tool IS BOUND.
 
         " Properties
@@ -711,7 +713,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = mo_reg_root->get_subentry( mv_name ).
+        lo_reg_tool = go_reg_root->get_subentry( mv_name ).
         CHECK lo_reg_tool IS BOUND.
 
         " License
@@ -721,7 +723,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         lv_id = lo_reg_entry->get_value( key = c_reg-key_lic_id ).
 
         " Is license valid?
-        lo_reg_entry->set_value( key = c_reg-key_lic_key value = iv_license ).
+        lo_reg_entry->set_value( key   = c_reg-key_lic_key
+                                 value = iv_license ).
 
         CALL METHOD /mbtools/cl_edd=>check_license
           EXPORTING
@@ -731,8 +734,10 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
             ev_valid   = lv_valid
             ev_expire  = lv_expire.
 
-        lo_reg_entry->set_value( key = c_reg-key_lic_valid value = lv_valid ).
-        lo_reg_entry->set_value( key = c_reg-key_lic_expire value = lv_expire ).
+        lo_reg_entry->set_value( key   = c_reg-key_lic_valid
+                                 value = lv_valid ).
+        lo_reg_entry->set_value( key   = c_reg-key_lic_expire
+                                 value = lv_expire ).
 
         lo_reg_entry->save( ).
 
@@ -755,7 +760,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = mo_reg_root->get_subentry( mv_name ).
+        lo_reg_tool = go_reg_root->get_subentry( mv_name ).
         CHECK lo_reg_tool IS BOUND.
 
         " License
@@ -763,9 +768,10 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         CHECK lo_reg_entry IS BOUND.
 
         " Remove license key
-        lo_reg_entry->set_value( key = c_reg-key_lic_key value = '' ).
-        lo_reg_entry->set_value( key = c_reg-key_lic_valid value = '' ).
-        lo_reg_entry->set_value( key = c_reg-key_lic_expire value = '99991231' ).
+        lo_reg_entry->set_value( key   = c_reg-key_lic_key ).
+        lo_reg_entry->set_value( key   = c_reg-key_lic_valid ).
+        lo_reg_entry->set_value( key   = c_reg-key_lic_expire
+                                 value = '99991231' ).
 
         lo_reg_entry->save( ).
 
@@ -787,12 +793,12 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     TRY.
         " Is tool already registered?
-        lo_reg_tool = mo_reg_root->get_subentry( mv_name ).
+        lo_reg_tool = go_reg_root->get_subentry( mv_name ).
         IF lo_reg_tool IS BOUND.
           rv_registered = abap_true.
         ELSE.
           " Create registry entries
-          lo_reg_tool = mo_reg_root->add_subentry( mv_name ).
+          lo_reg_tool = go_reg_root->add_subentry( mv_name ).
           CHECK lo_reg_tool IS BOUND.
         ENDIF.
 
@@ -803,13 +809,20 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           lo_reg_entry = lo_reg_tool->add_subentry( c_reg-general ).
         ENDIF.
         IF lo_reg_entry IS BOUND.
-          lo_reg_entry->set_value( key = c_reg-key_name        value = mv_name ).
-          lo_reg_entry->set_value( key = c_reg-key_version     value = mv_version ).
-          lo_reg_entry->set_value( key = c_reg-key_title       value = mv_title ).
-          lo_reg_entry->set_value( key = c_reg-key_description value = mv_description ).
-          lo_reg_entry->set_value( key = c_reg-key_namespace   value = c_namespace ).
-          lo_reg_entry->set_value( key = c_reg-key_package     value = get_package( ) ).
-          lo_reg_entry->set_value( key = c_reg-key_class       value = get_class( ) ).
+          lo_reg_entry->set_value( key   = c_reg-key_name
+                                   value = mv_name ).
+          lo_reg_entry->set_value( key   = c_reg-key_version
+                                   value = mv_version ).
+          lo_reg_entry->set_value( key   = c_reg-key_title
+                                   value = mv_title ).
+          lo_reg_entry->set_value( key   = c_reg-key_description
+                                   value = mv_description ).
+          lo_reg_entry->set_value( key   = c_reg-key_namespace
+                                   value = c_namespace ).
+          lo_reg_entry->set_value( key   = c_reg-key_package
+                                   value = get_package( ) ).
+          lo_reg_entry->set_value( key   = c_reg-key_class
+                                   value = get_class( ) ).
           lo_reg_entry->save( ).
         ENDIF.
 
@@ -822,16 +835,20 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         IF lo_reg_entry IS BOUND.
           GET TIME STAMP FIELD lv_timestamp.
           IF rv_registered = abap_true.
-            lo_reg_entry->set_value( key = c_reg-key_update_time value = lv_timestamp ).
-            lo_reg_entry->set_value( key = c_reg-key_update_user value = sy-uname ).
+            lo_reg_entry->set_value( key = c_reg-key_update_time
+                                     value = lv_timestamp ).
+            lo_reg_entry->set_value( key = c_reg-key_update_user
+                                     value = sy-uname ).
           ELSE.
-            lo_reg_entry->set_value( key = c_reg-key_install_time value = lv_timestamp ).
-            lo_reg_entry->set_value( key = c_reg-key_install_user value = sy-uname ).
-            lo_reg_entry->set_value( key = c_reg-key_update_time  value = '' ).
-            lo_reg_entry->set_value( key = c_reg-key_update_user  value = '' ).
+            lo_reg_entry->set_value( key   = c_reg-key_install_time
+                                     value = lv_timestamp ).
+            lo_reg_entry->set_value( key   = c_reg-key_install_user
+                                     value = sy-uname ).
+            lo_reg_entry->set_value( key   = c_reg-key_update_time ).
+            lo_reg_entry->set_value( key   = c_reg-key_update_user ).
           ENDIF.
-          lo_reg_entry->set_value( key = c_reg-key_uninstall_time value = '' ).
-          lo_reg_entry->set_value( key = c_reg-key_uninstall_user value = '' ).
+          lo_reg_entry->set_value( key = c_reg-key_uninstall_time ).
+          lo_reg_entry->set_value( key = c_reg-key_uninstall_user ).
           lo_reg_entry->save( ).
         ENDIF.
 
@@ -839,20 +856,23 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 *         Switches
           lo_reg_entry = lo_reg_tool->add_subentry( c_reg-switches ).
           IF lo_reg_entry IS BOUND.
-            lo_reg_entry->set_value( key = c_reg-key_active value = '' ).
-            lo_reg_entry->set_value( key = c_reg-key_debug  value = '' ).
-            lo_reg_entry->set_value( key = c_reg-key_trace  value = '' ).
+            lo_reg_entry->set_value( key = c_reg-key_active ).
+            lo_reg_entry->set_value( key = c_reg-key_debug  ).
+            lo_reg_entry->set_value( key = c_reg-key_trace  ).
             lo_reg_entry->save( ).
           ENDIF.
 
           " License
           lo_reg_entry = lo_reg_tool->add_subentry( c_reg-license ).
           IF lo_reg_entry IS BOUND.
-            lo_reg_entry->set_value( key = c_reg-key_lic_id     value = mv_id ).
-            lo_reg_entry->set_value( key = c_reg-key_lic_bundle value = mv_bundle_id ).
-            lo_reg_entry->set_value( key = c_reg-key_lic_expire value = '99991231' ).
-            lo_reg_entry->set_value( key = c_reg-key_lic_key    value = '' ).
-            lo_reg_entry->set_value( key = c_reg-key_lic_valid  value = '' ).
+            lo_reg_entry->set_value( key   = c_reg-key_lic_id
+                                     value = mv_id ).
+            lo_reg_entry->set_value( key   = c_reg-key_lic_bundle
+                                     value = mv_bundle_id ).
+            lo_reg_entry->set_value( key   = c_reg-key_lic_expire
+                                     value = '99991231' ).
+            lo_reg_entry->set_value( key   = c_reg-key_lic_key ).
+            lo_reg_entry->set_value( key   = c_reg-key_lic_valid ).
             lo_reg_entry->save( ).
           ENDIF.
         ENDIF.
@@ -909,14 +929,14 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     TRY.
         " Is tool still registered?
-        lo_reg_tool = mo_reg_root->get_subentry( mv_name ).
+        lo_reg_tool = go_reg_root->get_subentry( mv_name ).
         IF NOT lo_reg_tool IS BOUND.
           rv_unregistered = abap_true.
           RETURN.
         ENDIF.
 
         " Remove registry branch
-        mo_reg_root->remove_subentry( mv_name ).
+        go_reg_root->remove_subentry( mv_name ).
         CHECK lo_reg_tool IS BOUND.
 
         rv_unregistered = abap_true.

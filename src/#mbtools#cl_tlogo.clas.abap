@@ -62,9 +62,9 @@ CLASS /mbtools/cl_tlogo DEFINITION
       END OF ty_tlogo_cont.
 
     CLASS-DATA:
-      mr_repository TYPE REF TO cl_rso_repository,
-      mt_tlogo_text TYPE HASHED TABLE OF ty_tlogo_text WITH UNIQUE KEY tlogo,
-      mt_tlogo_cont TYPE HASHED TABLE OF ty_tlogo_cont WITH UNIQUE KEY tlogo_d.
+      go_repository TYPE REF TO cl_rso_repository,
+      gt_tlogo_text TYPE HASHED TABLE OF ty_tlogo_text WITH UNIQUE KEY tlogo,
+      gt_tlogo_cont TYPE HASHED TABLE OF ty_tlogo_cont WITH UNIQUE KEY tlogo_d.
 
 ENDCLASS.
 
@@ -78,12 +78,10 @@ CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
     DATA:
       ls_tlogo_text TYPE ty_tlogo_text.
 
-    CALL METHOD cl_rso_repository=>get_repository
-      RECEIVING
-        r_r_repository = mr_repository.
+    go_repository = cl_rso_repository=>get_repository( ).
 
     " Get TLOGOs (no content TLOGOs)
-    SELECT DISTINCT domvalue_l ddtext INTO TABLE mt_tlogo_text
+    SELECT DISTINCT domvalue_l ddtext INTO TABLE gt_tlogo_text
       FROM dd07t
       WHERE domname    = 'RSTLOGO'
         AND ddlanguage = sy-langu
@@ -91,13 +89,13 @@ CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
 
     " Add Application Component Hierarchty and DataSource
     ls_tlogo_text-tlogo = 'DSAA'.
-    ls_tlogo_text-txtlg = 'Application Component Hierarchty'.
-    INSERT ls_tlogo_text INTO TABLE mt_tlogo_text.
+    ls_tlogo_text-txtlg = 'Application Component Hierarchty'(003).
+    INSERT ls_tlogo_text INTO TABLE gt_tlogo_text.
     ls_tlogo_text-tlogo = 'OSOA'.
-    ls_tlogo_text-txtlg = 'OLTP DataSource'.
-    INSERT ls_tlogo_text INTO TABLE mt_tlogo_text.
+    ls_tlogo_text-txtlg = 'OLTP DataSource'(002).
+    INSERT ls_tlogo_text INTO TABLE gt_tlogo_text.
 
-    SELECT DISTINCT tlogo_d tlogo INTO TABLE mt_tlogo_cont
+    SELECT DISTINCT tlogo_d tlogo INTO TABLE gt_tlogo_cont
       FROM rstlogoprop
       WHERE tlogo_d <> ''.
 
@@ -134,7 +132,7 @@ CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
         ls_object-tlogo = iv_tlogo.
         ls_object-objnm = iv_object.
 
-        CALL METHOD mr_repository->get_properties_of_object
+        go_repository->get_properties_of_object(
           EXPORTING
             i_s_object       = ls_object
           IMPORTING
@@ -142,7 +140,7 @@ CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
             e_txtlg          = lv_txtlg
           EXCEPTIONS
             object_not_found = 1
-            OTHERS           = 2.
+            OTHERS           = 2 ).
         IF sy-subrc <> 0.
           /mbtools/cx_exception=>raise( |Object { iv_tlogo } { iv_object } not found| ).
         ENDIF.
@@ -167,7 +165,7 @@ CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
     DATA:
       ls_tlogo_cont TYPE ty_tlogo_cont.
 
-    READ TABLE mt_tlogo_cont INTO ls_tlogo_cont
+    READ TABLE gt_tlogo_cont INTO ls_tlogo_cont
       WITH TABLE KEY tlogo_d = iv_tlogo_d.
     IF sy-subrc = 0.
       rv_tlogo = ls_tlogo_cont-tlogo.
@@ -209,9 +207,8 @@ CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
             lv_elem_type = iv_tlogo_sub.
           ENDIF.
 
-          rv_icon = cl_rso_repository=>get_tlogo_icon(
-            i_tlogo              = iv_tlogo
-            i_query_element_type = lv_elem_type ).
+          rv_icon = cl_rso_repository=>get_tlogo_icon( i_tlogo              = iv_tlogo
+                                                       i_query_element_type = lv_elem_type ).
 
           " Additional cases
           CASE lv_elem_type.
@@ -230,16 +227,14 @@ CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
         WHEN rs_c_tlogo-infoobject OR rs_c_tlogo-d_infoobject.
           lv_iobj_type = iv_tlogo_sub.
 
-          rv_icon = cl_rso_repository=>get_tlogo_icon(
-            i_tlogo  = iv_tlogo
-            i_iobjtp = lv_iobj_type ).
+          rv_icon = cl_rso_repository=>get_tlogo_icon( i_tlogo  = iv_tlogo
+                                                       i_iobjtp = lv_iobj_type ).
 
         WHEN rs_c_tlogo-infocube OR rs_c_tlogo-d_infocube.
           lv_cube_type = iv_tlogo_sub.
 
-          rv_icon = cl_rso_repository=>get_tlogo_icon(
-            i_tlogo    = iv_tlogo
-            i_cubetype = lv_cube_type ).
+          rv_icon = cl_rso_repository=>get_tlogo_icon( i_tlogo    = iv_tlogo
+                                                       i_cubetype = lv_cube_type ).
 
           " Additional cases
           CASE lv_cube_type.
@@ -302,7 +297,7 @@ CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
         CALL FUNCTION 'RSA1_SINGLE_OLTPSOURCE_GET'
           EXPORTING
             i_oltpsource   = lv_oltpsource
-            i_objvers      = 'A'
+            i_objvers      = rs_c_objvers-active
             i_rlogsys      = lv_rlogsys
           IMPORTING
             e_s_oltpsource = ls_oltpsource
@@ -324,7 +319,7 @@ CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
     DATA:
       ls_tlogo_text TYPE ty_tlogo_text.
 
-    READ TABLE mt_tlogo_text INTO ls_tlogo_text
+    READ TABLE gt_tlogo_text INTO ls_tlogo_text
       WITH TABLE KEY tlogo = iv_tlogo.
     IF sy-subrc <> 0 OR ls_tlogo_text-txtlg IS INITIAL.
       rv_text = 'No text'(001).
