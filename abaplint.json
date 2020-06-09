@@ -1,0 +1,413 @@
+{
+  "global": {
+    "files": "/src/**/*.*",
+    "skipGeneratedGatewayClasses": true,
+    "skipGeneratedPersistentClasses": true,
+    "skipGeneratedFunctionGroups": true
+  },
+  "dependencies": [
+    {
+      "url": "https://github.com/abaplint/deps",
+      "folder": "/deps",
+      "files": "/src/**/*.*"
+    }
+  ],
+  "syntax": {
+    "version": "v702",
+    "errorNamespace": "^(/MBTOOLS/|LT?CL_|LIF_)",
+    "globalConstants": [
+      "apack_manifest",
+      "icon_abap",
+      "icon_abc",
+      "icon_activity_group",
+      "icon_annotation",
+      "icon_background_job",
+      "icon_biw_report",
+      "icon_biw_virtual_info_provider",
+      "icon_bmp",
+      "icon_businav_datamodel",
+      "icon_businav_entity",
+      "icon_businav_objects",
+      "icon_business_area",
+      "icon_bw_apd_db",
+      "icon_bw_exception_monitor",
+      "icon_change_number",
+      "icon_change_text",
+      "icon_check",
+      "icon_class_connection_space",
+      "icon_composite_activitygroup",
+      "icon_configuration",
+      "icon_context_menu",
+      "icon_controlling_area",
+      "icon_database_table",
+      "icon_database_table_ina",
+      "icon_delete",
+      "icon_detail",
+      "icon_display_text",
+      "icon_display_tree",
+      "icon_document",
+      "icon_dummy",
+      "icon_execute_object",
+      "icon_filter",
+      "icon_foreign_key",
+      "icon_htm",
+      "icon_htt",
+      "icon_include_objects",
+      "icon_interface",
+      "icon_layout_control",
+      "icon_led_green",
+      "icon_led_inactive",
+      "icon_led_red",
+      "icon_led_yellow",
+      "icon_list",
+      "icon_locked",
+      "icon_mc_contentindicator",
+      "icon_message_information",
+      "icon_message_type",
+      "icon_model",
+      "icon_modification_create",
+      "icon_modification_overview",
+      "icon_modified_object",
+      "icon_object_list",
+      "icon_okay",
+      "icon_oo_class",
+      "icon_oo_class_method",
+      "icon_oo_interface",
+      "icon_package_application",
+      "icon_package_dynamic",
+      "icon_package_standard",
+      "icon_parameter",
+      "icon_project",
+      "icon_ranking",
+      "icon_release",
+      "icon_role",
+      "icon_set_state",
+      "icon_short_message",
+      "icon_stack",
+      "icon_status_critical",
+      "icon_summarize",
+      "icon_system_help",
+      "icon_system_play",
+      "icon_system_start_recording",
+      "icon_table_settings",
+      "icon_test",
+      "icon_text_ina",
+      "icon_transport",
+      "icon_url",
+      "icon_value_help",
+      "icon_view_form",
+      "icon_view_list",
+      "icon_view_table",
+      "icon_view_thumbnails",
+      "icon_viewer_optical_archive",
+      "icon_wd_application",
+      "icon_wd_component",
+      "icon_wd_controller",
+      "icon_wd_custom_controller",
+      "icon_wd_toolbar",
+      "icon_wd_toolbar_caption",
+      "icon_wd_tree_node",
+      "icon_wd_view",
+      "icon_wf_reserve_workitem",
+      "icon_workflow",
+      "icon_workflow_activity",
+      "icon_workflow_fork",
+      "icon_workflow_process",
+      "icon_write_file",
+      "icon_xml_doc",
+      "ko100",
+      "mbt_manifest",
+      "rs_c_objvers",
+      "rs_c_tlogo",
+      "rsd_c_objtp",
+      "rzd1_c_deftp",
+      "snodetext",
+      "streenode"
+    ],
+    "globalMacros": []
+  },
+  "rules": {
+    "7bit_ascii": {
+      "exclude": [
+        "#mbtools#"
+      ]
+    },
+    "abapdoc": false,
+    "allowed_object_naming": true,
+    "allowed_object_types": {
+      "allowed": [
+        "CLAS",
+        "DEVC",
+        "ENHO",
+        "ENHS",
+        "FUGR",
+        "INTF",
+        "PROG",
+        "TABL",
+        "TRAN",
+        "TTYP",
+        "W3MI"
+      ]
+    },
+    "ambiguous_statement": false,
+    "avoid_use": {
+      "exclude": [
+        "#mbtools#"
+      ],
+      "define": true,
+      "endselect": false,
+      "execSQL": true,
+      "kernelCall": true,
+      "communication": true,
+      "systemCall": true,
+      "defaultKey": false,
+      "break": true,
+      "statics": true
+    },
+    "begin_end_names": true,
+    "check_comments": false,
+    "check_abstract": true,
+    "check_ddic": true,
+    "check_include": true,
+    "chain_mainly_declarations": true,
+    "check_no_handler_pragma": true,
+    "check_syntax": true,
+    "check_text_elements": true,
+    "check_transformation_exists": true,
+    "class_attribute_names": {
+      "ignoreExceptions": true,
+      "ignoreInterfaces": false,
+      "statics": "^G._.*$",
+      "ignoreLocal": false,
+      "constants": "^C_.*$",
+      "instance": "^M._.*$"
+    },
+    "cloud_types": true,
+    "colon_missing_space": true,
+    "commented_code": {
+      "exclude": [
+        "#mbtools#"
+      ]
+    },
+    "constructor_visibility_public": true,
+    "contains_tab": true,
+    "definitions_top": {
+      "exclude": [
+        "#mbtools#"
+      ]
+    },
+    "description_empty": true,
+    "double_space": false,
+    "downport": false,
+    "empty_line_in_statement": {
+      "allowChained": true
+    },
+    "empty_statement": true,
+    "empty_structure": {
+      "loop": true,
+      "if": false,
+      "while": true,
+      "case": true,
+      "select": true,
+      "do": true,
+      "at": true
+    },
+    "exit_or_check": false,
+    "exporting": true,
+    "forbidden_identifier": true,
+    "forbidden_void_type": {
+      "check": ["^stringtab$", "^char1$", "^int4$", "^rs_c_true$", "^rs_c_false$",
+        "^flag$", "^sydatum$", "^syindex$", "^sytabix$", "^syuzeit$"]
+    },
+    "form_no_dash": true,
+    "form_tables_obsolete": false,
+    "fully_type_constants": true,
+    "functional_writing": true,
+    "global_class": true,
+    "identical_form_names": true,
+    "if_in_if": true,
+    "implement_methods": {
+      "exclude": [
+        "#mbtools#"
+      ]
+    },
+    "in_statement_indentation": false,
+    "indentation": {
+      "ignoreExceptions": true,
+      "alignTryCatch": false,
+      "globalClassSkipFirst": false,
+      "ignoreGlobalClassDefinition": false,
+      "ignoreGlobalInterface": false
+    },
+    "inline_data_old_versions": true,
+    "keep_single_parameter_on_one_line": true,
+    "keyword_case": {
+      "exclude": [
+        "#mbtools#"
+      ],
+      "style": "upper",
+      "ignoreExceptions": true,
+      "ignoreLowerClassImplmentationStatement": true,
+      "ignoreGlobalClassDefinition": false,
+      "ignoreGlobalInterface": false,
+      "ignoreFunctionModuleName": false,
+      "ignoreKeywords": [
+        "col_background",
+        "col_group", 
+        "col_heading",
+        "col_key", 
+        "col_negative", 
+        "col_normal", 
+        "col_positive", 
+        "col_total"
+      ]
+    },
+    "line_break_multiple_parameters": true,
+    "line_length": {
+      "length": 120
+    },
+    "line_only_punc": {
+      "ignoreExceptions": true
+    },
+    "local_class_naming": {
+      "exception": "^LCL_.*$",
+      "local": "^LCL_.*$",
+      "test": "^LTCL_.*$"
+    },
+    "local_testclass_location": true,
+    "local_variable_names": {
+      "exclude": [
+        "#mbtools#"
+      ],
+      "expectedData": "^L._.*$",
+      "expectedConstant": "^LC_.*$",
+      "expectedFS": "^<L._.*>$"
+    },
+    "main_file_contents": true,
+    "max_one_statement": true,
+    "message_exists": false,
+    "method_length": {
+      "exclude": [
+        "#mbtools#"
+      ],
+      "statements": 100,
+      "ignoreTestClasses": false,
+      "errorWhenEmpty": false
+    },
+    "method_parameter_names": {
+      "ignoreExceptions": true,
+      "importing": "^I._.*$",
+      "returning": "^R._.*$",
+      "changing": "^C._.*$",
+      "exporting": "^E._.*$",
+      "ignoreNames": [
+        "P_TASK"
+      ]
+    },
+    "mix_returning": true,
+    "msag_consistency": true,
+    "nesting": {
+      "exclude": [
+        "#mbtools#"
+      ],
+      "depth": 5
+    },
+    "newline_between_methods": false,
+    "no_public_attributes": false,
+    "object_naming": {
+      "clas": "^/MBTOOLS/C(L|X)\\_",
+      "intf": "^/MBTOOLS/IF\\_",
+      "prog": "^/MBTOOLS/",
+      "fugr": "^/MBTOOLS/",
+      "tabl": "^/MBTOOLS/",
+      "ttyp": "^/MBTOOLS/",
+      "dtel": "^/MBTOOLS/",
+      "doma": "^/MBTOOLS/",
+      "msag": "^/MBTOOLS/",
+      "tran": "^/MBTOOLS/",
+      "enqu": "^/MBTOOLS/E",
+      "auth": "^/MBTOOLS/",
+      "pinf": "^/MBTOOLS/",
+      "idoc": "^/MBTOOLS/",
+      "ssfo": "^/MBTOOLS/",
+      "ssst": "^/MBTOOLS/",
+      "xslt": "^/MBTOOLS/"
+    },
+    "obsolete_statement": {
+      "exclude": [
+        "#mbtools#"
+      ],
+      "refresh": true,
+      "compute": true,
+      "add": true,
+      "subtract": true,
+      "multiply": true,
+      "move": true,
+      "divide": true,
+      "requested": true,
+      "setExtended": true,
+      "occurs": true
+    },
+    "parser_error": {},
+    "prefer_returning_to_exporting": true,
+    "preferred_compare_operator": {
+      "exclude": [
+        "#mbtools#"
+      ],
+      "badOperators": [
+        "EQ",
+        "><",
+        "NE",
+        "GE",
+        "GT",
+        "LT",
+        "LE"
+      ]
+    },
+    "prefix_is_current_class": {
+      "omitMeInstanceCalls": false
+    },
+    "release_idoc": true,
+    "remove_descriptions": false,
+    "rfc_error_handling": false,
+    "selection_screen_naming": true,
+    "sequential_blank": {
+      "lines": 4
+    },
+    "short_case": {
+      "length": 1,
+      "allow": [
+        "iv_action",
+        "sy"
+      ]
+    },
+    "sicf_consistency": true,
+    "space_before_colon": true,
+    "space_before_dot": {
+      "exclude": [
+        "#mbtools#"
+      ],    
+      "ignoreGlobalDefinition": true,
+      "ignoreExceptions": true
+    },
+    "sql_escape_host_variables": true,
+    "start_at_tab": true,
+    "superclass_final": true,
+    "tabl_enhancement_category": true,
+    "try_without_catch": false,
+    "type_begin_single_include": true,
+    "type_form_parameters": true,
+    "types_naming": false,
+    "unknown_types": {
+      "exclude": [
+        "#mbtools#"
+      ]
+    },
+    "unreachable_code": true,
+    "unused_variables": false,
+    "use_new": true,
+    "when_others_last": true,
+    "whitespace_end": true,
+    "xml_consistency": true
+  }
+}
