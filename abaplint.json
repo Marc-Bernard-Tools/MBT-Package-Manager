@@ -14,7 +14,7 @@
   ],
   "syntax": {
     "version": "v702",
-    "errorNamespace": "^(/MBTOOLS/(?!CL_SAP|CL_TOOLS|CL_TLOGO|IF_|REGS)|LT?CL_|LIF_)",
+    "errorNamespace": "^(/MBTOOLS/|LT?CL_|LIF_)",
     "globalConstants": [
       "apack_manifest",
       "cndp_lifetime_transaction",
@@ -31,6 +31,7 @@
       "icon_summarize",
       "icon_system_help",
       "icon_text_act",
+      "icon_url",
       "icon_write_file",
       "rs_c_objvers",
       "rs_c_tlogo",
