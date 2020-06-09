@@ -45,12 +45,12 @@ DATA: gv_read_only TYPE abap_bool.
 *<<<INS
 
 * Single statement to generate a selection screen
-PARAMETERS: dummy.
+PARAMETERS: p_dummy.
 
 *----------------------------------------------------------------------*
 *       CLASS event_handler DEFINITION
 *----------------------------------------------------------------------*
-CLASS event_handler DEFINITION.
+CLASS lcl_event_handler DEFINITION.
   PUBLIC SECTION.
     CLASS-METHODS:
       handle_node_expand FOR EVENT expand_nc OF cl_gui_alv_tree
@@ -71,7 +71,7 @@ ENDCLASS.                    "event_handler DEFINITION
 *----------------------------------------------------------------------*
 *       CLASS event_handler IMPLEMENTATION
 *----------------------------------------------------------------------*
-CLASS event_handler IMPLEMENTATION.
+CLASS lcl_event_handler IMPLEMENTATION.
 
 * Handle commands to the tree toolbar
   METHOD handle_tree_command.
@@ -642,8 +642,8 @@ FORM create_table RAISING cx_salv_msg.
   ENDIF.
 
 * Toolbar to hold only functions for editing
-  SET HANDLER event_handler=>handle_table_toolbar FOR gr_table.
-  SET HANDLER event_handler=>handle_table_command FOR gr_table.
+  SET HANDLER lcl_event_handler=>handle_table_toolbar FOR gr_table.
+  SET HANDLER lcl_event_handler=>handle_table_command FOR gr_table.
   gr_table->set_toolbar_interactive( ).
 
 * Settings on table
@@ -755,13 +755,13 @@ FORM create_tree.
     MESSAGE 'Error registering events for tree'(019) TYPE 'E'.
   ENDIF.
 
-  SET HANDLER event_handler=>handle_node_expand FOR gr_tree.
-  SET HANDLER event_handler=>handle_node_selected FOR gr_tree.
-  SET HANDLER event_handler=>handle_tree_command FOR gr_tree_toolbar.
+  SET HANDLER lcl_event_handler=>handle_node_expand FOR gr_tree.
+  SET HANDLER lcl_event_handler=>handle_node_selected FOR gr_tree.
+  SET HANDLER lcl_event_handler=>handle_tree_command FOR gr_tree_toolbar.
 
 *>>>INS
 * Expand root node
-  CALL METHOD event_handler=>handle_node_expand
+  CALL METHOD lcl_event_handler=>handle_node_expand
     EXPORTING
       node_key = '          1'
       sender   = gr_tree.
