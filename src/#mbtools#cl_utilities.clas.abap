@@ -112,7 +112,7 @@ CLASS /mbtools/cl_utilities DEFINITION
   PRIVATE SECTION.
 
     CLASS-DATA:
-      mt_cvers TYPE SORTED TABLE OF cvers WITH UNIQUE KEY component .
+      gt_cvers TYPE SORTED TABLE OF cvers WITH UNIQUE KEY component .
 ENDCLASS.
 
 
@@ -270,9 +270,9 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
     FIELD-SYMBOLS:
       <ls_parameter> TYPE spfl_parameter_list.
 
-    CALL METHOD cl_spfl_profile_parameter=>get_all_parameter
+    cl_spfl_profile_parameter=>get_all_parameter(
       IMPORTING
-        parameter_sub = lt_parameters.
+        parameter_sub = lt_parameters ).
 
     LOOP AT lt_parameters ASSIGNING <ls_parameter>.
       TRANSLATE <ls_parameter>-name TO UPPER CASE.
@@ -324,9 +324,7 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
             ev_value = sy-uzeit+4(2).
           WHEN c_property-database OR c_property-database_release OR c_property-database_patch
             OR c_property-dbsl_release OR c_property-dbsl_patch.
-            CALL METHOD get_db_release
-              IMPORTING
-                es_dbinfo = ls_dbinfo.
+            get_db_release( IMPORTING es_dbinfo = ls_dbinfo ).
             IF lv_property = c_property-database.
               lv_version = ls_dbinfo-srvrel.
             ELSEIF lv_property = c_property-database_release.
@@ -345,10 +343,9 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
             ELSE.
               ev_subrc = 2.
             ENDIF.
-          WHEN c_property-hana OR c_property-hana_release OR c_property-hana_sp OR c_property-hana_revision OR c_property-hana_patch.
-            CALL METHOD get_db_release
-              IMPORTING
-                es_hana_release = ls_hana_release.
+          WHEN c_property-hana OR c_property-hana_release OR c_property-hana_sp
+            OR c_property-hana_revision OR c_property-hana_patch.
+            get_db_release( IMPORTING es_hana_release = ls_hana_release ).
             IF lv_property = c_property-hana.
               ev_value = ls_hana_release-release.
             ELSEIF lv_property = c_property-hana_release.
@@ -367,7 +364,8 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
             ELSE.
               ev_value = ls_spam_release-version.
             ENDIF.
-          WHEN c_property-kernel OR c_property-kernel_release OR c_property-kernel_patch OR c_property-kernel_bits.
+          WHEN c_property-kernel OR c_property-kernel_release OR c_property-kernel_patch
+            OR c_property-kernel_bits.
             ls_kernel_release = get_kernel_release( ).
             IF lv_property = c_property-kernel.
               ev_value = ls_kernel_release.
@@ -447,11 +445,11 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
     DATA:
       ls_cvers TYPE cvers.
 
-    IF mt_cvers IS INITIAL.
-      SELECT * FROM cvers INTO TABLE mt_cvers.
+    IF gt_cvers IS INITIAL.
+      SELECT * FROM cvers INTO TABLE gt_cvers.
     ENDIF.
 
-    READ TABLE mt_cvers INTO ls_cvers WITH TABLE KEY
+    READ TABLE gt_cvers INTO ls_cvers WITH TABLE KEY
       component = iv_component.
     IF sy-subrc = 0.
       rv_release = ls_cvers-release.
@@ -467,14 +465,14 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
     DATA:
       ls_cvers TYPE cvers.
 
-    IF mt_cvers IS INITIAL.
-      SELECT * FROM cvers INTO TABLE mt_cvers.
+    IF gt_cvers IS INITIAL.
+      SELECT * FROM cvers INTO TABLE gt_cvers.
     ENDIF.
 
     ls_cvers-component = iv_component.
     REPLACE '_SP' IN ls_cvers-component WITH ''.
 
-    READ TABLE mt_cvers INTO ls_cvers WITH TABLE KEY
+    READ TABLE gt_cvers INTO ls_cvers WITH TABLE KEY
       component = ls_cvers-component.
     IF sy-subrc = 0.
       rv_support_package = ls_cvers-extrelease.
@@ -502,7 +500,7 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
       REPLACE 'SYST-' WITH '' INTO lv_field.
       CONDENSE lv_field NO-GAPS.
 
-      ASSIGN COMPONENT lv_field OF STRUCTURE syst TO <lv_value>.
+      ASSIGN COMPONENT lv_field OF STRUCTURE sy TO <lv_value>.
       IF sy-subrc = 0.
         TRY.
             rv_value = <lv_value>.

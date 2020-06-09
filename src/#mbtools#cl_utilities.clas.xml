@@ -115,12 +115,6 @@
      <LANGU>E</LANGU>
      <DESCRIPT>Is an upgrade running?</DESCRIPT>
     </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_UTILITIES</CLSNAME>
-     <CMPNAME>MT_CVERS</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>Software components</DESCRIPT>
-    </SEOCOMPOTX>
    </DESCRIPTIONS>
   </asx:values>
  </asx:abap>

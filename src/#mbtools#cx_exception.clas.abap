@@ -150,9 +150,7 @@ endif.
       lv_text = iv_text.
     ENDIF.
 
-*    CALL METHOD ('ZCL_ABAPGIT_MESSAGE_HELPER')=>set_msg_vars_for_clike
-*      EXPORTING
-*        iv_text = lv_text.
+    /mbtools/cl_message_helper=>set_msg_vars_for_clike( iv_text = lv_text ).
 
     ls_t100_key-msgid = sy-msgid.
     ls_t100_key-msgno = sy-msgno.

@@ -591,7 +591,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
         /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSUOM' ).
 
       WHEN /mbtools/if_objects=>c_thjt.
-*      SET PARAMETER ID 'XXX' FIELD lv_value.
+        " No parameter
         /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSTHJTMAINT' ).
 
       WHEN /mbtools/if_objects=>c_user_id.
