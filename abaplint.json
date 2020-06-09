@@ -60,6 +60,7 @@
         "DEVC",
         "ENHO",
         "ENHS",
+        "ENQU",
         "FUGR",
         "INTF",
         "MSAG",
@@ -101,7 +102,9 @@
     "check_transformation_exists": true,
     "class_attribute_names": {
       "exclude": [
-        "#mbtools#cl_registry.clas.abap"
+        "#mbtools#cl_registry.clas.abap",
+        "#mbtools#cl_tree_level.clas.abap",
+        "#mbtools#if_apack_manifest.intf.abap"
       ],
       "ignoreExceptions": true,
       "ignoreInterfaces": false,
