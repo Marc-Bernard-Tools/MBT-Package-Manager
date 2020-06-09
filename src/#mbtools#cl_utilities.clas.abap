@@ -270,9 +270,7 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
     FIELD-SYMBOLS:
       <ls_parameter> TYPE spfl_parameter_list.
 
-    cl_spfl_profile_parameter=>get_all_parameter(
-      IMPORTING
-        parameter_sub = lt_parameters ).
+    cl_spfl_profile_parameter=>get_all_parameter( IMPORTING parameter_sub = lt_parameters ).
 
     LOOP AT lt_parameters ASSIGNING <ls_parameter>.
       TRANSLATE <ls_parameter>-name TO UPPER CASE.

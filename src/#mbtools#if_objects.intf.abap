@@ -14,7 +14,6 @@ INTERFACE /mbtools/if_objects
 
 * BW-WHM
   CONSTANTS:
-
     c_multiprov      TYPE lvc_fname VALUE rs_c_tlogo-multiprovider,
     c_infocube       TYPE lvc_fname VALUE rs_c_tlogo-infocube,
     c_ods            TYPE lvc_fname VALUE rs_c_tlogo-ods_object,
@@ -30,7 +29,6 @@ INTERFACE /mbtools/if_objects
 
 * BW-BEX
   CONSTANTS:
-
     c_element    TYPE lvc_fname VALUE rs_c_tlogo-element,
     c_query      TYPE lvc_fname VALUE rzd1_c_deftp-report,
     c_variable   TYPE lvc_fname VALUE rzd1_c_deftp-variable,
@@ -38,7 +36,6 @@ INTERFACE /mbtools/if_objects
 
 * BW-PLA-IP
   CONSTANTS:
-
     c_plan_provider     TYPE lvc_fname VALUE rs_c_tlogo-basic_infocube,
     c_char_relationship TYPE lvc_fname VALUE rs_c_tlogo-characteristic_relationship,
     c_data_slice        TYPE lvc_fname VALUE rs_c_tlogo-data_slices,
@@ -49,7 +46,6 @@ INTERFACE /mbtools/if_objects
 
 * BW-PLA-BPS
   CONSTANTS:
-
     c_bps_profile       TYPE lvc_fname VALUE 'BPS_PROFILE',
     c_bps_area          TYPE lvc_fname VALUE 'BPS_AREA',
     c_bps_level         TYPE lvc_fname VALUE 'BPS_LEVEL',
@@ -67,19 +63,15 @@ INTERFACE /mbtools/if_objects
 
 * Others
   CONSTANTS:
-
     c_user_id          TYPE lvc_fname VALUE rs_c_tlogo-user,
     c_role             TYPE lvc_fname VALUE rs_c_tlogo-activity_group,
-
     c_abap_function    TYPE lvc_fname VALUE 'FUNC',
     c_abap_program     TYPE lvc_fname VALUE 'PROG',
     c_abap_class       TYPE lvc_fname VALUE 'CLAS',
     c_abap_interface   TYPE lvc_fname VALUE 'INTF',
     c_data_element     TYPE lvc_fname VALUE 'DELM',
     c_table            TYPE lvc_fname VALUE 'TABL',
-
-    c_number_range     TYPE lvc_fname VALUE 'NUMR',
-
+    c_number_range     TYPE lvc_fname VALUE 'NBRO',
     c_enhancement      TYPE lvc_fname VALUE 'SMOD',
     c_enhancement_proj TYPE lvc_fname VALUE 'CMOD'.
 

@@ -95,11 +95,11 @@ AT SELECTION-SCREEN OUTPUT.
 
 AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_title.
 
-  CALL METHOD /mbtools/cl_tools=>f4_tools
+  /mbtools/cl_tools=>f4_tools(
     EXPORTING
       iv_pattern = p_title
     RECEIVING
-      rv_title   = p_title.
+      rv_title   = p_title ).
 
 *-----------------------------------------------------------------------
 
@@ -120,42 +120,22 @@ START-OF-SELECTION.
     CASE abap_true.
       WHEN p_reg.
 
-        CALL METHOD /mbtools/cl_tools=>run_action
-          EXPORTING
-            iv_action = /mbtools/cl_tools=>c_action-register
-          RECEIVING
-            rv_result = gv_flag.
-
+        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/cl_tools=>c_action-register ).
         gv_action = 'registered'.
 
       WHEN p_unreg.
 
-        CALL METHOD /mbtools/cl_tools=>run_action
-          EXPORTING
-            iv_action = /mbtools/cl_tools=>c_action-unregister
-          RECEIVING
-            rv_result = gv_flag.
-
+        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/cl_tools=>c_action-unregister ).
         gv_action = 'unregistered'.
 
       WHEN p_act.
 
-        CALL METHOD /mbtools/cl_tools=>run_action
-          EXPORTING
-            iv_action = /mbtools/cl_tools=>c_action-activate
-          RECEIVING
-            rv_result = gv_flag.
-
+        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/cl_tools=>c_action-activate ).
         gv_action = 'activated'.
 
       WHEN p_deact.
 
-        CALL METHOD /mbtools/cl_tools=>run_action
-          EXPORTING
-            iv_action = /mbtools/cl_tools=>c_action-deactivate
-          RECEIVING
-            rv_result = gv_flag.
-
+        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/cl_tools=>c_action-deactivate ).
         gv_action = 'deactivated'.
 
     ENDCASE.
@@ -168,34 +148,22 @@ START-OF-SELECTION.
     CASE abap_true.
       WHEN p_reg.
 
-        CALL METHOD go_tool->register
-          RECEIVING
-            rv_registered = gv_flag.
-
+        gv_flag   = go_tool->register( ).
         gv_action = 'registered'.
 
       WHEN p_unreg.
 
-        CALL METHOD go_tool->unregister
-          RECEIVING
-            rv_unregistered = gv_flag.
-
+        gv_flag   = go_tool->unregister( ).
         gv_action = 'unregistered'.
 
       WHEN p_act.
 
-        CALL METHOD go_tool->activate
-          RECEIVING
-            rv_activated = gv_flag.
-
+        gv_flag   = go_tool->activate( ).
         gv_action = 'activated'.
 
       WHEN p_deact.
 
-        CALL METHOD go_tool->deactivate
-          RECEIVING
-            rv_deactivated = gv_flag.
-
+        gv_flag   = go_tool->deactivate( ).
         gv_action = 'deactivated'.
 
     ENDCASE.

@@ -31,6 +31,7 @@ INTERFACE /mbtools/if_manifest
   TYPES:
     ty_certificates TYPE STANDARD TABLE OF ty_certificate WITH KEY certificate_name .
   TYPES:
+    " In case of changes, also adjust structure /mbtools/manifest
     BEGIN OF ty_descriptor,
       id           TYPE i,
       bundle_id    TYPE i,

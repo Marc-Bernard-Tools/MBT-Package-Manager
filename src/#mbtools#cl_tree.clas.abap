@@ -466,6 +466,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     " this method handles the node double click event of the tree control instance
     DATA:
       lv_value    LIKE ms_outtab-value,
+      lv_exit     TYPE abap_bool,
       ls_typtab   TYPE lvc_s_chit,
       lv_nrobj    TYPE nrobj,
       lv_iobjnm   TYPE rsiobjnm,
@@ -490,8 +491,9 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
       WITH KEY nodekey = node_key.                      "#EC CI_HASHSEQ
     CHECK sy-subrc = 0.
 
-    IF /mbtools/cl_sap=>show_object( iv_object   = ls_typtab-fieldname
-                                     iv_obj_name = lv_value ).
+    lv_exit = /mbtools/cl_sap=>show_object( iv_object   = ls_typtab-fieldname
+                                            iv_obj_name = lv_value ).
+    IF lv_exit = abap_true.
       RETURN.
     ENDIF.
 
