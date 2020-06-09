@@ -17,6 +17,7 @@
     "errorNamespace": "^(/MBTOOLS/(?!CL_SAP|CL_TOOLS|CL_TLOGO|IF_|REGS)|LT?CL_|LIF_)",
     "globalConstants": [
       "apack_manifest",
+      "cndp_lifetime_transaction",
       "cndp_sap_subtype_unknown",
       "icon_system_help",
       "seoc_version_inactive",
@@ -94,8 +95,8 @@
     "colon_missing_space": true,
     "commented_code": {
       "exclude": [
-        "#mbtools#cts_object_list.prog.abap"
-      ]
+        "#mbtools#cl_registry.clas.abap"
+      ],
     },
     "constructor_visibility_public": true,
     "contains_tab": true,
