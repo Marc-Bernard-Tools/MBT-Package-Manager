@@ -111,16 +111,23 @@
     "class_attribute_names": {
       "exclude": [
         "#mbtools#cl_registry.clas.abap",
-        "#mbtools#cl_tree_level.clas.abap",
-        "#mbtools#if_apack_manifest.intf.abap"
+        "#mbtools#cl_tree_level.clas.abap"
       ],
+      "patternKind": "required",
+      "ignoreNames": [ 
+        "apack_manifest", 
+        "mbt_manifest", 
+        "descriptor", 
+        "co_file_name", 
+        "co_interface_version" 
+      ],
+      "ignorePatterns": [],
       "ignoreExceptions": true,
-      "ignoreInterfaces": false,
-      "ignoreNames": [ "apack_manifest", "mbt_manifest" ],
-      "statics": "^G._.*$",
       "ignoreLocal": false,
-      "constants": "^C_.*$",
-      "instance": "^M._.*$"
+      "ignoreInterfaces": false,
+      "statics": "^G._.+$",
+      "instance": "^M._.+$",
+      "constants": ""
     },
     "cloud_types": true,
     "colon_missing_space": true,
@@ -164,7 +171,8 @@
     "functional_writing":  {
       "exclude": [
         "#mbtools#registry.prog.abap"
-      ]
+      ],
+      "ignoreExceptions": true
     },
     "global_class": true,
     "identical_form_names": true,
