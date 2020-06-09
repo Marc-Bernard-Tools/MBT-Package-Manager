@@ -148,31 +148,27 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     ENDIF.
 
     " Add node to tree
-    CALL METHOD add_node
-      EXPORTING
-        is_outtab = ms_outtab
-        iv_icon   = iv_icon
-        iv_color  = iv_color
-        iv_level  = iv_level
-        iv_sign   = iv_sign
-        iv_hidden = iv_hidden.
+    add_node( is_outtab = ms_outtab
+              iv_icon   = iv_icon
+              iv_color  = iv_color
+              iv_level  = iv_level
+              iv_sign   = iv_sign
+              iv_hidden = iv_hidden ).
 
   ENDMETHOD.
 
 
   METHOD add_detail .
 
-    CALL METHOD add
-      EXPORTING
-        iv_icon   = iv_icon
-        iv_title  = iv_title
-        iv_text   = iv_text
-        iv_value  = iv_value
-        iv_color  = 3
-        iv_level  = iv_level
-        iv_sign   = iv_sign
-        iv_hidden = iv_hidden
-        iv_type   = iv_type.
+    add( iv_icon   = iv_icon
+         iv_title  = iv_title
+         iv_text   = iv_text
+         iv_value  = iv_value
+         iv_color  = 3
+         iv_level  = iv_level
+         iv_sign   = iv_sign
+         iv_hidden = iv_hidden
+         iv_type   = iv_type ).
 
   ENDMETHOD.
 
@@ -256,7 +252,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     ls_node_layout-exp_image = ls_node_layout-n_image.
 
     " Add node to tree
-    CALL METHOD mo_tree->add_node
+    mo_tree->add_node(
       EXPORTING
         i_relat_node_key     = mv_relat_key
         i_relationship       = cl_gui_column_tree=>relat_last_child
@@ -269,7 +265,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
       EXCEPTIONS
         relat_node_not_found = 1
         node_not_found       = 2
-        OTHERS               = 3.
+        OTHERS               = 3 ).
     IF sy-subrc <> 0.
       MESSAGE e000 WITH 'Error in ADD_NODE' ##NO_TEXT.
     ENDIF.
@@ -281,17 +277,15 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
   METHOD add_sub_node .
 
-    CALL METHOD add
-      EXPORTING
-        iv_icon   = iv_icon
-        iv_title  = iv_title
-        iv_text   = ''
-        iv_value  = iv_value
-        iv_color  = 2
-        iv_level  = 0
-        iv_sign   = space
-        iv_hidden = space
-        iv_type   = iv_type.
+    add( iv_icon   = iv_icon
+         iv_title  = iv_title
+         iv_text   = ''
+         iv_value  = iv_value
+         iv_color  = 2
+         iv_level  = 0
+         iv_sign   = space
+         iv_hidden = space
+         iv_type   = iv_type ).
 
   ENDMETHOD.
 
@@ -301,17 +295,15 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     " Link to root
     CLEAR mv_relat_key.
 
-    CALL METHOD add
-      EXPORTING
-        iv_icon   = iv_icon
-        iv_title  = iv_title
-        iv_text   = iv_text
-        iv_value  = iv_value
-        iv_color  = 1
-        iv_level  = 0
-        iv_sign   = space
-        iv_hidden = space
-        iv_type   = iv_type.
+    add( iv_icon   = iv_icon
+         iv_title  = iv_title
+         iv_text   = iv_text
+         iv_value  = iv_value
+         iv_color  = 1
+         iv_level  = 0
+         iv_sign   = space
+         iv_hidden = space
+         iv_type   = iv_type ).
 
     " Initialize relationship counter
     mv_relat_key = 1.
@@ -333,7 +325,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     " Destroy tree control
     IF NOT mo_tree IS INITIAL.
 
-      CALL METHOD mo_tree->free.
+      mo_tree->free( ).
       CLEAR mo_tree.
 
     ENDIF.
@@ -341,7 +333,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     " Destroy tree container
     IF NOT mo_custom_container IS INITIAL.
 
-      CALL METHOD mo_custom_container->free.
+      mo_custom_container->free( ).
       CLEAR mo_custom_container.
 
     ENDIF.
@@ -357,14 +349,12 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     CHECK mv_done IS INITIAL.
 
     " Calculate totals (is this really necessary?)
-    CALL METHOD mo_tree->update_calculations
-      EXPORTING
-        no_frontend_update = abap_true.
+    mo_tree->update_calculations( no_frontend_update = abap_true ).
 
     " Expand tree
     lv_root = 1.
     IF mv_tree_level IS INITIAL.
-      CALL METHOD mo_tree->expand_node
+      mo_tree->expand_node(
         EXPORTING
           i_node_key          = lv_root
           i_expand_subtree    = abap_true
@@ -374,9 +364,9 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
           cntl_system_error   = 3
           node_not_found      = 4
           cannot_expand_leaf  = 5
-          OTHERS              = 6.
+          OTHERS              = 6 ).
     ELSE.
-      CALL METHOD mo_tree->expand_node
+      mo_tree->expand_node(
         EXPORTING
           i_node_key          = lv_root
           i_level_count       = mv_tree_level
@@ -386,26 +376,24 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
           cntl_system_error   = 3
           node_not_found      = 4
           cannot_expand_leaf  = 5
-          OTHERS              = 6.
+          OTHERS              = 6 ).
     ENDIF.
     IF sy-subrc <> 0.
       IF sy-subrc = 4.
-        CALL METHOD add_top_node
-          EXPORTING
-            iv_icon  = icon_dummy
-            iv_title = 'No selection'(002).
+        add_top_node( iv_icon  = icon_dummy
+                      iv_title = 'No selection'(002) ).
       ELSE.
         MESSAGE e000 WITH 'Error in EXPAND_NODE' ##NO_TEXT.
       ENDIF.
     ENDIF.
 
     " Optimize column width
-    CALL METHOD mo_tree->column_optimize.
+    mo_tree->column_optimize( ).
 
     " Finally display tree on frontend
-    CALL METHOD mo_tree->frontend_update.
+    mo_tree->frontend_update( ).
 
-    CALL METHOD cl_gui_cfw=>flush.
+    cl_gui_cfw=>flush( ).
 
     mv_done = abap_true.
 
@@ -416,12 +404,12 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
     MESSAGE i000 WITH 'Download the View Using "System > List > Save"'(t01).
 
-    CALL METHOD mo_tree->set_function_code
+    mo_tree->set_function_code(
       EXPORTING
         i_ucomm            = cl_gui_alv_tree=>mc_fc_print_prev
       EXCEPTIONS
         function_not_found = 1
-        OTHERS             = 2.
+        OTHERS             = 2 ).
     IF sy-subrc <> 0.
       MESSAGE i000 WITH 'Function not available'(t02).
     ENDIF.
@@ -445,12 +433,12 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
   METHOD find_node .
 
-    CALL METHOD mo_tree->set_function_code
+    mo_tree->set_function_code(
       EXPORTING
         i_ucomm            = cl_gui_alv_tree=>mc_fc_find
       EXCEPTIONS
         function_not_found = 1
-        OTHERS             = 2.
+        OTHERS             = 2 ).
     IF sy-subrc <> 0.
       MESSAGE i000 WITH 'Function not available'(t02).
     ENDIF.
@@ -468,9 +456,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
   METHOD handle_item_double_click.
 
     " this method handles the item double click event of the tree control instance
-    CALL METHOD me->handle_node_double_click
-      EXPORTING
-        node_key = node_key.
+    me->handle_node_double_click( node_key = node_key ).
 
   ENDMETHOD.
 
@@ -575,9 +561,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
         TRY.
             lv_lpo = lv_value.
             CREATE OBJECT lo_lpogui.
-            CALL METHOD lo_lpogui->show_ui
-              EXPORTING
-                i_lpo = lv_lpo.
+            lo_lpogui->show_ui( i_lpo = lv_lpo ).
           CATCH cx_rslpo_root.                          "#EC NO_HANDLER
         ENDTRY.
 
@@ -702,13 +686,13 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     ls_event-appl_event = abap_true.
     APPEND ls_event TO lt_events.
 
-    CALL METHOD mo_tree->set_registered_events
+    mo_tree->set_registered_events(
       EXPORTING
         events                    = lt_events
       EXCEPTIONS
         cntl_error                = 1
         cntl_system_error         = 2
-        illegal_event_combination = 3.
+        illegal_event_combination = 3 ).
     IF sy-subrc <> 0.
       MESSAGE e000 WITH 'Error in INIT Register Events' ##NO_TEXT.
     ENDIF.
@@ -762,7 +746,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
     " Create empty tree-control
     " Note: mt_outtab must be empty, since we add nodes dynamically
-    CALL METHOD mo_tree->set_table_for_first_display
+    mo_tree->set_table_for_first_display(
       EXPORTING
         is_hierarchy_header  = ls_hierarchy_header
         i_save               = 'A'
@@ -770,7 +754,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
         it_toolbar_excluding = lt_exclude
       CHANGING
         it_outtab            = mt_outtab
-        it_fieldcatalog      = mt_fieldcat.
+        it_fieldcatalog      = mt_fieldcat ).
 
     " Initialize node counter
     mv_node_key = 1.
@@ -791,32 +775,32 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
         " Finish program
       WHEN 'BACK' OR 'EXIT' OR 'CANC'.
-        CALL METHOD destroy.
+        destroy( ).
         LEAVE TO SCREEN 0.
 
         " Pick node/item
       WHEN 'PICK'.
-        CALL METHOD pick_node.
+        pick_node( ).
 
         " Find node/item
       WHEN 'FIND'.
-        CALL METHOD find_node.
+        find_node( ).
 
         " Download
       WHEN 'DOWN'.
-        CALL METHOD download.
+        download( ).
 
         " Print
       WHEN 'PRINT'.
-        CALL METHOD print.
+        print( ).
 
         " Dispatch to tree control
       WHEN OTHERS.
-        CALL METHOD cl_gui_cfw=>dispatch.
+        cl_gui_cfw=>dispatch( ).
 
     ENDCASE.
 
-    CALL METHOD cl_gui_cfw=>flush.
+    cl_gui_cfw=>flush( ).
 
   ENDMETHOD.
 
@@ -837,14 +821,14 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
       lv_fieldname      TYPE lvc_fname.                     "#EC NEEDED
 
     " Get node selection
-    CALL METHOD mo_tree->get_selected_nodes
+    mo_tree->get_selected_nodes(
       CHANGING
         ct_selected_nodes = lt_selected_nodes
       EXCEPTIONS
         cntl_system_error = 1
         dp_error          = 2
         failed            = 3
-        OTHERS            = 4.
+        OTHERS            = 4 ).
     IF sy-subrc <> 0.
       MESSAGE e000 WITH 'Error in PICK_NODE Selected Nodes' ##NO_TEXT.
     ENDIF.
@@ -852,7 +836,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     CASE lines( lt_selected_nodes ).
       WHEN 0.
         " No node selected, now check item selection
-        CALL METHOD mo_tree->get_selected_item
+        mo_tree->get_selected_item(
           IMPORTING
             e_selected_node   = lv_node_key
             e_fieldname       = lv_fieldname
@@ -860,13 +844,11 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
             no_item_selection = 1
             cntl_system_error = 2
             failed            = 3
-            OTHERS            = 4.
+            OTHERS            = 4 ).
 
         CASE sy-subrc.
           WHEN 0.
-            CALL METHOD me->handle_node_double_click
-              EXPORTING
-                node_key = lv_node_key.
+            me->handle_node_double_click( node_key = lv_node_key ).
           WHEN 1.
             MESSAGE i227(0h).
         ENDCASE.
@@ -875,9 +857,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
         " Exactly one node selected
         READ TABLE lt_selected_nodes INTO ls_selected_nodes INDEX 1.
 
-        CALL METHOD me->handle_node_double_click
-          EXPORTING
-            node_key = ls_selected_nodes-node_key.
+        me->handle_node_double_click( node_key = ls_selected_nodes-node_key ).
 
       WHEN OTHERS.
         " Too many nodes selected
@@ -890,12 +870,12 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
   METHOD print .
 
-    CALL METHOD mo_tree->set_function_code
+    mo_tree->set_function_code(
       EXPORTING
         i_ucomm            = cl_gui_alv_tree=>mc_fc_print_back
       EXCEPTIONS
         function_not_found = 1
-        OTHERS             = 2.
+        OTHERS             = 2 ).
     IF sy-subrc <> 0.
       MESSAGE i000 WITH 'Function not available'(t02).
     ENDIF.

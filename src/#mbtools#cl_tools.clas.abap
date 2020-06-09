@@ -228,7 +228,6 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     rs_manifest-artifact_id    = mv_name.
     rs_manifest-version        = mv_version.
     rs_manifest-git_url        = get_url_repo( ).
-*   rs_manifest-target_package = get_package( ).
 
   ENDMETHOD.
 
@@ -419,12 +418,15 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD get_manifests.
 
     DATA:
-      lv_implementation TYPE seoclsname,
-      lo_tool           TYPE REF TO object,
-      lo_manifest       TYPE REF TO /mbtools/if_manifest,
-      ls_manifest_descr TYPE /mbtools/manifest.
+      lv_implementation  TYPE seoclsname,
+      lt_implementations TYPE ty_classes,
+      lo_tool            TYPE REF TO object,
+      lo_manifest        TYPE REF TO /mbtools/if_manifest,
+      ls_manifest_descr  TYPE /mbtools/manifest.
 
-    LOOP AT get_implementations( ) INTO lv_implementation.
+    lt_implementations = get_implementations( ).
+
+    LOOP AT lt_implementations INTO lv_implementation.
 
       TRY.
           " Get instance of tool
@@ -500,11 +502,14 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD get_tool.
 
     DATA:
-      lv_implementation TYPE seoclsname,
-      lo_tool           TYPE REF TO object,
-      lo_manifest       TYPE REF TO /mbtools/if_manifest.
+      lv_implementation  TYPE seoclsname,
+      lt_implementations TYPE ty_classes,
+      lo_tool            TYPE REF TO object,
+      lo_manifest        TYPE REF TO /mbtools/if_manifest.
 
-    LOOP AT get_implementations( ) INTO lv_implementation.
+    lt_implementations = get_implementations( ).
+
+    LOOP AT lt_implementations INTO lv_implementation.
 
       TRY.
           " Get instance of tool
@@ -532,15 +537,18 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD get_tools.
 
     DATA:
-      lv_implementation TYPE seoclsname,
-      lo_tool           TYPE REF TO object,
-      lo_manifest       TYPE REF TO /mbtools/if_manifest,
-      ls_tool_with_text TYPE /mbtools/tool_with_text.
+      lv_implementation  TYPE seoclsname,
+      lt_implementations TYPE ty_classes,
+      lo_tool            TYPE REF TO object,
+      lo_manifest        TYPE REF TO /mbtools/if_manifest,
+      ls_tool_with_text  TYPE /mbtools/tool_with_text.
 
     FIELD-SYMBOLS:
       <ls_tool> TYPE /mbtools/tool_with_text.
 
-    LOOP AT get_implementations( ) INTO lv_implementation.
+    lt_implementations = get_implementations( ).
+
+    LOOP AT lt_implementations INTO lv_implementation.
 
       TRY.
           " Get instance of tool
@@ -726,13 +734,13 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         lo_reg_entry->set_value( key   = c_reg-key_lic_key
                                  value = iv_license ).
 
-        CALL METHOD /mbtools/cl_edd=>check_license
+        /mbtools/cl_edd=>check_license(
           EXPORTING
             iv_id      = lv_id
             iv_license = iv_license
           IMPORTING
             ev_valid   = lv_valid
-            ev_expire  = lv_expire.
+            ev_expire  = lv_expire ).
 
         lo_reg_entry->set_value( key   = c_reg-key_lic_valid
                                  value = lv_valid ).
@@ -901,6 +909,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     rv_result = abap_true.
 
     LOOP AT lt_tools INTO ls_tool.
+
       CASE iv_action.
         WHEN c_action-register.
           lv_result = get_tool( ls_tool-name )->register( ).
@@ -914,9 +923,11 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           " unknow action
           ASSERT 0 = 1.
       ENDCASE.
+
       IF lv_result = abap_false.
         rv_result = abap_false.
       ENDIF.
+
     ENDLOOP.
 
   ENDMETHOD.

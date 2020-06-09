@@ -23,7 +23,13 @@
      <ID>I</ID>
      <KEY>002</KEY>
      <ENTRY>OLTP DataSource</ENTRY>
-     <LENGTH>25</LENGTH>
+     <LENGTH>50</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>003</KEY>
+     <ENTRY>Application Component Hierarchty</ENTRY>
+     <LENGTH>50</LENGTH>
     </item>
    </TPOOL>
    <DESCRIPTIONS>

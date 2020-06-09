@@ -14,11 +14,12 @@ CLASS /mbtools/cl_base DEFINITION
     INTERFACES if_apack_manifest .
     INTERFACES /mbtools/if_manifest .
 
-    CONSTANTS c_version TYPE string VALUE '1.0.0' ##NO_TEXT.
-    CONSTANTS c_title TYPE string VALUE 'Marc Bernard Tools' ##NO_TEXT.
-    CONSTANTS c_description TYPE string VALUE 'Essential Tools for SAP® Customers & Partners by Marc Bernard Tools' ##NO_TEXT.
-    CONSTANTS c_bundle_id TYPE i VALUE 0 ##NO_TEXT.
-    CONSTANTS c_download_id TYPE i VALUE 4480 ##NO_TEXT.
+    CONSTANTS:
+      c_version     TYPE string VALUE '1.0.0' ##NO_TEXT,
+      c_title       TYPE string VALUE 'Marc Bernard Tools' ##NO_TEXT,
+      c_description TYPE string VALUE 'Essential Tools for SAP® Customers & Partners by Marc Bernard Tools' ##NO_TEXT,
+      c_bundle_id   TYPE i VALUE 0 ##NO_TEXT,
+      c_download_id TYPE i VALUE 4480 ##NO_TEXT.
 
     METHODS constructor .
     METHODS initialize
