@@ -24,6 +24,10 @@
       "icon_bw_exception_monitor",
       "icon_content_object",
       "icon_dummy",
+      "icon_equal_green",
+      "icon_export",
+      "icon_information",
+      "icon_pattern_exclude_red",
       "icon_filter",
       "icon_hierarchy_act",
       "icon_master_data_act",
@@ -31,6 +35,7 @@
       "icon_summarize",
       "icon_system_help",
       "icon_text_act",
+      "icon_sap",
       "icon_system_extended_help",
       "icon_tools",
       "icon_url",
@@ -57,13 +62,16 @@
       "allowed": [
         "ACID",
         "CLAS",
+        "DTEL",
         "DEVC",
+        "DOMA",
         "ENHO",
         "ENHS",
         "ENQU",
         "FUGR",
         "INTF",
         "MSAG",
+        "PARA",
         "PROG",
         "TABL",
         "TRAN",
@@ -153,7 +161,11 @@
     "form_no_dash": true,
     "form_tables_obsolete": false,
     "fully_type_constants": true,
-    "functional_writing": true,
+    "functional_writing":  {
+      "exclude": [
+        "#mbtools#registry.prog.abap"
+      ]
+    },
     "global_class": true,
     "identical_form_names": true,
     "if_in_if": true,
