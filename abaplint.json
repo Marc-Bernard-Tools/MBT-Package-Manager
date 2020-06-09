@@ -112,7 +112,7 @@
     "commented_code": {
       "exclude": [
         "#mbtools#cl_registry.clas.abap"
-      ],
+      ]
     },
     "constructor_visibility_public": true,
     "contains_tab": true,
