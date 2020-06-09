@@ -133,9 +133,6 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
     ls_object_text-object = 'SOTL'.
     ls_object_text-text   = 'Concept (Online Text Repository) - Long Texts'(106).
     COLLECT ls_object_text INTO mt_object_texts.
-*    ls_object_text-object = ''.
-*    ls_object_text-text   = ''.
-*    COLLECT ls_object_text INTO mt_object_texts.
 
     " Add Workbench Development Objects
     SELECT type singular FROM euobjt INTO (ls_object_text-object, ls_object_text-text)
@@ -228,9 +225,9 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
           WHEN 'D16' OR 'D34' OR 'DEC' OR 'FLT' OR 'INT' OR 'CUR' OR 'QUA'.
             WRITE iv_value TO ev_text LEFT-JUSTIFIED.
           WHEN 'DAT'.
-            WRITE iv_value TO ev_text USING EDIT MASK '==____-__-__'.
+            WRITE iv_value TO ev_text USING EDIT MASK '==____-__-__'. "iso
           WHEN 'TIM'.
-            WRITE iv_value TO ev_text USING EDIT MASK '==__:__:__'.
+            WRITE iv_value TO ev_text USING EDIT MASK '==__:__:__'. "iso
           WHEN 'CHA' OR 'STR' OR 'CLN' OR 'NUM'.
             ev_text = iv_value.
           WHEN 'CUK'.
@@ -435,7 +432,7 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
     CONDENSE rv_result NO-GAPS.
 
     " Format SAP Notes with leading zeros
-    IF is_sap_note( rv_result ).
+    IF is_sap_note( rv_result ) = abap_true.
       " Adjust to numc10
       lv_number      = rv_result.
       lv_note_number = lv_number.

@@ -4,70 +4,70 @@
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-class /MBTOOLS/CL_SCREEN definition
-  public
-  create public .
+CLASS /mbtools/cl_screen DEFINITION
+  PUBLIC
+  CREATE PUBLIC .
 
-public section.
-  type-pools CNDP .
+  PUBLIC SECTION.
+    TYPE-POOLS cndp .
 
-  types:
-    ty_screen_field TYPE c LENGTH 83 .
+    TYPES:
+      ty_screen_field TYPE c LENGTH 83 .
 
-  class-data MV_COPYRIGHT type STRING .
-  class-data MV_ABOUT type STRING .
-  class-data MV_DOCUMENTATION type STRING .
-  class-data MV_TOOL_PAGE type STRING .
-  class-data MV_WEBSITE type STRING .
-  class-data MV_TERMS type STRING .
-  class-data MV_VERSION type STRING .
+    CLASS-DATA gv_copyright TYPE string .
+    CLASS-DATA gv_about TYPE string .
+    CLASS-DATA gv_documentation TYPE string .
+    CLASS-DATA gv_tool_page TYPE string .
+    CLASS-DATA gv_website TYPE string .
+    CLASS-DATA gv_terms TYPE string .
+    CLASS-DATA gv_version TYPE string .
 
-  class-methods CLASS_CONSTRUCTOR .
-  class-methods ICON
-    importing
-      value(IV_ICON) type ICON_D
-      value(IV_TEXT) type CSEQUENCE optional
-      value(IV_QUICK) type CSEQUENCE optional
-    returning
-      value(RV_RESULT) type TY_SCREEN_FIELD .
-  class-methods HEADER
-    importing
-      value(IV_ICON) type ICON_D
-      value(IV_TEXT) type CSEQUENCE optional
-    returning
-      value(RV_RESULT) type TY_SCREEN_FIELD .
-  class-methods LOGO
-    importing
-      value(IV_SHOW) type ABAP_BOOL default ABAP_TRUE
-      value(IV_TOP) type I optional
-      value(IV_LEFT) type I optional .
-  class-methods BANNER
-    importing
-      value(IV_TOOL) type STRING optional
-      value(IV_SHOW) type ABAP_BOOL default ABAP_TRUE
-      value(IV_TOP) type I optional
-      value(IV_LEFT) type I optional .
-  class-methods INIT
-    importing
-      !IR_TOOL type ref to /MBTOOLS/CL_TOOLS
-    exporting
-      !EV_TEXT type TY_SCREEN_FIELD
-      !EV_ABOUT type TY_SCREEN_FIELD
-      !EV_TITLE type TY_SCREEN_FIELD
-      !EV_VERSION type TY_SCREEN_FIELD
-      !EV_COPYRIGHT type TY_SCREEN_FIELD
-      !EV_DOCU type TY_SCREEN_FIELD
-      !EV_TOOL type TY_SCREEN_FIELD
-      !EV_HOME type TY_SCREEN_FIELD .
+    CLASS-METHODS class_constructor .
+    CLASS-METHODS icon
+      IMPORTING
+        VALUE(iv_icon)   TYPE icon_d
+        VALUE(iv_text)   TYPE csequence OPTIONAL
+        VALUE(iv_quick)  TYPE csequence OPTIONAL
+      RETURNING
+        VALUE(rv_result) TYPE ty_screen_field .
+    CLASS-METHODS header
+      IMPORTING
+        VALUE(iv_icon)   TYPE icon_d
+        VALUE(iv_text)   TYPE csequence OPTIONAL
+      RETURNING
+        VALUE(rv_result) TYPE ty_screen_field .
+    CLASS-METHODS logo
+      IMPORTING
+        VALUE(iv_show) TYPE abap_bool DEFAULT abap_true
+        VALUE(iv_top)  TYPE i OPTIONAL
+        VALUE(iv_left) TYPE i OPTIONAL .
+    CLASS-METHODS banner
+      IMPORTING
+        VALUE(iv_tool) TYPE string OPTIONAL
+        VALUE(iv_show) TYPE abap_bool DEFAULT abap_true
+        VALUE(iv_top)  TYPE i OPTIONAL
+        VALUE(iv_left) TYPE i OPTIONAL .
+    CLASS-METHODS init
+      IMPORTING
+        !ir_tool      TYPE REF TO /mbtools/cl_tools
+      EXPORTING
+        !ev_text      TYPE ty_screen_field
+        !ev_about     TYPE ty_screen_field
+        !ev_title     TYPE ty_screen_field
+        !ev_version   TYPE ty_screen_field
+        !ev_copyright TYPE ty_screen_field
+        !ev_docu      TYPE ty_screen_field
+        !ev_tool      TYPE ty_screen_field
+        !ev_home      TYPE ty_screen_field .
   PROTECTED SECTION.
-private section.
+  PRIVATE SECTION.
 
-  class-data MO_LOGO_DOCK type ref to CL_GUI_DOCKING_CONTAINER .
-  class-data MO_LOGO type ref to CL_GUI_PICTURE .
-  class-data MV_LOGO_URL type /MBTOOLS/VALUE .
-  class-data MO_BANNER_DOCK type ref to CL_GUI_DOCKING_CONTAINER .
-  class-data MO_BANNER type ref to CL_GUI_PICTURE .
-  class-data MV_BANNER_URL type /MBTOOLS/VALUE .
+    CLASS-DATA go_logo_dock TYPE REF TO cl_gui_docking_container .
+    CLASS-DATA go_logo TYPE REF TO cl_gui_picture .
+    CLASS-DATA gv_logo_url TYPE /mbtools/value .
+    CLASS-DATA go_banner_dock TYPE REF TO cl_gui_docking_container .
+    CLASS-DATA go_banner TYPE REF TO cl_gui_picture .
+    CLASS-DATA gv_banner_url TYPE /mbtools/value .
 ENDCLASS.
 
 
@@ -86,33 +86,27 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
       lt_html           TYPE TABLE OF w3html,
       lv_return_code    TYPE w3param-ret_code.
 
-    IF mo_banner IS BOUND AND iv_show IS INITIAL.
-      CALL METHOD mo_banner->clear_picture.
-      CALL METHOD mo_banner->free.
-      FREE mo_banner.
+    IF go_banner IS BOUND AND iv_show IS INITIAL.
+      go_banner->clear_picture( ).
+      go_banner->free( ).
+      FREE go_banner.
       RETURN.
     ENDIF.
 
-    IF NOT mo_banner IS BOUND.
-      CREATE OBJECT mo_banner EXPORTING parent = mo_banner_dock.
+    IF NOT go_banner IS BOUND.
+      CREATE OBJECT go_banner EXPORTING parent = go_banner_dock.
 
-      CALL METHOD mo_banner->set_3d_border
-        EXPORTING
-          border = 0.
+      go_banner->set_3d_border( border = 0 ).
 
-      CALL METHOD mo_banner->set_display_mode
-        EXPORTING
-          display_mode = cl_gui_picture=>display_mode_normal.
+      go_banner->set_display_mode( display_mode = cl_gui_picture=>display_mode_normal ).
     ENDIF.
 
-    CALL METHOD mo_banner->set_position
-      EXPORTING
-        height = 21
-        left   = iv_left
-        top    = iv_top
-        width  = 500.
+    go_banner->set_position( height = 21
+                             left   = iv_left
+                             top    = iv_top
+                             width  = 500 ).
 
-    IF mv_banner_url IS INITIAL.
+    IF gv_banner_url IS INITIAL.
       ls_query-name  = '_OBJECT_ID'.
       ls_query-value = iv_tool.
       APPEND ls_query TO lt_query.
@@ -143,26 +137,24 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
         TABLES
           data     = lt_pic
         CHANGING
-          url      = mv_banner_url
+          url      = gv_banner_url
         EXCEPTIONS
           OTHERS   = 1 ##FM_SUBRC_OK.
     ENDIF.
 
-    CALL METHOD mo_banner->load_picture_from_url
-      EXPORTING
-        url = mv_banner_url.
+    go_banner->load_picture_from_url( url = gv_banner_url ).
 
   ENDMETHOD.
 
 
   METHOD class_constructor.
-    mv_copyright      = |Copyright © { sy-datum(4) } Marc Bernard Tools. All right reserved.|.
-    mv_about          = 'About'(001).
-    mv_documentation  = 'Documentation'(002).
-    mv_terms          = 'Terms'(003).
-    mv_tool_page      = 'Tool Page'(004).
-    mv_website        = 'MBT Website'(005).
-    mv_version        = 'Version'(006).
+    gv_copyright      = |Copyright © { sy-datum(4) } Marc Bernard Tools. All right reserved.|.
+    gv_about          = 'About'(001).
+    gv_documentation  = 'Documentation'(002).
+    gv_terms          = 'Terms'(003).
+    gv_tool_page      = 'Tool Page'(004).
+    gv_website        = 'MBT Website'(005).
+    gv_version        = 'Version'(006).
   ENDMETHOD.
 
 
@@ -200,26 +192,26 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
 
     ev_about = header(
       iv_icon = icon_system_help
-      iv_text = mv_about ).
+      iv_text = gv_about ).
 
     ev_title     = ir_tool->get_title( ).
-    ev_version   = mv_version && ` ` && ir_tool->get_version( ).
-    ev_copyright = mv_copyright.
+    ev_version   = gv_version && ` ` && ir_tool->get_version( ).
+    ev_copyright = gv_copyright.
 
     ev_docu = icon(
       iv_icon  = icon_system_extended_help
-      iv_text  = mv_documentation
+      iv_text  = gv_documentation
       iv_quick = ir_tool->get_title( ) ).
 
     ev_tool = icon(
       iv_icon  = icon_tools
-      iv_text  = mv_tool_page
+      iv_text  = gv_tool_page
       iv_quick = ir_tool->get_title( ) ).
 
     ev_home = icon(
       iv_icon  = icon_url
       iv_text  = /mbtools/cl_base=>c_title
-      iv_quick = mv_website ).
+      iv_quick = gv_website ).
 
   ENDMETHOD.
 
@@ -235,33 +227,27 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
       lt_html           TYPE TABLE OF w3html,
       lv_return_code    TYPE w3param-ret_code.
 
-    IF mo_logo IS BOUND AND iv_show IS INITIAL.
-      CALL METHOD mo_logo->clear_picture.
-      CALL METHOD mo_logo->free.
-      FREE mo_logo.
+    IF go_logo IS BOUND AND iv_show IS INITIAL.
+      go_logo->clear_picture( ).
+      go_logo->free( ).
+      FREE go_logo.
       RETURN.
     ENDIF.
 
-    IF NOT mo_logo IS BOUND.
-      CREATE OBJECT mo_logo EXPORTING parent = mo_logo_dock.
+    IF NOT go_logo IS BOUND.
+      CREATE OBJECT go_logo EXPORTING parent = go_logo_dock.
 
-      CALL METHOD mo_logo->set_3d_border
-        EXPORTING
-          border = 0.
+      go_logo->set_3d_border( border = 0 ).
 
-      CALL METHOD mo_logo->set_display_mode
-        EXPORTING
-          display_mode = cl_gui_picture=>display_mode_normal_center.
+      go_logo->set_display_mode( display_mode = cl_gui_picture=>display_mode_normal_center ).
     ENDIF.
 
-    CALL METHOD mo_logo->set_position
-      EXPORTING
-        height = 27
-        left   = iv_left
-        top    = iv_top
-        width  = 200.
+    go_logo->set_position( height = 27
+                           left   = iv_left
+                           top    = iv_top
+                           width  = 200 ).
 
-    IF mv_logo_url IS INITIAL.
+    IF gv_logo_url IS INITIAL.
       ls_query-name  = '_OBJECT_ID'.
       ls_query-value = '/MBTOOLS/LOGO'.
       APPEND ls_query TO lt_query.
@@ -292,14 +278,12 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
         TABLES
           data     = lt_pic
         CHANGING
-          url      = mv_logo_url
+          url      = gv_logo_url
         EXCEPTIONS
           OTHERS   = 1 ##FM_SUBRC_OK.
     ENDIF.
 
-    CALL METHOD mo_logo->load_picture_from_url
-      EXPORTING
-        url = mv_logo_url.
+    go_logo->load_picture_from_url( url = gv_logo_url ).
 
   ENDMETHOD.
 ENDCLASS.

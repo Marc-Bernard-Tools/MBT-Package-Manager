@@ -69,10 +69,8 @@ CLASS /MBTOOLS/CL_BASE IMPLEMENTATION.
       ENDIF.
 
       IF lv_show = abap_true.
-*        screen-active = '1'.
         screen-input = '1'.
       ELSE.
-*        screen-active = '0'.
         screen-input = '0'.
       ENDIF.
 
