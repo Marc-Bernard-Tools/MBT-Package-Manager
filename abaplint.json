@@ -320,7 +320,16 @@
       "ignoreExceptions": true
     },
     "sql_escape_host_variables": true,
-    "start_at_tab": true,
+    "start_at_tab": {
+      "exclude": [
+        "#mbtools#cx_registry_entry_del.clas.abap",
+        "#mbtools#cx_registry_entry_ex.clas.abap",
+        "#mbtools#cx_registry_err.clas.abap",
+        "#mbtools#cx_registry_invalid.clas.abap",
+        "#mbtools#cx_registry_lock.clas.abap",
+        "#mbtools#cx_registry_noentry.clas.abap"
+      ]
+    },
     "superclass_final": true,
     "tabl_enhancement_category": true,
     "try_without_catch": false,
