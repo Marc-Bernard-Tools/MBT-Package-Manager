@@ -181,26 +181,19 @@ CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
     DATA:
       lv_elem_type TYPE rzd1_deftp,
       lv_iobj_type TYPE rsd_iobjtp,
-      lv_cube_type TYPE rscubetype.
+      lv_cube_type TYPE rscubetype,
+      lv_lsys_type TYPE rsa_srctype.
 
     " Get icon
     IF iv_icon IS INITIAL.
       CASE iv_tlogo.
         WHEN 'DSAA' OR 'DSAD'. " Application component hierarchy
-          CALL METHOD cl_rso_repository=>get_tlogo_icon
-            EXPORTING
-              i_tlogo = rs_c_tlogo-application
-            RECEIVING
-              r_icon  = rv_icon.
+          rv_icon = cl_rso_repository=>get_tlogo_icon( rs_c_tlogo-application ).
 
         WHEN 'OSOA' OR 'OSOD'. " OLTP DataSource
           CASE iv_tlogo_sub.
             WHEN 'TRAN'.
-              CALL METHOD cl_rso_repository=>get_tlogo_icon
-                EXPORTING
-                  i_tlogo = rs_c_tlogo-datasource
-                RECEIVING
-                  r_icon  = rv_icon.
+              rv_icon = cl_rso_repository=>get_tlogo_icon( rs_c_tlogo-datasource ).
             WHEN 'ATTR'.
               rv_icon = icon_master_data_act.
             WHEN 'HIER'.
@@ -210,41 +203,59 @@ CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
           ENDCASE.
 
         WHEN rs_c_tlogo-element OR rs_c_tlogo-d_element.
-          lv_elem_type = iv_tlogo_sub.
+          IF iv_tlogo_sub IS INITIAL.
+            lv_elem_type = 'REP'.
+          ELSE.
+            lv_elem_type = iv_tlogo_sub.
+          ENDIF.
 
-          CALL METHOD cl_rso_repository=>get_tlogo_icon
-            EXPORTING
-              i_tlogo              = iv_tlogo
-              i_query_element_type = lv_elem_type
-            RECEIVING
-              r_icon               = rv_icon.
+          rv_icon = cl_rso_repository=>get_tlogo_icon(
+            i_tlogo              = iv_tlogo
+            i_query_element_type = lv_elem_type ).
+
+          " Additional cases
+          CASE lv_elem_type.
+            WHEN rzd1_c_deftp-sel_object.
+              rv_icon = icon_filter.
+            WHEN rzd1_c_deftp-sheet.
+              rv_icon = icon_biw_report.
+            WHEN rzd1_c_deftp-cell.
+              rv_icon = icon_ranking.
+            WHEN rzd1_c_deftp-exception.
+              rv_icon = icon_bw_exception_monitor.
+            WHEN rzd1_c_deftp-condition.
+              rv_icon = icon_summarize.
+          ENDCASE.
 
         WHEN rs_c_tlogo-infoobject OR rs_c_tlogo-d_infoobject.
           lv_iobj_type = iv_tlogo_sub.
 
-          CALL METHOD cl_rso_repository=>get_tlogo_icon
-            EXPORTING
-              i_tlogo  = iv_tlogo
-              i_iobjtp = lv_iobj_type
-            RECEIVING
-              r_icon   = rv_icon.
+          rv_icon = cl_rso_repository=>get_tlogo_icon(
+            i_tlogo  = iv_tlogo
+            i_iobjtp = lv_iobj_type ).
 
         WHEN rs_c_tlogo-infocube OR rs_c_tlogo-d_infocube.
           lv_cube_type = iv_tlogo_sub.
 
-          CALL METHOD cl_rso_repository=>get_tlogo_icon
-            EXPORTING
-              i_tlogo    = iv_tlogo
-              i_cubetype = lv_cube_type
-            RECEIVING
-              r_icon     = rv_icon.
+          rv_icon = cl_rso_repository=>get_tlogo_icon(
+            i_tlogo    = iv_tlogo
+            i_cubetype = lv_cube_type ).
+
+          " Additional cases
+          CASE lv_cube_type.
+            WHEN rsd_c_cubetype-virtual.
+              rv_icon = icon_biw_virtual_info_provider.
+            WHEN rsd_c_cubetype-hybrid.
+              rv_icon = icon_write_file.
+          ENDCASE.
+
+        WHEN rs_c_tlogo-logsys.
+          lv_lsys_type = iv_tlogo_sub.
+
+          rv_icon = cl_rsar_srctype=>get_icon( lv_lsys_type ).
 
         WHEN OTHERS. " Other BW objects
-          CALL METHOD cl_rso_repository=>get_tlogo_icon
-            EXPORTING
-              i_tlogo = iv_tlogo
-            RECEIVING
-              r_icon  = rv_icon.
+          rv_icon = cl_rso_repository=>get_tlogo_icon( iv_tlogo ).
       ENDCASE.
     ELSE.
       rv_icon = iv_icon.

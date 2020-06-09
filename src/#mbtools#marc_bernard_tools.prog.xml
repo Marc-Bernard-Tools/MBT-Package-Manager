@@ -15,12 +15,12 @@
     <item>
      <ID>R</ID>
      <ENTRY>Marc Bernard Tools</ENTRY>
-     <LENGTH>22</LENGTH>
+     <LENGTH>18</LENGTH>
     </item>
     <item>
      <ID>S</ID>
      <KEY>P_ACT</KEY>
-     <ENTRY>Activate Tool</ENTRY>
+     <ENTRY>Activate</ENTRY>
      <LENGTH>21</LENGTH>
     </item>
     <item>
@@ -32,13 +32,19 @@
     <item>
      <ID>S</ID>
      <KEY>P_DEACT</KEY>
-     <ENTRY>Deactivate Tool</ENTRY>
+     <ENTRY>Deactivate</ENTRY>
      <LENGTH>23</LENGTH>
     </item>
     <item>
      <ID>S</ID>
      <KEY>P_REG</KEY>
-     <ENTRY>Register Tool</ENTRY>
+     <ENTRY>Register</ENTRY>
+     <LENGTH>21</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_SHOW</KEY>
+     <ENTRY>Show Registry</ENTRY>
      <LENGTH>21</LENGTH>
     </item>
     <item>
@@ -50,7 +56,7 @@
     <item>
      <ID>S</ID>
      <KEY>P_UNREG</KEY>
-     <ENTRY>Unregister Tool</ENTRY>
+     <ENTRY>Unregister</ENTRY>
      <LENGTH>23</LENGTH>
     </item>
    </TPOOL>

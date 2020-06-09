@@ -59,7 +59,7 @@ SELECTION-SCREEN:
 INCLUDE /mbtools/bc_screen_data.
 
 DATA:
-  gr_app    TYPE REF TO /mbtools/cl_base,
+  go_app    TYPE REF TO /mbtools/cl_base,
   gv_tool   TYPE string,
   gv_action TYPE string,
   gv_flag   TYPE abap_bool.
@@ -87,7 +87,7 @@ AT SELECTION-SCREEN.
 
 AT SELECTION-SCREEN OUTPUT.
 
-  gr_app->initialize( iv_all = p_all ).
+  go_app->initialize( iv_all = p_all ).
 
   INCLUDE /mbtools/bc_screen_at_output.
 
@@ -101,13 +101,17 @@ AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_title.
     RECEIVING
       rv_title   = p_title.
 
+*-----------------------------------------------------------------------
+
 START-OF-SELECTION.
 
   /mbtools/cl_screen=>banner( iv_show = abap_false ).
 
   IF p_show = abap_true.
 
-*    CALL METHOD /mbtools/cl_tools=>show_status.
+    SUBMIT /mbtools/registry VIA SELECTION-SCREEN AND RETURN.
+
+    RETURN.
 
   ELSEIF p_all = abap_true.
 
@@ -116,34 +120,55 @@ START-OF-SELECTION.
     CASE abap_true.
       WHEN p_reg.
 
-        CALL METHOD /mbtools/cl_tools=>register_all
+        CALL METHOD /mbtools/cl_tools=>run_action
+          EXPORTING
+            iv_action = /mbtools/cl_tools=>c_action-register
           RECEIVING
-            rv_registered = gv_flag.
+            rv_result = gv_flag.
 
         gv_action = 'registered'.
 
       WHEN p_unreg.
 
-        CALL METHOD /mbtools/cl_tools=>unregister_all
+        CALL METHOD /mbtools/cl_tools=>run_action
+          EXPORTING
+            iv_action = /mbtools/cl_tools=>c_action-unregister
           RECEIVING
-            rv_unregistered = gv_flag.
+            rv_result = gv_flag.
 
         gv_action = 'unregistered'.
 
       WHEN p_act.
+
+        CALL METHOD /mbtools/cl_tools=>run_action
+          EXPORTING
+            iv_action = /mbtools/cl_tools=>c_action-activate
+          RECEIVING
+            rv_result = gv_flag.
+
+        gv_action = 'activated'.
+
       WHEN p_deact.
+
+        CALL METHOD /mbtools/cl_tools=>run_action
+          EXPORTING
+            iv_action = /mbtools/cl_tools=>c_action-deactivate
+          RECEIVING
+            rv_result = gv_flag.
+
+        gv_action = 'deactivated'.
 
     ENDCASE.
 
   ELSE.
 
-    gr_tool = /mbtools/cl_tools=>get_tool( p_title ).
+    go_tool = /mbtools/cl_tools=>get_tool( p_title ).
     gv_tool = 'Tool was'.
 
     CASE abap_true.
       WHEN p_reg.
 
-        CALL METHOD gr_tool->register
+        CALL METHOD go_tool->register
           RECEIVING
             rv_registered = gv_flag.
 
@@ -151,7 +176,7 @@ START-OF-SELECTION.
 
       WHEN p_unreg.
 
-        CALL METHOD gr_tool->unregister
+        CALL METHOD go_tool->unregister
           RECEIVING
             rv_unregistered = gv_flag.
 
@@ -159,7 +184,7 @@ START-OF-SELECTION.
 
       WHEN p_act.
 
-        CALL METHOD gr_tool->activate
+        CALL METHOD go_tool->activate
           RECEIVING
             rv_activated = gv_flag.
 
@@ -167,7 +192,7 @@ START-OF-SELECTION.
 
       WHEN p_deact.
 
-        CALL METHOD gr_tool->deactivate
+        CALL METHOD go_tool->deactivate
           RECEIVING
             rv_deactivated = gv_flag.
 
@@ -178,7 +203,7 @@ START-OF-SELECTION.
   ENDIF.
 
   IF gv_flag = abap_true.
-    MESSAGE |{ gv_tool } { gv_action } successfully| TYPE 'I'.
+    MESSAGE |{ gv_tool } { gv_action } successfully| TYPE 'S'.
   ELSE.
     MESSAGE |Error: { gv_tool } not { gv_action } properly| TYPE 'E'.
   ENDIF.

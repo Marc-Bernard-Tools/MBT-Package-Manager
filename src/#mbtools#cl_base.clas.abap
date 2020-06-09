@@ -14,16 +14,16 @@ CLASS /mbtools/cl_base DEFINITION
     INTERFACES if_apack_manifest .
     INTERFACES /mbtools/if_manifest .
 
-    CONSTANTS:
-      c_version     TYPE string VALUE '1.0.0' ##NO_TEXT,
-      c_title       TYPE string VALUE 'Marc Bernard Tools' ##NO_TEXT,
-      c_description TYPE string VALUE 'Essential Tools for SAP® Customers & Partners by Marc Bernard Tools' ##NO_TEXT,
-      c_download_id TYPE i VALUE 4480 ##NO_TEXT.
+    CONSTANTS c_version TYPE string VALUE '1.0.0' ##NO_TEXT.
+    CONSTANTS c_title TYPE string VALUE 'Marc Bernard Tools' ##NO_TEXT.
+    CONSTANTS c_description TYPE string VALUE 'Essential Tools for SAP® Customers & Partners by Marc Bernard Tools' ##NO_TEXT.
+    CONSTANTS c_bundle_id TYPE i VALUE 0 ##NO_TEXT.
+    CONSTANTS c_download_id TYPE i VALUE 4480 ##NO_TEXT.
 
     METHODS constructor .
     METHODS initialize
       IMPORTING
-        !iv_all TYPE abap_bool.
+        !iv_all TYPE abap_bool .
     METHODS screen .
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -34,7 +34,7 @@ CLASS /mbtools/cl_base DEFINITION
       FOR /mbtools/if_manifest~descriptor .
 
     DATA mo_tool TYPE REF TO /mbtools/cl_tools .
-    DATA mv_all TYPE abap_bool.
+    DATA mv_all TYPE abap_bool .
 ENDCLASS.
 
 

@@ -439,9 +439,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     LOOP AT sub_entries INTO kv.
       reg_entry = get_subentry( kv-key ).
 
-      CALL METHOD reg_entry->export
-        CHANGING
-          c_file = c_file.
+      reg_entry->export( CHANGING c_file = c_file ).
     ENDLOOP.
 *<<<INS
   ENDMETHOD.

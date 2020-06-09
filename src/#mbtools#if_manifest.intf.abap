@@ -33,6 +33,7 @@ INTERFACE /mbtools/if_manifest
   TYPES:
     BEGIN OF ty_descriptor,
       id           TYPE i,
+      bundle_id    TYPE i,
       name         TYPE string,
       version      TYPE string,
       title        TYPE string,

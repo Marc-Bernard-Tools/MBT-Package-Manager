@@ -17,15 +17,19 @@ CLASS /mbtools/cl_edd DEFINITION
     CONSTANTS c_version TYPE string VALUE '1.0.0' ##NO_TEXT.
 
     CONSTANTS c_edd_host TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.
-    CONSTANTS c_action_activate TYPE string VALUE 'activatev_license' ##NO_TEXT.
-    CONSTANTS c_action_deactivate TYPE string VALUE 'deactivatev_license' ##NO_TEXT.
-    CONSTANTS c_action_check TYPE string VALUE 'check_license' ##NO_TEXT.
-    CONSTANTS c_action_version TYPE string VALUE 'get_version' ##NO_TEXT.
-    CONSTANTS c_param_action TYPE string VALUE '$action$' ##NO_TEXT.
-    CONSTANTS c_param_id TYPE string VALUE '$id$' ##NO_TEXT.
-    CONSTANTS c_param_key TYPE string VALUE '$key$' ##NO_TEXT.
-    CONSTANTS c_param_url TYPE string VALUE '$url$' ##NO_TEXT.
-    CONSTANTS c_param_system TYPE string VALUE '$system$' ##NO_TEXT.
+    CONSTANTS: BEGIN OF c_action,
+                 activate   TYPE string VALUE 'activatev_license' ##NO_TEXT,
+                 deactivate TYPE string VALUE 'deactivatev_license' ##NO_TEXT,
+                 check      TYPE string VALUE 'check_license' ##NO_TEXT,
+                 version    TYPE string VALUE 'get_version' ##NO_TEXT,
+               END OF c_action.
+    CONSTANTS: BEGIN OF c_param,
+                 action TYPE string VALUE '$action$' ##NO_TEXT,
+                 id     TYPE string VALUE '$id$' ##NO_TEXT,
+                 key    TYPE string VALUE '$key$' ##NO_TEXT,
+                 url    TYPE string VALUE '$url$' ##NO_TEXT,
+                 system TYPE string VALUE '$system$' ##NO_TEXT,
+               END OF c_param.
 
     CLASS-METHODS activatev_license
       IMPORTING
@@ -89,13 +93,9 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
-    CALL METHOD get_endpoint
-      EXPORTING
-        iv_action   = c_action_activate
-        iv_id       = iv_id
-        iv_license  = iv_license
-      RECEIVING
-        rv_endpoint = lv_endpoint.
+    lv_endpoint = get_endpoint( iv_action   = c_action-activate
+                                iv_id       = iv_id
+                                iv_license  = iv_license ).
 
   ENDMETHOD.
 
@@ -107,13 +107,9 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
-    CALL METHOD get_endpoint
-      EXPORTING
-        iv_action   = c_action_check
-        iv_id       = iv_id
-        iv_license  = iv_license
-      RECEIVING
-        rv_endpoint = lv_endpoint.
+    lv_endpoint = get_endpoint( iv_action   = c_action-check
+                                iv_id       = iv_id
+                                iv_license  = iv_license ).
 
   ENDMETHOD.
 
@@ -125,13 +121,9 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
-    CALL METHOD get_endpoint
-      EXPORTING
-        iv_action   = c_action_deactivate
-        iv_id       = iv_id
-        iv_license  = iv_license
-      RECEIVING
-        rv_endpoint = lv_endpoint.
+    lv_endpoint = get_endpoint( iv_action   = c_action-deactivate
+                                iv_id       = iv_id
+                                iv_license  = iv_license ).
 
   ENDMETHOD.
 
@@ -143,13 +135,14 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
       lv_system_host TYPE string,
       lv_system_id   TYPE slic_sysid.
 
-*   http://yoursite.com/?edd_action={request type}&item_id={id}&license={key}&url={url of the site being licensed}/{system number}
-    rv_endpoint = c_edd_host && '?edd_action=' && c_param_action && '&item_id=' && c_param_id.
-    rv_endpoint = rv_endpoint && '&license=' && c_param_key && '&url=' && c_param_url && '/' && c_param_system.
+    " http://yoursite.com/?edd_action={request type}&item_id={id}&license={key}
+    " &url={url of the site being licensed}/{system number}
+    rv_endpoint = c_edd_host && '?edd_action=' && c_param-action && '&item_id=' && c_param-id.
+    rv_endpoint = rv_endpoint && '&license=' && c_param-key && '&url=' && c_param-url && '/' && c_param-system.
 
-    REPLACE c_param_action WITH iv_action  INTO rv_endpoint.
-    REPLACE c_param_id     WITH iv_id      INTO rv_endpoint.
-    REPLACE c_param_key    WITH iv_license INTO rv_endpoint.
+    REPLACE c_param-action WITH iv_action  INTO rv_endpoint.
+    REPLACE c_param-id     WITH iv_id      INTO rv_endpoint.
+    REPLACE c_param-key    WITH iv_license INTO rv_endpoint.
 
     CALL FUNCTION 'SPFL_PARAMETER_GET_VALUE'
       EXPORTING
@@ -161,7 +154,7 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
       /mbtools/cx_exception=>raise( 'Error getting system host (SAPDBHOST)' ) ##NO_TEXT.
     ENDIF.
 
-    REPLACE c_param_url WITH lv_system_host INTO rv_endpoint.
+    REPLACE c_param-url WITH lv_system_host INTO rv_endpoint.
 
     CALL FUNCTION 'SLIC_GET_SYSTEM_ID'
       IMPORTING
@@ -171,7 +164,7 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
       /mbtools/cx_exception=>raise( 'Initial system number (transaction SLICENSE)' ) ##NO_TEXT.
     ENDIF.
 
-    REPLACE c_param_system WITH lv_system_id INTO rv_endpoint.
+    REPLACE c_param-system WITH lv_system_id INTO rv_endpoint.
     CONDENSE rv_endpoint NO-GAPS.
 
   ENDMETHOD.
@@ -184,13 +177,9 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
-    CALL METHOD get_endpoint
-      EXPORTING
-        iv_action   = c_action_version
-        iv_id       = iv_id
-        iv_license  = iv_license
-      RECEIVING
-        rv_endpoint = lv_endpoint.
+    lv_endpoint = get_endpoint( iv_action   = c_action-version
+                                iv_id       = iv_id
+                                iv_license  = iv_license ).
 
   ENDMETHOD.
 ENDCLASS.

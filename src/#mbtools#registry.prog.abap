@@ -27,8 +27,8 @@ DATA: gt_tab TYPE TABLE OF ts_tab.
 
 * For maintaining registry values in an an entry (ALV control):
 DATA: gr_table   TYPE REF TO cl_gui_alv_grid.
-DATA: gt_value   TYPE STANDARD TABLE OF /mbtools/cl_registry=>ts_keyval.
-DATA: gt_value_ori TYPE STANDARD TABLE OF /mbtools/cl_registry=>ts_keyval. "Original data
+DATA: gt_value   TYPE STANDARD TABLE OF /mbtools/cl_registry=>ty_keyval.
+DATA: gt_value_ori TYPE STANDARD TABLE OF /mbtools/cl_registry=>ty_keyval. "Original data
 
 * For splitter container
 DATA: gr_splitter TYPE REF TO cl_gui_easy_splitter_container.
@@ -274,8 +274,8 @@ CLASS event_handler IMPLEMENTATION.
   METHOD handle_table_command.
     DATA: lv_node_key TYPE lvc_nkey.
     DATA: ls_tab TYPE ts_tab.
-    DATA: lt_value TYPE /mbtools/cl_registry=>tt_keyval.
-    DATA: ls_value TYPE /mbtools/cl_registry=>ts_keyval.
+    DATA: lt_value TYPE /mbtools/cl_registry=>ty_keyvals.
+    DATA: ls_value TYPE /mbtools/cl_registry=>ty_keyval.
 
 * Save current values
     IF e_ucomm = 'SAVE'.
@@ -286,7 +286,7 @@ CLASS event_handler IMPLEMENTATION.
 * Handle selection of a node in the tree
   METHOD handle_node_selected.
     DATA: ls_tab TYPE ts_tab.
-    DATA: lt_val TYPE /mbtools/cl_registry=>tt_keyval.
+    DATA: lt_val TYPE /mbtools/cl_registry=>ty_keyvals.
 
 * Check whether data has changed before
     DATA: lv_answer TYPE char01.
@@ -390,8 +390,8 @@ CLASS event_handler IMPLEMENTATION.
                  WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
     ENDIF.
 
-    DATA: lt_sub_entries TYPE /mbtools/cl_registry=>tt_keyobj.
-    DATA: ls_sub_entry TYPE /mbtools/cl_registry=>ts_keyobj.
+    DATA: lt_sub_entries TYPE /mbtools/cl_registry=>ty_keyobjs.
+    DATA: ls_sub_entry TYPE /mbtools/cl_registry=>ty_keyobj.
     DATA: lv_expander TYPE abap_bool.
     DATA: lv_node_text TYPE lvc_value.
 
@@ -435,7 +435,7 @@ ENDCLASS.                    "event_handler IMPLEMENTATION
 *----------------------------------------------------------------------*
 FORM refresh_subnodes USING pv_nkey TYPE lvc_nkey.
   DATA: ls_tab TYPE ts_tab.
-  DATA: ls_subentry TYPE /mbtools/cl_registry=>ts_keyval.
+  DATA: ls_subentry TYPE /mbtools/cl_registry=>ty_keyval.
   DATA: lr_reg_entry TYPE REF TO /mbtools/cl_registry.
   DATA: lt_children TYPE lvc_t_nkey.
   DATA: lv_nkey TYPE lvc_nkey.
@@ -515,8 +515,8 @@ ENDFORM.                    "refresh_subnodes
 *----------------------------------------------------------------------*
 FORM save_values.
   IF gr_table IS BOUND AND gr_sel_reg_entry IS BOUND.
-    DATA: lt_value TYPE /mbtools/cl_registry=>tt_keyval.
-    DATA: ls_value TYPE /mbtools/cl_registry=>ts_keyval.
+    DATA: lt_value TYPE /mbtools/cl_registry=>ty_keyvals.
+    DATA: ls_value TYPE /mbtools/cl_registry=>ty_keyval.
 * Normalize the values; duplicate keys are overwritten, with possible loss of data!
     LOOP AT gt_value INTO ls_value.
       INSERT ls_value INTO TABLE lt_value.
@@ -821,6 +821,7 @@ START-OF-SELECTION.
 
 
 AT SELECTION-SCREEN OUTPUT.
+
 * Disable Execute and Save functions on report selection screen
   PERFORM insert_into_excl(rsdbrunt) USING 'ONLI'.
   PERFORM insert_into_excl(rsdbrunt) USING 'SPOS'.
