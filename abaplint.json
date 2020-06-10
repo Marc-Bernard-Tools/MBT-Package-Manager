@@ -246,7 +246,7 @@
     },
     "main_file_contents": true,
     "max_one_statement": true,
-    "message_exists": true,
+    "message_exists": false,
     "method_length": {
       "exclude": [
         "#mbtools#"
