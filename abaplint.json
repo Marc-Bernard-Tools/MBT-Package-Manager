@@ -110,8 +110,7 @@
     "check_transformation_exists": true,
     "class_attribute_names": {
       "exclude": [
-        "#mbtools#cl_registry.clas.abap",
-        "#mbtools#cl_tree_level.clas.abap"
+        "#mbtools#"
       ],
       "patternKind": "required",
       "ignoreNames": [ 
@@ -119,7 +118,18 @@
         "mbt_manifest", 
         "descriptor", 
         "co_file_name", 
-        "co_interface_version" 
+        "co_interface_version",
+        "registry_root",
+        "sub_entries",
+        "values",
+        "internal_key",
+        "parent_key",
+        "entry_id",
+        "regs",
+        "level",
+	"icon",
+	"value",
+	"text" 
       ],
       "ignorePatterns": [],
       "ignoreExceptions": true,
@@ -345,12 +355,7 @@
     "sql_escape_host_variables": true,
     "start_at_tab": {
       "exclude": [
-        "#mbtools#cx_registry_entry_del.clas.abap",
-        "#mbtools#cx_registry_entry_ex.clas.abap",
-        "#mbtools#cx_registry_err.clas.abap",
-        "#mbtools#cx_registry_invalid.clas.abap",
-        "#mbtools#cx_registry_lock.clas.abap",
-        "#mbtools#cx_registry_noentry.clas.abap"
+        "#mbtools#"
       ]
     },
     "superclass_final": true,
@@ -365,7 +370,7 @@
       ]
     },
     "unreachable_code": true,
-    "unused_variables": true,
+    "unused_variables": false,
     "use_new": true,
     "when_others_last": true,
     "whitespace_end": true,
