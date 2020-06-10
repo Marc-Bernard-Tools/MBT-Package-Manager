@@ -19,7 +19,7 @@ CLASS /mbtools/cl_sap DEFINITION
         ddtext     TYPE val_text,
       END OF ty_domain_value .
     TYPES:
-      ty_domain_values TYPE STANDARD TABLE OF ty_domain_value WITH DEFAULT KEY.
+      ty_domain_values TYPE STANDARD TABLE OF ty_domain_value WITH DEFAULT KEY .
 
     CLASS-METHODS class_constructor .
     CLASS-METHODS get_object_wo_namespace
@@ -81,6 +81,16 @@ CLASS /mbtools/cl_sap DEFINITION
         !iv_pgmid      TYPE csequence DEFAULT 'R3TR'
         !iv_object     TYPE csequence
         !iv_obj_name   TYPE csequence
+      RETURNING
+        VALUE(rv_exit) TYPE abap_bool .
+    CLASS-METHODS run_transaction
+      IMPORTING
+        !iv_tcode      TYPE csequence
+      RETURNING
+        VALUE(rv_exit) TYPE abap_bool .
+    CLASS-METHODS run_program
+      IMPORTING
+        !iv_program    TYPE csequence
       RETURNING
         VALUE(rv_exit) TYPE abap_bool .
   PROTECTED SECTION.
@@ -437,6 +447,70 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
       lv_number      = rv_result.
       lv_note_number = lv_number.
       rv_result      = lv_note_number.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD run_program.
+
+    DATA: ls_trdir_entry TYPE trdir.
+
+    " Check if executable program exists
+    SELECT SINGLE * FROM trdir INTO ls_trdir_entry
+      WHERE name = iv_program AND subc = '1'.
+    IF sy-subrc = 0.
+      " Run program with authorization check
+      CALL FUNCTION 'SUBMIT_REPORT'
+        EXPORTING
+          report           = ls_trdir_entry-name
+          rdir             = ls_trdir_entry
+          ret_via_leave    = abap_true
+        EXCEPTIONS
+          just_via_variant = 1
+          no_submit_auth   = 2
+          OTHERS           = 3.
+      CASE sy-subrc.
+        WHEN 0.
+          rv_exit = abap_true.
+        WHEN 1.
+          MESSAGE i623(db) WITH iv_program.
+        WHEN 2.
+          MESSAGE i149(00) WITH iv_program.
+        WHEN OTHERS.
+          MESSAGE i001(00) WITH 'Unknown error'(004) iv_program.
+      ENDCASE.
+    ELSE.
+      MESSAGE i541(00) WITH iv_program.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD run_transaction.
+
+    DATA: lv_tcode TYPE sy-tcode.
+
+    SELECT SINGLE tcode FROM tstc INTO lv_tcode WHERE tcode = iv_tcode.
+    IF sy-subrc = 0.
+      CALL FUNCTION 'AUTHORITY_CHECK_TCODE'
+        EXPORTING
+          tcode  = lv_tcode
+        EXCEPTIONS
+          ok     = 0
+          not_ok = 2
+          OTHERS = 3.
+      CASE sy-subrc.
+        WHEN 0.
+          CALL TRANSACTION lv_tcode.
+          rv_exit = abap_true.
+        WHEN 2.
+          MESSAGE i172(00) WITH iv_tcode.
+        WHEN OTHERS.
+          MESSAGE i001(00) WITH 'Unknown error'(004) iv_tcode.
+      ENDCASE.
+    ELSE.
+      MESSAGE i010(01) WITH iv_tcode.
     ENDIF.
 
   ENDMETHOD.

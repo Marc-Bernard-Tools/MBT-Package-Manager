@@ -575,34 +575,34 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
           IMPORTING
             e_iobjnm = lv_iobjnm.
         SET PARAMETER ID 'RSC' FIELD lv_iobjnm.
-        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSD1' ).
+        /mbtools/cl_sap=>call_transaction( 'RSD1' ).
 
       WHEN /mbtools/if_objects=>c_hierarchy.
-        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSH1' ).
+        /mbtools/cl_sap=>call_transaction( 'RSH1' ).
 
       WHEN /mbtools/if_objects=>c_query.
         SET PARAMETER ID 'GID' FIELD lv_value.
-        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSRT' ).
+        /mbtools/cl_sap=>call_transaction( 'RSRT' ).
 
       WHEN /mbtools/if_objects=>c_ctrt.
         SET PARAMETER ID 'NBR' FIELD lv_value.
-        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSCUR' ).
+        /mbtools/cl_sap=>call_transaction( 'RSCUR' ).
 
       WHEN /mbtools/if_objects=>c_uomt.
         SET PARAMETER ID 'RSUOM' FIELD lv_value.
-        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSUOM' ).
+        /mbtools/cl_sap=>call_transaction( 'RSUOM' ).
 
       WHEN /mbtools/if_objects=>c_thjt.
         " No parameter
-        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'RSTHJTMAINT' ).
+        /mbtools/cl_sap=>call_transaction( 'RSTHJTMAINT' ).
 
       WHEN /mbtools/if_objects=>c_user_id.
         SET PARAMETER ID 'XUS' FIELD lv_value.
-        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'SU01' ).
+        /mbtools/cl_sap=>call_transaction( 'SU01' ).
 
       WHEN /mbtools/if_objects=>c_role.
         SET PARAMETER ID 'PROFILE_GENERATOR' FIELD lv_value.
-        /mbtools/cl_utilities=>call_transaction( iv_tcode = 'PFCG' ).
+        /mbtools/cl_sap=>call_transaction( 'PFCG' ).
 
       WHEN /mbtools/if_objects=>c_number_range.
         lv_nrobj = lv_value.

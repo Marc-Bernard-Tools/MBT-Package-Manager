@@ -34,6 +34,12 @@
     </item>
     <item>
      <ID>I</ID>
+     <KEY>004</KEY>
+     <ENTRY>Unknown error</ENTRY>
+     <LENGTH>50</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
      <KEY>100</KEY>
      <ENTRY>Source System</ENTRY>
      <LENGTH>60</LENGTH>
@@ -147,6 +153,18 @@
      <CMPNAME>OBJECT_NAME_CHECK</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Check object name and adjust if it&apos;s an SAP Note</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_SAP</CLSNAME>
+     <CMPNAME>RUN_PROGRAM</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Submit report</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_SAP</CLSNAME>
+     <CMPNAME>RUN_TRANSACTION</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Call transaction</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/MBTOOLS/CL_SAP</CLSNAME>

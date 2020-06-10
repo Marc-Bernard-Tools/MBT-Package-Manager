@@ -57,7 +57,7 @@ public section.
     redefinition .
   methods IF_MESSAGE~GET_LONGTEXT
     redefinition .
-  PROTECTED SECTION.
+protected section.
 private section.
 
   data MT_CALLSTACK type ABAP_CALLSTACK .
@@ -89,38 +89,12 @@ endif.
   endmethod.
 
 
-  METHOD GET_LONGTEXT.
-
-    " You should remember that we have to call ZCL_ABAPGIT_MESSAGE_HELPER
-    " dynamically, because the compiled abapGit report puts the definition
-    " of the exception classes on the top and therefore ZCL_ABAPGIT_MESSAGE_HELPER
-    " isn't statically known
-
-    DATA: lo_message_helper TYPE REF TO object.
-
-    result = super->get_longtext( ).
-
-    IF if_t100_message~t100key IS NOT INITIAL.
-
-      CREATE OBJECT lo_message_helper TYPE ('ZCL_ABAPGIT_MESSAGE_HELPER')
-        EXPORTING
-          ii_t100_message = me.
-
-      CALL METHOD lo_message_helper->('GET_T100_LONGTEXT')
-        RECEIVING
-          rv_longtext = result.
-
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD GET_SOURCE_POSITION.
+  METHOD get_source_position.
 
     FIELD-SYMBOLS: <ls_callstack> TYPE abap_callstack_line.
 
-    READ TABLE mt_callstack ASSIGNING <ls_callstack>
-                            INDEX 1.
+    READ TABLE mt_callstack ASSIGNING <ls_callstack> INDEX 1.
+
     IF sy-subrc = 0.
       program_name = <ls_callstack>-mainprogram.
       include_name = <ls_callstack>-include.
@@ -130,13 +104,31 @@ endif.
         IMPORTING
           program_name = program_name
           include_name = include_name
-          source_line  = source_line   ).
+          source_line  = source_line ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD if_message~get_longtext.
+
+    DATA: lo_message_helper TYPE REF TO /mbtools/cl_message_helper.
+
+    result = super->get_longtext( ).
+
+    IF if_t100_message~t100key IS NOT INITIAL.
+
+      CREATE OBJECT lo_message_helper EXPORTING ii_t100_message = me.
+
+      result = lo_message_helper->get_t100_longtext( ).
+
     ENDIF.
 
   ENDMETHOD.
 
 
   METHOD raise.
+
     DATA: lv_msgv1    TYPE symsgv,
           lv_msgv2    TYPE symsgv,
           lv_msgv3    TYPE symsgv,
@@ -150,7 +142,7 @@ endif.
       lv_text = iv_text.
     ENDIF.
 
-    /mbtools/cl_message_helper=>set_msg_vars_for_clike( iv_text = lv_text ).
+    /mbtools/cl_message_helper=>set_msg_vars_for_clike( lv_text ).
 
     ls_t100_key-msgid = sy-msgid.
     ls_t100_key-msgno = sy-msgno.
@@ -171,6 +163,7 @@ endif.
         msgv3    = lv_msgv3
         msgv4    = lv_msgv4
         previous = ix_previous.
+
   ENDMETHOD.
 
 

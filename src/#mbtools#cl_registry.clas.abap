@@ -46,46 +46,54 @@ CLASS /mbtools/cl_registry DEFINITION
 
     METHODS constructor
       IMPORTING
-        !internal_key TYPE any .
-    METHODS reload .
-*      lock raising /mbtools/cx_registry_err,
+        !internal_key TYPE any
+      RAISING
+        /mbtools/cx_exception.
+
+    METHODS reload
+      RAISING
+        /mbtools/cx_exception.
 * Saves entry and all dirty sub-entries
     METHODS save
       RAISING
-        /mbtools/cx_registry_err .
+        /mbtools/cx_exception.
     METHODS get_parent
       RETURNING
-        VALUE(parent) TYPE REF TO /mbtools/cl_registry .
+        VALUE(parent) TYPE REF TO /mbtools/cl_registry
+      RAISING
+        /mbtools/cx_exception.
     METHODS create_by_path
       IMPORTING
         !path        TYPE string
       RETURNING
         VALUE(entry) TYPE REF TO /mbtools/cl_registry
       RAISING
-        /mbtools/cx_registry_err .
+        /mbtools/cx_exception.
 *--------------------------------------------------------------------*
 * Methods dealing with sub-entries of the registry entry
     METHODS get_subentry
       IMPORTING
         !key         TYPE clike
       RETURNING
-        VALUE(entry) TYPE REF TO /mbtools/cl_registry .
+        VALUE(entry) TYPE REF TO /mbtools/cl_registry
+      RAISING
+        /mbtools/cx_exception.
     METHODS add_subentry
       IMPORTING
         !key         TYPE clike
       RETURNING
         VALUE(entry) TYPE REF TO /mbtools/cl_registry
       RAISING
-        /mbtools/cx_registry_entry_ex .
+        /mbtools/cx_exception.
 * Removes sub-entry and all entries underneath
     METHODS remove_subentry
       IMPORTING
         !key TYPE clike
       RAISING
-        /mbtools/cx_registry_err .
+        /mbtools/cx_exception.
     METHODS remove_subentries
       RAISING
-        /mbtools/cx_registry_err .
+        /mbtools/cx_exception.
     METHODS copy_subentry
       IMPORTING
         !source_key         TYPE clike
@@ -93,13 +101,15 @@ CLASS /mbtools/cl_registry DEFINITION
       RETURNING
         VALUE(target_entry) TYPE REF TO /mbtools/cl_registry
       RAISING
-        /mbtools/cx_registry_err .
+        /mbtools/cx_exception.
     METHODS get_subentry_keys
       RETURNING
         VALUE(keys) TYPE string_table .
     METHODS get_subentries
       RETURNING
-        VALUE(sub_entries) TYPE ty_keyobjs .
+        VALUE(sub_entries) TYPE ty_keyobjs
+      RAISING
+        /mbtools/cx_exception.
 * Methods for dealing with values in the registry entry:
 * Get keys of all values
     METHODS get_value_keys
@@ -112,7 +122,10 @@ CLASS /mbtools/cl_registry DEFINITION
 * Set all values in one go:
     METHODS set_values
       IMPORTING
-        !values TYPE ty_keyvals .
+        !values TYPE ty_keyvals
+      RAISING
+        /mbtools/cx_exception.
+
 * Get single value by key
     METHODS get_value
       IMPORTING
@@ -120,34 +133,46 @@ CLASS /mbtools/cl_registry DEFINITION
       RETURNING
         VALUE(value) TYPE string
       RAISING
-        /mbtools/cx_registry_noentry .
+        /mbtools/cx_exception.
 * Set/overwrite single value
     METHODS set_value
       IMPORTING
         !key   TYPE clike
-        !value TYPE any OPTIONAL.
+        !value TYPE any OPTIONAL
+      RAISING
+        /mbtools/cx_exception.
+
 * Delete single value by key
     METHODS delete_value
       IMPORTING
-        !key TYPE clike .
+        !key TYPE clike
+      RAISING
+        /mbtools/cx_exception.
+
     CLASS-METHODS get_entry_by_internal_key
       IMPORTING
         !key         TYPE any
       RETURNING
-        VALUE(entry) TYPE REF TO /mbtools/cl_registry .
+        VALUE(entry) TYPE REF TO /mbtools/cl_registry
+      RAISING
+        /mbtools/cx_exception.
     CLASS-METHODS get_root
       RETURNING
-        VALUE(root) TYPE REF TO /mbtools/cl_registry .
+        VALUE(root) TYPE REF TO /mbtools/cl_registry
+      RAISING
+        /mbtools/cx_exception.
     METHODS export
       CHANGING
-        !c_file TYPE string_table .
+        !c_file TYPE string_table
+      RAISING
+        /mbtools/cx_exception.
     METHODS get_subentry_by_path
       IMPORTING
         !path        TYPE string
       RETURNING
         VALUE(entry) TYPE REF TO /mbtools/cl_registry
       RAISING
-        /mbtools/cx_registry_err .
+        /mbtools/cx_exception.
 
   PROTECTED SECTION.
 
@@ -159,22 +184,25 @@ CLASS /mbtools/cl_registry DEFINITION
 
     METHODS set_optimistic_lock
       RAISING
-        /mbtools/cx_registry_lock .
+        /mbtools/cx_exception.
     METHODS promote_lock
       RAISING
-        /mbtools/cx_registry_lock .
+        /mbtools/cx_exception.
     METHODS release_lock .
     METHODS copy_subentry_deep
       IMPORTING
         !source TYPE REF TO /mbtools/cl_registry
-        !target TYPE REF TO /mbtools/cl_registry .
+        !target TYPE REF TO /mbtools/cl_registry
+      RAISING
+        /mbtools/cx_exception.
+
 * Remove the registry entry from the database:
 * The DELETE method is protected because you must always delete an entry
 * as the sub-entry of its parent so that the link is removed from the
 * parent
     METHODS delete
       RAISING
-        /mbtools/cx_registry_err .
+        /mbtools/cx_exception.
 
   PRIVATE SECTION.
 
@@ -196,7 +224,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      RAISE EXCEPTION TYPE /mbtools/cx_registry_entry_del.
+      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
     ENDIF.
 
 * Check that only allowed characters are used. Will help for making
@@ -204,13 +232,13 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * Most of all, we want to avoid spaces and slashes (although those
 * square and curly brackets could cause problems for JSON...)
     IF NOT key CO 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890@#$%^_+-(){}[]'.
-      RAISE EXCEPTION TYPE /mbtools/cx_registry_invalid.
+      /mbtools/cx_exception=>raise('invalid').
     ENDIF.
 
 * Read internal store of sub-entries
     READ TABLE sub_entries INTO kv WITH KEY key = key.
     IF sy-subrc = 0.
-      RAISE EXCEPTION TYPE /mbtools/cx_registry_entry_ex.
+      /mbtools/cx_exception=>raise('Registry entry exists already').
     ENDIF.
 
 * Create unique ID for key in INDX for the new entry
@@ -218,7 +246,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     TRY.
         kv-value = cl_system_uuid=>create_uuid_c22_static( ).
       CATCH cx_uuid_error.
-        RAISE EXCEPTION TYPE /mbtools/cx_registry_err.
+        /mbtools/cx_exception=>raise('UID error').
     ENDTRY.
     INSERT kv INTO TABLE sub_entries.
 
@@ -282,12 +310,12 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      RAISE EXCEPTION TYPE /mbtools/cx_registry_entry_del.
+      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
     ENDIF.
 
     source_entry = get_subentry( source_key ).
     IF source_entry IS NOT BOUND.
-      RAISE EXCEPTION TYPE /mbtools/cx_registry_noentry.
+      /mbtools/cx_exception=>raise('Registry entry does not exist').
     ENDIF.
     target_entry = add_subentry( target_key ).
 
@@ -364,7 +392,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      RAISE EXCEPTION TYPE /mbtools/cx_registry_entry_del.
+      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
     ENDIF.
 
 * Delete all sub-entries before deleting this entry
@@ -396,7 +424,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     DATA: kv TYPE ty_keyval.
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      RAISE EXCEPTION TYPE /mbtools/cx_registry_entry_del.
+      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
     ENDIF.
 
     kv-key = key.
@@ -582,7 +610,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     LOOP AT keys INTO key.
       sub_entry = entry->get_subentry( key ).
       IF sub_entry IS NOT BOUND.
-        RAISE EXCEPTION TYPE /mbtools/cx_registry_err.
+        /mbtools/cx_exception=>raise('Path error').
       ENDIF.
       entry = sub_entry.
     ENDLOOP.
@@ -648,7 +676,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
         system_failure     = 2
         OTHERS             = 3.
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE /mbtools/cx_registry_lock.
+      /mbtools/cx_exception=>raise('Registry entry is locked').
     ENDIF.
   ENDMETHOD.                    "promote_lock
 
@@ -671,7 +699,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     IMPORT values = me->values sub_entries = me->sub_entries parent = parent_key entry_id = entry_id
       FROM DATABASE /mbtools/regs(zr) ID internal_key.
     IF sy-subrc NE 0.
-      RAISE EXCEPTION TYPE /mbtools/cx_registry_noentry.
+      /mbtools/cx_exception=>raise('Registry entry does not exist').
     ENDIF.
 *>>>INS
     SELECT SINGLE * FROM /mbtools/regs INTO me->regs
@@ -690,7 +718,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      RAISE EXCEPTION TYPE /mbtools/cx_registry_entry_del.
+      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
     ENDIF.
 
     LOOP AT sub_entries INTO kv.
@@ -709,14 +737,14 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      RAISE EXCEPTION TYPE /mbtools/cx_registry_entry_del.
+      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
     ENDIF.
 
 * Read internal store of sub-entries
     READ TABLE sub_entries INTO kv WITH KEY key = key.
     IF sy-subrc NE 0.
 * Entry does not exist; exit with error
-      RAISE EXCEPTION TYPE /mbtools/cx_registry_noentry.
+      /mbtools/cx_exception=>raise('Registry entry does not exist').
     ENDIF.
 
 * Remove all sub-entries of the sub-entry before removing the sub-entry
@@ -741,7 +769,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      RAISE EXCEPTION TYPE /mbtools/cx_registry_entry_del.
+      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
     ENDIF.
 *>>>INS
     DATA: regs TYPE /mbtools/regs.
@@ -773,7 +801,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
         system_failure     = 2
         OTHERS             = 3.
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE /mbtools/cx_registry_lock.
+      /mbtools/cx_exception=>raise('Registry entry is locked').
     ENDIF.
   ENDMETHOD.                    "set_optimistic_lock
 
@@ -786,7 +814,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      RAISE EXCEPTION TYPE /mbtools/cx_registry_entry_del.
+      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
     ENDIF.
 
 * Add the value to set of values if not existing or change if it does exist
@@ -808,7 +836,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      RAISE EXCEPTION TYPE /mbtools/cx_registry_entry_del.
+      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
     ENDIF.
 
     me->values = values.

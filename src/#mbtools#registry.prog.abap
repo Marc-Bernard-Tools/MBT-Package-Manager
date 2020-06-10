@@ -81,6 +81,7 @@ CLASS lcl_event_handler IMPLEMENTATION.
     DATA: lv_rc TYPE char1.
     DATA: lv_ntext TYPE lvc_value.
     DATA: ls_tab TYPE ts_tab.
+    DATA: lx_exc TYPE REF TO /mbtools/cx_exception.
 
     IF gr_sel_reg_entry IS NOT BOUND.
       MESSAGE 'Select a node from the tree first'(003) TYPE 'I'. "<<<CHG
@@ -101,8 +102,8 @@ CLASS lcl_event_handler IMPLEMENTATION.
             gr_sel_reg_entry->add_subentry( lv_new_key ).
             PERFORM refresh_subnodes USING gv_sel_node_key.
 
-          CATCH /mbtools/cx_registry_entry_ex.
-            MESSAGE 'The registry entry already exists'(015) TYPE 'I'.
+          CATCH /mbtools/cx_exception INTO lx_exc.
+            MESSAGE lx_exc->get_text( ) TYPE 'I'.
             RETURN.
         ENDTRY.
       ENDIF.
@@ -131,11 +132,8 @@ CLASS lcl_event_handler IMPLEMENTATION.
 * Refresh the parent node
             PERFORM refresh_subnodes USING lv_node_key.
 
-          CATCH /mbtools/cx_registry_entry_ex.
-            MESSAGE 'The registry entry already exists'(015) TYPE 'I'.
-            RETURN.
-          CATCH /mbtools/cx_registry_err.
-            MESSAGE 'Error updating registry'(011) TYPE 'I'. "<<<CHG
+          CATCH /mbtools/cx_exception INTO lx_exc.
+            MESSAGE lx_exc->get_text( ) TYPE 'I'.
             RETURN.
         ENDTRY.
       ENDIF.
@@ -166,9 +164,16 @@ CLASS lcl_event_handler IMPLEMENTATION.
 * Check that the user selected OK on the confirmation
       CHECK lv_rc = '1'.
 
-      lr_reg_entry = gr_sel_reg_entry->get_parent( ).
-      CHECK lr_reg_entry IS BOUND.
-      lr_reg_entry->remove_subentry( gr_sel_reg_entry->entry_id ).
+      TRY.
+          lr_reg_entry = gr_sel_reg_entry->get_parent( ).
+
+          CHECK lr_reg_entry IS BOUND.
+
+          lr_reg_entry->remove_subentry( gr_sel_reg_entry->entry_id ).
+        CATCH /mbtools/cx_exception INTO lx_exc.
+          MESSAGE lx_exc->get_text( ) TYPE 'I'.
+          RETURN.
+      ENDTRY.
 
 * Get the parent node in the tree to refresh it
       CALL METHOD gr_tree->get_parent
@@ -199,9 +204,14 @@ CLASS lcl_event_handler IMPLEMENTATION.
       APPEND c_registry_title TO lt_file.
       APPEND '' TO lt_file.
 
-      CALL METHOD gr_sel_reg_entry->export
-        CHANGING
-          c_file = lt_file.
+      TRY.
+          CALL METHOD gr_sel_reg_entry->export
+            CHANGING
+              c_file = lt_file.
+        CATCH /mbtools/cx_exception INTO lx_exc.
+          MESSAGE lx_exc->get_text( ) TYPE 'I'.
+          RETURN.
+      ENDTRY.
 
       CALL METHOD cl_gui_frontend_services=>file_save_dialog
         EXPORTING
@@ -376,6 +386,7 @@ CLASS lcl_event_handler IMPLEMENTATION.
   METHOD handle_node_expand.
     DATA: lr_reg_entry TYPE REF TO /mbtools/cl_registry.
     DATA: ls_tab TYPE ts_tab.
+    DATA: lx_exc TYPE REF TO /mbtools/cx_exception.
 
     CALL METHOD sender->get_outtab_line
       EXPORTING
@@ -396,7 +407,13 @@ CLASS lcl_event_handler IMPLEMENTATION.
     DATA: lv_node_text TYPE lvc_value.
 
 * Add sub-entries to selected node in tree
-    lt_sub_entries = ls_tab-reg_entry->get_subentries( ).
+    TRY.
+        lt_sub_entries = ls_tab-reg_entry->get_subentries( ).
+      CATCH /mbtools/cx_exception INTO lx_exc.
+        MESSAGE lx_exc->get_text( ) TYPE 'I'.
+        RETURN.
+    ENDTRY.
+
     LOOP AT lt_sub_entries INTO ls_sub_entry.
 
       lr_reg_entry = ls_sub_entry-value.
@@ -404,7 +421,7 @@ CLASS lcl_event_handler IMPLEMENTATION.
 
     ENDLOOP.
 
-  ENDMETHOD.                    "EXPAND_EMPTY_FOLDER
+  ENDMETHOD.                              "handle_node_expand
 
 * Modify toolbar entries for table/grid
   METHOD handle_table_toolbar.
@@ -439,6 +456,7 @@ FORM refresh_subnodes USING pv_nkey TYPE lvc_nkey.
   DATA: lr_reg_entry TYPE REF TO /mbtools/cl_registry.
   DATA: lt_children TYPE lvc_t_nkey.
   DATA: lv_nkey TYPE lvc_nkey.
+  DATA: lx_exc TYPE REF TO /mbtools/cx_exception.
 
 * Delete subnodes of node. This means: getting all children and deleting
 * them individually!
@@ -486,7 +504,12 @@ FORM refresh_subnodes USING pv_nkey TYPE lvc_nkey.
   ENDIF.
 * Add a subnode for each sub-entry
   LOOP AT ls_tab-reg_entry->sub_entries INTO ls_subentry.
-    lr_reg_entry = ls_tab-reg_entry->get_subentry( ls_subentry-key ).
+    TRY.
+        lr_reg_entry = ls_tab-reg_entry->get_subentry( ls_subentry-key ).
+      CATCH /mbtools/cx_exception INTO lx_exc.
+        MESSAGE lx_exc->get_text( ) TYPE 'I'.
+        RETURN.
+    ENDTRY.
     PERFORM add_node USING pv_nkey lr_reg_entry.
   ENDLOOP.
 * Expand parent node
@@ -517,18 +540,25 @@ FORM save_values.
   IF gr_table IS BOUND AND gr_sel_reg_entry IS BOUND.
     DATA: lt_value TYPE /mbtools/cl_registry=>ty_keyvals.
     DATA: ls_value TYPE /mbtools/cl_registry=>ty_keyval.
+    DATA: lx_exc TYPE REF TO /mbtools/cx_exception.
 * Normalize the values; duplicate keys are overwritten, with possible loss of data!
     LOOP AT gt_value INTO ls_value.
       INSERT ls_value INTO TABLE lt_value.
     ENDLOOP.
-    gr_sel_reg_entry->set_values( lt_value ).
+
     TRY.
+        gr_sel_reg_entry->set_values( lt_value ).
         gr_sel_reg_entry->save( ).
         MESSAGE 'Values saved'(021) TYPE 'S'. "<<<INS
         gt_value_ori = gt_value. "Store last values again "<<<INS
-      CATCH /mbtools/cx_registry_lock.
+      CATCH /mbtools/cx_exception.
         MESSAGE 'Values have been overwritten since last change and are refreshed'(004) TYPE 'I'.
-        gr_sel_reg_entry->reload( ).
+        TRY.
+            gr_sel_reg_entry->reload( ).
+          CATCH /mbtools/cx_exception INTO lx_exc.
+            MESSAGE lx_exc->get_text( ) TYPE 'I'.
+            RETURN.
+        ENDTRY.
         gt_value = gr_sel_reg_entry->get_values( ).
     ENDTRY.
     gr_table->refresh_table_display( ).
@@ -664,8 +694,14 @@ FORM create_tree.
   DATA: ls_fcat TYPE lvc_s_fcat.
   DATA: lt_event TYPE cntl_simple_events,
         ls_event TYPE cntl_simple_event.
+  DATA: lx_exc TYPE REF TO /mbtools/cx_exception.
 
-  gr_reg_root = /mbtools/cl_registry=>get_root( ).
+  TRY.
+      gr_reg_root = /mbtools/cl_registry=>get_root( ).
+    CATCH /mbtools/cx_exception INTO lx_exc.
+      MESSAGE lx_exc->get_text( ) TYPE 'I'.
+      RETURN.
+  ENDTRY.
 
 * Create tree
   CREATE OBJECT gr_tree
