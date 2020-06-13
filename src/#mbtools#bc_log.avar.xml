@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_AVAR" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <DESCRIPTION>MBT Logging for Basis</DESCRIPTION>
+   <IDS>
+    <AAB_VAR_OBJ_ACT>
+     <NAME>/MBTOOLS/BC</NAME>
+     <OBJECT>ACID</OBJECT>
+     <ACTMODE>64</ACTMODE>
+    </AAB_VAR_OBJ_ACT>
+   </IDS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

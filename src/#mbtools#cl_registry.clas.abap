@@ -224,7 +224,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
+      /mbtools/cx_exception=>raise( 'Registry entry is marked as deleted' ).
     ENDIF.
 
 * Check that only allowed characters are used. Will help for making
@@ -232,13 +232,13 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * Most of all, we want to avoid spaces and slashes (although those
 * square and curly brackets could cause problems for JSON...)
     IF NOT key CO 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890@#$%^_+-(){}[]'.
-      /mbtools/cx_exception=>raise('invalid').
+      /mbtools/cx_exception=>raise( 'Invalid registry key' ).
     ENDIF.
 
 * Read internal store of sub-entries
     READ TABLE sub_entries INTO kv WITH KEY key = key.
     IF sy-subrc = 0.
-      /mbtools/cx_exception=>raise('Registry entry exists already').
+      /mbtools/cx_exception=>raise( 'Registry entry exists already' ).
     ENDIF.
 
 * Create unique ID for key in INDX for the new entry
@@ -246,7 +246,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     TRY.
         kv-value = cl_system_uuid=>create_uuid_c22_static( ).
       CATCH cx_uuid_error.
-        /mbtools/cx_exception=>raise('UID error').
+        /mbtools/cx_exception=>raise( 'UID error' ).
     ENDTRY.
     INSERT kv INTO TABLE sub_entries.
 
@@ -310,12 +310,12 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
+      /mbtools/cx_exception=>raise( 'Registry entry is marked as deleted' ).
     ENDIF.
 
     source_entry = get_subentry( source_key ).
     IF source_entry IS NOT BOUND.
-      /mbtools/cx_exception=>raise('Registry entry does not exist').
+      /mbtools/cx_exception=>raise( 'Registry entry does not exist' ).
     ENDIF.
     target_entry = add_subentry( target_key ).
 
@@ -392,7 +392,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
+      /mbtools/cx_exception=>raise( 'Registry entry is marked as deleted' ).
     ENDIF.
 
 * Delete all sub-entries before deleting this entry
@@ -424,7 +424,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     DATA: kv TYPE ty_keyval.
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
+      /mbtools/cx_exception=>raise( 'Registry entry is marked as deleted' ).
     ENDIF.
 
     kv-key = key.
@@ -610,7 +610,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     LOOP AT keys INTO key.
       sub_entry = entry->get_subentry( key ).
       IF sub_entry IS NOT BOUND.
-        /mbtools/cx_exception=>raise('Path error').
+        /mbtools/cx_exception=>raise( 'Path error' ).
       ENDIF.
       entry = sub_entry.
     ENDLOOP.
@@ -676,7 +676,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
         system_failure     = 2
         OTHERS             = 3.
     IF sy-subrc <> 0.
-      /mbtools/cx_exception=>raise('Registry entry is locked').
+      /mbtools/cx_exception=>raise( 'Registry entry is locked' ).
     ENDIF.
   ENDMETHOD.                    "promote_lock
 
@@ -699,7 +699,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     IMPORT values = me->values sub_entries = me->sub_entries parent = parent_key entry_id = entry_id
       FROM DATABASE /mbtools/regs(zr) ID internal_key.
     IF sy-subrc NE 0.
-      /mbtools/cx_exception=>raise('Registry entry does not exist').
+      /mbtools/cx_exception=>raise( 'Registry entry does not exist' ).
     ENDIF.
 *>>>INS
     SELECT SINGLE * FROM /mbtools/regs INTO me->regs
@@ -718,7 +718,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
+      /mbtools/cx_exception=>raise( 'Registry entry is marked as deleted' ).
     ENDIF.
 
     LOOP AT sub_entries INTO kv.
@@ -737,14 +737,14 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
+      /mbtools/cx_exception=>raise( 'Registry entry is marked as deleted' ).
     ENDIF.
 
 * Read internal store of sub-entries
     READ TABLE sub_entries INTO kv WITH KEY key = key.
     IF sy-subrc NE 0.
 * Entry does not exist; exit with error
-      /mbtools/cx_exception=>raise('Registry entry does not exist').
+      /mbtools/cx_exception=>raise( 'Registry entry does not exist' ).
     ENDIF.
 
 * Remove all sub-entries of the sub-entry before removing the sub-entry
@@ -769,7 +769,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
+      /mbtools/cx_exception=>raise( 'Registry entry is marked as deleted' ).
     ENDIF.
 *>>>INS
     DATA: regs TYPE /mbtools/regs.
@@ -801,7 +801,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
         system_failure     = 2
         OTHERS             = 3.
     IF sy-subrc <> 0.
-      /mbtools/cx_exception=>raise('Registry entry is locked').
+      /mbtools/cx_exception=>raise( 'Registry entry is locked' ).
     ENDIF.
   ENDMETHOD.                    "set_optimistic_lock
 
@@ -814,7 +814,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
+      /mbtools/cx_exception=>raise( 'Registry entry is marked as deleted' ).
     ENDIF.
 
 * Add the value to set of values if not existing or change if it does exist
@@ -836,7 +836,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * Prevent any changes if this entry is marked as deleted
     IF me->deleted = abap_true.
-      /mbtools/cx_exception=>raise('Registry entry is marked as deleted').
+      /mbtools/cx_exception=>raise( 'Registry entry is marked as deleted' ).
     ENDIF.
 
     me->values = values.
