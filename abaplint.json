@@ -143,7 +143,7 @@
     "colon_missing_space": true,
     "commented_code": {
       "exclude": [
-        "#mbtools#cl_registry.clas.abap"
+        "#mbtools#"
       ]
     },
     "constructor_visibility_public": true,
@@ -180,7 +180,7 @@
     "fully_type_constants": true,
     "functional_writing":  {
       "exclude": [
-        "#mbtools#registry.prog.abap"
+        "#mbtools#"
       ],
       "ignoreExceptions": true
     },
@@ -339,7 +339,6 @@
     "short_case": {
       "length": 1,
       "allow": [
-        "iv_action",
         "sy"
       ]
     },
