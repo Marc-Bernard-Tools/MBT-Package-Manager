@@ -456,7 +456,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
   METHOD handle_item_double_click.
 
     " this method handles the item double click event of the tree control instance
-    me->handle_node_double_click( node_key = node_key ).
+    handle_node_double_click( node_key = node_key ).
 
   ENDMETHOD.
 
@@ -658,8 +658,8 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     ENDIF.
 
     " Assign event handlers in the application class to each desired event
-    SET HANDLER me->handle_node_double_click FOR mo_tree.
-    SET HANDLER me->handle_item_double_click FOR mo_tree.
+    SET HANDLER handle_node_double_click FOR mo_tree.
+    SET HANDLER handle_item_double_click FOR mo_tree.
 
     " Get field catalog
     CALL FUNCTION 'LVC_FIELDCATALOG_MERGE'
@@ -808,7 +808,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
         CASE sy-subrc.
           WHEN 0.
-            me->handle_node_double_click( node_key = lv_node_key ).
+            handle_node_double_click( node_key = lv_node_key ).
           WHEN 1.
             MESSAGE i227(0h).
         ENDCASE.
@@ -817,7 +817,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
         " Exactly one node selected
         READ TABLE lt_selected_nodes INTO ls_selected_nodes INDEX 1.
 
-        me->handle_node_double_click( node_key = ls_selected_nodes-node_key ).
+        handle_node_double_click( node_key = ls_selected_nodes-node_key ).
 
       WHEN OTHERS.
         " Too many nodes selected
