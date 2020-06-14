@@ -469,7 +469,6 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
       lv_exit     TYPE abap_bool,
       ls_typtab   TYPE lvc_s_chit,
       lv_nrobj    TYPE nrobj,
-      lv_iobjnm   TYPE rsiobjnm,
       lv_mode     TYPE c LENGTH 1,
       lv_compuid  TYPE sysuuid_25,
       lv_vnam     TYPE rszvnam,
@@ -498,19 +497,6 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     ENDIF.
 
     CASE ls_typtab-fieldname.
-      WHEN /mbtools/if_objects=>c_dimension.
-        lv_length = strlen( lv_value ) - 1.
-        lv_value = lv_value(lv_length).
-        /mbtools/cl_sap=>show_object(
-          iv_object   = /mbtools/if_objects=>c_infocube
-          iv_obj_name = lv_value ).
-
-      WHEN /mbtools/if_objects=>c_aggrlevel.
-        lv_provider = lv_value.
-        CALL FUNCTION 'RSPLW_ALVL_MAINTAIN'
-          EXPORTING
-            i_aggrlevel = lv_provider
-            i_fcode     = 'DISPLAY'.
 
       WHEN /mbtools/if_objects=>c_sel_object.
         lv_compuid = lv_value.
@@ -545,20 +531,6 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
           CATCH cx_rs_msg.                              "#EC NO_HANDLER
         ENDTRY.
 
-      WHEN /mbtools/if_objects=>c_plan_service.
-        lv_service = lv_value.
-        CALL FUNCTION 'RSPLW_PLFCT_MAINTAIN'
-          EXPORTING
-            i_service = lv_service
-            i_fcode   = 'DISPLAY'.
-
-      WHEN /mbtools/if_objects=>c_plan_sequence.
-        lv_plseq = lv_value.
-        CALL FUNCTION 'RSPLW_SEQ_MAINTAIN'
-          EXPORTING
-            i_plseq = lv_plseq
-            i_fcode = 'DISPLAY'.
-
       WHEN /mbtools/if_objects=>c_lpo.
         TRY.
             lv_lpo = lv_value.
@@ -567,42 +539,28 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
           CATCH cx_rslpo_root.                          "#EC NO_HANDLER
         ENDTRY.
 
-      WHEN /mbtools/if_objects=>c_infoobject.
-        lv_iobjnm = lv_value.
-        CALL FUNCTION 'RSD_IOBJNM_PARSE'
-          EXPORTING
-            i_iobjnm = lv_iobjnm
-          IMPORTING
-            e_iobjnm = lv_iobjnm.
-        SET PARAMETER ID 'RSC' FIELD lv_iobjnm.
-        /mbtools/cl_sap=>call_transaction( 'RSD1' ).
-
       WHEN /mbtools/if_objects=>c_hierarchy.
-        /mbtools/cl_sap=>call_transaction( 'RSH1' ).
+        /mbtools/cl_sap=>run_transaction( 'RSH1' ).
 
       WHEN /mbtools/if_objects=>c_query.
         SET PARAMETER ID 'GID' FIELD lv_value.
-        /mbtools/cl_sap=>call_transaction( 'RSRT' ).
+        /mbtools/cl_sap=>run_transaction( 'RSRT' ).
 
       WHEN /mbtools/if_objects=>c_ctrt.
         SET PARAMETER ID 'NBR' FIELD lv_value.
-        /mbtools/cl_sap=>call_transaction( 'RSCUR' ).
+        /mbtools/cl_sap=>run_transaction( 'RSCUR' ).
 
       WHEN /mbtools/if_objects=>c_uomt.
         SET PARAMETER ID 'RSUOM' FIELD lv_value.
-        /mbtools/cl_sap=>call_transaction( 'RSUOM' ).
+        /mbtools/cl_sap=>run_transaction( 'RSUOM' ).
 
       WHEN /mbtools/if_objects=>c_thjt.
         " No parameter
-        /mbtools/cl_sap=>call_transaction( 'RSTHJTMAINT' ).
+        /mbtools/cl_sap=>run_transaction( 'RSTHJTMAINT' ).
 
       WHEN /mbtools/if_objects=>c_user_id.
         SET PARAMETER ID 'XUS' FIELD lv_value.
-        /mbtools/cl_sap=>call_transaction( 'SU01' ).
-
-      WHEN /mbtools/if_objects=>c_role.
-        SET PARAMETER ID 'PROFILE_GENERATOR' FIELD lv_value.
-        /mbtools/cl_sap=>call_transaction( 'PFCG' ).
+        /mbtools/cl_sap=>run_transaction( 'SU01' ).
 
       WHEN /mbtools/if_objects=>c_number_range.
         lv_nrobj = lv_value.

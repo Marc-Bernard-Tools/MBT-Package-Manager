@@ -150,6 +150,12 @@
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/MBTOOLS/CL_SAP</CLSNAME>
+     <CMPNAME>MAP_OBJECT</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Map object type and name</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_SAP</CLSNAME>
      <CMPNAME>OBJECT_NAME_CHECK</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Check object name and adjust if it&apos;s an SAP Note</DESCRIPT>

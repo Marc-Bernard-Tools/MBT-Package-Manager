@@ -4,102 +4,112 @@
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-CLASS /mbtools/cl_sap DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class /MBTOOLS/CL_SAP definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    TYPES:
-      BEGIN OF ty_domain_value,
+  types:
+    BEGIN OF ty_domain_value,
         domvalue_l TYPE domvalue_l,
         valpos     TYPE valpos,
         appval     TYPE ddappval,
         ddtext     TYPE val_text,
       END OF ty_domain_value .
-    TYPES:
-      ty_domain_values TYPE STANDARD TABLE OF ty_domain_value WITH DEFAULT KEY .
+  types:
+    ty_domain_values TYPE STANDARD TABLE OF ty_domain_value WITH DEFAULT KEY .
 
-    CLASS-METHODS class_constructor .
-    CLASS-METHODS get_object_wo_namespace
-      IMPORTING
-        !iv_obj_name     TYPE csequence
-      RETURNING
-        VALUE(rv_result) TYPE /mbtools/if_definitions=>ty_name .
-    CLASS-METHODS get_namespace
-      IMPORTING
-        !iv_obj_name     TYPE csequence
-      RETURNING
-        VALUE(rv_result) TYPE namespace .
-    CLASS-METHODS get_object_text
-      IMPORTING
-        VALUE(iv_object) TYPE csequence
-      RETURNING
-        VALUE(rv_text)   TYPE ddtext .
-    CLASS-METHODS get_object_texts
-      RETURNING
-        VALUE(rt_object_texts) TYPE /mbtools/if_definitions=>ty_object_texts .
-    CLASS-METHODS get_text_from_domain
-      IMPORTING
-        !iv_domain     TYPE any DEFAULT 'YESNO'
-        !iv_value      TYPE any
-      EXPORTING
-        VALUE(ev_text) TYPE clike .
-    CLASS-METHODS get_values_from_domain
-      IMPORTING
-        !iv_domain       TYPE any
-      RETURNING
-        VALUE(rt_values) TYPE ty_domain_values .
-    CLASS-METHODS is_devc_deleted
-      IMPORTING
-        !iv_obj_name     TYPE csequence
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool .
-    CLASS-METHODS is_fugr_deleted
-      IMPORTING
-        !iv_obj_name     TYPE csequence
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool .
-    CLASS-METHODS is_sap_note
-      IMPORTING
-        !iv_input        TYPE csequence
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool .
-    CLASS-METHODS is_tobj_deleted
-      IMPORTING
-        !iv_obj_name     TYPE csequence
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool .
-    CLASS-METHODS object_name_check
-      IMPORTING
-        !iv_input        TYPE csequence
-      RETURNING
-        VALUE(rv_result) TYPE string .
-    CLASS-METHODS show_object
-      IMPORTING
-        !iv_pgmid      TYPE csequence DEFAULT 'R3TR'
-        !iv_object     TYPE csequence
-        !iv_obj_name   TYPE csequence
-      RETURNING
-        VALUE(rv_exit) TYPE abap_bool .
-    CLASS-METHODS run_transaction
-      IMPORTING
-        !iv_tcode      TYPE csequence
-      RETURNING
-        VALUE(rv_exit) TYPE abap_bool .
-    CLASS-METHODS run_program
-      IMPORTING
-        !iv_program    TYPE csequence
-      RETURNING
-        VALUE(rv_exit) TYPE abap_bool .
+  class-methods CLASS_CONSTRUCTOR .
+  class-methods GET_OBJECT_WO_NAMESPACE
+    importing
+      !IV_OBJ_NAME type CSEQUENCE
+    returning
+      value(RV_RESULT) type /MBTOOLS/IF_DEFINITIONS=>TY_NAME .
+  class-methods GET_NAMESPACE
+    importing
+      !IV_OBJ_NAME type CSEQUENCE
+    returning
+      value(RV_RESULT) type NAMESPACE .
+  class-methods GET_OBJECT_TEXT
+    importing
+      value(IV_OBJECT) type CSEQUENCE
+    returning
+      value(RV_TEXT) type DDTEXT .
+  class-methods GET_OBJECT_TEXTS
+    returning
+      value(RT_OBJECT_TEXTS) type /MBTOOLS/IF_DEFINITIONS=>TY_OBJECT_TEXTS .
+  class-methods GET_TEXT_FROM_DOMAIN
+    importing
+      !IV_DOMAIN type ANY default 'YESNO'
+      !IV_VALUE type ANY
+    exporting
+      value(EV_TEXT) type CLIKE .
+  class-methods GET_VALUES_FROM_DOMAIN
+    importing
+      !IV_DOMAIN type ANY
+    returning
+      value(RT_VALUES) type TY_DOMAIN_VALUES .
+  class-methods IS_DEVC_DELETED
+    importing
+      !IV_OBJ_NAME type CSEQUENCE
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
+  class-methods IS_FUGR_DELETED
+    importing
+      !IV_OBJ_NAME type CSEQUENCE
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
+  class-methods IS_SAP_NOTE
+    importing
+      !IV_INPUT type CSEQUENCE
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
+  class-methods IS_TOBJ_DELETED
+    importing
+      !IV_OBJ_NAME type CSEQUENCE
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
+  class-methods OBJECT_NAME_CHECK
+    importing
+      !IV_INPUT type CSEQUENCE
+    returning
+      value(RV_RESULT) type STRING .
+  class-methods SHOW_OBJECT
+    importing
+      !IV_PGMID type CSEQUENCE default 'R3TR'
+      !IV_OBJECT type CSEQUENCE
+      !IV_OBJ_NAME type CSEQUENCE
+    returning
+      value(RV_EXIT) type ABAP_BOOL .
+  class-methods RUN_TRANSACTION
+    importing
+      !IV_TCODE type CSEQUENCE
+    returning
+      value(RV_EXIT) type ABAP_BOOL .
+  class-methods RUN_PROGRAM
+    importing
+      !IV_PROGRAM type CSEQUENCE
+    returning
+      value(RV_EXIT) type ABAP_BOOL .
   PROTECTED SECTION.
 
-  PRIVATE SECTION.
+private section.
 
-    CONSTANTS c_note_min TYPE cwbntnumm VALUE '1' ##NO_TEXT.
-    CONSTANTS c_note_max TYPE cwbntnumm VALUE '3999999' ##NO_TEXT.
-    CLASS-DATA gt_object_texts TYPE /mbtools/if_definitions=>ty_object_texts .
+  constants C_NOTE_MIN type CWBNTNUMM value '1' ##NO_TEXT.
+  constants C_NOTE_MAX type CWBNTNUMM value '3999999' ##NO_TEXT.
+  class-data GT_OBJECT_TEXTS type /MBTOOLS/IF_DEFINITIONS=>TY_OBJECT_TEXTS .
+
+  class-methods MAP_OBJECT
+    importing
+      !IV_PGMID type CSEQUENCE default 'R3TR'
+      !IV_OBJECT type CSEQUENCE
+      !IV_OBJ_NAME type CSEQUENCE
+    exporting
+      !EV_PGMID type E071-PGMID
+      !EV_OBJECT type E071-OBJECT
+      !EV_OBJ_NAME type E071-OBJ_NAME .
 ENDCLASS.
 
 
@@ -432,6 +442,38 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD map_object.
+
+    DATA:
+      lv_len    TYPE i,
+      lv_iobjnm TYPE rsiobjnm.
+
+    ev_pgmid    = iv_pgmid.
+    ev_object   = iv_object.
+    ev_obj_name = iv_obj_name.
+
+    CASE iv_object.
+      WHEN /mbtools/if_objects=>c_dimension.
+        " Map Dimension to Base InfoCube
+        lv_len = strlen( iv_obj_name ) - 1.
+        ev_object   = /mbtools/if_objects=>c_infocube.
+        ev_obj_name = iv_obj_name(lv_len).
+
+      WHEN /mbtools/if_objects=>c_infoobject.
+        " Map InfoSet and Attribute Fields to Base InfoObject
+        lv_iobjnm = iv_obj_name.
+        CALL FUNCTION 'RSD_IOBJNM_PARSE'
+          EXPORTING
+            i_iobjnm = lv_iobjnm
+          IMPORTING
+            e_iobjnm = lv_iobjnm.
+        ev_obj_name = lv_iobjnm.
+
+    ENDCASE.
+
+  ENDMETHOD.
+
+
   METHOD object_name_check.
 
     DATA:
@@ -522,6 +564,8 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
       lv_pgmid         TYPE /mbtools/if_definitions=>ty_pgmid,
       lv_object        TYPE /mbtools/if_definitions=>ty_object,
       lv_obj_name      TYPE /mbtools/if_definitions=>ty_name,
+      lv_e071_pgmid    TYPE e071-pgmid,
+      lv_e071_object   TYPE e071-object,
       lv_e071_obj_name TYPE e071-obj_name.
 
     " Check if object exist (maybe as part object)
@@ -558,13 +602,21 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
     ENDIF.
 
     " Second try: transport tool
-    lv_e071_obj_name = iv_obj_name.
+    map_object(
+      EXPORTING
+        iv_pgmid    = iv_pgmid
+        iv_object   = iv_object
+        iv_obj_name = iv_obj_name
+      IMPORTING
+        ev_pgmid    = lv_e071_pgmid
+        ev_object   = lv_e071_object
+        ev_obj_name = lv_e071_obj_name ).
 
     CALL FUNCTION 'TR_OBJECT_JUMP_TO_TOOL'
       EXPORTING
         iv_action         = 'SHOW'
-        iv_pgmid          = lv_pgmid
-        iv_object         = lv_object
+        iv_pgmid          = lv_e071_pgmid
+        iv_object         = lv_e071_object
         iv_obj_name       = lv_e071_obj_name
       EXCEPTIONS
         jump_not_possible = 1
