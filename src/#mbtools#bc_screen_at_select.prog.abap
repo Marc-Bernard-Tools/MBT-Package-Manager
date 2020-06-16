@@ -6,7 +6,7 @@ go_app->screen( ).
 
 CHECK sy-dynnr <> '1000'.
 
-CASE sscrfields.
+CASE sscrfields-ucomm.
 
     " About
   WHEN 'DOCU'.

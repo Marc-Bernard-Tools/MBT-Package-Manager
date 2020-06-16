@@ -11,7 +11,7 @@ CLASS /mbtools/cl_base DEFINITION
 
   PUBLIC SECTION.
 
-    INTERFACES if_apack_manifest .
+    INTERFACES if_apack_manifest.
     INTERFACES /mbtools/if_manifest .
 
     CONSTANTS:
