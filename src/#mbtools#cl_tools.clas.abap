@@ -208,8 +208,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         " Switches
         lo_reg_entry = lo_reg_tool->get_subentry( c_reg-switches ).
         IF lo_reg_entry IS BOUND.
-          lo_reg_entry->set_value( key   = c_reg-key_active
-                                   value = abap_true ).
+          lo_reg_entry->set_value( iv_key   = c_reg-key_active
+                                   iv_value = abap_true ).
           lo_reg_entry->save( ).
         ENDIF.
 
@@ -323,8 +323,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         " Switches
         lo_reg_entry = lo_reg_tool->get_subentry( c_reg-switches ).
         IF lo_reg_entry IS BOUND.
-          lo_reg_entry->set_value( key   = c_reg-key_active
-                                   value = abap_false ).
+          lo_reg_entry->set_value( iv_key   = c_reg-key_active
+                                   iv_value = abap_false ).
           lo_reg_entry->save( ).
         ENDIF.
 
@@ -728,11 +728,11 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         lo_reg_entry = lo_reg_tool->get_subentry( c_reg-license ).
         CHECK lo_reg_entry IS BOUND.
 
-        lv_id = lo_reg_entry->get_value( key = c_reg-key_lic_id ).
+        lv_id = lo_reg_entry->get_value( c_reg-key_lic_id ).
 
         " Is license valid?
-        lo_reg_entry->set_value( key   = c_reg-key_lic_key
-                                 value = iv_license ).
+        lo_reg_entry->set_value( iv_key   = c_reg-key_lic_key
+                                 iv_value = iv_license ).
 
         /mbtools/cl_edd=>check_license(
           EXPORTING
@@ -742,10 +742,10 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
             ev_valid   = lv_valid
             ev_expire  = lv_expire ).
 
-        lo_reg_entry->set_value( key   = c_reg-key_lic_valid
-                                 value = lv_valid ).
-        lo_reg_entry->set_value( key   = c_reg-key_lic_expire
-                                 value = lv_expire ).
+        lo_reg_entry->set_value( iv_key   = c_reg-key_lic_valid
+                                 iv_value = lv_valid ).
+        lo_reg_entry->set_value( iv_key   = c_reg-key_lic_expire
+                                 iv_value = lv_expire ).
 
         lo_reg_entry->save( ).
 
@@ -776,10 +776,10 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         CHECK lo_reg_entry IS BOUND.
 
         " Remove license key
-        lo_reg_entry->set_value( key   = c_reg-key_lic_key ).
-        lo_reg_entry->set_value( key   = c_reg-key_lic_valid ).
-        lo_reg_entry->set_value( key   = c_reg-key_lic_expire
-                                 value = '99991231' ).
+        lo_reg_entry->set_value( c_reg-key_lic_key ).
+        lo_reg_entry->set_value( c_reg-key_lic_valid ).
+        lo_reg_entry->set_value( iv_key   = c_reg-key_lic_expire
+                                 iv_value = '99991231' ).
 
         lo_reg_entry->save( ).
 
@@ -817,20 +817,20 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           lo_reg_entry = lo_reg_tool->add_subentry( c_reg-general ).
         ENDIF.
         IF lo_reg_entry IS BOUND.
-          lo_reg_entry->set_value( key   = c_reg-key_name
-                                   value = mv_name ).
-          lo_reg_entry->set_value( key   = c_reg-key_version
-                                   value = mv_version ).
-          lo_reg_entry->set_value( key   = c_reg-key_title
-                                   value = mv_title ).
-          lo_reg_entry->set_value( key   = c_reg-key_description
-                                   value = mv_description ).
-          lo_reg_entry->set_value( key   = c_reg-key_namespace
-                                   value = c_namespace ).
-          lo_reg_entry->set_value( key   = c_reg-key_package
-                                   value = get_package( ) ).
-          lo_reg_entry->set_value( key   = c_reg-key_class
-                                   value = get_class( ) ).
+          lo_reg_entry->set_value( iv_key   = c_reg-key_name
+                                   iv_value = mv_name ).
+          lo_reg_entry->set_value( iv_key   = c_reg-key_version
+                                   iv_value = mv_version ).
+          lo_reg_entry->set_value( iv_key   = c_reg-key_title
+                                   iv_value = mv_title ).
+          lo_reg_entry->set_value( iv_key   = c_reg-key_description
+                                   iv_value = mv_description ).
+          lo_reg_entry->set_value( iv_key   = c_reg-key_namespace
+                                   iv_value = c_namespace ).
+          lo_reg_entry->set_value( iv_key   = c_reg-key_package
+                                   iv_value = get_package( ) ).
+          lo_reg_entry->set_value( iv_key   = c_reg-key_class
+                                   iv_value = get_class( ) ).
           lo_reg_entry->save( ).
         ENDIF.
 
@@ -843,20 +843,20 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         IF lo_reg_entry IS BOUND.
           GET TIME STAMP FIELD lv_timestamp.
           IF rv_registered = abap_true.
-            lo_reg_entry->set_value( key = c_reg-key_update_time
-                                     value = lv_timestamp ).
-            lo_reg_entry->set_value( key = c_reg-key_update_user
-                                     value = sy-uname ).
+            lo_reg_entry->set_value( iv_key = c_reg-key_update_time
+                                     iv_value = lv_timestamp ).
+            lo_reg_entry->set_value( iv_key = c_reg-key_update_user
+                                     iv_value = sy-uname ).
           ELSE.
-            lo_reg_entry->set_value( key   = c_reg-key_install_time
-                                     value = lv_timestamp ).
-            lo_reg_entry->set_value( key   = c_reg-key_install_user
-                                     value = sy-uname ).
-            lo_reg_entry->set_value( key   = c_reg-key_update_time ).
-            lo_reg_entry->set_value( key   = c_reg-key_update_user ).
+            lo_reg_entry->set_value( iv_key   = c_reg-key_install_time
+                                     iv_value = lv_timestamp ).
+            lo_reg_entry->set_value( iv_key   = c_reg-key_install_user
+                                     iv_value = sy-uname ).
+            lo_reg_entry->set_value( c_reg-key_update_time ).
+            lo_reg_entry->set_value( c_reg-key_update_user ).
           ENDIF.
-          lo_reg_entry->set_value( key = c_reg-key_uninstall_time ).
-          lo_reg_entry->set_value( key = c_reg-key_uninstall_user ).
+          lo_reg_entry->set_value( c_reg-key_uninstall_time ).
+          lo_reg_entry->set_value( c_reg-key_uninstall_user ).
           lo_reg_entry->save( ).
         ENDIF.
 
@@ -864,23 +864,23 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 *         Switches
           lo_reg_entry = lo_reg_tool->add_subentry( c_reg-switches ).
           IF lo_reg_entry IS BOUND.
-            lo_reg_entry->set_value( key = c_reg-key_active ).
-            lo_reg_entry->set_value( key = c_reg-key_debug  ).
-            lo_reg_entry->set_value( key = c_reg-key_trace  ).
+            lo_reg_entry->set_value( c_reg-key_active ).
+            lo_reg_entry->set_value( c_reg-key_debug  ).
+            lo_reg_entry->set_value( c_reg-key_trace  ).
             lo_reg_entry->save( ).
           ENDIF.
 
           " License
           lo_reg_entry = lo_reg_tool->add_subentry( c_reg-license ).
           IF lo_reg_entry IS BOUND.
-            lo_reg_entry->set_value( key   = c_reg-key_lic_id
-                                     value = mv_id ).
-            lo_reg_entry->set_value( key   = c_reg-key_lic_bundle
-                                     value = mv_bundle_id ).
-            lo_reg_entry->set_value( key   = c_reg-key_lic_expire
-                                     value = '99991231' ).
-            lo_reg_entry->set_value( key   = c_reg-key_lic_key ).
-            lo_reg_entry->set_value( key   = c_reg-key_lic_valid ).
+            lo_reg_entry->set_value( iv_key   = c_reg-key_lic_id
+                                     iv_value = mv_id ).
+            lo_reg_entry->set_value( iv_key   = c_reg-key_lic_bundle
+                                     iv_value = mv_bundle_id ).
+            lo_reg_entry->set_value( iv_key   = c_reg-key_lic_expire
+                                     iv_value = '99991231' ).
+            lo_reg_entry->set_value( c_reg-key_lic_key ).
+            lo_reg_entry->set_value( c_reg-key_lic_valid ).
             lo_reg_entry->save( ).
           ENDIF.
         ENDIF.

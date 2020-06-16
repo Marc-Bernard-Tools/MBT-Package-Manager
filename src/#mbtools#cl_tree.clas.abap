@@ -215,6 +215,12 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
       ELSE.
         <ls_item_layout>-style = cl_gui_column_tree=>style_inactive.
       ENDIF.
+
+      IF <ls_item_layout>-fieldname = 'TEXT' AND ms_outtab-text CS '3.x'.
+        <ls_item_layout>-t_image = icon_parameter.
+      ELSE.
+        <ls_item_layout>-t_image = ''.
+      ENDIF.
     ENDLOOP.
 
     " Get node text

@@ -103,8 +103,6 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
   METHOD add_node.
 
     " Add single node to tree
-    "      -->iv_nkey    Node of tree to which to add node
-    "      -->PS_TAB     Table entry (with reg. entry) to add as child
     DATA: lv_node_text TYPE lvc_value.
     DATA: ls_node_layout TYPE lvc_s_layn. "Layout for new nodes
     DATA: ls_tab TYPE ty_tab.
@@ -125,7 +123,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
       ls_node_layout-expander = abap_false.
     ENDIF.
 
-    lv_node_text = io_regentry->entry_id.
+    lv_node_text = io_regentry->mv_entry_id.
 
     gr_tree->add_node(
       EXPORTING
@@ -446,7 +444,8 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
     gt_value_ori = gt_value. "Store last values
 
 *>>>INS
-    IF ls_tab-reg_entry->entry_id CS '^'.
+    " Read-only registry entries
+    IF ls_tab-reg_entry->mv_entry_id CS '^'.
       gr_table->set_ready_for_input( 0 ).
       gv_read_only = abap_true.
     ELSE.
@@ -492,8 +491,8 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
     ENDLOOP.
 
     " Add a function for saving the values
-    ls_tbe-function = 'SAVE'.
-    ls_tbe-icon = '@2L@'.
+    ls_tbe-function  = 'SAVE'.
+    ls_tbe-icon      = '@2L@'.
     ls_tbe-butn_type = '0'.
     ls_tbe-quickinfo = 'Save'(022).
 *>>>INS
@@ -559,8 +558,8 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
         IF lv_rc = space.
           TRY.
               lr_parent = gr_sel_reg_entry->get_parent( ).
-              lr_parent->copy_subentry( source_key = gr_sel_reg_entry->entry_id
-                                        target_key = lv_new_key ).
+              lr_parent->copy_subentry( iv_source_key = gr_sel_reg_entry->mv_entry_id
+                                        iv_target_key = lv_new_key ).
 
               " Get the parent node in the tree to refresh it
               gr_tree->get_parent(
@@ -582,7 +581,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
         " Delete the selected node from the registry
 
         " Prevent deleting of the root entity, which would fail anyway when we try get its parent
-        IF gr_sel_reg_entry->internal_key = /mbtools/cl_registry=>registry_root.
+        IF gr_sel_reg_entry->mv_internal_key = /mbtools/cl_registry=>c_registry_root.
           MESSAGE 'Root node cannot be deleted'(012) TYPE 'I'. "<<<CHG
           RETURN.
         ENDIF.
@@ -609,7 +608,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
 
             CHECK lr_reg_entry IS BOUND.
 
-            lr_reg_entry->remove_subentry( gr_sel_reg_entry->entry_id ).
+            lr_reg_entry->remove_subentry( gr_sel_reg_entry->mv_entry_id ).
           CATCH /mbtools/cx_exception INTO lx_exc.
             MESSAGE lx_exc->get_text( ) TYPE 'I'.
             RETURN.
@@ -647,7 +646,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
         TRY.
             gr_sel_reg_entry->export(
               CHANGING
-                c_file = lt_file ).
+                ct_file = lt_file ).
           CATCH /mbtools/cx_exception INTO lx_exc.
             MESSAGE lx_exc->get_text( ) TYPE 'I'.
             RETURN.
@@ -710,11 +709,10 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
       WHEN 'INFO'.
         " Show last changed at, on, by
 
-        DATA: ls_regs TYPE /mbtools/regs.
-
-        ls_regs = gr_sel_reg_entry->regs.
-
-        MESSAGE i001(/mbtools/bc) WITH ls_regs-chdate ls_regs-chtime ls_regs-chname.
+        MESSAGE i001(/mbtools/bc) WITH
+          gr_sel_reg_entry->ms_regs-chdate
+          gr_sel_reg_entry->ms_regs-chtime
+          gr_sel_reg_entry->ms_regs-chname.
 *<<<INS
     ENDCASE.
 
@@ -777,7 +775,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
     ENDIF.
 
     " Add a subnode for each sub-entry
-    LOOP AT ls_tab-reg_entry->sub_entries INTO ls_subentry.
+    LOOP AT ls_tab-reg_entry->mt_sub_entries INTO ls_subentry.
       TRY.
           lr_reg_entry = ls_tab-reg_entry->get_subentry( ls_subentry-key ).
         CATCH /mbtools/cx_exception INTO lx_exc.

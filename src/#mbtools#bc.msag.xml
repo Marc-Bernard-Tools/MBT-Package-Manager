@@ -26,6 +26,12 @@
      <MSGNR>002</MSGNR>
      <TEXT>There are no Marc Bernard Tools installed</TEXT>
     </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/MBTOOLS/BC</ARBGB>
+     <MSGNR>003</MSGNR>
+     <TEXT>This program includes an enhancement. Nothing to run here.</TEXT>
+    </T100>
    </T100>
   </asx:values>
  </asx:abap>
