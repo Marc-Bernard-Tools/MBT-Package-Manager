@@ -14,7 +14,7 @@
   ],
   "syntax": {
     "version": "v702",
-    "errorNamespace": "^(/MBTOOLS/|LT?CL_|LIF_)",
+    "errorNamespace": "^(/MBTOOLS/|LT?CL_|LIF_|Y|Z)",
     "globalConstants": [
       "apack_manifest",
       "cndp_lifetime_transaction",
