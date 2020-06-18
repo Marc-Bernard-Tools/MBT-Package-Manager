@@ -7,9 +7,9 @@
   },
   "dependencies": [
     {
-      "url": "https://github.com/abaplint/deps",
+      "url": false,
       "folder": "/deps",
-      "files": "/src/**/*.*"
+      "files": "/**/*.*"
     }
   ],
   "syntax": {
@@ -61,6 +61,7 @@
     "allowed_object_types": {
       "allowed": [
         "ACID",
+        "AVAR",
         "CLAS",
         "DTEL",
         "DEVC",
@@ -100,7 +101,7 @@
     "check_ddic": true,
     "check_include": {
       "exclude": [
-        "#mbtools#bc_screen_pbo_pai.prog.abap"
+        "#mbtools#"
       ]
     },
     "chain_mainly_declarations": true,
@@ -118,18 +119,7 @@
         "mbt_manifest", 
         "descriptor", 
         "co_file_name", 
-        "co_interface_version",
-        "registry_root",
-        "sub_entries",
-        "values",
-        "internal_key",
-        "parent_key",
-        "entry_id",
-        "regs",
-        "level",
-	"icon",
-	"value",
-	"text" 
+        "co_interface_version"
       ],
       "ignorePatterns": [],
       "ignoreExceptions": true,
@@ -154,7 +144,7 @@
       ]
     },
     "description_empty": true,
-    "double_space": false,
+    "double_space": true,
     "downport": false,
     "empty_line_in_statement": {
       "allowChained": true
@@ -162,7 +152,7 @@
     "empty_statement": true,
     "empty_structure": {
       "loop": true,
-      "if": false,
+      "if": true,
       "while": true,
       "case": true,
       "select": true,
@@ -173,10 +163,10 @@
     "exporting": true,
     "forbidden_identifier": true,
     "forbidden_void_type": {
-      "check": ["^sydatum$", "^syindex$", "^sytabix$", "^syuzeit$"]
+      "check": ["^sydatum$", "^syindex$", "^sytabix$", "^syuzeit$", "^syucomm$", "^sylisel$"]
     },
     "form_no_dash": true,
-    "form_tables_obsolete": false,
+    "form_tables_obsolete": true,
     "fully_type_constants": true,
     "functional_writing":  {
       "exclude": [
@@ -246,7 +236,7 @@
     },
     "main_file_contents": true,
     "max_one_statement": true,
-    "message_exists": false,
+    "message_exists": true,
     "method_length": {
       "exclude": [
         "#mbtools#"
@@ -274,7 +264,7 @@
       ],
       "depth": 5
     },
-    "newline_between_methods": false,
+    "newline_between_methods": true,
     "no_public_attributes": false,
     "object_naming": {
       "clas": "^/MBTOOLS/C(L|X)\\_",
@@ -287,7 +277,7 @@
       "doma": "^/MBTOOLS/",
       "msag": "^/MBTOOLS/",
       "tran": "^/MBTOOLS/",
-      "enqu": "^/MBTOOLS/E",
+      "enqu": "^/MBTOOLS/E_",
       "auth": "^/MBTOOLS/",
       "pinf": "^/MBTOOLS/",
       "idoc": "^/MBTOOLS/",
