@@ -31,6 +31,7 @@
       "icon_filter",
       "icon_hierarchy_act",
       "icon_master_data_act",
+      "icon_parameter",
       "icon_ranking",
       "icon_summarize",
       "icon_system_help",
@@ -236,7 +237,13 @@
     },
     "main_file_contents": true,
     "max_one_statement": true,
-    "message_exists": true,
+    "message_exists": {
+      "exclude": [
+        "#mbtools#cl_message_helper.clas.abap",
+        "#mbtools#cl_sap.clas.abap",
+        "#mbtools#cl_tree.clas.abap"
+      ]
+    }
     "method_length": {
       "exclude": [
         "#mbtools#"
@@ -247,7 +254,7 @@
     },
     "method_parameter_names": {
       "exclude": [
-        "#mbtools#cl_registry.clas.abap"
+        "#mbtools#"
       ],
       "ignoreExceptions": true,
       "importing": "^I._.*$",
