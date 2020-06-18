@@ -23,17 +23,29 @@ CLASS /mbtools/cl_screen DEFINITION
     CLASS-DATA gv_version TYPE string .
 
     CLASS-METHODS class_constructor .
+    CLASS-METHODS init
+      IMPORTING
+        !ir_tool      TYPE REF TO /mbtools/cl_tools
+      EXPORTING
+        !ev_text      TYPE ty_screen_field
+        !ev_about     TYPE ty_screen_field
+        !ev_title     TYPE ty_screen_field
+        !ev_version   TYPE ty_screen_field
+        !ev_copyright TYPE ty_screen_field
+        !ev_docu      TYPE ty_screen_field
+        !ev_tool      TYPE ty_screen_field
+        !ev_home      TYPE ty_screen_field .
+    CLASS-METHODS header
+      IMPORTING
+        VALUE(iv_icon)   TYPE icon_d
+        VALUE(iv_text)   TYPE csequence OPTIONAL
+      RETURNING
+        VALUE(rv_result) TYPE ty_screen_field .
     CLASS-METHODS icon
       IMPORTING
         VALUE(iv_icon)   TYPE icon_d
         VALUE(iv_text)   TYPE csequence OPTIONAL
         VALUE(iv_quick)  TYPE csequence OPTIONAL
-      RETURNING
-        VALUE(rv_result) TYPE ty_screen_field .
-    CLASS-METHODS header
-      IMPORTING
-        VALUE(iv_icon)   TYPE icon_d
-        VALUE(iv_text)   TYPE csequence OPTIONAL
       RETURNING
         VALUE(rv_result) TYPE ty_screen_field .
     CLASS-METHODS logo
@@ -47,18 +59,12 @@ CLASS /mbtools/cl_screen DEFINITION
         VALUE(iv_show) TYPE abap_bool DEFAULT abap_true
         VALUE(iv_top)  TYPE i OPTIONAL
         VALUE(iv_left) TYPE i OPTIONAL .
-    CLASS-METHODS init
+    CLASS-METHODS ucomm
       IMPORTING
-        !ir_tool      TYPE REF TO /mbtools/cl_tools
-      EXPORTING
-        !ev_text      TYPE ty_screen_field
-        !ev_about     TYPE ty_screen_field
-        !ev_title     TYPE ty_screen_field
-        !ev_version   TYPE ty_screen_field
-        !ev_copyright TYPE ty_screen_field
-        !ev_docu      TYPE ty_screen_field
-        !ev_tool      TYPE ty_screen_field
-        !ev_home      TYPE ty_screen_field .
+        VALUE(iv_ok_code)  TYPE sy-ucomm
+        VALUE(iv_url_docs) TYPE string
+        VALUE(iv_url_tool) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -284,6 +290,27 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
     ENDIF.
 
     go_logo->load_picture_from_url( url = gv_logo_url ).
+
+  ENDMETHOD.
+
+
+  METHOD ucomm.
+
+    CHECK sy-dynnr <> '1000'.
+
+    CASE iv_ok_code.
+
+        " About tab
+      WHEN 'DOCU'.
+        /mbtools/cl_utilities=>call_browser( iv_url_docs ).
+
+      WHEN 'TOOL'.
+        /mbtools/cl_utilities=>call_browser( iv_url_tool ).
+
+      WHEN 'HOME'.
+        /mbtools/cl_utilities=>call_browser( /mbtools/cl_tools=>c_home ).
+
+    ENDCASE.
 
   ENDMETHOD.
 ENDCLASS.

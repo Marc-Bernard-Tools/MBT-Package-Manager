@@ -37,7 +37,23 @@ SELECTION-SCREEN:
 
 *-----------------------------------------------------------------------
 
-INCLUDE /mbtools/bc_screen_about_tab.
+* About
+SELECTION-SCREEN:
+  BEGIN OF SCREEN 900 AS SUBSCREEN,
+    BEGIN OF BLOCK b900 WITH FRAME,
+      COMMENT /1(50) scr_t900,
+      COMMENT 60(25) scr_t901,
+      SKIP,
+      COMMENT /1(77) scr_t902,
+    END OF BLOCK b900,
+    BEGIN OF BLOCK b910 WITH FRAME,
+      PUSHBUTTON /1(55) b_docu USER-COMMAND docu,
+      SKIP,
+      PUSHBUTTON /1(55) b_tool USER-COMMAND tool,
+      SKIP,
+      PUSHBUTTON /1(55) b_home USER-COMMAND home,
+    END OF BLOCK b910,
+  END OF SCREEN 900.
 
 *-----------------------------------------------------------------------
 
@@ -56,19 +72,33 @@ SELECTION-SCREEN:
 
 *-----------------------------------------------------------------------
 
-INCLUDE /mbtools/bc_screen_data.
-
 DATA:
-  go_app    TYPE REF TO /mbtools/cl_base,
-  gv_tool   TYPE string,
-  gv_action TYPE string,
-  gv_flag   TYPE abap_bool.
+  gv_ok_code TYPE sy-ucomm,
+  go_tool    TYPE REF TO /mbtools/cl_tools,
+  go_app     TYPE REF TO /mbtools/cl_base,
+  gv_tool    TYPE string,
+  gv_action  TYPE string,
+  gv_flag    TYPE abap_bool.
 
 *-----------------------------------------------------------------------
 
 INITIALIZATION.
 
-  INCLUDE /mbtools/bc_screen_init.
+  CREATE OBJECT go_app.
+  CREATE OBJECT go_tool EXPORTING io_tool = go_app.
+
+  /mbtools/cl_screen=>init(
+    EXPORTING
+      ir_tool      = go_tool
+    IMPORTING
+      ev_text      = scr_t001
+      ev_about     = scr_tab9
+      ev_title     = scr_t900
+      ev_version   = scr_t901
+      ev_copyright = scr_t902
+      ev_docu      = b_docu
+      ev_tool      = b_tool
+      ev_home      = b_home ).
 
   scr_tab2 = /mbtools/cl_screen=>header(
     iv_icon = icon_tools
@@ -81,7 +111,12 @@ INITIALIZATION.
 
 AT SELECTION-SCREEN.
 
-  INCLUDE /mbtools/bc_screen_at_select.
+  go_app->screen( ).
+
+  /mbtools/cl_screen=>ucomm(
+    iv_ok_code  = sscrfields-ucomm
+    iv_url_docs = go_tool->get_url_docs( )
+    iv_url_tool = go_tool->get_url_tool( ) ).
 
 *-----------------------------------------------------------------------
 
@@ -89,7 +124,12 @@ AT SELECTION-SCREEN OUTPUT.
 
   go_app->initialize( iv_all = p_all ).
 
-  INCLUDE /mbtools/bc_screen_at_output.
+  /mbtools/cl_screen=>banner(
+    iv_tool = go_tool->get_id( )
+    iv_top  = 4
+    iv_left = 20 ).
+
+  go_app->screen( ).
 
 *-----------------------------------------------------------------------
 
