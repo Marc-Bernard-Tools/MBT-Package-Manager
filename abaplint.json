@@ -144,7 +144,7 @@
       ]
     },
     "description_empty": true,
-    "double_space": true,
+    "double_space": false,
     "downport": false,
     "empty_line_in_statement": {
       "allowChained": true
