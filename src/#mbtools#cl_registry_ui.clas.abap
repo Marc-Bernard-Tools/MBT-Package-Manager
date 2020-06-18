@@ -315,7 +315,6 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
 *>>>INS
     " Expand root node
     handle_node_expand(
-      EXPORTING
         node_key = '          1'
         sender   = gr_tree  ).
 
@@ -597,7 +596,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
             text_not_found        = 1
             OTHERS                = 2.
         IF sy-subrc <> 0.
-          " Won't happen
+          BREAK-POINT ID /mbtools/bc.
         ENDIF.
 
         " Check that the user selected OK on the confirmation
@@ -703,12 +702,12 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
             error_no_gui            = 23
             OTHERS                  = 24 ).
         IF sy-subrc <> 0.
-          "       Implement suitable error handling here
+          MESSAGE e001(/mbtools/bc) DISPLAY LIKE 'I'
+            WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
         ENDIF.
 
       WHEN 'INFO'.
         " Show last changed at, on, by
-
         MESSAGE i001(/mbtools/bc) WITH
           gr_sel_reg_entry->ms_regs-chdate
           gr_sel_reg_entry->ms_regs-chtime
