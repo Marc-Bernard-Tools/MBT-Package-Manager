@@ -1,4 +1,4 @@
-![abap package version](https://img.shields.io/endpoint?url=https://shield.abap.space/version-shield-json/github/mbtools/Marc_Bernard_Tools/src/#mbtools#cl_base.abap/c_version&label=version)
+![abap package version](https://img.shields.io/endpoint?url=https://shield.abap.space/version-shield-json/github/mbtools/Marc_Bernard_Tools_Versions/.apack-manifest.xml/dependencies/github.com/mbtools/Marc_Bernard_Tools&label=version)
 
 # Marc Bernard Tools
 
