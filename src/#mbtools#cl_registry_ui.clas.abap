@@ -643,9 +643,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
         APPEND '' TO lt_file.
 
         TRY.
-            gr_sel_reg_entry->export(
-              CHANGING
-                ct_file = lt_file ).
+            gr_sel_reg_entry->export( CHANGING ct_file = lt_file ).
           CATCH /mbtools/cx_exception INTO lx_exc.
             MESSAGE lx_exc->get_text( ) TYPE 'I'.
             RETURN.

@@ -189,8 +189,8 @@ CLASS /mbtools/cl_registry DEFINITION
     METHODS release_lock .
     METHODS copy_subentry_deep
       IMPORTING
-        !source TYPE REF TO /mbtools/cl_registry
-        !target TYPE REF TO /mbtools/cl_registry
+        !io_source TYPE REF TO /mbtools/cl_registry
+        !io_target TYPE REF TO /mbtools/cl_registry
       RAISING
         /mbtools/cx_exception.
 
@@ -217,9 +217,10 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * ADD_SUBENTRY - add a child entry with new key and save
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ty_keyval.
+    DATA: ls_kv TYPE ty_keyval.
     DATA: lt_empty_vals TYPE ty_keyvals.
     DATA: lv_srtfd TYPE indx_srtfd.
+    DATA: ls_regs TYPE /mbtools/if_definitions=>ty_regs.
 
 * Prevent any changes if this entry is marked as deleted
     IF mv_deleted = abap_true.
@@ -235,35 +236,35 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     ENDIF.
 
 * Read internal store of sub-entries
-    READ TABLE mt_sub_entries INTO kv WITH KEY key = iv_key.
+    READ TABLE mt_sub_entries INTO ls_kv WITH KEY key = iv_key.
     IF sy-subrc = 0.
       /mbtools/cx_exception=>raise( 'Registry entry exists already' ).
     ENDIF.
 
 * Create unique ID for key in INDX for the new entry
-    kv-key = iv_key.
+    ls_kv-key = iv_key.
     TRY.
-        kv-value = cl_system_uuid=>create_uuid_c22_static( ).
+        ls_kv-value = cl_system_uuid=>create_uuid_c22_static( ).
       CATCH cx_uuid_error.
         /mbtools/cx_exception=>raise( 'UID error' ).
     ENDTRY.
-    INSERT kv INTO TABLE mt_sub_entries.
+    INSERT ls_kv INTO TABLE mt_sub_entries.
 
 * Create an entry on the database for the new entry
 *>>>INS
-    DATA: ls_regs TYPE /mbtools/if_definitions=>ty_regs.
     ls_regs-chdate = sy-datum.
     ls_regs-chtime = sy-uzeit.
     ls_regs-chname = sy-uname.
 *<<<INS
-    lv_srtfd = kv-value.
+    lv_srtfd = ls_kv-value.
+
     EXPORT values = lt_empty_vals sub_entries = lt_empty_vals
       parent = mv_internal_key entry_id = iv_key
       TO DATABASE /mbtools/regs(zr) FROM ls_regs ID lv_srtfd.
 
     CREATE OBJECT ro_entry
       EXPORTING
-        ig_internal_key = kv-value.
+        ig_internal_key = ls_kv-value.
 * Will insert itself into registry entries
 
 * Save the current entry to update the list of sub-keys
@@ -276,6 +277,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * CONSTRUCTOR - new instance of registry key
 *--------------------------------------------------------------------*
+    DATA: ls_ko TYPE ty_keyobj.
 
     mv_internal_key = ig_internal_key.
 
@@ -283,10 +285,9 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     reload( ).
 
 * Object inserts itself into registry of entries
-    DATA: ko TYPE ty_keyobj.
-    ko-key = mv_internal_key.
-    ko-value = me.
-    INSERT ko INTO TABLE gt_registry_entries.
+    ls_ko-key = mv_internal_key.
+    ls_ko-value = me.
+    INSERT ls_ko INTO TABLE gt_registry_entries.
 
   ENDMETHOD.                    "constructor
 
@@ -311,8 +312,8 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
 * Using the source and the new target, do a deep copy that includes
 * copies of sub-entries and values
-    copy_subentry_deep( source = lo_source_entry
-                        target = ro_target_entry ).
+    copy_subentry_deep( io_source = lo_source_entry
+                        io_target = ro_target_entry ).
 
   ENDMETHOD.                    "copy_subentry
 
@@ -323,18 +324,18 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *         at the same level, including all values
 *--------------------------------------------------------------------*
     DATA: ls_subentry TYPE ty_keyval.
-    DATA: lr_source TYPE REF TO /mbtools/cl_registry.
-    DATA: lr_target TYPE REF TO /mbtools/cl_registry.
+    DATA: lo_source TYPE REF TO /mbtools/cl_registry.
+    DATA: lo_target TYPE REF TO /mbtools/cl_registry.
 
 * Copy values from source to target
-    target->mt_values = source->mt_values.
+    io_target->mt_values = io_source->mt_values.
 
 * Copy sub-entries from source to target
-    LOOP AT source->mt_sub_entries INTO ls_subentry.
-      lr_source = source->get_subentry( ls_subentry-key ).
-      lr_target = target->add_subentry( ls_subentry-key ).
-      copy_subentry_deep( source = lr_source
-                          target = lr_target ).
+    LOOP AT io_source->mt_sub_entries INTO ls_subentry.
+      lo_source = io_source->get_subentry( ls_subentry-key ).
+      lo_target = io_target->add_subentry( ls_subentry-key ).
+      copy_subentry_deep( io_source = lo_source
+                          io_target = lo_target ).
     ENDLOOP.
 
 * Ensure that values are also saved
@@ -350,20 +351,20 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * exist; paths must be separated by forward slash ('/')
 * Sub-entries are created from the current registry entry
 *--------------------------------------------------------------------*
-    DATA: keys TYPE string_table.
-    DATA: key TYPE string.
-    DATA: sub_entry TYPE REF TO /mbtools/cl_registry.
+    DATA: lt_keys TYPE string_table.
+    DATA: lv_key TYPE string.
+    DATA: lo_sub_entry TYPE REF TO /mbtools/cl_registry.
 
-    SPLIT iv_path AT '/' INTO TABLE keys.
-    DELETE keys WHERE table_line IS INITIAL.
+    SPLIT iv_path AT '/' INTO TABLE lt_keys.
+    DELETE lt_keys WHERE table_line IS INITIAL.
 
     ro_entry = me.
-    LOOP AT keys INTO key.
-      sub_entry = ro_entry->get_subentry( key ).
-      IF sub_entry IS NOT BOUND.
-        sub_entry = ro_entry->add_subentry( key ).
+    LOOP AT lt_keys INTO lv_key.
+      lo_sub_entry = ro_entry->get_subentry( lv_key ).
+      IF lo_sub_entry IS NOT BOUND.
+        lo_sub_entry = ro_entry->add_subentry( lv_key ).
       ENDIF.
-      ro_entry = sub_entry.
+      ro_entry = lo_sub_entry.
     ENDLOOP.
 * After successful processing of chain, ENTRY will
 * contain the last-created node
@@ -377,8 +378,8 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *          preventing any further operations on this entry
 *--------------------------------------------------------------------*
 
-    DATA: sub_entry TYPE ty_keyval.
-    DATA: entry TYPE REF TO /mbtools/cl_registry.
+    DATA: ls_sub_entry TYPE ty_keyval.
+    DATA: lo_entry TYPE REF TO /mbtools/cl_registry.
 
 * Prevent any changes if this entry is marked as deleted
     IF mv_deleted = abap_true.
@@ -386,9 +387,9 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     ENDIF.
 
 * Delete all sub-entries before deleting this entry
-    LOOP AT mt_sub_entries INTO sub_entry.
-      entry = get_subentry( sub_entry-key ).
-      entry->delete( ).
+    LOOP AT mt_sub_entries INTO ls_sub_entry.
+      lo_entry = get_subentry( ls_sub_entry-key ).
+      lo_entry->delete( ).
       DELETE mt_sub_entries.
     ENDLOOP.
 
@@ -411,55 +412,55 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * DELETE_VALUE - remove single value by key
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ty_keyval.
+    DATA: ls_kv TYPE ty_keyval.
 * Prevent any changes if this entry is marked as deleted
     IF mv_deleted = abap_true.
       /mbtools/cx_exception=>raise( 'Registry entry is marked as deleted' ).
     ENDIF.
 
-    kv-key = iv_key.
-    DELETE mt_values WHERE key = kv-key.
+    ls_kv-key = iv_key.
+    DELETE mt_values WHERE key = ls_kv-key.
   ENDMETHOD.                    "delete_value
 
 
   METHOD export.
 *>>>INS
     DATA:
-      reg_entry TYPE REF TO /mbtools/cl_registry,
-      kv        TYPE ty_keyval,
-      id        TYPE string,
-      file_line TYPE string.
+      lo_reg_entry TYPE REF TO /mbtools/cl_registry,
+      ls_kv        TYPE ty_keyval,
+      lv_id        TYPE string,
+      lv_file_line TYPE string.
 
 *   Export key header
-    reg_entry = me.
+    lo_reg_entry = me.
     DO.
-      id = reg_entry->mv_entry_id.
-      IF file_line IS INITIAL.
-        file_line = id.
+      lv_id = lo_reg_entry->mv_entry_id.
+      IF lv_file_line IS INITIAL.
+        lv_file_line = lv_id.
       ELSE.
-        CONCATENATE id file_line INTO file_line SEPARATED BY '/'.
+        CONCATENATE lv_id lv_file_line INTO lv_file_line SEPARATED BY '/'.
       ENDIF.
-      IF id = c_registry_root.
+      IF lv_id = c_registry_root.
         EXIT.
       ELSE.
-        reg_entry = reg_entry->get_parent( ).
+        lo_reg_entry = lo_reg_entry->get_parent( ).
       ENDIF.
     ENDDO.
-    CONCATENATE '[' file_line ']' INTO file_line.
-    APPEND file_line TO ct_file.
+    CONCATENATE '[' lv_file_line ']' INTO lv_file_line.
+    APPEND lv_file_line TO ct_file.
 
 *   Export key values
-    LOOP AT mt_values INTO kv.
-      CONCATENATE '"' kv-key '"="' kv-value '"' INTO file_line.
-      APPEND file_line TO ct_file.
+    LOOP AT mt_values INTO ls_kv.
+      CONCATENATE '"' ls_kv-key '"="' ls_kv-value '"' INTO lv_file_line.
+      APPEND lv_file_line TO ct_file.
     ENDLOOP.
     APPEND '' TO ct_file.
 
 *   Export sub entries (recursive)
-    LOOP AT mt_sub_entries INTO kv.
-      reg_entry = get_subentry( kv-key ).
+    LOOP AT mt_sub_entries INTO ls_kv.
+      lo_reg_entry = get_subentry( ls_kv-key ).
 
-      reg_entry->export( CHANGING ct_file = ct_file ).
+      lo_reg_entry->export( CHANGING ct_file = ct_file ).
     ENDLOOP.
 *<<<INS
   ENDMETHOD.
@@ -469,14 +470,14 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * GET_ENTRY_BY_INTERNAL_KEY - retrieve reg. entry by internal ID
 *--------------------------------------------------------------------*
-    DATA: ko TYPE ty_keyobj.
+    DATA: ls_ko TYPE ty_keyobj.
 
 * Search global index of registry entry instances
-    READ TABLE gt_registry_entries INTO ko WITH KEY key = iv_key.
+    READ TABLE gt_registry_entries INTO ls_ko WITH KEY key = iv_key.
 
     IF sy-subrc = 0.
 * Reference already exists; return that
-      ro_entry = ko-value.
+      ro_entry = ls_ko-value.
     ELSE.
 * Create new reference to sub-entry
       CREATE OBJECT ro_entry
@@ -500,26 +501,27 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * GET_ROOT - retrieve root entry of registry
 *--------------------------------------------------------------------*
 
+* If the root doesn't exist yet, create it
+    DATA: lt_values TYPE ty_keyvals.
+    DATA: lt_sub_entries TYPE ty_keyvals.
+    DATA: lv_parent_key TYPE indx_srtfd VALUE space.
+    DATA: lv_entry_id TYPE string.
+    DATA: ls_regs TYPE /mbtools/if_definitions=>ty_regs.
+
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
-* If the root doesn't exist yet, create it
-    DATA: values TYPE ty_keyvals.
-    DATA: sub_entries TYPE ty_keyvals.
-    DATA: parent_key TYPE indx_srtfd VALUE space.
-    DATA: entry_id TYPE string.
-
-    IMPORT values = values sub_entries = sub_entries
+    IMPORT values = lt_values sub_entries = lt_sub_entries
       FROM DATABASE /mbtools/regs(zr) ID c_registry_root.
     IF sy-subrc NE 0.
 *>>>INS
-    DATA: ls_regs TYPE /mbtools/if_definitions=>ty_regs.
-    ls_regs-chdate = sy-datum.
-    ls_regs-chtime = sy-uzeit.
-    ls_regs-chname = sy-uname.
+      ls_regs-chdate = sy-datum.
+      ls_regs-chtime = sy-uzeit.
+      ls_regs-chname = sy-uname.
 *<<<INS
-      entry_id = c_registry_root.
-      EXPORT values = values sub_entries = sub_entries
-        parent = parent_key entry_id = entry_id
+      lv_entry_id = c_registry_root.
+
+      EXPORT values = lt_values sub_entries = lt_sub_entries
+        parent = lv_parent_key entry_id = lv_entry_id
         TO DATABASE /mbtools/regs(zr) FROM ls_regs ID c_registry_root.
     ENDIF.
 
@@ -533,18 +535,18 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * GET_SUBENTRIES - return immediate children registry entries
 *--------------------------------------------------------------------*
-    DATA: ko TYPE ty_keyobj.
-    DATA: subkeys TYPE string_table.
-    DATA: subkey TYPE string.
+    DATA: ls_ko TYPE ty_keyobj.
+    DATA: lt_subkeys TYPE string_table.
+    DATA: lv_subkey TYPE string.
 
-    subkeys = get_subentry_keys( ).
+    lt_subkeys = get_subentry_keys( ).
 *>>>INS
-    SORT subkeys.
+    SORT lt_subkeys.
 *<<<INS
-    LOOP AT subkeys INTO subkey.
-      ko-key = subkey.
-      ko-value = get_subentry( subkey ).
-      INSERT ko INTO TABLE rt_sub_entries.
+    LOOP AT lt_subkeys INTO lv_subkey.
+      ls_ko-key = lv_subkey.
+      ls_ko-value = get_subentry( lv_subkey ).
+      INSERT ls_ko INTO TABLE rt_sub_entries.
     ENDLOOP.
 
   ENDMETHOD.                    "get_subentries
@@ -554,28 +556,28 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * GET_SUBENTRY - return single child entry by key
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ty_keyval.
-    DATA: ko TYPE ty_keyobj.
+    DATA: ls_kv TYPE ty_keyval.
+    DATA: ls_ko TYPE ty_keyobj.
 
 * Read internal store of sub-entries
-    READ TABLE mt_sub_entries INTO kv WITH KEY key = iv_key.
+    READ TABLE mt_sub_entries INTO ls_kv WITH KEY key = iv_key.
     IF sy-subrc NE 0.
 * Entry does not exist; exit
       RETURN.
     ENDIF.
 
 * Search global index of registry entry instances
-    READ TABLE gt_registry_entries INTO ko WITH KEY key =  kv-value.
+    READ TABLE gt_registry_entries INTO ls_ko WITH KEY key =  ls_kv-value.
 
 *    read table sub_entrobj into ko with key key = kv-value.
     IF sy-subrc = 0.
 * Reference already exists; return that
-      ro_entry = ko-value.
+      ro_entry = ls_ko-value.
     ELSE.
 * Create new reference to sub-entry
       CREATE OBJECT ro_entry
         EXPORTING
-          ig_internal_key = kv-value.
+          ig_internal_key = ls_kv-value.
 * Will insert itself into registry entries
     ENDIF.
 
@@ -589,20 +591,20 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * allows you to get an entry by a path of registry entries;
 * paths must be separated by forward slash ('/')
 *--------------------------------------------------------------------*
-    DATA: keys TYPE string_table.
-    DATA: key TYPE string.
-    DATA: sub_entry TYPE REF TO /mbtools/cl_registry.
+    DATA: lt_keys TYPE string_table.
+    DATA: lv_key TYPE string.
+    DATA: lo_sub_entry TYPE REF TO /mbtools/cl_registry.
 
-    SPLIT iv_path AT '/' INTO TABLE keys.
-    DELETE keys WHERE table_line IS INITIAL.
+    SPLIT iv_path AT '/' INTO TABLE lt_keys.
+    DELETE lt_keys WHERE table_line IS INITIAL.
 
     ro_entry = me.
-    LOOP AT keys INTO key.
-      sub_entry = ro_entry->get_subentry( key ).
-      IF sub_entry IS NOT BOUND.
+    LOOP AT lt_keys INTO lv_key.
+      lo_sub_entry = ro_entry->get_subentry( lv_key ).
+      IF lo_sub_entry IS NOT BOUND.
         /mbtools/cx_exception=>raise( 'Path error' ).
       ENDIF.
-      ro_entry = sub_entry.
+      ro_entry = lo_sub_entry.
     ENDLOOP.
 * After successful processing of chain, ENTRY will
 * contain the last node
@@ -614,9 +616,9 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * GET_SUBENTRY_KEYS - retrieve keys of all child registry entries
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ty_keyval.
-    LOOP AT mt_sub_entries INTO kv.
-      APPEND kv-key TO rt_keys.
+    DATA: ls_kv TYPE ty_keyval.
+    LOOP AT mt_sub_entries INTO ls_kv.
+      APPEND ls_kv-key TO rt_keys.
     ENDLOOP.
   ENDMETHOD.                    "get_subentry_keys
 
@@ -625,10 +627,10 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * GET_VALUE - return a single value by key
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ty_keyval.
-    READ TABLE mt_values INTO kv WITH KEY key = iv_key.
+    DATA: ls_kv TYPE ty_keyval.
+    READ TABLE mt_values INTO ls_kv WITH KEY key = iv_key.
     IF sy-subrc = 0.
-      rv_value = kv-value.
+      rv_value = ls_kv-value.
     ENDIF.
   ENDMETHOD.                    "get_value
 
@@ -645,9 +647,9 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * GET_VALUE_KEYS - retrieve keys of all values
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ty_keyval.
-    LOOP AT mt_values INTO kv.
-      APPEND kv-key TO rt_keys.
+    DATA: ls_kv TYPE ty_keyval.
+    LOOP AT mt_values INTO ls_kv.
+      APPEND ls_kv-key TO rt_keys.
     ENDLOOP.
   ENDMETHOD.                    "get_value_keys
 
@@ -703,7 +705,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * REMOVE_SUBENTRIES - remove all child entries of this entry
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ty_keyval.
+    DATA: ls_kv TYPE ty_keyval.
 *    DATA: ko TYPE ty_keyobj. "Shadow table with object references
 
 * Prevent any changes if this entry is marked as deleted
@@ -711,8 +713,8 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
       /mbtools/cx_exception=>raise( 'Registry entry is marked as deleted' ).
     ENDIF.
 
-    LOOP AT mt_sub_entries INTO kv.
-      remove_subentry( kv-key ).
+    LOOP AT mt_sub_entries INTO ls_kv.
+      remove_subentry( ls_kv-key ).
     ENDLOOP.
   ENDMETHOD.                    "remove_subentries
 
@@ -721,9 +723,8 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * REMOVE_SUBENTRY - remove a single child registry entry by key
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ty_keyval.
-*    FIELD-SYMBOLS: <ko> TYPE ty_keyobj. "Shadow table with object references
-    DATA: sub_entry TYPE REF TO /mbtools/cl_registry.
+    DATA: ls_kv TYPE ty_keyval.
+    DATA: lo_sub_entry TYPE REF TO /mbtools/cl_registry.
 
 * Prevent any changes if this entry is marked as deleted
     IF mv_deleted = abap_true.
@@ -731,21 +732,21 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     ENDIF.
 
 * Read internal store of sub-entries
-    READ TABLE mt_sub_entries INTO kv WITH KEY key = iv_key.
+    READ TABLE mt_sub_entries INTO ls_kv WITH KEY key = iv_key.
     IF sy-subrc NE 0.
 * Entry does not exist; exit with error
       /mbtools/cx_exception=>raise( 'Registry entry does not exist' ).
     ENDIF.
 
 * Remove all sub-entries of the sub-entry before removing the sub-entry
-    sub_entry = get_subentry( iv_key ).
-    IF sub_entry IS BOUND.
+    lo_sub_entry = get_subentry( iv_key ).
+    IF lo_sub_entry IS BOUND.
 
 * Delete the sub_entry (which deletes its sub-entries)
-      sub_entry->delete( ).
+      lo_sub_entry->delete( ).
 * Remove entry from sub-entry table and shadow table
-      kv-key = iv_key.
-      DELETE mt_sub_entries WHERE key = kv-key.
+      ls_kv-key = iv_key.
+      DELETE mt_sub_entries WHERE key = ls_kv-key.
 
       save( ). "Save current entry to remove subentry that has been removed
     ENDIF.
@@ -757,12 +758,12 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * SAVE - save the current entry, with concurrency control
 *--------------------------------------------------------------------*
+    DATA: ls_regs TYPE /mbtools/if_definitions=>ty_regs.
 * Prevent any changes if this entry is marked as deleted
     IF mv_deleted = abap_true.
       /mbtools/cx_exception=>raise( 'Registry entry is marked as deleted' ).
     ENDIF.
 *>>>INS
-    DATA: ls_regs TYPE /mbtools/if_definitions=>ty_regs.
     ls_regs-chdate = sy-datum.
     ls_regs-chtime = sy-uzeit.
     ls_regs-chname = sy-uname.
@@ -800,7 +801,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
 * SET_VALUE - store a single value by key
 *--------------------------------------------------------------------*
-    DATA: kv TYPE ty_keyval.
+    DATA: ls_kv TYPE ty_keyval.
 
 * Prevent any changes if this entry is marked as deleted
     IF mv_deleted = abap_true.
@@ -808,14 +809,14 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     ENDIF.
 
 * Add the value to set of values if not existing or change if it does exist
-    READ TABLE mt_values INTO kv WITH KEY key = iv_key.
+    READ TABLE mt_values INTO ls_kv WITH KEY key = iv_key.
     IF sy-subrc NE 0.
-      kv-key   = iv_key.
-      kv-value = iv_value.
-      INSERT kv INTO TABLE mt_values.
+      ls_kv-key   = iv_key.
+      ls_kv-value = iv_value.
+      INSERT ls_kv INTO TABLE mt_values.
     ELSE.
-      kv-value = iv_value.
-      MODIFY TABLE mt_values FROM kv.
+      ls_kv-value = iv_value.
+      MODIFY TABLE mt_values FROM ls_kv.
     ENDIF.
   ENDMETHOD.                    "set_value
 
