@@ -164,7 +164,7 @@
     "exporting": true,
     "forbidden_identifier": true,
     "forbidden_void_type": {
-      "check": ["^sydatum$", "^syindex$", "^sytabix$", "^syuzeit$", "^syucomm$", "^sylisel$"]
+      "check": ["^sydatum$", "^syindex$", "^sytabix$", "^syuzeit$", "^syucomm$", "^sylisel$", "^sysaprl$"]
     },
     "form_no_dash": true,
     "form_tables_obsolete": true,
