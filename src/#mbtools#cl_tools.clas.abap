@@ -1,6 +1,6 @@
 ************************************************************************
 * /MBTOOLS/CL_TOOLS
-* MBT Tools Manager
+* MBT Tool Manager
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
@@ -48,6 +48,8 @@ CLASS /mbtools/cl_tools DEFINITION
         key_lic_key        TYPE string VALUE 'LicenseKey' ##NO_TEXT,
         key_lic_valid      TYPE string VALUE 'LicenseValid' ##NO_TEXT,
         key_lic_expire     TYPE string VALUE 'LicenseExpiration' ##NO_TEXT,
+        " Settings
+        settings           TYPE string VALUE 'Settings' ##NO_TEXT,
       END OF c_reg .
     " Evaluation
     CONSTANTS c_eval_days TYPE i VALUE 30 ##NO_TEXT.
@@ -70,7 +72,7 @@ CLASS /mbtools/cl_tools DEFINITION
       IMPORTING
         !io_tool TYPE REF TO object .
     " Class Get
-    CLASS-METHODS get_tool
+    CLASS-METHODS factory
       IMPORTING
         VALUE(iv_title) TYPE csequence
       RETURNING
@@ -165,6 +167,9 @@ CLASS /mbtools/cl_tools DEFINITION
     METHODS get_url_docs
       RETURNING
         VALUE(rv_url) TYPE string .
+    METHODS get_settings
+      RETURNING
+        VALUE(ro_reg) TYPE REF TO /mbtools/cl_registry.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -373,6 +378,41 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD factory.
+
+    DATA:
+      lv_implementation  TYPE seoclsname,
+      lt_implementations TYPE ty_classes,
+      lo_tool            TYPE REF TO object,
+      lo_manifest        TYPE REF TO /mbtools/if_manifest.
+
+    lt_implementations = get_implementations( ).
+
+    LOOP AT lt_implementations INTO lv_implementation.
+
+      TRY.
+          " Get instance of tool
+          CREATE OBJECT lo_tool TYPE (lv_implementation).
+          IF lo_tool IS BOUND.
+            lo_manifest ?= lo_tool.
+          ELSE.
+            CONTINUE. "ignore
+          ENDIF.
+
+          IF lo_manifest->descriptor-title = iv_title.
+            CREATE OBJECT ro_tool EXPORTING io_tool = lo_tool.
+            RETURN.
+          ENDIF.
+
+        CATCH cx_root.
+          CONTINUE. "ignore
+      ENDTRY.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD get_class.
 
     DATA:
@@ -483,6 +523,25 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_settings.
+
+    DATA:
+     lo_reg_tool TYPE REF TO /mbtools/cl_registry.
+
+    TRY.
+        " Is tool installed?
+        lo_reg_tool = go_reg_root->get_subentry( mv_name ).
+        CHECK lo_reg_tool IS BOUND.
+
+        " Settings
+        ro_reg = lo_reg_tool->get_subentry( c_reg-settings ).
+
+      CATCH cx_root.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
   METHOD get_slug.
 
     " Lower case, dash
@@ -496,41 +555,6 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD get_title.
 
     rv_title = mv_title.
-
-  ENDMETHOD.
-
-
-  METHOD get_tool.
-
-    DATA:
-      lv_implementation  TYPE seoclsname,
-      lt_implementations TYPE ty_classes,
-      lo_tool            TYPE REF TO object,
-      lo_manifest        TYPE REF TO /mbtools/if_manifest.
-
-    lt_implementations = get_implementations( ).
-
-    LOOP AT lt_implementations INTO lv_implementation.
-
-      TRY.
-          " Get instance of tool
-          CREATE OBJECT lo_tool TYPE (lv_implementation).
-          IF lo_tool IS BOUND.
-            lo_manifest ?= lo_tool.
-          ELSE.
-            CONTINUE. "ignore
-          ENDIF.
-
-          IF lo_manifest->descriptor-title = iv_title.
-            CREATE OBJECT ro_tool EXPORTING io_tool = lo_tool.
-            RETURN.
-          ENDIF.
-
-        CATCH cx_root.
-          CONTINUE. "ignore
-      ENDTRY.
-
-    ENDLOOP.
 
   ENDMETHOD.
 
@@ -884,6 +908,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
             lo_reg_entry->set_value( c_reg-key_lic_valid ).
             lo_reg_entry->save( ).
           ENDIF.
+
+          lo_reg_entry = lo_reg_tool->add_subentry( c_reg-settings ).
         ENDIF.
 
         " Save
@@ -913,13 +939,13 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
       CASE iv_action.
         WHEN c_action-register.
-          lv_result = get_tool( ls_tool-name )->register( ).
+          lv_result = factory( ls_tool-name )->register( ).
         WHEN c_action-unregister.
-          lv_result = get_tool( ls_tool-name )->unregister( ).
+          lv_result = factory( ls_tool-name )->unregister( ).
         WHEN c_action-activate.
-          lv_result = get_tool( ls_tool-name )->activate( ).
+          lv_result = factory( ls_tool-name )->activate( ).
         WHEN c_action-deactivate.
-          lv_result = get_tool( ls_tool-name )->deactivate( ).
+          lv_result = factory( ls_tool-name )->deactivate( ).
         WHEN OTHERS.
           " unknow action
           ASSERT 0 = 1.

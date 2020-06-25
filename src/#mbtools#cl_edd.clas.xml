@@ -15,9 +15,21 @@
    <DESCRIPTIONS>
     <SEOCOMPOTX>
      <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
+     <CMPNAME>ACTIVATE_LICENSE</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Used to remotely activate a license key</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
      <CMPNAME>CHECK_LICENSE</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Used to remotely check if a license key is activated, valid,</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
+     <CMPNAME>DEACTIVATE_LICENSE</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Used to remotely deactivate a license key</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>

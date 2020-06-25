@@ -2,7 +2,9 @@
 * /MBTOOLS/CL_MESSAGE_HELPER
 * MBT Message Helper
 *
-* Part of https://github.com/larshp/abapGit
+* Original Author: Copyright (c) 2014 abapGit Contributors
+* http://www.abapgit.org
+*
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
 CLASS /mbtools/cl_message_helper DEFINITION

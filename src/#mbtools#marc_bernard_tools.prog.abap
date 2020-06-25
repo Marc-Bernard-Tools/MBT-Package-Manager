@@ -182,7 +182,7 @@ START-OF-SELECTION.
 
   ELSE.
 
-    go_tool = /mbtools/cl_tools=>get_tool( p_title ).
+    go_tool = /mbtools/cl_tools=>factory( p_title ).
     gv_tool = 'Tool was'.
 
     CASE abap_true.

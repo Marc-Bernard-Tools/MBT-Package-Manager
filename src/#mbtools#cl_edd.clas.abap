@@ -15,23 +15,24 @@ CLASS /mbtools/cl_edd DEFINITION
 
     CONSTANTS c_name TYPE string VALUE 'MBT_EDD_API' ##NO_TEXT.
     CONSTANTS c_version TYPE string VALUE '1.0.0' ##NO_TEXT.
-
     CONSTANTS c_edd_host TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.
-    CONSTANTS: BEGIN OF c_action,
-                 activate   TYPE string VALUE 'activatev_license' ##NO_TEXT,
-                 deactivate TYPE string VALUE 'deactivatev_license' ##NO_TEXT,
-                 check      TYPE string VALUE 'check_license' ##NO_TEXT,
-                 version    TYPE string VALUE 'get_version' ##NO_TEXT,
-               END OF c_action.
-    CONSTANTS: BEGIN OF c_param,
-                 action TYPE string VALUE '$action$' ##NO_TEXT,
-                 id     TYPE string VALUE '$id$' ##NO_TEXT,
-                 key    TYPE string VALUE '$key$' ##NO_TEXT,
-                 url    TYPE string VALUE '$url$' ##NO_TEXT,
-                 system TYPE string VALUE '$system$' ##NO_TEXT,
-               END OF c_param.
+    CONSTANTS:
+      BEGIN OF c_action,
+        activate   TYPE string VALUE 'activate_license' ##NO_TEXT,
+        deactivate TYPE string VALUE 'deactivate_license' ##NO_TEXT,
+        check      TYPE string VALUE 'check_license' ##NO_TEXT,
+        version    TYPE string VALUE 'get_version' ##NO_TEXT,
+      END OF c_action .
+    CONSTANTS:
+      BEGIN OF c_param,
+        action TYPE string VALUE '$action$' ##NO_TEXT,
+        id     TYPE string VALUE '$id$' ##NO_TEXT,
+        key    TYPE string VALUE '$key$' ##NO_TEXT,
+        url    TYPE string VALUE '$url$' ##NO_TEXT,
+        system TYPE string VALUE '$system$' ##NO_TEXT,
+      END OF c_param .
 
-    CLASS-METHODS activatev_license
+    CLASS-METHODS activate_license
       IMPORTING
         !iv_id      TYPE string
         !iv_license TYPE string
@@ -40,7 +41,7 @@ CLASS /mbtools/cl_edd DEFINITION
         !ev_expire  TYPE d
       RAISING
         /mbtools/cx_exception .
-    CLASS-METHODS deactivatev_license
+    CLASS-METHODS deactivate_license
       IMPORTING
         !iv_id      TYPE string
         !iv_license TYPE string
@@ -86,7 +87,7 @@ ENDCLASS.
 CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
 
-  METHOD activatev_license.
+  METHOD activate_license.
 
     DATA:
       lv_endpoint TYPE string.
@@ -114,7 +115,7 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD deactivatev_license.
+  METHOD deactivate_license.
 
     DATA:
       lv_endpoint TYPE string.
@@ -160,7 +161,7 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
       IMPORTING
         systemid = lv_system_id.
 
-    IF lv_system_id = 'INITIAL_SYSTEM_IDX' OR lv_system_id NA '0123456789'.
+    IF lv_system_id CS'INITIAL' OR lv_system_id NA '0123456789'.
       /mbtools/cx_exception=>raise( 'Initial system number (transaction SLICENSE)' ) ##NO_TEXT.
     ENDIF.
 
