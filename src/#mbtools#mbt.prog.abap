@@ -18,6 +18,25 @@ SELECTION-SCREEN BEGIN OF SCREEN 1001.
 SELECTION-SCREEN END OF SCREEN 1001.
 
 *-----------------------------------------------------------------------
+* Password Screen
+*-----------------------------------------------------------------------
+
+SELECTION-SCREEN BEGIN OF SCREEN 1002 TITLE s_title.
+SELECTION-SCREEN BEGIN OF LINE.
+SELECTION-SCREEN COMMENT 1(10) s_url FOR FIELD p_url.
+PARAMETERS: p_url TYPE string LOWER CASE VISIBLE LENGTH 50 ##SEL_WRONG.
+SELECTION-SCREEN END OF LINE.
+SELECTION-SCREEN BEGIN OF LINE.
+SELECTION-SCREEN COMMENT 1(10) s_user FOR FIELD p_user.
+PARAMETERS: p_user TYPE string LOWER CASE VISIBLE LENGTH 50 ##SEL_WRONG.
+SELECTION-SCREEN END OF LINE.
+SELECTION-SCREEN BEGIN OF LINE.
+SELECTION-SCREEN COMMENT 1(10) s_pass FOR FIELD p_pass.
+PARAMETERS: p_pass TYPE string LOWER CASE VISIBLE LENGTH 50 ##SEL_WRONG.
+SELECTION-SCREEN END OF LINE.
+SELECTION-SCREEN END OF SCREEN 1002.
+
+*-----------------------------------------------------------------------
 * Main Dialog
 *-----------------------------------------------------------------------
 CLASS lcl_main DEFINITION FINAL.
@@ -77,25 +96,6 @@ CLASS lcl_main IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
-
-*-----------------------------------------------------------------------
-* Password Screen
-*-----------------------------------------------------------------------
-
-SELECTION-SCREEN BEGIN OF SCREEN 1002 TITLE s_title.
-SELECTION-SCREEN BEGIN OF LINE.
-SELECTION-SCREEN COMMENT 1(10) s_url FOR FIELD p_url.
-PARAMETERS: p_url TYPE string LOWER CASE VISIBLE LENGTH 50 ##SEL_WRONG.
-SELECTION-SCREEN END OF LINE.
-SELECTION-SCREEN BEGIN OF LINE.
-SELECTION-SCREEN COMMENT 1(10) s_user FOR FIELD p_user.
-PARAMETERS: p_user TYPE string LOWER CASE VISIBLE LENGTH 50 ##SEL_WRONG.
-SELECTION-SCREEN END OF LINE.
-SELECTION-SCREEN BEGIN OF LINE.
-SELECTION-SCREEN COMMENT 1(10) s_pass FOR FIELD p_pass.
-PARAMETERS: p_pass TYPE string LOWER CASE VISIBLE LENGTH 50 ##SEL_WRONG.
-SELECTION-SCREEN END OF LINE.
-SELECTION-SCREEN END OF SCREEN 1002.
 
 *-----------------------------------------------------------------------
 * Password Dialog
