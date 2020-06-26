@@ -3,12 +3,12 @@ CLASS ltcl_test DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS.
   PRIVATE SECTION.
 
     METHODS:
-      repo_host FOR TESTING RAISING zcx_abapgit_exception,
-      repo_name1 FOR TESTING RAISING zcx_abapgit_exception,
-      repo_name2 FOR TESTING RAISING zcx_abapgit_exception,
-      repo_name3 FOR TESTING RAISING zcx_abapgit_exception,
-      repo_name4 FOR TESTING RAISING zcx_abapgit_exception,
-      repo_name5 FOR TESTING RAISING zcx_abapgit_exception,
+      repo_host FOR TESTING RAISING /mbtools/cx_exception,
+      repo_name1 FOR TESTING RAISING /mbtools/cx_exception,
+      repo_name2 FOR TESTING RAISING /mbtools/cx_exception,
+      repo_name3 FOR TESTING RAISING /mbtools/cx_exception,
+      repo_name4 FOR TESTING RAISING /mbtools/cx_exception,
+      repo_name5 FOR TESTING RAISING /mbtools/cx_exception,
       repo_error FOR TESTING,
       url_validate1 FOR TESTING,
       url_validate2 FOR TESTING,
@@ -22,9 +22,9 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD repo_error.
 
     TRY.
-        zcl_abapgit_url=>host( 'not a real url' ).          "#EC NOTEXT
+        /mbtools/cl_url=>host( 'not a real url' ).          "#EC NOTEXT
         cl_abap_unit_assert=>fail( ).
-      CATCH zcx_abapgit_exception.                      "#EC NO_HANDLER
+      CATCH /mbtools/cx_exception.                      "#EC NO_HANDLER
     ENDTRY.
 
   ENDMETHOD.
@@ -33,7 +33,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA: lv_host TYPE string.
 
-    lv_host = zcl_abapgit_url=>host( 'https://github.com/larshp/Foobar.git' ).
+    lv_host = /mbtools/cl_url=>host( 'https://github.com/larshp/Foobar.git' ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = 'https://github.com'
@@ -45,7 +45,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA: lv_name TYPE string.
 
-    lv_name = zcl_abapgit_url=>name( 'https://github.com/larshp/Foobar.git' ).
+    lv_name = /mbtools/cl_url=>name( 'https://github.com/larshp/Foobar.git' ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = 'Foobar'
@@ -57,7 +57,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA: lv_name TYPE string.
 
-    lv_name = zcl_abapgit_url=>name( 'https://git.hanatrial.ondemand.com/p12345trial/yay' ).
+    lv_name = /mbtools/cl_url=>name( 'https://git.hanatrial.ondemand.com/p12345trial/yay' ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = 'yay'
@@ -69,7 +69,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA: lv_name TYPE string.
 
-    lv_name = zcl_abapgit_url=>name( 'https://github.com/larshp/Foobar/' ).
+    lv_name = /mbtools/cl_url=>name( 'https://github.com/larshp/Foobar/' ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = 'Foobar'
@@ -81,7 +81,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA: lv_name TYPE string.
 
-    lv_name = zcl_abapgit_url=>name( 'https://github.com/larshp/foo-bar/' ).
+    lv_name = /mbtools/cl_url=>name( 'https://github.com/larshp/foo-bar/' ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = 'foo-bar'
@@ -93,7 +93,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA: lv_name TYPE string.
 
-    lv_name = zcl_abapgit_url=>name( 'https://github.com/larshp/foo_bar/' ).
+    lv_name = /mbtools/cl_url=>name( 'https://github.com/larshp/foo_bar/' ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = 'foo_bar'
@@ -104,8 +104,8 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD url_validate1.
 
     TRY.
-        zcl_abapgit_url=>validate( 'http://github.com/larshp/Foobar.git' ). "#EC NOTEXT
-      CATCH zcx_abapgit_exception.                      "#EC NO_HANDLER
+        /mbtools/cl_url=>validate( 'http://github.com/larshp/Foobar.git' ). "#EC NOTEXT
+      CATCH /mbtools/cx_exception.                      "#EC NO_HANDLER
         cl_abap_unit_assert=>fail( ).
     ENDTRY.
 
@@ -114,8 +114,8 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD url_validate2.
 
     TRY.
-        zcl_abapgit_url=>validate( 'https://github.com/larshp/Foobar.git' ). "#EC NOTEXT
-      CATCH zcx_abapgit_exception.                      "#EC NO_HANDLER
+        /mbtools/cl_url=>validate( 'https://github.com/larshp/Foobar.git' ). "#EC NOTEXT
+      CATCH /mbtools/cx_exception.                      "#EC NO_HANDLER
         cl_abap_unit_assert=>fail( ).
     ENDTRY.
 
@@ -124,9 +124,9 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD url_validate3.
 
     TRY.
-        zcl_abapgit_url=>validate( 'XYZ://github.com/larshp/Foobar.git' ). "#EC NOTEXT
+        /mbtools/cl_url=>validate( 'XYZ://github.com/larshp/Foobar.git' ). "#EC NOTEXT
         cl_abap_unit_assert=>fail( ).
-      CATCH zcx_abapgit_exception.                      "#EC NO_HANDLER
+      CATCH /mbtools/cx_exception.                      "#EC NO_HANDLER
     ENDTRY.
 
   ENDMETHOD.

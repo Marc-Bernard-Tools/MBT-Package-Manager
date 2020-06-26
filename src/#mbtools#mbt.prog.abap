@@ -247,18 +247,18 @@ START-OF-SELECTION.
 
   lcl_main=>run( ).
 
-* Hide Execute button from screen
 AT SELECTION-SCREEN OUTPUT.
 
+  " Hide Execute button from screen
   IF sy-dynnr = lcl_password=>c_dynnr.
     lcl_password=>on_screen_output( ).
   ELSE.
     lcl_main=>on_screen_output( ).
   ENDIF.
 
-* SAP back command re-direction
 AT SELECTION-SCREEN ON EXIT-COMMAND.
 
+  " SAP back command re-direction
   lcl_main=>on_screen_exit( ).
 
 AT SELECTION-SCREEN.
