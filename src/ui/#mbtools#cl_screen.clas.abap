@@ -66,9 +66,9 @@ CLASS /mbtools/cl_screen DEFINITION
         VALUE(iv_url_tool) TYPE string .
     CLASS-METHODS toolbar
       IMPORTING
-        !iv_show  TYPE abap_bool
-        !iv_cprog TYPE sy-cprog
-        !iv_dynnr TYPE sy-dynnr .
+        !iv_dynnr TYPE sy-dynnr
+        !iv_cprog TYPE sy-cprog DEFAULT sy-cprog
+        !iv_show  TYPE abap_bool DEFAULT abap_false.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
