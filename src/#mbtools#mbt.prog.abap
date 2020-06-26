@@ -40,34 +40,27 @@ SELECTION-SCREEN END OF SCREEN 1002.
 CLASS lcl_main DEFINITION FINAL.
 
   PUBLIC SECTION.
-    CONSTANTS c_dynnr TYPE c LENGTH 4 VALUE '1001'.
+    CONSTANTS:
+      BEGIN OF c_dynnr,
+        main     TYPE c LENGTH 4 VALUE '1001',
+        password TYPE c LENGTH 4 VALUE '1002',
+      END OF c_dynnr.
 
-    CLASS-METHODS run.
-    CLASS-METHODS on_screen_output.
-    CLASS-METHODS on_screen_exit
+    CLASS-METHODS main_run.
+    CLASS-METHODS main_screen_output.
+    CLASS-METHODS main_screen_exit
       EXCEPTIONS
         /mbtools/cx_exception.
 
-ENDCLASS.
-
-*-----------------------------------------------------------------------
-* Password Dialog
-*-----------------------------------------------------------------------
-CLASS lcl_password DEFINITION FINAL.
-
-  PUBLIC SECTION.
-    CONSTANTS c_dynnr TYPE c LENGTH 4 VALUE '1002'.
-
-    CLASS-METHODS popup
+    CLASS-METHODS password_popup
       IMPORTING
         iv_url  TYPE string
       CHANGING
         cv_user TYPE string
         cv_pass TYPE string.
-
-    CLASS-METHODS on_screen_init.
-    CLASS-METHODS on_screen_output.
-    CLASS-METHODS on_screen_event
+    CLASS-METHODS password_screen_init.
+    CLASS-METHODS password_screen_output.
+    CLASS-METHODS password_screen_event
       IMPORTING
         iv_ucomm TYPE sy-ucomm.
 
@@ -81,18 +74,18 @@ ENDCLASS.
 *-----------------------------------------------------------------------
 CLASS lcl_main IMPLEMENTATION.
 
-  METHOD run.
+  METHOD main_run.
 
     TRY.
 *        zcl_abapgit_services_abapgit=>prepare_gui_startup( ).
 *        zcl_abapgit_ui_factory=>get_gui( )->go_home( ).
-        CALL SELECTION-SCREEN c_dynnr. " trigger screen
+        CALL SELECTION-SCREEN c_dynnr-main. " trigger screen
       CATCH cx_root.
     ENDTRY.
 
   ENDMETHOD.
 
-  METHOD on_screen_output.
+  METHOD main_screen_output.
 
     DATA: lt_ucomm TYPE TABLE OF sy-ucomm.
 
@@ -109,27 +102,20 @@ CLASS lcl_main IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD on_screen_exit.
+  METHOD main_screen_exit.
 
     CASE sy-ucomm.
       WHEN 'CBAC'.  "Back
 *        IF zcl_abapgit_ui_factory=>get_gui( )->back( ) = abap_true. " end of stack
 *          zcl_abapgit_ui_factory=>get_gui( )->free( ). " Graceful shutdown
 *        ELSE.
-        LEAVE TO SCREEN c_dynnr.
+        LEAVE TO SCREEN c_dynnr-main.
 *        ENDIF.
     ENDCASE.
 
   ENDMETHOD.
 
-ENDCLASS.
-
-*-----------------------------------------------------------------------
-* Password Dialog
-*-----------------------------------------------------------------------
-CLASS lcl_password IMPLEMENTATION.
-
-  METHOD popup.
+  METHOD password_popup.
 
     CLEAR p_pass.
     p_url      = iv_url.
@@ -139,7 +125,7 @@ CLASS lcl_password IMPLEMENTATION.
     CLEAR s_title.
     CONCATENATE 'Login' iv_url INTO s_title SEPARATED BY space.
 
-    CALL SELECTION-SCREEN c_dynnr STARTING AT 5 5 ENDING AT 60 8.
+    CALL SELECTION-SCREEN c_dynnr-password STARTING AT 5 5 ENDING AT 60 8.
 
     IF gv_confirm = abap_true.
       cv_user = p_user.
@@ -152,7 +138,7 @@ CLASS lcl_password IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD on_screen_init.
+  METHOD password_screen_init.
 
     s_title = 'Login'     ##NO_TEXT.
     s_url   = 'URL'       ##NO_TEXT.
@@ -161,11 +147,11 @@ CLASS lcl_password IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD on_screen_output.
+  METHOD password_screen_output.
 
     DATA lt_ucomm TYPE TABLE OF sy-ucomm.
 
-    ASSERT sy-dynnr = c_dynnr.
+    ASSERT sy-dynnr = c_dynnr-password.
 
     LOOP AT SCREEN.
       IF screen-name = 'P_URL'.
@@ -198,9 +184,9 @@ CLASS lcl_password IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD on_screen_event.
+  METHOD password_screen_event.
 
-    ASSERT sy-dynnr = c_dynnr.
+    ASSERT sy-dynnr = c_dynnr-password.
 
     " CRET   - F8
     " OTHERS - simulate Enter press
@@ -228,7 +214,7 @@ FORM password_popup
     cv_user TYPE string
     cv_pass TYPE string.
 
-  lcl_password=>popup(
+  lcl_main=>password_popup(
     EXPORTING
       iv_url  = pv_url
     CHANGING
@@ -244,29 +230,31 @@ INITIALIZATION.
   " Remove toolbar on html screen
   /mbtools/cl_screen=>toolbar( iv_show  = abap_false
                                iv_cprog = sy-cprog
-                               iv_dynnr = '1001' ).
-  lcl_password=>on_screen_init( ).
+                               iv_dynnr = lcl_main=>c_dynnr-main ).
+  lcl_main=>password_screen_init( ).
 
 START-OF-SELECTION.
 
-  lcl_main=>run( ).
+  lcl_main=>main_run( ).
 
 AT SELECTION-SCREEN OUTPUT.
 
   " Hide Execute button from screen
-  IF sy-dynnr = lcl_password=>c_dynnr.
-    lcl_password=>on_screen_output( ).
-  ELSE.
-    lcl_main=>on_screen_output( ).
-  ENDIF.
+  CASE sy-dynnr.
+    WHEN lcl_main=>c_dynnr-main.
+      lcl_main=>main_screen_output( ).
+    WHEN lcl_main=>c_dynnr-password.
+      lcl_main=>password_screen_output( ).
+  ENDCASE.
 
 AT SELECTION-SCREEN ON EXIT-COMMAND.
 
   " SAP back command re-direction
-  lcl_main=>on_screen_exit( ).
+  lcl_main=>main_screen_exit( ).
 
 AT SELECTION-SCREEN.
 
-  IF sy-dynnr = lcl_password=>c_dynnr.
-    lcl_password=>on_screen_event( sscrfields-ucomm ).
-  ENDIF.
+  CASE sy-dynnr.
+    WHEN lcl_main=>c_dynnr-password.
+      lcl_main=>password_screen_event( sscrfields-ucomm ).
+  ENDCASE.

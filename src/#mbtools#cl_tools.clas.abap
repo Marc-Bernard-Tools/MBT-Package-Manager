@@ -62,7 +62,6 @@ CLASS /mbtools/cl_tools DEFINITION
         activate   TYPE string VALUE 'activate',
         deactivate TYPE string VALUE 'deactivate',
       END OF c_action .
-
     DATA apack_manifest TYPE /mbtools/if_apack_manifest=>ty_descriptor READ-ONLY .
     DATA mbt_manifest TYPE /mbtools/if_manifest=>ty_descriptor READ-ONLY .
 
@@ -169,7 +168,7 @@ CLASS /mbtools/cl_tools DEFINITION
         VALUE(rv_url) TYPE string .
     METHODS get_settings
       RETURNING
-        VALUE(ro_reg) TYPE REF TO /mbtools/cl_registry.
+        VALUE(ro_reg) TYPE REF TO /mbtools/cl_registry .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
