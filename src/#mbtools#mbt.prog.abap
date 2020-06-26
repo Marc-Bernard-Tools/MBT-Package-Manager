@@ -12,7 +12,6 @@ TABLES:
 *-----------------------------------------------------------------------
 * Main Screen
 *-----------------------------------------------------------------------
-
 SELECTION-SCREEN BEGIN OF SCREEN 1001.
 * Dummy for triggering screen on Java SAP GUI
 SELECTION-SCREEN END OF SCREEN 1001.
@@ -20,7 +19,6 @@ SELECTION-SCREEN END OF SCREEN 1001.
 *-----------------------------------------------------------------------
 * Password Screen
 *-----------------------------------------------------------------------
-
 SELECTION-SCREEN BEGIN OF SCREEN 1002 TITLE s_title.
 SELECTION-SCREEN BEGIN OF LINE.
 SELECTION-SCREEN COMMENT 1(10) s_url FOR FIELD p_url.
@@ -52,6 +50,35 @@ CLASS lcl_main DEFINITION FINAL.
 
 ENDCLASS.
 
+*-----------------------------------------------------------------------
+* Password Dialog
+*-----------------------------------------------------------------------
+CLASS lcl_password DEFINITION FINAL.
+
+  PUBLIC SECTION.
+    CONSTANTS c_dynnr TYPE c LENGTH 4 VALUE '1002'.
+
+    CLASS-METHODS popup
+      IMPORTING
+        iv_url  TYPE string
+      CHANGING
+        cv_user TYPE string
+        cv_pass TYPE string.
+
+    CLASS-METHODS on_screen_init.
+    CLASS-METHODS on_screen_output.
+    CLASS-METHODS on_screen_event
+      IMPORTING
+        iv_ucomm TYPE sy-ucomm.
+
+  PRIVATE SECTION.
+    CLASS-DATA gv_confirm TYPE abap_bool.
+
+ENDCLASS.
+
+*-----------------------------------------------------------------------
+* Main Dialog
+*-----------------------------------------------------------------------
 CLASS lcl_main IMPLEMENTATION.
 
   METHOD run.
@@ -100,29 +127,6 @@ ENDCLASS.
 *-----------------------------------------------------------------------
 * Password Dialog
 *-----------------------------------------------------------------------
-CLASS lcl_password DEFINITION FINAL.
-
-  PUBLIC SECTION.
-    CONSTANTS c_dynnr TYPE c LENGTH 4 VALUE '1002'.
-
-    CLASS-METHODS popup
-      IMPORTING
-        iv_url  TYPE string
-      CHANGING
-        cv_user TYPE string
-        cv_pass TYPE string.
-
-    CLASS-METHODS on_screen_init.
-    CLASS-METHODS on_screen_output.
-    CLASS-METHODS on_screen_event
-      IMPORTING
-        iv_ucomm TYPE sy-ucomm.
-
-  PRIVATE SECTION.
-    CLASS-DATA gv_confirm TYPE abap_bool.
-
-ENDCLASS.
-
 CLASS lcl_password IMPLEMENTATION.
 
   METHOD popup.
