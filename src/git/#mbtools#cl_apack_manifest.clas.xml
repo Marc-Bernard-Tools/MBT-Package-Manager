@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>/MBTOOLS/CL_HTTP</CLSNAME>
+    <CLSNAME>/MBTOOLS/CL_APACK_MANIFEST</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>MBT HTTP</DESCRIPT>
+    <DESCRIPT>MBT APACK Manifest</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

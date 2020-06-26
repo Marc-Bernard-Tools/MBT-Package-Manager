@@ -1,5 +1,5 @@
 ************************************************************************
-* /MBTOOLS/CL_HTTP_
+* /MBTOOLS/CL_HTTP
 * MBT HTTP
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -18,8 +18,7 @@ CLASS /mbtools/cl_http DEFINITION
         digest TYPE string VALUE 'Digest',
       END OF c_scheme .
 
-    CLASS-METHODS class_constructor.
-
+    CLASS-METHODS class_constructor .
     CLASS-METHODS get_agent
       RETURNING
         VALUE(rv_agent) TYPE string .

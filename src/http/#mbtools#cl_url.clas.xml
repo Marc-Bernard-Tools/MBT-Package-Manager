@@ -3,14 +3,15 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>/MBTOOLS/CL_HTTP</CLSNAME>
+    <CLSNAME>/MBTOOLS/CL_URL</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>MBT HTTP</DESCRIPT>
+    <DESCRIPT>MBT URL</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
     <UNICODE>X</UNICODE>
     <RSTAT>K</RSTAT>
+    <WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>
    </VSEOCLASS>
   </asx:values>
  </asx:abap>

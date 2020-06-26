@@ -1,3 +1,12 @@
+************************************************************************
+* /MBTOOLS/CL_LOGIN_MANAGER
+* MBT Login Manager
+*
+* Original Author: Copyright (c) 2014 abapGit Contributors
+* http://www.abapgit.org
+*
+* Released under MIT License: https://opensource.org/licenses/MIT
+************************************************************************
 CLASS /mbtools/cl_login_manager DEFINITION
   PUBLIC
   FINAL
@@ -58,12 +67,14 @@ CLASS /MBTOOLS/CL_LOGIN_MANAGER IMPLEMENTATION.
 
     FIELD-SYMBOLS: <ls_auth> LIKE LINE OF gt_auth.
 
-    READ TABLE gt_auth WITH KEY uri = iv_uri TRANSPORTING NO FIELDS.
+    READ TABLE gt_auth WITH KEY uri = /mbtools/cl_url=>host( iv_uri )
+      TRANSPORTING NO FIELDS.
     IF sy-subrc <> 0.
       APPEND INITIAL LINE TO gt_auth ASSIGNING <ls_auth>.
-      <ls_auth>-uri           = iv_uri.
+      <ls_auth>-uri           = /mbtools/cl_url=>host( iv_uri ).
       <ls_auth>-authorization = iv_auth.
     ENDIF.
+
 
   ENDMETHOD.
 
@@ -79,7 +90,7 @@ CLASS /MBTOOLS/CL_LOGIN_MANAGER IMPLEMENTATION.
 
     DATA: ls_auth LIKE LINE OF gt_auth.
 
-    READ TABLE gt_auth INTO ls_auth WITH KEY uri = iv_uri.
+    READ TABLE gt_auth INTO ls_auth WITH KEY uri = /mbtools/cl_url=>host( iv_uri ).
     IF sy-subrc = 0.
       rv_authorization = ls_auth-authorization.
 
