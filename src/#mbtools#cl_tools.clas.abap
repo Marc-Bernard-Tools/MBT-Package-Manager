@@ -62,7 +62,7 @@ CLASS /mbtools/cl_tools DEFINITION
         activate   TYPE string VALUE 'activate',
         deactivate TYPE string VALUE 'deactivate',
       END OF c_action .
-    DATA apack_manifest TYPE /mbtools/if_apack_manifest=>ty_descriptor READ-ONLY .
+    DATA apack_manifest TYPE zif_apack_manifest=>ty_descriptor READ-ONLY .
     DATA mbt_manifest TYPE /mbtools/if_manifest=>ty_descriptor READ-ONLY .
 
     " Constructor
@@ -99,7 +99,7 @@ CLASS /mbtools/cl_tools DEFINITION
     " Tool Manifest
     METHODS build_apack_manifest
       RETURNING
-        VALUE(rs_manifest) TYPE /mbtools/if_apack_manifest=>ty_descriptor .
+        VALUE(rs_manifest) TYPE zif_apack_manifest=>ty_descriptor .
     METHODS build_mbt_manifest
       RETURNING
         VALUE(rs_manifest) TYPE /mbtools/if_manifest=>ty_descriptor .

@@ -25,7 +25,8 @@ CLASS /mbtools/cl_http DEFINITION
     CLASS-METHODS create_by_url
       IMPORTING
         !iv_url          TYPE string
-        !iv_service      TYPE string
+        !iv_request      TYPE string DEFAULT 'GET'
+        !iv_content      TYPE string OPTIONAL
       RETURNING
         VALUE(ro_client) TYPE REF TO /mbtools/cl_http_client
       RAISING
@@ -193,13 +194,18 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
     li_client->request->set_cdata( '' ).
     li_client->request->set_header_field(
         name  = '~request_method'
-        value = 'GET' ).
+        value = iv_request ).
     li_client->request->set_header_field(
         name  = 'user-agent'
         value = get_agent( ) ).                             "#EC NOTEXT
     li_client->request->set_header_field(
         name  = '~request_uri'
         value = iv_url ).
+    IF NOT iv_content IS INITIAL.
+      li_client->request->set_header_field(
+          name  = 'Content-type'
+          value = iv_content ).
+    ENDIF.
 
     " Disable internal auth dialog (due to its unclarity)
     li_client->propertytype_logon_popup = if_http_client=>co_disabled.

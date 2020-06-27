@@ -10,7 +10,7 @@ INTERFACE /mbtools/if_objects
   TYPE-POOLS rs .
   TYPE-POOLS rzd1 .
 
-* Note: All constants must by unique
+* Note: All constants must by unique and some constants don't exist in lower releases
 
 * BW-WHM
   CONSTANTS:
@@ -19,10 +19,10 @@ INTERFACE /mbtools/if_objects
     c_ods            TYPE lvc_fname VALUE rs_c_tlogo-ods_object,
     c_infoset        TYPE lvc_fname VALUE rs_c_tlogo-infoset,
     c_infoobject     TYPE lvc_fname VALUE rs_c_tlogo-infoobject,
-    c_hierarchy      TYPE lvc_fname VALUE rs_c_tlogo-hierarchy,
+    c_hierarchy      TYPE lvc_fname VALUE 'HIER', "rs_c_tlogo-hierarchy,
     c_dimension      TYPE lvc_fname VALUE 'DIME',
-    c_hybridprovider TYPE lvc_fname VALUE rs_c_tlogo-hybridprovider,
-    c_lpo            TYPE lvc_fname VALUE rs_c_tlogo-log_partitioned_obj,
+    c_hybridprovider TYPE lvc_fname VALUE 'HYPR', "rs_c_tlogo-hybridprovider,
+    c_lpo            TYPE lvc_fname VALUE 'LPOA', "rs_c_tlogo-log_partitioned_obj,
     c_ctrt           TYPE lvc_fname VALUE rs_c_tlogo-cur_trans_type,
     c_uomt           TYPE lvc_fname VALUE rs_c_tlogo-uom_trans_type,
     c_thjt           TYPE lvc_fname VALUE rs_c_tlogo-tmphierjoin_type.
@@ -36,7 +36,7 @@ INTERFACE /mbtools/if_objects
 
 * BW-PLA-IP
   CONSTANTS:
-    c_plan_provider     TYPE lvc_fname VALUE rs_c_tlogo-basic_infocube,
+    c_plan_provider     TYPE lvc_fname VALUE 'BASI', "rs_c_tlogo-basic_infocube,
     c_char_relationship TYPE lvc_fname VALUE rs_c_tlogo-characteristic_relationship,
     c_data_slice        TYPE lvc_fname VALUE rs_c_tlogo-data_slices,
     c_aggrlevel         TYPE lvc_fname VALUE rs_c_tlogo-aggrlevel,

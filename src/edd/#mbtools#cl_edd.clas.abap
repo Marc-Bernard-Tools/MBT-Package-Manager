@@ -71,6 +71,14 @@ CLASS /mbtools/cl_edd DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
+    CLASS-METHODS get_data
+      IMPORTING
+        !iv_url        TYPE string
+      RETURNING
+        VALUE(rv_data) TYPE string
+      RAISING
+        /mbtools/cx_exception .
+
     CLASS-METHODS get_endpoint
       IMPORTING
         !iv_action         TYPE string
@@ -90,13 +98,16 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
   METHOD activate_license.
 
     DATA:
-      lv_endpoint TYPE string.
+      lv_endpoint TYPE string,
+      lv_data     TYPE string.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
-    lv_endpoint = get_endpoint( iv_action   = c_action-activate
-                                iv_id       = iv_id
-                                iv_license  = iv_license ).
+    lv_endpoint = get_endpoint( iv_action  = c_action-activate
+                                iv_id      = iv_id
+                                iv_license = iv_license ).
+
+    lv_data = get_data( lv_endpoint ).
 
   ENDMETHOD.
 
@@ -104,13 +115,16 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
   METHOD check_license.
 
     DATA:
-      lv_endpoint TYPE string.
+      lv_endpoint TYPE string,
+      lv_data     TYPE string.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
-    lv_endpoint = get_endpoint( iv_action   = c_action-check
-                                iv_id       = iv_id
-                                iv_license  = iv_license ).
+    lv_endpoint = get_endpoint( iv_action  = c_action-check
+                                iv_id      = iv_id
+                                iv_license = iv_license ).
+
+    lv_data = get_data( lv_endpoint ).
 
   ENDMETHOD.
 
@@ -118,13 +132,37 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
   METHOD deactivate_license.
 
     DATA:
-      lv_endpoint TYPE string.
+      lv_endpoint TYPE string,
+      lv_data     TYPE string.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
-    lv_endpoint = get_endpoint( iv_action   = c_action-deactivate
-                                iv_id       = iv_id
-                                iv_license  = iv_license ).
+    lv_endpoint = get_endpoint( iv_action  = c_action-deactivate
+                                iv_id      = iv_id
+                                iv_license = iv_license ).
+
+    lv_data = get_data( lv_endpoint ).
+
+  ENDMETHOD.
+
+
+  METHOD get_data.
+
+    DATA:
+      lo_client TYPE REF TO /mbtools/cl_http_client,
+      lv_data   TYPE string.
+
+    lo_client = /mbtools/cl_http=>create_by_url( iv_url     = iv_url
+                                                 iv_request = 'POST'
+                                                 iv_content = 'application/x-www-form-urlencoded' ).
+
+    lo_client->check_smart_response(
+        iv_expected_content_type = 'application/json'
+        iv_content_regex         = '"success"' ).
+
+    rv_data = lo_client->get_cdata( ).
+
+    lo_client->close( ).
 
   ENDMETHOD.
 
@@ -174,13 +212,16 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
   METHOD get_version.
 
     DATA:
-      lv_endpoint TYPE string.
+      lv_endpoint TYPE string,
+      lv_data     TYPE string.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
-    lv_endpoint = get_endpoint( iv_action   = c_action-version
-                                iv_id       = iv_id
-                                iv_license  = iv_license ).
+    lv_endpoint = get_endpoint( iv_action  = c_action-version
+                                iv_id      = iv_id
+                                iv_license = iv_license ).
+
+    lv_data = get_data( lv_endpoint ).
 
   ENDMETHOD.
 ENDCLASS.
