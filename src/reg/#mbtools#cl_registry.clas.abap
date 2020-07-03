@@ -33,42 +33,41 @@ CLASS /mbtools/cl_registry DEFINITION
     TYPES:
       ty_keyobjs TYPE SORTED TABLE OF ty_keyobj WITH UNIQUE KEY key .
 
-    CONSTANTS c_version TYPE string VALUE '1.1.5' ##NO_TEXT.
+    CONSTANTS c_version TYPE string VALUE '1.2.0' ##NO_TEXT.
     CONSTANTS c_name TYPE string VALUE 'MBT_Registry' ##NO_TEXT.
 * Predefined key for the registry root:
-    CONSTANTS c_registry_root TYPE indx_srtfd VALUE 'REGISTRY_ROOT' ##NO_TEXT.
+    CONSTANTS c_registry_root TYPE indx_srtfd VALUE 'MARC_BERNARD_TOOLS' ##NO_TEXT.
     DATA mt_sub_entries TYPE ty_keyvals READ-ONLY .
     DATA mt_values TYPE ty_keyvals READ-ONLY .
     DATA mv_internal_key TYPE indx_srtfd READ-ONLY .
     DATA mv_parent_key TYPE indx_srtfd READ-ONLY .
-    DATA mv_entry_id TYPE string READ-ONLY .                   "User-friendly ID of the subnode
-    DATA ms_regs TYPE /mbtools/if_definitions=>ty_regs READ-ONLY.
+    DATA mv_entry_id TYPE string READ-ONLY .                     "User-friendly ID of the subnode
+    DATA ms_regs TYPE /mbtools/if_definitions=>ty_regs READ-ONLY .
 
     METHODS constructor
       IMPORTING
         !ig_internal_key TYPE any
       RAISING
-        /mbtools/cx_exception.
-
+        /mbtools/cx_exception .
     METHODS reload
       RAISING
-        /mbtools/cx_exception.
+        /mbtools/cx_exception .
 * Saves entry and all dirty sub-entries
     METHODS save
       RAISING
-        /mbtools/cx_exception.
+        /mbtools/cx_exception .
     METHODS get_parent
       RETURNING
         VALUE(ro_parent) TYPE REF TO /mbtools/cl_registry
       RAISING
-        /mbtools/cx_exception.
+        /mbtools/cx_exception .
     METHODS create_by_path
       IMPORTING
         !iv_path        TYPE string
       RETURNING
         VALUE(ro_entry) TYPE REF TO /mbtools/cl_registry
       RAISING
-        /mbtools/cx_exception.
+        /mbtools/cx_exception .
 *--------------------------------------------------------------------*
 * Methods dealing with sub-entries of the registry entry
     METHODS get_subentry
@@ -77,23 +76,23 @@ CLASS /mbtools/cl_registry DEFINITION
       RETURNING
         VALUE(ro_entry) TYPE REF TO /mbtools/cl_registry
       RAISING
-        /mbtools/cx_exception.
+        /mbtools/cx_exception .
     METHODS add_subentry
       IMPORTING
         !iv_key         TYPE clike
       RETURNING
         VALUE(ro_entry) TYPE REF TO /mbtools/cl_registry
       RAISING
-        /mbtools/cx_exception.
+        /mbtools/cx_exception .
 * Removes sub-entry and all entries underneath
     METHODS remove_subentry
       IMPORTING
         !iv_key TYPE clike
       RAISING
-        /mbtools/cx_exception.
+        /mbtools/cx_exception .
     METHODS remove_subentries
       RAISING
-        /mbtools/cx_exception.
+        /mbtools/cx_exception .
     METHODS copy_subentry
       IMPORTING
         !iv_source_key         TYPE clike
@@ -101,7 +100,7 @@ CLASS /mbtools/cl_registry DEFINITION
       RETURNING
         VALUE(ro_target_entry) TYPE REF TO /mbtools/cl_registry
       RAISING
-        /mbtools/cx_exception.
+        /mbtools/cx_exception .
     METHODS get_subentry_keys
       RETURNING
         VALUE(rt_keys) TYPE string_table .
@@ -109,7 +108,7 @@ CLASS /mbtools/cl_registry DEFINITION
       RETURNING
         VALUE(rt_sub_entries) TYPE ty_keyobjs
       RAISING
-        /mbtools/cx_exception.
+        /mbtools/cx_exception .
 * Methods for dealing with values in the registry entry:
 * Get keys of all values
     METHODS get_value_keys
@@ -124,54 +123,51 @@ CLASS /mbtools/cl_registry DEFINITION
       IMPORTING
         !it_values TYPE ty_keyvals
       RAISING
-        /mbtools/cx_exception.
-
+        /mbtools/cx_exception .
 * Get single value by key
     METHODS get_value
       IMPORTING
         !iv_key         TYPE clike
       RETURNING
-        VALUE(rv_value) TYPE string.
+        VALUE(rv_value) TYPE string .
 * Set/overwrite single value
     METHODS set_value
       IMPORTING
         !iv_key   TYPE clike
         !iv_value TYPE any OPTIONAL
       RAISING
-        /mbtools/cx_exception.
-
+        /mbtools/cx_exception .
 * Delete single value by key
     METHODS delete_value
       IMPORTING
         !iv_key TYPE clike
       RAISING
-        /mbtools/cx_exception.
-
+        /mbtools/cx_exception .
     CLASS-METHODS get_entry_by_internal_key
       IMPORTING
         !iv_key         TYPE any
       RETURNING
         VALUE(ro_entry) TYPE REF TO /mbtools/cl_registry
       RAISING
-        /mbtools/cx_exception.
+        /mbtools/cx_exception .
     CLASS-METHODS get_root
       RETURNING
         VALUE(ro_root) TYPE REF TO /mbtools/cl_registry
       RAISING
-        /mbtools/cx_exception.
+        /mbtools/cx_exception .
+    CLASS-METHODS truncate .
     METHODS export
       CHANGING
         !ct_file TYPE string_table
       RAISING
-        /mbtools/cx_exception.
+        /mbtools/cx_exception .
     METHODS get_subentry_by_path
       IMPORTING
         !iv_path        TYPE string
       RETURNING
         VALUE(ro_entry) TYPE REF TO /mbtools/cl_registry
       RAISING
-        /mbtools/cx_exception.
-
+        /mbtools/cx_exception .
   PROTECTED SECTION.
 
 * Class-wide buffer of instances of registry entries
@@ -828,4 +824,32 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
     mt_values = it_values.
   ENDMETHOD.                    "set_values
+
+
+  METHOD truncate.
+
+    DATA lv_answer TYPE c.
+
+    CALL FUNCTION 'POPUP_TO_CONFIRM'
+      EXPORTING
+        titlebar              = c_name
+        text_question         = 'Are you sure you want to delete the complete registry?'(001)
+        text_button_1         = 'Yes'(002)
+        text_button_2         = 'No'(003)
+        default_button        = '2'
+        display_cancel_button = 'X'
+      IMPORTING
+        answer                = lv_answer
+      EXCEPTIONS
+        OTHERS                = 0.
+    IF sy-subrc <> 0 OR lv_answer <> 'J'.
+      RETURN.
+    ENDIF.
+
+    DELETE FROM /mbtools/regs WHERE relid = 'ZR'.
+    IF sy-subrc = 0.
+      MESSAGE 'Registry truncated successfully' TYPE 'S'.
+    ENDIF.
+
+  ENDMETHOD.
 ENDCLASS.

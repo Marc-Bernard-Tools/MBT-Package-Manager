@@ -181,6 +181,12 @@
      <LANGU>E</LANGU>
      <DESCRIPT>set all values at once with key+value table</DESCRIPT>
     </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_REGISTRY</CLSNAME>
+     <CMPNAME>TRUNCATE</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>truncate registry</DESCRIPT>
+    </SEOCOMPOTX>
    </DESCRIPTIONS>
   </asx:values>
  </asx:abap>

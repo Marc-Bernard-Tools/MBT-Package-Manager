@@ -32,6 +32,12 @@
      <MSGNR>003</MSGNR>
      <TEXT>This program includes an enhancement. Nothing to run here.</TEXT>
     </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/MBTOOLS/BC</ARBGB>
+     <MSGNR>004</MSGNR>
+     <TEXT>&amp;1 is not active. Start Marc Bernard Tools and activate the tool.</TEXT>
+    </T100>
    </T100>
   </asx:values>
  </asx:abap>

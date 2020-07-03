@@ -23,9 +23,15 @@ CLASS /mbtools/cl_screen DEFINITION
     CLASS-DATA gv_version TYPE string .
 
     CLASS-METHODS class_constructor .
-    CLASS-METHODS init
+    METHODS constructor
       IMPORTING
-        !ir_tool      TYPE REF TO /mbtools/cl_tools
+        !iv_title TYPE string .
+    CLASS-METHODS factory
+      IMPORTING
+        !iv_title        TYPE string
+      RETURNING
+        VALUE(ro_screen) TYPE REF TO /mbtools/cl_screen .
+    METHODS init
       EXPORTING
         !ev_text      TYPE ty_screen_field
         !ev_about     TYPE ty_screen_field
@@ -35,40 +41,37 @@ CLASS /mbtools/cl_screen DEFINITION
         !ev_docu      TYPE ty_screen_field
         !ev_tool      TYPE ty_screen_field
         !ev_home      TYPE ty_screen_field .
-    CLASS-METHODS header
+    METHODS header
       IMPORTING
         VALUE(iv_icon)   TYPE icon_d
         VALUE(iv_text)   TYPE csequence OPTIONAL
       RETURNING
         VALUE(rv_result) TYPE ty_screen_field .
-    CLASS-METHODS icon
+    METHODS icon
       IMPORTING
         VALUE(iv_icon)   TYPE icon_d
         VALUE(iv_text)   TYPE csequence OPTIONAL
         VALUE(iv_quick)  TYPE csequence OPTIONAL
       RETURNING
         VALUE(rv_result) TYPE ty_screen_field .
-    CLASS-METHODS logo
+    METHODS logo
       IMPORTING
         VALUE(iv_show) TYPE abap_bool DEFAULT abap_true
         VALUE(iv_top)  TYPE i OPTIONAL
         VALUE(iv_left) TYPE i OPTIONAL .
-    CLASS-METHODS banner
+    METHODS banner
       IMPORTING
-        VALUE(iv_tool) TYPE string OPTIONAL
         VALUE(iv_show) TYPE abap_bool DEFAULT abap_true
-        VALUE(iv_top)  TYPE i OPTIONAL
-        VALUE(iv_left) TYPE i OPTIONAL .
-    CLASS-METHODS ucomm
+        VALUE(iv_top)  TYPE i DEFAULT 4
+        VALUE(iv_left) TYPE i DEFAULT 20 .
+    METHODS ucomm
       IMPORTING
-        VALUE(iv_ok_code)  TYPE sy-ucomm
-        VALUE(iv_url_docs) TYPE string
-        VALUE(iv_url_tool) TYPE string .
-    CLASS-METHODS toolbar
+        VALUE(iv_ok_code) TYPE sy-ucomm .
+    METHODS toolbar
       IMPORTING
         !iv_dynnr TYPE sy-dynnr
         !iv_cprog TYPE sy-cprog DEFAULT sy-cprog
-        !iv_show  TYPE abap_bool DEFAULT abap_false.
+        !iv_show  TYPE abap_bool DEFAULT abap_false .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -78,6 +81,8 @@ CLASS /mbtools/cl_screen DEFINITION
     CLASS-DATA go_banner_dock TYPE REF TO cl_gui_docking_container .
     CLASS-DATA go_banner TYPE REF TO cl_gui_picture .
     CLASS-DATA gv_banner_url TYPE /mbtools/value .
+
+    DATA mo_tool TYPE REF TO /mbtools/cl_tools.
 ENDCLASS.
 
 
@@ -118,7 +123,7 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
 
     IF gv_banner_url IS INITIAL.
       ls_query-name  = '_OBJECT_ID'.
-      ls_query-value = iv_tool.
+      ls_query-value = mo_tool->get_id( ).
       APPEND ls_query TO lt_query.
 
       CALL FUNCTION 'WWW_GET_MIME_OBJECT'
@@ -168,6 +173,16 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD constructor.
+    mo_tool = /mbtools/cl_tools=>factory( iv_title ).
+  ENDMETHOD.
+
+
+  METHOD factory.
+    CREATE OBJECT ro_screen EXPORTING iv_title = iv_title.
+  ENDMETHOD.
+
+
   METHOD header.
     WRITE iv_icon AS ICON TO rv_result.
     rv_result+6 = iv_text.
@@ -198,29 +213,29 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
 
   METHOD init.
 
-    ev_text = ir_tool->get_description( ).
+    ev_text = mo_tool->get_description( ).
 
     ev_about = header(
       iv_icon = icon_system_help
       iv_text = gv_about ).
 
-    ev_title     = ir_tool->get_title( ).
-    ev_version   = gv_version && ` ` && ir_tool->get_version( ).
+    ev_title     = mo_tool->get_title( ).
+    ev_version   = gv_version && ` ` && mo_tool->get_version( ).
     ev_copyright = gv_copyright.
 
     ev_docu = icon(
       iv_icon  = icon_system_extended_help
       iv_text  = gv_documentation
-      iv_quick = ir_tool->get_title( ) ).
+      iv_quick = mo_tool->get_title( ) ).
 
     ev_tool = icon(
       iv_icon  = icon_tools
       iv_text  = gv_tool_page
-      iv_quick = ir_tool->get_title( ) ).
+      iv_quick = mo_tool->get_title( ) ).
 
     ev_home = icon(
       iv_icon  = icon_url
-      iv_text  = /mbtools/cl_base=>c_title
+      iv_text  = /mbtools/cl_tool_bc=>c_tool-title
       iv_quick = gv_website ).
 
   ENDMETHOD.
@@ -368,10 +383,10 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
 
         " About tab
       WHEN 'DOCU'.
-        /mbtools/cl_utilities=>call_browser( iv_url_docs ).
+        /mbtools/cl_utilities=>call_browser( mo_tool->get_url_docs( ) ).
 
       WHEN 'TOOL'.
-        /mbtools/cl_utilities=>call_browser( iv_url_tool ).
+        /mbtools/cl_utilities=>call_browser( mo_tool->get_url_tool( ) ).
 
       WHEN 'HOME'.
         /mbtools/cl_utilities=>call_browser( /mbtools/cl_tools=>c_home ).
