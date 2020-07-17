@@ -50,7 +50,7 @@ CLASS /MBTOOLS/CL_PROXY_CONFIG IMPLEMENTATION.
 
   METHOD constructor.
 
-    mo_settings = /mbtools/cl_tools=>factory( /mbtools/cl_base=>c_title )->get_settings( ).
+    mo_settings = /mbtools/cl_tools=>factory( /mbtools/cl_tool_bc=>c_tool-title )->get_settings( ).
 
   ENDMETHOD.
 

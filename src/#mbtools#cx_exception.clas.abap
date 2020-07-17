@@ -12,6 +12,7 @@ public section.
   data MSGV2 type SYMSGV read-only .
   data MSGV3 type SYMSGV read-only .
   data MSGV4 type SYMSGV read-only .
+  data MT_CALLSTACK type ABAP_CALLSTACK read-only .
 
     "! Raise exception with text
     "! @parameter iv_text | Text
@@ -51,7 +52,8 @@ public section.
       !MSGV1 type SYMSGV optional
       !MSGV2 type SYMSGV optional
       !MSGV3 type SYMSGV optional
-      !MSGV4 type SYMSGV optional .
+      !MSGV4 type SYMSGV optional
+      !MT_CALLSTACK type ABAP_CALLSTACK optional .
 
   methods GET_SOURCE_POSITION
     redefinition .
@@ -60,7 +62,6 @@ public section.
 protected section.
 private section.
 
-  data MT_CALLSTACK type ABAP_CALLSTACK .
   constants GC_GENERIC_ERROR_MSG type STRING value `An error occured (MBT Exception)` ##NO_TEXT.
 
   methods SAVE_CALLSTACK .
@@ -80,6 +81,7 @@ me->MSGV1 = MSGV1 .
 me->MSGV2 = MSGV2 .
 me->MSGV3 = MSGV3 .
 me->MSGV4 = MSGV4 .
+me->MT_CALLSTACK = MT_CALLSTACK .
 clear me->textid.
 if textid is initial.
   IF_T100_MESSAGE~T100KEY = IF_T100_MESSAGE=>DEFAULT_TEXTID.

@@ -1,0 +1,61 @@
+@font-face {
+    font-family: "ag-icons";
+    font-weight: normal;
+    font-style: normal;
+    src: url("../font/ag-icons.woff") format("woff");
+}
+
+.icon {
+    line-height: 1;
+}
+
+.icon:before {
+    font-family: ag-icons !important;
+    font-style: normal;
+    font-weight: normal !important;
+
+    display: inline-block;
+    text-decoration: none;
+    text-align: center;
+    vertical-align: text-top;
+    width: 1em;
+
+    /* For safety - reset parent styles, that can break glyph codes*/
+    font-variant: normal;
+    text-transform: none;
+}
+
+.icon.large { font-size: 200%; }
+
+.icon-abapgit:before { content: "\f101"; }
+.icon-abaplint:before { content: "\f102"; }
+.icon-arrow-circle-up:before { content: "\f103"; }
+.icon-bars:before { content: "\f104"; }
+.icon-bolt:before { content: "\f105"; }
+.icon-box:before { content: "\f106"; }
+.icon-briefcase:before { content: "\f107"; }
+.icon-check:before { content: "\f108"; }
+.icon-chevron-down:before { content: "\f109"; }
+.icon-chevron-left:before { content: "\f10a"; }
+.icon-chevron-right:before { content: "\f10b"; }
+.icon-chevron-up:before { content: "\f10c"; }
+.icon-cloud-upload-alt:before { content: "\f10d"; }
+.icon-code-branch:before { content: "\f10e"; }
+.icon-code-commit:before { content: "\f10f"; }
+.icon-cog:before { content: "\f110"; }
+.icon-exclamation-circle:before { content: "\f111"; }
+.icon-exclamation-triangle:before { content: "\f112"; }
+.icon-file-alt:before { content: "\f113"; }
+.icon-file-code:before { content: "\f114"; }
+.icon-file-image:before { content: "\f115"; }
+.icon-file:before { content: "\f116"; }
+.icon-fire-alt:before { content: "\f117"; }
+.icon-folder:before { content: "\f118"; }
+.icon-git-alt:before { content: "\f119"; }
+.icon-lock:before { content: "\f11a"; }
+.icon-plug:before { content: "\f11b"; }
+.icon-question-circle-solid:before { content: "\f11c"; }
+.icon-sliders-h:before { content: "\f11d"; }
+.icon-snowflake:before { content: "\f11e"; }
+.icon-star:before { content: "\f11f"; }
+.icon-tools-solid:before { content: "\f120"; }

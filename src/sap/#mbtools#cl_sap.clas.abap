@@ -78,11 +78,13 @@ CLASS /mbtools/cl_sap DEFINITION
         VALUE(rv_result) TYPE string .
     CLASS-METHODS show_object
       IMPORTING
-        !iv_pgmid      TYPE csequence DEFAULT 'R3TR'
-        !iv_object     TYPE csequence
-        !iv_obj_name   TYPE csequence
+        !iv_pgmid        TYPE csequence DEFAULT 'R3TR'
+        !iv_object       TYPE csequence
+        !iv_obj_name     TYPE csequence
+        !iv_line_number  TYPE i OPTIONAL
+        !iv_sub_obj_name TYPE csequence OPTIONAL
       RETURNING
-        VALUE(rv_exit) TYPE abap_bool .
+        VALUE(rv_exit)   TYPE abap_bool .
     CLASS-METHODS run_transaction
       IMPORTING
         !iv_tcode      TYPE csequence
@@ -564,6 +566,7 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
       lv_pgmid         TYPE /mbtools/if_definitions=>ty_pgmid,
       lv_object        TYPE /mbtools/if_definitions=>ty_object,
       lv_obj_name      TYPE /mbtools/if_definitions=>ty_name,
+      lv_sub_obj_name  TYPE /mbtools/if_definitions=>ty_name,
       lv_e071_pgmid    TYPE e071-pgmid,
       lv_e071_object   TYPE e071-object,
       lv_e071_obj_name TYPE e071-obj_name.
@@ -583,25 +586,50 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    lv_object   = iv_object.
-    lv_obj_name = iv_obj_name.
+    lv_object       = iv_object.
+    lv_obj_name     = iv_obj_name.
+    lv_sub_obj_name = iv_sub_obj_name.
 
-    " First try: workbench tools
-    CALL FUNCTION 'RS_TOOL_ACCESS'
-      EXPORTING
-        operation           = 'SHOW'
-        object_type         = lv_object
-        object_name         = lv_obj_name
-      EXCEPTIONS
-        not_executed        = 1
-        invalid_object_type = 2
-        OTHERS              = 3.
-    IF sy-subrc = 0.
-      rv_exit = abap_true.
-      RETURN.
+    IF iv_line_number IS NOT INITIAL AND iv_sub_obj_name IS NOT INITIAL.
+
+      " Workbench tools with source position (new window)
+      CALL FUNCTION 'RS_TOOL_ACCESS'
+        EXPORTING
+          operation           = 'SHOW'
+          object_type         = lv_object
+          object_name         = lv_obj_name
+          include             = lv_sub_obj_name
+          position            = iv_line_number
+          in_new_window       = abap_true
+        EXCEPTIONS
+          not_executed        = 1
+          invalid_object_type = 2
+          OTHERS              = 3.
+      IF sy-subrc = 0.
+        rv_exit = abap_true.
+        RETURN.
+      ENDIF.
+
+    ELSE.
+
+      " Workbench tools (same window)
+      CALL FUNCTION 'RS_TOOL_ACCESS'
+        EXPORTING
+          operation           = 'SHOW'
+          object_type         = lv_object
+          object_name         = lv_obj_name
+        EXCEPTIONS
+          not_executed        = 1
+          invalid_object_type = 2
+          OTHERS              = 3.
+      IF sy-subrc = 0.
+        rv_exit = abap_true.
+        RETURN.
+      ENDIF.
+
     ENDIF.
 
-    " Second try: transport tool
+    " Transport tools
     map_object(
       EXPORTING
         iv_pgmid    = iv_pgmid

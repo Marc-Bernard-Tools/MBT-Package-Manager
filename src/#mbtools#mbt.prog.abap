@@ -66,6 +66,7 @@ CLASS lcl_main DEFINITION FINAL.
         iv_ucomm TYPE sy-ucomm.
 
   PRIVATE SECTION.
+    CLASS-DATA go_screen TYPE REF TO /mbtools/cl_screen.
     CLASS-DATA gv_confirm TYPE abap_bool.
 
 ENDCLASS.
@@ -74,17 +75,22 @@ CLASS lcl_main IMPLEMENTATION.
 
   METHOD main_screen_init.
 
-    /mbtools/cl_screen=>toolbar( c_dynnr-main ).
+    CREATE OBJECT go_screen EXPORTING iv_title = /mbtools/cl_tool_bc=>c_tool-title.
+
+    go_screen->toolbar( c_dynnr-main ).
 
   ENDMETHOD.
 
   METHOD main_run.
 
+    DATA: lx_error TYPE REF TO cx_root.
+
     TRY.
-*        zcl_abapgit_services_abapgit=>prepare_gui_startup( ).
-*        zcl_abapgit_ui_factory=>get_gui( )->go_home( ).
+        /mbtools/cl_gui_factory=>get_gui( )->go_home( ).
+
         CALL SELECTION-SCREEN c_dynnr-main. " trigger screen
-      CATCH cx_root.
+      CATCH cx_root INTO lx_error.
+        BREAK-POINT.
     ENDTRY.
 
   ENDMETHOD.
@@ -110,8 +116,8 @@ CLASS lcl_main IMPLEMENTATION.
 
     CASE sy-ucomm.
       WHEN 'CBAC'.  "Back
-*        IF zcl_abapgit_ui_factory=>get_gui( )->back( ) = abap_true. " end of stack
-*          zcl_abapgit_ui_factory=>get_gui( )->free( ). " Graceful shutdown
+*        IF /mbtools/cl_ui_factory=>get_gui( )->back( ) = abap_true. " end of stack
+*          /mbtools/cl_ui_factory=>get_gui( )->free( ). " Graceful shutdown
 *        ELSE.
         LEAVE TO SCREEN c_dynnr-main.
 *        ENDIF.

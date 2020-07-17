@@ -12,6 +12,14 @@
     <UNICODE>X</UNICODE>
     <RSTAT>K</RSTAT>
    </VSEOCLASS>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_HTTP</CLSNAME>
+     <CMPNAME>MO_SETTINGS</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Settings</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
   </asx:values>
  </asx:abap>
 </abapGit>

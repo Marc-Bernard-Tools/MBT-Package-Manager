@@ -63,4 +63,40 @@ INTERFACE /mbtools/if_definitions
       clustd TYPE indx_clust,
     END OF ty_regs.
 
+  TYPES:
+    BEGIN OF ty_version,
+      major           TYPE i,
+      minor           TYPE i,
+      patch           TYPE i,
+      prerelase       TYPE string,
+      prerelase_patch TYPE i,
+    END OF ty_version.
+
+  TYPES:
+    BEGIN OF ty_transport_type,
+      request TYPE trfunction,
+      task    TYPE trfunction,
+    END OF ty_transport_type .
+
+  TYPES:
+    BEGIN OF ty_alv_column,
+      name   TYPE string,
+      text   TYPE string,
+      length TYPE lvc_outlen,
+    END OF ty_alv_column,
+    ty_alv_column_tt TYPE TABLE OF ty_alv_column WITH DEFAULT KEY.
+
+  CONSTANTS:
+    BEGIN OF c_action,
+      go_home         TYPE string VALUE 'go_home',
+      go_settings     TYPE string VALUE 'go_settings',
+      jump            TYPE string VALUE 'jump',
+      url             TYPE string VALUE 'url',
+      goto_source     TYPE string VALUE 'goto_source',
+      show_callstack  TYPE string VALUE 'show_callstack',
+      change_order_by TYPE string VALUE 'change_order_by',
+      goto_message    TYPE string VALUE 'goto_message',
+      direction       TYPE string VALUE 'direction',
+    END OF c_action.
+
 ENDINTERFACE.

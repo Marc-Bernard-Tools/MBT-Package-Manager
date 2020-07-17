@@ -1,0 +1,996 @@
+/*
+ * MBT COMMON CSS
+ */
+
+/* FONTS */
+
+/* Google fonts: 
+ * https://fonts.google.com/specimen/Righteous
+ * https://fonts.google.com/specimen/Open+Sans
+ */
+
+@font-face {
+    font-family: 'Righteous';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: local('Righteous'), local('Righteous-Regular'), url("../fonts/righteous.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: 'Open Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: local('Open Sans Regular'), local('OpenSans-Regular'), url("../fonts/opensans.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/*!
+ * Font Awesome Free 5.13.1 by @fontawesome - https://fontawesome.com
+ * License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
+ */
+@font-face {
+    font-family: 'Font Awesome 5 Free';
+    font-style: normal;
+    font-weight: 900;
+    font-display: block;
+    src: url("../fonts/fa-solid-900.woff") format("woff"); 
+}
+.fa, .fas {
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900; 
+}
+
+.icon {
+    line-height: 1;
+}
+.icon:before {
+    font-family: 'Font Awesome 5 Free' !important;
+    font-style: normal;
+    font-weight: 900 !important;
+
+    display: inline-block;
+    text-decoration: none;
+    text-align: center;
+    vertical-align: text-top;
+    width: 1em;
+
+    /* For safety - reset parent styles, that can break glyph codes*/
+    font-variant: normal;
+    text-transform: none;
+}
+.icon.large { 
+    font-size: 200%; 
+}
+
+/* BODY */
+
+body {
+    font-family: "Open Sans";
+    font-weight: 400;
+    background: #fff;
+    color: #000;
+    font-size: 1em;
+    line-height: 1.6;
+}
+
+body.custom-background {
+    background-image: url("/wp-content/uploads/2012/04/luca-zanon-26595-1.jpg");
+    background-position: center top;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+select {
+    border: 2px solid #999 !important;
+    color: #000 !important;
+}
+
+::selection, ::-moz-selection {
+    color: #fff;
+    background-color: #07c;
+}
+
+/* HEADINGS */
+
+h1, h2, h3, h4, h5, h6, .heading, html body .dark .heading, .header .title {
+    font-family: "Righteous";
+    font-weight: 400;
+    color: #000;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    line-height: 1.2;
+    margin: 0 0 20px;
+}
+
+h1 {
+    font-size: 2.5em;
+}
+
+h2 {
+    font-size: 2em;
+}
+
+h3 {
+    font-size: 1.5em;
+}
+
+h4 {
+    font-size: 1.3em;
+}
+
+h5 {
+    font-size: 1.2em;
+}
+
+h6 {
+    font-size: 1.1em;
+}
+
+/* HYPERLINKS */
+
+a {
+    color: #f70;
+}
+
+a:link,
+a:visited {
+    text-decoration: none;
+}
+
+a:hover,
+a:focus,
+body .dark a:hover,
+body .dark a:focus {
+    color: #f70;
+    text-decoration: underline;
+}
+
+/* FORMS */
+
+.button,
+.button:link,
+.button:visited,
+.tp-caption,
+input[type=text],
+input[type=password],
+input[type=input],
+input[type=tel],
+input[type=url],
+input[type=email],
+input[type=number],
+input[type=range],
+input[type=search],
+input[type=color],
+input[type=time],
+input[type=week],
+input[type=month],
+input[type=date],
+input[type=datetime],
+textarea,
+select,
+input[type=submit],
+button[type=submit] {
+    font-family: "Open Sans";
+    font-weight: 400;
+    border-radius: 2px !important;
+    text-shadow: none;
+    -moz-transition: 0.4s all;
+    -webkit-transition: 0.4s all;
+    transition: 0.4s all;
+    text-decoration: none;
+    /* opacity: 1; */
+    /*  from base.css */
+    position: relative;
+    display: inline-block;
+    margin: 5px 0 !important;
+    padding: 12px 15px !important;
+    cursor: pointer;
+    font-size: 16px !important;
+}
+
+input[type=text],
+input[type=password],
+input[type=input],
+input[type=tel],
+input[type=url],
+input[type=email],
+input[type=number],
+input[type=range],
+input[type=search],
+input[type=color],
+input[type=time],
+input[type=week],
+input[type=month],
+input[type=date],
+input[type=datetime],
+textarea,
+select {
+    border: 2px solid #999 !important;
+    background: #fff !important;
+    color: #000 !important;
+}
+
+input[type=checkbox],
+input[type=radio] {
+  /* Double-sized Checkboxes */
+  -ms-transform: scale(2); /* IE */
+  -moz-transform: scale(2); /* FF */
+  -webkit-transform: scale(2); /* Safari and Chrome */
+  -o-transform: scale(2); /* Opera */
+  transform: scale(2);
+  margin: 10px !important;
+}
+
+.button,
+.button:link,
+.button:visited,
+input[type=submit],
+button[type=submit] {
+    border: 2px solid #04c !important;
+    background: #07c !important;
+    color: #fff !important;
+    width: auto;
+    -webkit-appearance: none;
+}
+
+.button:hover,
+.button:focus,
+input[type=submit]:hover,
+input[type=submit]:focus,
+button[type=submit]:hover,
+button[type=submit]:focus {
+    text-decoration: none !important;
+    border: 2px solid #04c !important;
+    background: #07c !important;
+    opacity: 0.9 !important;
+    color: #f70 !important;
+}
+
+.required {
+    color: #b00;
+}
+
+/* MAIN THEME COLORS */
+
+.primary-color {
+    color: #07c;
+}
+.primary-color-bg {
+    background-color: #07c;
+}
+.primary-color-border {
+    border-color: #07c;
+}
+.tp-caption.primary_color_background {
+    background: #07c;
+}
+.tp-caption.primary_color_text{
+    color: #07c;
+}
+
+.secondary-color {
+    color: #999;
+}
+.secondary-color-bg {
+    background-color: #999;
+}
+.secondary-color-border {
+    border-color: #999;
+}
+.tp-caption.secondary_color_background {
+    background: #999;
+}
+.tp-caption.secondary_color_text{
+    color: #999;
+}
+
+/* TABLES */
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 0 0 24px;
+    text-align: left;
+    background-color: #fff;
+    border: 1px solid #999;
+    max-width: 100%;
+    width: 100%;
+}
+
+tr th, thead th {
+    border: none;
+    font-weight: bold;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    background: #ddd;
+    line-height: 20px;
+    text-align: left;
+    padding: 10px;
+    border: none;
+    vertical-align: top;
+}
+
+tr td {
+    border: none;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    background: #fff;
+    line-height: 20px;
+    text-align: left;
+    vertical-align: middle;
+}
+
+tbody td:last-child {
+    border-right: none;
+}
+
+tbody>tr:last-child>td {
+    border-bottom: none;
+}
+
+tfoot tr td {
+    border-bottom: none;
+}
+
+tr td, tr th, thead th, tr th, thead th {
+}
+
+.dark tr th, .dark thead th {
+    border-bottom: 1px solid #ddd;
+}
+
+.dark tr td {
+    border-bottom: 1px solid #ddd;
+}
+
+
+/* GLOBALS */
+
+img {
+    border-width: 0px;
+    vertical-align: middle;
+}
+pre {
+    display: inline; 
+    background-image: none;
+    background-color: #fff;
+    color: #666;
+}
+sup {
+    vertical-align: top;
+    position: relative;
+    top: -0.5em;
+    font-size: 75%;
+}
+.cursor-pointer {
+    cursor: pointer;
+}
+span.separator {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    opacity: 0.25;
+}
+
+/* MODIFIERS */
+
+.emphasis     { font-weight: bold !important; }
+.crossout     { text-decoration: line-through !important; }
+.right        { text-align:right; }
+.center       { text-align:center; }
+.paddings     { padding: 0.5em 0.5em; }
+.pad-sides    { padding-left: 0.3em; padding-right: 0.3em; }
+.margin-v5    { margin-top: 0.5em; margin-bottom: 0.5em; }
+.margin-v1    { margin-top: 1em; margin-bottom: 1em; }
+.indent5em    { padding-left: 0.5em; }
+.pad4px       { padding: 4px; }
+.w100         { width: 100%; }
+.wmin         { width: 1%; }
+.w40          { width: 40%; }
+.float-right  { float: right; }
+.pad-right    { padding-right: 6px; }
+.inline       { display: inline; }
+.hidden       { visibility: hidden; }
+.nodisplay    { display: none; }
+.m-em5-sides  { margin-left: 0.5em; margin-right: 0.5em; }
+.w600px       { width: 600px; }
+.wmax600px    { max-width: 600px; }
+.auto-center  { /* use with max-width */
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* --------------------------------------------------------------
+LAYOUT
+-------------------------------------------------------------- */
+
+/* WRAPPERS */
+
+.wrapper {
+    margin: 0 auto;
+}
+
+/* HEADER */
+
+.header {
+    position: relative;
+    background: #ddd;
+    width: 100%;
+    padding: 5px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.header .logo {
+    float: left;
+    padding-top: 0;
+}
+
+/* PAGE CONTENT */
+
+.main {
+    background: #eee;
+}
+
+/* LOGO */
+
+.logo { 
+    font-style: "Righteous" 
+}
+.logo img { 
+    vertical-align: bottom;
+}
+
+/* PANELS */
+
+div.panel {
+    border-radius: 3px;
+}
+div.dummydiv {
+    padding: 0.5em 1em;
+    text-align: center;
+}
+a.close-btn {
+    text-decoration: none;
+}
+
+/* STRUCTURE DIVS, HEADER & FOOTER */
+
+div#header {
+    padding: 0.5em 0.5em;
+    border-bottom: 3px double;
+}
+div#header > div { 
+    display: inline-block;
+}
+
+div#header .logo { 
+    font-size: x-large; 
+}
+div#header .page-title { 
+    font-size: x-large; 
+}
+div#header span.spacer {
+    display: inline-block;
+    padding-right: 0.25em;
+    padding-left: 0.25em;
+}
+div#footer .logo { 
+    font-size: large;
+}
+div#footer {
+    padding: 0.5em 1em;
+    border-top: 3px double;
+}
+div#footer .version {
+    margin-top: 0.5em;
+    font-size: small;
+}
+
+/* ERROR LOG */
+
+div.log {
+    padding: 6px;
+    margin: 4px;
+    border: 1px  solid;
+    border-radius: 4px;
+}
+div.log > span { 
+    display:block; 
+}
+div.log .icon { 
+    padding-right: 6px; 
+}
+
+/* MISC AND REFACTOR */
+
+.hidden-submit {
+    border: 0 none;
+    height: 0;
+    width: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+/* DEBUG INFO STYLES */
+
+#debug-output {
+    text-align: right;
+    padding-right: 0.5em;
+    font-size: smaller;
+    font-family: Consolas, Courier, monospace;
+}
+#debug-output p {
+    margin-top: 0em;
+    margin-bottom: 0em;
+}
+div.debug_container {
+    padding: 0.5em;
+    font-size: 10pt;
+    font-family: Consolas, Courier, monospace;
+}
+
+div.debug_container p {
+    margin: 0px;
+}
+
+/* MENU */
+
+/* Special credits to example at https://codepen.io/philhoyt/pen/ujHzd */
+/* container div, aligned left,
+   but with .float-right modifier alignes right */
+
+.nav-container ul {
+    list-style: none;
+    position: relative;
+    float: left;
+    margin: 0;
+    padding: 0;
+    white-space: nowrap;
+    text-align: left;
+}
+.nav-container.float-right ul { 
+    float: right; 
+}
+.nav-container ul a {
+    display: block;
+    text-decoration: none;
+    line-height: 30px;
+    padding: 0 12px;
+}
+
+/* clearfix https://css-tricks.com/snippets/css/clear-fix/ */
+.nav-container:after { 
+    clear: both; 
+    display: block; 
+    content: ""; 
+}
+
+/* submenues align to left or right border of the active item
+   depending on .float-right modifier */
+.nav-container ul li {
+    position: relative;
+    float: left;
+    margin: 0;
+    padding: 0;
+}
+.nav-container.float-right ul ul { 
+    left: auto; 
+    right: 0; 
+}
+.nav-container ul li.current-menu-item { 
+    font-weight: 700; 
+}
+.nav-container ul li.force-nav-hover ul { 
+    display: block; 
+}
+.nav-container ul li:hover > ul { 
+    display: block; 
+}
+
+/* special selection style for 1st level items (see also .corner below) */
+.nav-container ul ul {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1;
+    padding: 0;
+    box-shadow: 1px 1px 3px 0px #bbb;
+}
+.nav-container ul ul li {
+    float: none;
+    min-width: 160px;
+}
+.nav-container ul ul a {
+    line-height: 120%;
+    padding: 8px 15px;
+}
+.nav-container ul ul ul {
+    top: 0;
+    left: 100%;
+}
+.nav-container.float-right ul ul ul {
+    left: auto;
+    right: 100%;
+}
+
+/* Minizone to extent hover area,
+   aligned to the left or to the right of the selected item
+   depending on .float-right modifier */
+.nav-container > ul > li > div.minizone {
+    display: none;
+    z-index: 1;
+    position: absolute;
+    padding: 0px;
+    width: 16px;
+    height: 100%;
+    bottom: 0px;
+    left: 100%;
+}
+.nav-container > ul > li:hover div.minizone { 
+    display: block; 
+}
+.nav-container.float-right > ul > li > div.minizone {
+    left: auto;
+    right: 100%;
+}
+
+/* icons - text-align strictly left - otherwise look ugly
+   + bite a bit of left padding for nicer look
+   + forbids item text wrapping (maybe can be done differently) */
+.nav-container ul ul li a .icon {
+    padding-right: 10px;
+    margin-left: -3px;
+}
+.nav-container ul.with-icons li {
+    text-align: left;
+    white-space: nowrap;
+}
+
+/* Special .corner modifier - hangs menu at the top right corner
+   and cancels 1st level background coloring */
+.nav-container.corner {
+    position: absolute;
+    right: 0px;
+}
+
+/* Toolbar separator style */
+.nav-container ul ul li.separator {
+    font-size: x-small;
+    text-align: center;
+    padding: 4px 0;
+    text-transform: uppercase;
+    border-bottom: 1px solid;
+    border-top: 1px solid;
+}
+.nav-container ul ul li.separator:first-child { 
+    border-top: none; 
+}
+
+/* INFO PANEL */
+
+div.info-panel {
+    position: absolute;
+    z-index: 99;
+    top: 36px;
+    left: 50%;
+    width: 40em;
+    margin-left: -20em;
+    box-shadow: 1px 1px 3px 2px #dcdcdc;
+}
+div.info-panel-fixed {
+    position: fixed;
+    top: 15%;
+}
+div.info-panel div.info-hint {
+    text-transform: uppercase;
+    font-size: small;
+    padding: 8px 6px 0px;
+    text-align: center;
+}
+div.info-panel div.info-title {
+    text-transform: uppercase;
+    font-size: small;
+    padding: 6px;
+    text-align: center;
+}
+div.info-panel div.info-title a.close-btn {
+    padding-left: 12px;
+    padding-right: 2px;
+    position: relative;
+    bottom: 1px;
+}
+div.info-panel div.info-list {
+    padding: 0.8em 0.7em 1em;
+}
+div.info-panel li {
+    padding-left: 10px;
+    list-style-type: none;
+}
+div.info-panel h1:first-child {
+    margin: auto; 
+}
+div.info-panel h1 {
+    font-size: inherit;
+    padding: 6px 4px;
+    margin: 4px auto auto;
+    text-decoration: underline;
+    font-weight: normal;
+}
+div.info-panel .version-marker {
+    display: inline-block;
+    margin-left: 20px;
+    border-radius: 3px;
+    padding: 0px 6px;
+    border:  1px solid;
+}
+div.info-panel .update { 
+    border:  1px solid; 
+}
+div.info-panel div.info-list td { 
+    padding-right: 1em 
+}
+
+/* MESSAGE PANEL */
+
+div.message-panel {
+    z-index: 99;
+    box-shadow: 2px 2px 4px 0px hsla(0, 0%, 0%, .1);
+    padding: 12px;
+    margin-left: -48%;
+    position: fixed;
+    bottom: 12px;
+    width: 94%;
+    left: 50%;
+
+    border: 1px solid;
+    border-radius: 5px;
+    border-color: hsl(0, 42%, 64%);
+    background-color: hsla(0, 42%, 90%, 1);
+}
+.message-panel-commands {
+    display: none;
+    margin-right: 2em;
+}
+.message-panel-commands a {
+    padding: 0em 0.5em;
+    border-left: 1px solid;
+    border-left-color: #ccc;
+}
+.message-panel-commands a:first-child {
+    padding-left: 0;
+    border-left: none;
+}
+div.message-panel:hover .message-panel-commands {
+    display: block;
+}
+
+/* TOOLTIP */
+
+.link-hint {
+    line-height: 1em;
+    text-align: center;
+    padding: 5px 15px;
+    border-radius: 4px;
+
+    /* Position the tooltip text */
+    position: absolute;
+    z-index: 1;
+    margin-top: -30px;
+}
+.link-hint-a {
+    margin-left: -60px;
+}
+.link-hint-input {
+    margin-left: -30px;
+}
+.link-hint .pending { 
+    color: hsla(0, 0%, 0%, 0.2);
+}
+
+/* Tooltip arrow */
+.link-hint::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent;
+}
+
+/* HOTKEYS */
+
+ul.hotkeys {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    font-size: smaller;
+}
+ul.hotkeys span.key-id {
+    border: 1px solid;
+    border-radius: 3px;
+    padding: 1px 7px;
+    width: 1em;
+    display: inline-block;
+    text-align: center;
+    margin-top: 0.2em;
+}
+ul.hotkeys span.key-descr {
+    margin-left: 1.2em;
+}
+div.corner-hint {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    border: 1px solid;
+    border-radius: 3px;
+    padding: 4px;
+    font-size: smaller;
+    opacity: 0.5;
+    z-index: 99;
+}
+
+/* FLOATING BUTTONS */
+
+.floating-button {
+    position: fixed;
+    top: 6em;
+    right: 2.8em;
+    padding: 1em 1.8em;
+    border-radius: 4px;
+    border-width: 1px;
+    border-style: solid;
+    box-shadow: 2px 2px 6px 0px #ccc;
+    cursor: pointer;
+}
+
+/* COMMAND PALETTE */
+
+.cmd-palette {
+    position: absolute;
+    z-index: 99;
+    top: 36px;
+    left: 50%;
+    width: 40em;
+    margin-left: -20em;
+    box-shadow: 1px 1px 3px 2px #dcdcdc;
+    background-color: white;
+    border: solid 2px;
+    padding: 0px 1px;
+}
+.cmd-palette input {
+    width: 100%;
+    box-sizing: border-box;
+}
+.cmd-palette ul {
+    max-height: 10em;
+    overflow-y: scroll;
+    margin: 4px 0;
+    padding: 2px 4px;
+}
+.cmd-palette li {
+    list-style-type: none;
+    cursor: default;
+    padding: 4px 6px;
+}
+.cmd-palette li .icon {
+    margin-right: 10px;
+}
+
+/* DIALOGS */
+
+.dialog {
+    border: 1px solid;
+    padding: 1em 1em;
+    border-radius: 6px;
+    text-align: left;
+}
+.dialog ul {
+    padding: 0;
+    margin: 0;
+}
+.dialog li {
+    padding: 5px 10px;
+    display: block;
+    list-style: none;
+    position: relative;
+}
+.dialog li.dialog-commands {
+    text-align: right;
+    margin-top: 12px;
+}
+.dialog li.dialog-commands a {
+    border: 1px solid;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    font-size: smaller;
+}
+.dialog li.dialog-commands input[type="submit"] {
+    border: 1px solid;
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+.dialog li.dialog-commands input[type="submit"].main {
+    border: 1px solid transparent;
+}
+.dialog label {
+    display: block;
+    font-size: 90%;
+    margin-top: 6px;
+    margin-bottom: 6px;
+    padding-left: 0.5em;
+}
+.dialog li.error small {
+    display: block;
+    font-size: 75%;
+    margin: 4px 0px;
+    padding-left: 0.5em;
+}
+.dialog .radio-container {
+    border: 1px solid;
+    display: inline-block;
+    padding: 4px;
+    border-radius: 3px;
+}
+.dialog input[type="checkbox"] + label {
+    display: inline-block;
+}
+.dialog input[type="text"] {
+    width: 100%;
+    box-sizing : border-box;
+    height: 2.5em;
+}
+.dialog .radio-container input[type="radio"] {
+    visibility: hidden;
+    display: none;
+    height: 0px;
+    width: 0px;
+}
+.dialog .radio-container input[type="radio"] + label {
+    border: 1px solid transparent;
+    cursor: pointer;
+    width: auto;
+    margin: 0px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    display: inline-block;
+}
+.dialog .radio-container input[type="radio"]:checked + label {
+    border: 1px solid transparent;
+}
+.dialog li.with-command div.input-container {
+    display: table-cell;
+    width: 100%;
+}
+.dialog li.with-command div.command-container {
+    display: table-cell;
+}
+.dialog li.with-command input[type="submit"] {
+    height: 2.5em;
+}
+.dialog fieldset {
+    margin-top: 1em;
+    border: 1px solid;
+    border-radius: 6px; /* doesn't work in IE ? */
+    padding-bottom: 1em;
+}
+.dialog fieldset:first-child {
+    margin-top: 0;
+}
+.dialog fieldset legend {
+    font-size: small;
+    text-transform: uppercase;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}

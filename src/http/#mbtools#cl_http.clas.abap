@@ -55,12 +55,12 @@ CLASS /mbtools/cl_http DEFINITION
       RAISING
         /mbtools/cx_exception .
   PRIVATE SECTION.
+
     CONSTANTS:
       BEGIN OF c_login,
         user TYPE string VALUE 'LoginUser',
-      END OF c_login.
-
-    CLASS-DATA: mo_settings TYPE REF TO /mbtools/cl_registry.
+      END OF c_login .
+    CLASS-DATA mo_settings TYPE REF TO /mbtools/cl_registry .
 ENDCLASS.
 
 
@@ -138,7 +138,7 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
 
   METHOD class_constructor.
 
-    mo_settings = /mbtools/cl_tools=>factory( /mbtools/cl_base=>c_title )->get_settings( ).
+    mo_settings = /mbtools/cl_tools=>factory( /mbtools/cl_tool_bc=>c_tool-title )->get_settings( ).
 
   ENDMETHOD.
 
@@ -233,7 +233,7 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
 
   METHOD get_agent.
 
-    rv_agent = |MBT { /mbtools/cl_base=>c_version })|.
+    rv_agent = |MBT { /mbtools/cl_tool_bc=>c_tool-version })|.
 
   ENDMETHOD.
 
