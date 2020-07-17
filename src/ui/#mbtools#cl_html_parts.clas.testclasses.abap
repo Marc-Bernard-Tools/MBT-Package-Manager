@@ -22,7 +22,7 @@ CLASS ltcl_part_collections IMPLEMENTATION.
     DATA lo_html_tmp TYPE REF TO /mbtools/if_html.
     DATA lo_parts TYPE REF TO /mbtools/cl_html_parts.
     DATA lt_col_exp TYPE string_table.
-    DATA lt_parts_act TYPE /mbtools/if_html=>tty_table_of.
+    DATA lt_parts_act TYPE /mbtools/if_html=>ty_table_of.
 
     CREATE OBJECT lo_html1.
     CREATE OBJECT lo_html2.

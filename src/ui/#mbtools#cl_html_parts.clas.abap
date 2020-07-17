@@ -22,7 +22,7 @@ CLASS /mbtools/cl_html_parts DEFINITION
       IMPORTING
         !iv_collection  TYPE string
       RETURNING
-        VALUE(rt_parts) TYPE /mbtools/if_html=>tty_table_of .
+        VALUE(rt_parts) TYPE /mbtools/if_html=>ty_table_of .
     METHODS get_collection_names
       RETURNING
         VALUE(rt_list) TYPE string_table .
@@ -37,7 +37,7 @@ CLASS /mbtools/cl_html_parts DEFINITION
     TYPES:
       BEGIN OF ty_named_collection,
         name TYPE string,
-        pile TYPE /mbtools/if_html=>tty_table_of,
+        pile TYPE /mbtools/if_html=>ty_table_of,
       END OF ty_named_collection.
     TYPES:
       ty_named_collections TYPE STANDARD TABLE OF ty_named_collection WITH KEY name.

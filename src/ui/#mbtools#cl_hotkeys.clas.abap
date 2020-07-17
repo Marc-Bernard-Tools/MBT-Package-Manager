@@ -35,12 +35,12 @@ CLASS /mbtools/cl_hotkeys DEFINITION
 
     CLASS-METHODS get_all_default_hotkeys
       RETURNING
-        VALUE(rt_hotkey_actions) TYPE /mbtools/if_gui_hotkeys=>tty_hotkey_with_descr
+        VALUE(rt_hotkey_actions) TYPE /mbtools/if_gui_hotkeys=>ty_hotkeys_with_descr
       RAISING
         /mbtools/cx_exception .
     CLASS-METHODS merge_hotkeys_with_settings
       CHANGING
-        !ct_hotkey_actions TYPE /mbtools/if_gui_hotkeys=>tty_hotkey_with_descr
+        !ct_hotkey_actions TYPE /mbtools/if_gui_hotkeys=>ty_hotkeys_with_descr
       RAISING
         /mbtools/cx_exception .
     CLASS-METHODS should_show_hint
@@ -73,15 +73,15 @@ CLASS /mbtools/cl_hotkeys DEFINITION
       IMPORTING
         !iv_class_name    TYPE seoclsname
       RETURNING
-        VALUE(rt_hotkeys) TYPE /mbtools/if_gui_hotkeys=>tty_hotkey_with_descr .
+        VALUE(rt_hotkeys) TYPE /mbtools/if_gui_hotkeys=>ty_hotkeys_with_descr.
     CLASS-METHODS get_hotkeys_from_global_intf
       RETURNING
-        VALUE(rt_hotkeys) TYPE /mbtools/if_gui_hotkeys=>tty_hotkey_with_descr
+        VALUE(rt_hotkeys) TYPE /mbtools/if_gui_hotkeys=>ty_hotkeys_with_descr
       RAISING
         /mbtools/cx_exception .
     METHODS render_scripts
       IMPORTING
-        !it_hotkeys    TYPE /mbtools/if_gui_hotkeys=>tty_hotkey_with_descr
+        !it_hotkeys    TYPE /mbtools/if_gui_hotkeys=>ty_hotkeys_with_descr
       RETURNING
         VALUE(ri_html) TYPE REF TO /mbtools/if_html .
 ENDCLASS.
@@ -144,7 +144,7 @@ CLASS /MBTOOLS/CL_HOTKEYS IMPLEMENTATION.
 
     DATA:
       lv_hint               TYPE string,
-      lt_registered_hotkeys TYPE /mbtools/if_gui_hotkeys=>tty_hotkey_with_descr,
+      lt_registered_hotkeys TYPE /mbtools/if_gui_hotkeys=>ty_hotkeys_with_descr,
       lv_hotkey             TYPE string.
 
     FIELD-SYMBOLS <ls_hotkey> LIKE LINE OF lt_registered_hotkeys.
@@ -304,7 +304,7 @@ CLASS /MBTOOLS/CL_HOTKEYS IMPLEMENTATION.
   METHOD render_scripts.
 
     DATA lv_json TYPE string.
-    DATA lt_hotkeys TYPE /mbtools/if_gui_hotkeys=>tty_hotkey_with_descr.
+    DATA lt_hotkeys TYPE /mbtools/if_gui_hotkeys=>ty_hotkeys_with_descr.
 
     FIELD-SYMBOLS: <ls_hotkey> LIKE LINE OF lt_hotkeys.
 

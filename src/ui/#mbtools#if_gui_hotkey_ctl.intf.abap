@@ -18,7 +18,7 @@ INTERFACE /mbtools/if_gui_hotkey_ctl
 
   METHODS get_registered_hotkeys
     RETURNING
-      VALUE(rt_registered_hotkeys) TYPE /mbtools/if_gui_hotkeys=>tty_hotkey_with_descr
+      VALUE(rt_registered_hotkeys) TYPE /mbtools/if_gui_hotkeys=>ty_hotkeys_with_descr
     RAISING
       /mbtools/cx_exception .
 

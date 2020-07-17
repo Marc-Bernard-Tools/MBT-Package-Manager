@@ -19,10 +19,10 @@ CLASS /mbtools/cl_gui_asset_manager DEFINITION
     TYPES:
       BEGIN OF ty_asset_entry.
         INCLUDE TYPE /mbtools/if_gui_asset_manager~ty_web_asset.
-        TYPES: mime_name TYPE wwwdatatab-objid,
+    TYPES: mime_name TYPE wwwdatatab-objid,
       END OF ty_asset_entry .
     TYPES:
-      tt_asset_register TYPE STANDARD TABLE OF ty_asset_entry WITH KEY url .
+      ty_asset_register TYPE STANDARD TABLE OF ty_asset_entry WITH KEY url .
 
     METHODS register_asset
       IMPORTING
@@ -35,7 +35,7 @@ CLASS /mbtools/cl_gui_asset_manager DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    DATA mt_asset_register TYPE tt_asset_register.
+    DATA mt_asset_register TYPE ty_asset_register.
 
     METHODS get_mime_asset
       IMPORTING
@@ -87,7 +87,7 @@ CLASS /MBTOOLS/CL_GUI_ASSET_MANAGER IMPLEMENTATION.
   METHOD /mbtools/if_gui_asset_manager~get_text_asset.
 
     DATA ls_asset TYPE /mbtools/if_gui_asset_manager~ty_web_asset.
-    ls_asset = me->/mbtools/if_gui_asset_manager~get_asset( iv_url ).
+    ls_asset = /mbtools/if_gui_asset_manager~get_asset( iv_url ).
 
     IF ls_asset-type <> 'text'.
       /mbtools/cx_exception=>raise( |Not a text asset: { iv_url }| ).

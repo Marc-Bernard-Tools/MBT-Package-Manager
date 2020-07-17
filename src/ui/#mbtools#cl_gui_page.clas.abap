@@ -263,7 +263,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
 
   METHOD render_deferred_parts.
 
-    DATA lt_parts TYPE /mbtools/if_html=>tty_table_of.
+    DATA lt_parts TYPE /mbtools/if_html=>ty_table_of.
     DATA li_part LIKE LINE OF lt_parts.
 
     lt_parts = gui_services( )->get_html_parts( )->get_parts( iv_part_category ).

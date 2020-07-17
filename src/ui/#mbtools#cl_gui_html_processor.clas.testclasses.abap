@@ -16,23 +16,29 @@ CLASS ltcl_gui_mock DEFINITION FOR TESTING FINAL.
 ENDCLASS.
 
 CLASS ltcl_gui_mock IMPLEMENTATION.
+
   METHOD /mbtools/if_gui_services~cache_asset.
     ms_last_cache_signature-url  = iv_url.
     ms_last_cache_signature-type = iv_type && '/' && iv_subtype.
     ms_last_cache_signature-data = iv_text.
   ENDMETHOD.
+
   METHOD /mbtools/if_gui_services~register_event_handler.
   ENDMETHOD.
+
   METHOD /mbtools/if_gui_services~get_current_page_name.
   ENDMETHOD.
+
   METHOD /mbtools/if_gui_services~get_hotkeys_ctl.
   ENDMETHOD.
+
   METHOD /mbtools/if_gui_services~get_html_parts.
   ENDMETHOD.
 
   METHOD get_asset.
     rs_asset = ms_last_cache_signature.
   ENDMETHOD.
+
 ENDCLASS.
 
 
@@ -198,7 +204,6 @@ CLASS ltcl_html_processor_test IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
-
 
   METHOD find_head_closing_tag.
     "given

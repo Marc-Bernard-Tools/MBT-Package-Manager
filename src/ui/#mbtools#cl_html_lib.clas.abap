@@ -353,7 +353,7 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
 
     DATA: lv_text TYPE string,
           lv_hint TYPE string,
-          lt_log  TYPE /mbtools/cl_news=>tt_log.
+          lt_log  TYPE /mbtools/cl_news=>ty_logs.
 
     FIELD-SYMBOLS: <ls_line> LIKE LINE OF lt_log.
 
