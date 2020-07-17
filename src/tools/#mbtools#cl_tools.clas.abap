@@ -20,7 +20,7 @@ CLASS /mbtools/cl_tools DEFINITION
     CONSTANTS:
       BEGIN OF c_reg,
         " Registry General
-        general            TYPE string VALUE 'General^' ##NO_TEXT,
+        general            TYPE string VALUE '.General' ##NO_TEXT,
         key_name           TYPE string VALUE 'Name' ##NO_TEXT,
         key_class          TYPE string VALUE 'Class' ##NO_TEXT,
         key_title          TYPE string VALUE 'Title' ##NO_TEXT,
@@ -29,7 +29,7 @@ CLASS /mbtools/cl_tools DEFINITION
         key_namespace      TYPE string VALUE 'Namespace' ##NO_TEXT,
         key_package        TYPE string VALUE 'Package' ##NO_TEXT,
         " Registry Properties
-        properties         TYPE string VALUE 'Properties^' ##NO_TEXT,
+        properties         TYPE string VALUE '.Properties' ##NO_TEXT,
         key_install_time   TYPE string VALUE 'InstallTimestamp' ##NO_TEXT,
         key_install_user   TYPE string VALUE 'InstallUser' ##NO_TEXT,
         key_uninstall_time TYPE string VALUE 'UninstallTimestamp' ##NO_TEXT,
@@ -42,7 +42,7 @@ CLASS /mbtools/cl_tools DEFINITION
         key_debug          TYPE string VALUE 'Debug' ##NO_TEXT,
         key_trace          TYPE string VALUE 'Trace' ##NO_TEXT,
         " Registry License
-        license            TYPE string VALUE 'License^' ##NO_TEXT,
+        license            TYPE string VALUE '.License' ##NO_TEXT,
         key_lic_id         TYPE string VALUE 'ID' ##NO_TEXT,
         key_lic_bundle     TYPE string VALUE 'BundleID' ##NO_TEXT,
         key_lic_key        TYPE string VALUE 'LicenseKey' ##NO_TEXT,
@@ -57,10 +57,10 @@ CLASS /mbtools/cl_tools DEFINITION
     CONSTANTS:
       " Actions
       BEGIN OF c_action,
-        register   TYPE string VALUE 'register',
-        unregister TYPE string VALUE 'unregister',
-        activate   TYPE string VALUE 'activate',
-        deactivate TYPE string VALUE 'deactivate',
+        register   TYPE string VALUE 'register' ##NO_TEXT,
+        unregister TYPE string VALUE 'unregister' ##NO_TEXT,
+        activate   TYPE string VALUE 'activate' ##NO_TEXT,
+        deactivate TYPE string VALUE 'deactivate' ##NO_TEXT,
       END OF c_action .
     DATA mbt_manifest TYPE /mbtools/if_manifest=>ty_descriptor READ-ONLY .
 
@@ -510,16 +510,12 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
   METHOD get_name.
 
+    " Note: This name determines the sort order
+
     " Mixed case, underscore
     rv_name = mv_title.
 
     REPLACE ALL OCCURRENCES OF ` ` IN rv_name WITH '_'.
-
-    " We want the base class to be first in the registry
-    " 'Marc_Bernard_Tools' would be after 'MBT Tool XYZ' in the sort order but isn't
-    IF mv_title = /mbtools/cl_tool_bc=>c_tool-title.
-      rv_name = to_upper( rv_name ).
-    ENDIF.
 
   ENDMETHOD.
 
@@ -1052,17 +1048,18 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           RETURN.
         ENDIF.
 
+        " Get bundle
+        lo_reg_bundle = get_reg_bundle( mv_bundle_id ).
+        IF NOT lo_reg_bundle IS BOUND.
+          RETURN. ">>>
+        ENDIF.
+
         " Remove registry branch
         IF mv_is_bundle IS INITIAL.
-          lo_reg_bundle = get_reg_bundle( mv_bundle_id ).
-          IF lo_reg_bundle IS BOUND.
-            lo_reg_bundle->remove_subentry( mv_name ).
-          ELSE.
-            RETURN. ">>>
-          ENDIF.
+          lo_reg_bundle->remove_subentry( mv_name ).
         ELSE.
           " Check if any tools are still registered
-          lt_entries = go_reg_root->get_subentries( ).
+          lt_entries = lo_reg_bundle->get_subentries( ).
           LOOP AT lt_entries INTO ls_entry WHERE key CP 'MBT*'.
             EXIT.
           ENDLOOP.

@@ -13,12 +13,14 @@ CLASS /mbtools/cl_base DEFINITION
 
     METHODS initialize
       IMPORTING
-        !iv_all TYPE abap_bool .
+        !iv_all_tools   TYPE abap_bool
+        !iv_all_bundles TYPE abap_bool .
     METHODS screen .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    DATA mv_all TYPE abap_bool .
+    DATA mv_all_tools TYPE abap_bool .
+    DATA mv_all_bundles TYPE abap_bool .
 ENDCLASS.
 
 
@@ -28,7 +30,8 @@ CLASS /MBTOOLS/CL_BASE IMPLEMENTATION.
 
   METHOD initialize.
 
-    mv_all = iv_all.
+    mv_all_tools = iv_all_tools.
+    mv_all_bundles = iv_all_bundles.
 
   ENDMETHOD.
 
@@ -40,7 +43,12 @@ CLASS /MBTOOLS/CL_BASE IMPLEMENTATION.
     LOOP AT SCREEN.
       lv_show = abap_true.
 
-      IF screen-name = 'P_TITLE' AND mv_all = abap_true.
+      IF screen-name = 'P_TITLE' AND
+        ( mv_all_tools = abap_true OR mv_all_bundles = abap_true ).
+        lv_show = abap_false.
+      ELSEIF screen-name = 'P_ACT' AND mv_all_bundles = abap_true.
+        lv_show = abap_false.
+      ELSEIF screen-name = 'P_DEACT' AND mv_all_bundles = abap_true.
         lv_show = abap_false.
       ENDIF.
 

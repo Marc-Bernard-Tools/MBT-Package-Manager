@@ -444,7 +444,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
 
 *>>>INS
     " Read-only registry entries
-    IF ls_tab-reg_entry->mv_entry_id CS '^'.
+    IF ls_tab-reg_entry->mv_entry_id CP '.*'.
       gr_table->set_ready_for_input( 0 ).
       gv_read_only = abap_true.
     ELSE.

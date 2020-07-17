@@ -228,7 +228,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * sensible paths and string handling in other applications
 * Most of all, we want to avoid spaces and slashes (although those
 * square and curly brackets could cause problems for JSON...)
-    IF NOT iv_key CO 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890@#$%^_+-(){}[]'.
+    IF NOT iv_key CO 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890@#$%^_+-().'.
       /mbtools/cx_exception=>raise( 'Invalid registry key'(007) ).
     ENDIF.
 

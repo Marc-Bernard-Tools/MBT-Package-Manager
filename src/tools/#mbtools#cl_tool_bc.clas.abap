@@ -16,7 +16,7 @@ CLASS /mbtools/cl_tool_bc DEFINITION
     CONSTANTS:
       BEGIN OF c_tool,
         version     TYPE string VALUE '1.0.0' ##NO_TEXT,
-        title       TYPE string VALUE 'Marc Bernard Tools' ##NO_TEXT,
+        title       TYPE string VALUE 'MBT Base' ##NO_TEXT,
         description TYPE string VALUE 'Essential Tools for SAP® Customers & Partners' ##NO_TEXT,
         bundle_id   TYPE i VALUE 0,
         download_id TYPE i VALUE 4480,

@@ -20,7 +20,9 @@ SELECTION-SCREEN:
   END OF BLOCK b200,
   BEGIN OF BLOCK b210 WITH FRAME.
 PARAMETERS:
-  p_all   AS CHECKBOX DEFAULT 'X' USER-COMMAND all,
+  p_bund  RADIOBUTTON GROUP g0 DEFAULT 'X' USER-COMMAND all,
+  p_all   RADIOBUTTON GROUP g0,
+  p_sel   RADIOBUTTON GROUP g0,
   p_title TYPE string MEMORY ID /mbtools/tool LOWER CASE.
 SELECTION-SCREEN:
   END OF BLOCK b210,
@@ -115,6 +117,17 @@ INITIALIZATION.
 
 AT SELECTION-SCREEN.
 
+  IF p_bund = abap_true.
+    IF p_act = abap_true.
+      p_act  = abap_false.
+      p_show = abap_true.
+    ENDIF.
+    IF p_deact = abap_true.
+      p_deact = abap_false.
+      p_show  = abap_true.
+    ENDIF.
+  ENDIF.
+
   go_app->screen( ).
 
   go_screen->ucomm( sscrfields-ucomm ).
@@ -123,7 +136,8 @@ AT SELECTION-SCREEN.
 
 AT SELECTION-SCREEN OUTPUT.
 
-  go_app->initialize( iv_all = p_all ).
+  go_app->initialize( iv_all_bundles = p_bund
+                      iv_all_tools   = p_all ).
 
   go_screen->banner( iv_top  = 4
                      iv_left = 20 ).
@@ -136,9 +150,10 @@ AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_title.
 
   /mbtools/cl_tools=>f4_tools(
     EXPORTING
-      iv_pattern = p_title
+      iv_pattern      = p_title
+      iv_with_bundles = abap_true
     RECEIVING
-      rv_title   = p_title ).
+      rv_title        = p_title ).
 
 *-----------------------------------------------------------------------
 
@@ -153,6 +168,37 @@ START-OF-SELECTION.
     SUBMIT /mbtools/registry VIA SELECTION-SCREEN AND RETURN.
 
     RETURN.
+
+  ELSEIF p_bund = abap_true.
+
+    gv_tool = 'Bundles were'.
+
+    DO 3 TIMES.
+      CASE sy-index.
+        WHEN 1.
+          go_tool = /mbtools/cl_tools=>factory( /mbtools/cl_bundle_free=>c_tool-title ).
+        WHEN 2.
+          go_tool = /mbtools/cl_tools=>factory( /mbtools/cl_bundle_prem_basis=>c_tool-title ).
+        WHEN 3.
+          go_tool = /mbtools/cl_tools=>factory( /mbtools/cl_bundle_prem_bw=>c_tool-title ).
+      ENDCASE.
+
+      CASE abap_true.
+        WHEN p_reg.
+
+          gv_flag   = go_tool->register( ).
+          gv_action = 'registered'.
+
+        WHEN p_unreg.
+
+          gv_flag   = go_tool->unregister( ).
+          gv_action = 'unregistered'.
+      ENDCASE.
+
+      IF gv_flag = abap_false.
+        EXIT.
+      ENDIF.
+    ENDDO.
 
   ELSEIF p_all = abap_true.
 

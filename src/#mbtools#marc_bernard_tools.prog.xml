@@ -31,6 +31,12 @@
     </item>
     <item>
      <ID>S</ID>
+     <KEY>P_BUND</KEY>
+     <ENTRY>All Bundles</ENTRY>
+     <LENGTH>19</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
      <KEY>P_DEACT</KEY>
      <ENTRY>Deactivate</ENTRY>
      <LENGTH>23</LENGTH>
@@ -40,6 +46,12 @@
      <KEY>P_REG</KEY>
      <ENTRY>Register</ENTRY>
      <LENGTH>21</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_SEL</KEY>
+     <ENTRY>Selected Tools</ENTRY>
+     <LENGTH>22</LENGTH>
     </item>
     <item>
      <ID>S</ID>
