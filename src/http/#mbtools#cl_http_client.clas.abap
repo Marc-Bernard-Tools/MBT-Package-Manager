@@ -68,17 +68,21 @@ CLASS /MBTOOLS/CL_HTTP_CLIENT IMPLEMENTATION.
 
     CASE lv_code.
       WHEN 200.
-        RETURN.
+        RETURN. " Success, OK
       WHEN 302.
-        /mbtools/cx_exception=>raise( 'HTTP redirect, check URL' ).
+        /mbtools/cx_exception=>raise( 'Resource access temporarily redirected. Check the URL (HTTP 302)' ) ##NO_TEXT.
       WHEN 401.
-        /mbtools/cx_exception=>raise( 'HTTP 401, unauthorized' ).
+        /mbtools/cx_exception=>raise( 'Unauthorized access to resource. Check your credentials (HTTP 401)' ) ##NO_TEXT.
       WHEN 403.
-        /mbtools/cx_exception=>raise( 'HTTP 403, forbidden' ).
+        /mbtools/cx_exception=>raise( 'Access to resource forbidden (HTTP 403)' ) ##NO_TEXT.
       WHEN 404.
-        /mbtools/cx_exception=>raise( 'HTTP 404, not found' ).
+        /mbtools/cx_exception=>raise( 'Resource not found. Check the URL (HTTP 404)' ) ##NO_TEXT.
+      WHEN 407.
+        /mbtools/cx_exception=>raise( 'Proxy authentication required. Check your credentials (HTTP 407)' ) ##NO_TEXT.
+      WHEN 408.
+        /mbtools/cx_exception=>raise( 'Request timeout (HTTP 408)' ) ##NO_TEXT.
       WHEN 415.
-        /mbtools/cx_exception=>raise( 'HTTP 415, unsupported media type' ).
+        /mbtools/cx_exception=>raise( 'Unsupported media type (HTTP 415)' ) ##NO_TEXT.
       WHEN OTHERS.
         lv_text = mi_client->response->get_cdata( ).
         /mbtools/cx_exception=>raise( |HTTP error code: { lv_code }, { lv_text }| ).
@@ -95,7 +99,7 @@ CLASS /MBTOOLS/CL_HTTP_CLIENT IMPLEMENTATION.
     IF iv_expected_content_type IS NOT INITIAL.
       lv_content_type = mi_client->response->get_content_type( ).
       IF lv_content_type <> iv_expected_content_type.
-        /mbtools/cx_exception=>raise( 'Wrong content-type sent by server' ).
+        /mbtools/cx_exception=>raise( 'Wrong content-type sent by server' ) ##NO_TEXT.
       ENDIF.
     ENDIF.
 
@@ -103,7 +107,7 @@ CLASS /MBTOOLS/CL_HTTP_CLIENT IMPLEMENTATION.
       lv_data = mi_client->response->get_cdata( ).
       FIND REGEX iv_content_regex IN lv_data.
       IF sy-subrc <> 0.
-        /mbtools/cx_exception=>raise( 'Wrong content sent by server' ).
+        /mbtools/cx_exception=>raise( 'Wrong content sent by server' ) ##NO_TEXT.
       ENDIF.
     ENDIF.
 
@@ -177,8 +181,6 @@ CLASS /MBTOOLS/CL_HTTP_CLIENT IMPLEMENTATION.
 
 
   METHOD set_headers.
-
-    DATA: lv_value TYPE string.
 
     mi_client->request->set_header_field(
       name  = '~request_method'

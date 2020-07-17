@@ -106,8 +106,6 @@ CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
 
     DATA:
       lv_oltpsource TYPE rsaot_oltpsource,
-      lv_rlogsys    TYPE rsaot_logsys,
-      ls_oltpsource TYPE rsaot_s_osource,
       ls_object     TYPE rso_s_tlogo,
       lv_txtsh      TYPE rstxtsh,
       lv_txtlg      TYPE rstxtlg.

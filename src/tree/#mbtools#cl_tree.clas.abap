@@ -478,13 +478,10 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
       lv_mode     TYPE c LENGTH 1,
       lv_compuid  TYPE sysuuid_25,
       lv_vnam     TYPE rszvnam,
-      lv_service  TYPE rsplf_srvnm,
-      lv_plseq    TYPE rspls_seqnm,
       lv_provider TYPE rsinfoprov,
       lv_srvtype  TYPE rsplf_srvtypenm,
       lo_lpogui   TYPE REF TO cl_rslpo_gui,
-      lv_lpo      TYPE rslponame,
-      lv_length   TYPE i.
+      lv_lpo      TYPE rslponame.
 
     READ TABLE mt_outtab INTO ms_outtab
       WITH KEY node_key = node_key.

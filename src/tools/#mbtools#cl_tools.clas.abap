@@ -560,6 +560,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         ENDLOOP.
 
       CATCH cx_root.
+        RETURN.
     ENDTRY.
 
   ENDMETHOD.
@@ -583,6 +584,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         ENDLOOP.
 
       CATCH cx_root.
+        RETURN.
     ENDTRY.
 
   ENDMETHOD.
@@ -604,6 +606,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         ro_reg = lo_reg_tool->get_subentry( c_reg-settings ).
 
       CATCH cx_root.
+        RETURN.
     ENDTRY.
 
   ENDMETHOD.
@@ -1034,7 +1037,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     DATA:
       lo_reg_bundle TYPE REF TO /mbtools/cl_registry,
       lo_reg_tool   TYPE REF TO /mbtools/cl_registry,
-      ls_entry      TYPE /mbtools/cl_registry=>ty_keyobj,
+      ls_entry      TYPE /mbtools/cl_registry=>ty_keyobj ##NEEDED,
       lt_entries    TYPE /mbtools/cl_registry=>ty_keyobjs.
 
     TRY.

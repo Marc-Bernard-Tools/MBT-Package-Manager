@@ -15,7 +15,7 @@ CLASS /mbtools/cl_http DEFINITION
 
     CONSTANTS:
       BEGIN OF c_scheme,
-        digest TYPE string VALUE 'Digest',
+        digest TYPE string VALUE 'Digest' ##NO_TEXT,
       END OF c_scheme .
 
     CLASS-METHODS class_constructor .
@@ -87,7 +87,7 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
         cv_pass = lv_pass ).
 
     IF lv_user IS INITIAL.
-      /mbtools/cx_exception=>raise( 'HTTP 401, unauthorized' ).
+      /mbtools/cx_exception=>raise( 'Request unauthorized (HTTP 401)' ) ##NO_TEXT.
     ENDIF.
 
     IF lv_user <> lv_default_user.
@@ -95,7 +95,7 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
           mo_settings->set_value( iv_key = c_login-user
                                   iv_value = lv_user ).
           mo_settings->save( ).
-        CATCH cx_root.
+        CATCH cx_root ##NO_HANDLER.
           " Ignore
       ENDTRY.
     ENDIF.
@@ -145,8 +145,7 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
 
   METHOD create_by_url.
 
-    DATA: lv_uri                 TYPE string,
-          lv_scheme              TYPE string,
+    DATA: lv_scheme              TYPE string,
           li_client              TYPE REF TO if_http_client,
           lo_proxy_configuration TYPE REF TO /mbtools/cl_proxy_config,
           lv_text                TYPE string.
@@ -171,7 +170,7 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
         WHEN 1.
           " make sure:
           " a) SSL is setup properly in STRUST
-          lv_text = 'HTTPS ARGUMENT_NOT_FOUND | STRUST/SSL Setup correct?'.
+          lv_text = 'HTTPS ARGUMENT_NOT_FOUND | STRUST/SSL Setup correct?' ##NO_TEXT.
         WHEN OTHERS.
           lv_text = 'While creating HTTP Client'.           "#EC NOTEXT
 
@@ -204,7 +203,7 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
     IF NOT iv_content IS INITIAL.
       li_client->request->set_header_field(
           name  = 'Content-type'
-          value = iv_content ).
+          value = iv_content ).                             "#EC NOTEXT
     ENDIF.
 
     " Disable internal auth dialog (due to its unclarity)
@@ -262,7 +261,7 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
     FIND REGEX 'https?://([^/^:]*)' IN iv_url
       SUBMATCHES lv_host.
 
-    READ TABLE lt_list WITH KEY hostname = lv_host TRANSPORTING NO FIELDS.
+    READ TABLE lt_list WITH KEY hostname = lv_host TRANSPORTING NO FIELDS ##WARN_OK.
     rv_bool = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.

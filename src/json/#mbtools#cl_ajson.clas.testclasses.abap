@@ -868,14 +868,14 @@ CLASS ltcl_json_to_abap DEFINITION
         a TYPE string,
         b TYPE i,
       END OF ty_struc,
-      tty_struc TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
+      ty_strucs TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
       BEGIN OF ty_complex,
         str   TYPE string,
         int   TYPE i,
         float TYPE f,
         bool  TYPE abap_bool,
         obj   TYPE ty_struc,
-        tab   TYPE tty_struc,
+        tab   TYPE ty_strucs,
         oref  TYPE REF TO object,
       END OF ty_complex.
 
@@ -953,7 +953,8 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
       act = <val>
       exp = 'World' ).
 
-    ref = lo_cut->find_loc( iv_path = '/obj' iv_name = 'a' ).
+    ref = lo_cut->find_loc( iv_path = '/obj'
+                            iv_name = 'a' ).
     ASSIGN ref->* TO <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
@@ -1020,7 +1021,8 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
           exp = 'Index not found in table' ).
     ENDTRY.
 
-    ref = lo_cut->find_loc( iv_path = '/tab/3/a' iv_append_tables = abap_true ).
+    ref = lo_cut->find_loc( iv_path = '/tab/3/a'
+                            iv_append_tables = abap_true ).
     ASSIGN ref->* TO <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
@@ -1914,7 +1916,7 @@ CLASS ltcl_integrated DEFINITION
         start    TYPE ty_loc,
         end      TYPE ty_loc,
       END OF ty_issue,
-      tt_issues TYPE STANDARD TABLE OF ty_issue WITH DEFAULT KEY,
+      ty_issues TYPE STANDARD TABLE OF ty_issue WITH DEFAULT KEY,
       BEGIN OF ty_target,
         string  TYPE string,
         number  TYPE i,
@@ -1923,7 +1925,7 @@ CLASS ltcl_integrated DEFINITION
         false   TYPE abap_bool,
         null    TYPE string,
         date    TYPE string, " ??? TODO
-        issues  TYPE tt_issues,
+        issues  TYPE ty_issues,
       END OF ty_target.
 
     METHODS reader FOR TESTING RAISING /mbtools/cx_ajson_error.
@@ -2138,13 +2140,13 @@ CLASS ltcl_abap_to_json DEFINITION
         c TYPE abap_bool,
         d TYPE xfeld,
       END OF ty_struc,
-      tt_struc TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
+      ty_strucs TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
       BEGIN OF ty_struc_complex.
         INCLUDE TYPE ty_struc.
       TYPES:
         el    TYPE string,
         struc TYPE ty_struc,
-        tab   TYPE tt_struc,
+        tab   TYPE ty_strucs,
         stab  TYPE string_table,
       END OF ty_struc_complex.
 

@@ -95,15 +95,15 @@ CLASS /MBTOOLS/CL_URL IMPLEMENTATION.
         IF rv_name IS INITIAL.
           FIND REGEX '([\w-]+)/$' IN lv_path SUBMATCHES rv_name.
           IF sy-subrc <> 0.
-            /mbtools/cx_exception=>raise( 'Malformed URL' ).
+            /mbtools/cx_exception=>raise( 'Malformed URL' ) ##NO_TEXT.
           ENDIF.
         ENDIF.
 
       CATCH /mbtools/cx_exception.
         IF iv_validate = abap_true.
-          /mbtools/cx_exception=>raise( 'Malformed URL' ).
+          /mbtools/cx_exception=>raise( 'Malformed URL' ) ##NO_TEXT.
         ELSE.
-          rv_name = 'URL error'.
+          rv_name = 'URL error' ##NO_TEXT.
         ENDIF.
     ENDTRY.
 
@@ -125,7 +125,7 @@ CLASS /MBTOOLS/CL_URL IMPLEMENTATION.
     FIND REGEX '(https?://[^/]*)(.*/)([^\.]*)?(.*)' IN iv_url
       SUBMATCHES ev_host ev_path ev_name ev_query.
     IF sy-subrc <> 0.
-      /mbtools/cx_exception=>raise( 'Malformed URL' ).
+      /mbtools/cx_exception=>raise( 'Malformed URL' ) ##NO_TEXT.
     ENDIF.
 
   ENDMETHOD.

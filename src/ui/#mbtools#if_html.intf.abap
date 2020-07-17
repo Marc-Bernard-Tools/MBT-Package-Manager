@@ -10,9 +10,8 @@
 INTERFACE /mbtools/if_html
   PUBLIC .
 
-
   TYPES:
-    tty_table_of TYPE STANDARD TABLE OF REF TO /mbtools/if_html WITH DEFAULT KEY .
+    ty_table_of TYPE STANDARD TABLE OF REF TO /mbtools/if_html WITH DEFAULT KEY .
 
   CONSTANTS:
     BEGIN OF c_action_type,

@@ -28,7 +28,7 @@ CLASS /mbtools/cl_html_lib DEFINITION
         title        TYPE string,
       END OF ty_col_spec .
     TYPES:
-      tty_col_spec TYPE STANDARD TABLE OF ty_col_spec
+      ty_col_specs TYPE STANDARD TABLE OF ty_col_spec
                                   WITH NON-UNIQUE KEY tech_name .
 
     CLASS-METHODS class_constructor .
@@ -68,7 +68,7 @@ CLASS /mbtools/cl_html_lib DEFINITION
         VALUE(rv_order_descending) TYPE abap_bool .
     CLASS-METHODS render_order_by_header_cells
       IMPORTING
-        !it_col_spec         TYPE tty_col_spec
+        !it_col_spec         TYPE ty_col_specs
         !iv_order_by         TYPE string
         !iv_order_descending TYPE abap_bool
       RETURNING
@@ -399,7 +399,7 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
   METHOD render_order_by_header_cells.
 
     DATA:
-      lt_colspec   TYPE tty_col_spec,
+      lt_colspec   TYPE ty_col_specs,
       lv_tmp       TYPE string,
       lv_disp_name TYPE string.
 

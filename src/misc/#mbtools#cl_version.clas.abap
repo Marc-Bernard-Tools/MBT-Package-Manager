@@ -43,7 +43,7 @@ CLASS /MBTOOLS/CL_VERSION IMPLEMENTATION.
 
   METHOD check_dependant_version.
 
-    CONSTANTS: lc_message TYPE string VALUE 'Current version is older than required'.
+    CONSTANTS: lc_message TYPE string VALUE 'Current version is older than required' ##NO_TEXT.
 
     IF is_dependant-major > is_current-major.
       /mbtools/cx_exception=>raise( lc_message ).
@@ -119,7 +119,7 @@ CLASS /MBTOOLS/CL_VERSION IMPLEMENTATION.
               rs_version-patch = lv_segment.
           ENDCASE.
         CATCH cx_sy_conversion_no_number.
-          /mbtools/cx_exception=>raise( 'Incorrect format for Semantic Version' ).
+          /mbtools/cx_exception=>raise( |Incorrect format for Semantic Version| ).
       ENDTRY.
 
     ENDLOOP.
@@ -144,7 +144,7 @@ CLASS /MBTOOLS/CL_VERSION IMPLEMENTATION.
     ENDLOOP.
 
     IF rs_version-prerelase <> 'rc' AND rs_version-prerelase <> 'beta' AND rs_version-prerelase <> 'alpha'.
-      /mbtools/cx_exception=>raise( 'Incorrect format for Semantic Version' ).
+      /mbtools/cx_exception=>raise( |Incorrect format for Semantic Version| ).
     ENDIF.
 
   ENDMETHOD.

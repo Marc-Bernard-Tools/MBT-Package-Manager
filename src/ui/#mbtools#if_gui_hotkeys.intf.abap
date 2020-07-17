@@ -19,12 +19,12 @@ INTERFACE /mbtools/if_gui_hotkeys
     END OF ty_hotkey_with_descr .
 
   TYPES:
-    tty_hotkey_with_descr TYPE STANDARD TABLE OF ty_hotkey_with_descr
+    ty_hotkeys_with_descr TYPE STANDARD TABLE OF ty_hotkey_with_descr
       WITH DEFAULT KEY
       WITH UNIQUE SORTED KEY action COMPONENTS ui_component action .
 
   CLASS-METHODS get_hotkey_actions " TODO: try to refactor class-method
     RETURNING
-      VALUE(rt_hotkey_actions) TYPE tty_hotkey_with_descr .
+      VALUE(rt_hotkey_actions) TYPE ty_hotkeys_with_descr .
 
 ENDINTERFACE.

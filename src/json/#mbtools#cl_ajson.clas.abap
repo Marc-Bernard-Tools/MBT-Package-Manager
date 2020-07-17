@@ -81,7 +81,7 @@ CLASS /mbtools/cl_ajson DEFINITION
   PRIVATE SECTION.
 
     TYPES:
-      tty_node_stack TYPE STANDARD TABLE OF REF TO ty_node WITH DEFAULT KEY.
+      ty_node_stack_tt TYPE STANDARD TABLE OF REF TO ty_node WITH DEFAULT KEY.
 
     DATA mt_json_tree TYPE ty_nodes_ts.
 
@@ -94,7 +94,7 @@ CLASS /mbtools/cl_ajson DEFINITION
       IMPORTING
         iv_path              TYPE string
       RETURNING
-        VALUE(rt_node_stack) TYPE tty_node_stack.
+        VALUE(rt_node_stack) TYPE ty_node_stack_tt.
     METHODS delete_subtree
       IMPORTING
         iv_path           TYPE string
@@ -150,8 +150,10 @@ CLASS /MBTOOLS/CL_AJSON IMPLEMENTATION.
     LOOP AT mt_json_tree INTO ls_item.
       " TODO potentially improve performance due to sorted tree (all path started from same prefix go in a row)
       IF strlen( ls_item-path ) >= lv_path_len
-          AND substring( val = ls_item-path len = lv_path_len ) = lv_normalized_path.
-        ls_item-path = substring( val = ls_item-path off = lv_path_len - 1 ). " less closing '/'
+          AND substring( val = ls_item-path
+                         len = lv_path_len ) = lv_normalized_path.
+        ls_item-path = substring( val = ls_item-path
+                                  off = lv_path_len - 1 ). " less closing '/'
         INSERT ls_item INTO TABLE lo_section->mt_json_tree.
       ELSEIF ls_item-path = ls_path_parts-path AND ls_item-name = ls_path_parts-name.
         CLEAR: ls_item-path, ls_item-name. " this becomes a new root
@@ -463,7 +465,8 @@ CLASS /MBTOOLS/CL_AJSON IMPLEMENTATION.
         lv_parent_path_len = strlen( lv_parent_path ).
         LOOP AT mt_json_tree ASSIGNING <node>.
           IF strlen( <node>-path ) >= lv_parent_path_len
-            AND substring( val = <node>-path len = lv_parent_path_len ) = lv_parent_path.
+            AND substring( val = <node>-path
+                           len = lv_parent_path_len ) = lv_parent_path.
             DELETE mt_json_tree INDEX sy-tabix.
           ENDIF.
         ENDLOOP.

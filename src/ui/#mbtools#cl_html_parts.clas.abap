@@ -40,9 +40,9 @@ CLASS /mbtools/cl_html_parts DEFINITION
         pile TYPE /mbtools/if_html=>tty_table_of,
       END OF ty_named_collection.
     TYPES:
-      tty_named_collection TYPE STANDARD TABLE OF ty_named_collection WITH KEY name.
+      ty_named_collections TYPE STANDARD TABLE OF ty_named_collection WITH KEY name.
 
-    DATA mt_part_collections TYPE tty_named_collection.
+    DATA mt_part_collections TYPE ty_named_collections.
 
     METHODS get_collection
       IMPORTING

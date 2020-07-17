@@ -40,10 +40,10 @@ CLASS /MBTOOLS/CL_PROXY_AUTH IMPLEMENTATION.
         iv_url  = 'Proxy Authentication'
       CHANGING
         cv_user = gv_username
-        cv_pass = gv_password ).
+        cv_pass = gv_password ) ##NO_TEXT.
 
     IF gv_username IS INITIAL OR gv_password IS INITIAL.
-      /mbtools/cx_exception=>raise( 'Proxy authentication failed' ).
+      /mbtools/cx_exception=>raise( 'Proxy authentication failed' ) ##NO_TEXT.
     ENDIF.
 
   ENDMETHOD.

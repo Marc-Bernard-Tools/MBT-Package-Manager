@@ -47,7 +47,6 @@ CLASS ltcl_login_manager IMPLEMENTATION.
     DATA: lv_auth1 TYPE string,
           lv_auth2 TYPE string.
 
-
     /mbtools/cl_login_manager=>set(
       iv_uri      = lc_github1
       iv_username = c_username

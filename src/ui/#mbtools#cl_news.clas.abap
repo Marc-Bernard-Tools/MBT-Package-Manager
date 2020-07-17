@@ -23,7 +23,7 @@ CLASS /mbtools/cl_news DEFINITION
         text         TYPE string,
       END OF ty_log .
     TYPES:
-      tt_log TYPE STANDARD TABLE OF ty_log WITH DEFAULT KEY .
+      ty_logs TYPE STANDARD TABLE OF ty_log WITH DEFAULT KEY .
 
     CONSTANTS c_tail_length TYPE i VALUE 5 ##NO_TEXT.       " Number of versions to display if no updates
 
@@ -36,7 +36,7 @@ CLASS /mbtools/cl_news DEFINITION
         /mbtools/cx_exception .
     METHODS get_log
       RETURNING
-        VALUE(rt_log) TYPE tt_log .
+        VALUE(rt_log) TYPE ty_logs.
     METHODS has_news
       RETURNING
         VALUE(rv_boolean) TYPE abap_bool .
@@ -57,7 +57,7 @@ CLASS /mbtools/cl_news DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    DATA mt_log TYPE tt_log .
+    DATA mt_log TYPE ty_logs .
     DATA mv_current_version TYPE string .
     DATA mv_lastseen_version TYPE string .
     DATA mv_latest_version TYPE string .
@@ -92,7 +92,7 @@ CLASS /mbtools/cl_news DEFINITION
         !it_lines           TYPE string_table
         !iv_current_version TYPE string
       RETURNING
-        VALUE(rt_log)       TYPE tt_log .
+        VALUE(rt_log)       TYPE ty_logs .
 ENDCLASS.
 
 

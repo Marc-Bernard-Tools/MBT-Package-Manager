@@ -295,7 +295,7 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
       ls_value   TYPE ty_domain_value.
 
     SELECT SINGLE entitytab FROM dd01l INTO lv_valtab
-      WHERE domname = iv_domain AND as4local = 'A'.
+      WHERE domname = iv_domain AND as4local = 'A' AND as4vers = '0000'.
 
     IF sy-subrc = 0 AND lv_valtab IS INITIAL.
 
@@ -303,37 +303,39 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
       SELECT a~domvalue_l a~valpos a~appval b~ddtext INTO TABLE rt_values
         FROM dd07l AS a LEFT OUTER JOIN dd07t AS b
         ON a~domname = b~domname AND a~valpos = b~valpos AND b~ddlanguage = sy-langu
-        WHERE a~domname = iv_domain AND a~as4local = 'A'.
+        WHERE a~domname = iv_domain AND a~as4local = 'A' AND a~as4vers = '0000'.
 
     ELSE.
 
       " Get values from table (text table must include LANGU field)
       SELECT SINGLE fieldname FROM dd03l INTO lv_valfld
-        WHERE tabname = lv_valtab AND rollname = iv_domain AND as4local = 'A'.
+        WHERE tabname = lv_valtab AND rollname = iv_domain
+          AND as4local = 'A' AND as4vers = '0000' ##WARN_OK.
       IF sy-subrc = 0.
         SELECT SINGLE tabname FROM dd08l INTO lv_txttab
-          WHERE checktable = lv_valtab AND frkart = 'TEXT'.
+          WHERE checktable = lv_valtab AND frkart = 'TEXT' ##WARN_OK.
         IF sy-subrc = 0.
           lv_maxlen = 0.
           SELECT fieldname intlen FROM dd03l INTO (lv_field, lv_len)
-            WHERE tabname = lv_txttab AND inttype = 'C' AND as4local = 'A'.
+            WHERE tabname = lv_txttab AND inttype = 'C'
+              AND as4local = 'A' AND as4vers = '0000' ##WARN_OK.
             IF lv_len > lv_maxlen.
               lv_txtfld = lv_field.
               lv_maxlen = lv_len.
             ENDIF.
           ENDSELECT.
           IF sy-subrc = 0.
-            lv_columns = 'p~&1 t~&2'.
+            lv_columns = 'p~&1 t~&2' ##NO_TEXT.
             REPLACE '&1' WITH lv_valfld INTO lv_columns.
             REPLACE '&2' WITH lv_txtfld INTO lv_columns.
-            lv_tables  = '&1 AS p JOIN &2 AS t ON p~&3 = t~&4'.
+            lv_tables  = '&1 AS p JOIN &2 AS t ON p~&3 = t~&4' ##NO_TEXT.
             REPLACE '&1' WITH lv_valtab INTO lv_tables.
             REPLACE '&2' WITH lv_txttab INTO lv_tables.
             REPLACE '&3' WITH lv_valfld INTO lv_tables.
             REPLACE '&4' WITH lv_valfld INTO lv_tables.
-            lv_where   = 'LANGU = ''&1'''.
+            lv_where   = 'LANGU = ''&1''' ##NO_TEXT.
             REPLACE '&1' WITH sy-langu INTO lv_where.
-            lv_order = 'p~&1'.
+            lv_order = 'p~&1' ##NO_TEXT.
             REPLACE '&1' WITH lv_valfld INTO lv_order.
           ENDIF.
         ENDIF.
@@ -522,7 +524,7 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
         WHEN 2.
           MESSAGE i149(00) WITH iv_program.
         WHEN OTHERS.
-          MESSAGE i001(00) WITH 'Unknown error'(004) iv_program.
+          MESSAGE i000(/mbtools/bc) WITH 'Unknown error'(004) iv_program '' ''.
       ENDCASE.
     ELSE.
       MESSAGE i541(00) WITH iv_program.
@@ -551,7 +553,7 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
         WHEN 2.
           MESSAGE i172(00) WITH iv_tcode.
         WHEN OTHERS.
-          MESSAGE i001(00) WITH 'Unknown error'(004) iv_tcode.
+          MESSAGE i000(/mbtools/bc) WITH 'Unknown error'(004) iv_tcode '' ''.
       ENDCASE.
     ELSE.
       MESSAGE i010(01) WITH iv_tcode.
@@ -632,7 +634,7 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
     " Transport tools
     map_object(
       EXPORTING
-        iv_pgmid    = iv_pgmid
+        iv_pgmid    = lv_pgmid
         iv_object   = iv_object
         iv_obj_name = iv_obj_name
       IMPORTING

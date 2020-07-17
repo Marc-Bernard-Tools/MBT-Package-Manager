@@ -16,10 +16,10 @@ CLASS /mbtools/cl_message_helper DEFINITION
 
     CONSTANTS:
       BEGIN OF gc_section_text,
-        cause           TYPE string VALUE `Cause`,
-        system_response TYPE string VALUE `System response`,
-        what_to_do      TYPE string VALUE `Procedure`,
-        sys_admin       TYPE string VALUE `System administration`,
+        cause           TYPE string VALUE `Cause` ##NO_TEXT,
+        system_response TYPE string VALUE `System response` ##NO_TEXT,
+        what_to_do      TYPE string VALUE `Procedure` ##NO_TEXT,
+        sys_admin       TYPE string VALUE `System administration` ##NO_TEXT,
       END OF gc_section_text .
     CONSTANTS:
       BEGIN OF gc_section_token,
@@ -257,13 +257,12 @@ CLASS /MBTOOLS/CL_MESSAGE_HELPER IMPLEMENTATION.
 
   METHOD set_msg_vars_for_clike.
 
-    DATA: ls_msg   TYPE ty_msg,
-          lv_dummy TYPE string.
+    DATA: ls_msg   TYPE ty_msg.
 
     ls_msg = split_text( iv_text ).
 
     MESSAGE e001(00) WITH ls_msg-msgv1 ls_msg-msgv2 ls_msg-msgv3 ls_msg-msgv4
-                     INTO lv_dummy.
+                     INTO sy-lisel.
 
   ENDMETHOD.
 

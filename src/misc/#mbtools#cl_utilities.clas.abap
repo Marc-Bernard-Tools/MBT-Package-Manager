@@ -151,7 +151,6 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
       lv_release  TYPE n LENGTH 3,
       lv_text_1   TYPE string,
       lv_text_2   TYPE string,
-      lv_text_3   TYPE string,
       lv_hana_rel TYPE i,
       lv_hana_sps TYPE i.
 
@@ -404,6 +403,7 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
         rs_details-release = sy-saprl.                    "#EC SAPRL_OK
         rs_details-version = lv_spam_vers.
       CATCH cx_sy_dyn_call_illegal_func.
+        RETURN.
     ENDTRY.
 
   ENDMETHOD.                    "get_spam_release

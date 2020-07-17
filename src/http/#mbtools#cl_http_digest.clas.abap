@@ -108,7 +108,7 @@ CLASS /MBTOOLS/CL_HTTP_DIGEST IMPLEMENTATION.
         internal_error = 3
         OTHERS         = 4.
     IF sy-subrc <> 0.
-      /mbtools/cx_exception=>raise( 'error from CALCULATE_HASH_FOR_RAW' ).
+      /mbtools/cx_exception=>raise( 'Error from CALCULATE_HASH_FOR_RAW' ) ##NO_TEXT.
     ENDIF.
 
     rv_hash = lv_hash.
@@ -121,11 +121,11 @@ CLASS /MBTOOLS/CL_HTTP_DIGEST IMPLEMENTATION.
 
     DATA: lv_value TYPE string.
 
-    lv_value = ii_client->response->get_header_field( 'www-authenticate' ).
+    lv_value = ii_client->response->get_header_field( 'www-authenticate' ) ##NO_TEXT.
 
-    FIND REGEX 'realm="([\w ]+)"' IN lv_value SUBMATCHES mv_realm.
-    FIND REGEX 'qop="(\w+)"' IN lv_value SUBMATCHES mv_qop.
-    FIND REGEX 'nonce="([\w=/+\$]+)"' IN lv_value SUBMATCHES mv_nonce.
+    FIND REGEX 'realm="([\w ]+)"' IN lv_value SUBMATCHES mv_realm ##NO_TEXT.
+    FIND REGEX 'qop="(\w+)"' IN lv_value SUBMATCHES mv_qop ##NO_TEXT.
+    FIND REGEX 'nonce="([\w=/+\$]+)"' IN lv_value SUBMATCHES mv_nonce ##NO_TEXT.
 
   ENDMETHOD.
 
@@ -168,7 +168,7 @@ CLASS /MBTOOLS/CL_HTTP_DIGEST IMPLEMENTATION.
 
     ii_client->request->set_header_field(
       name  = 'Authorization'
-      value = lv_auth ).
+      value = lv_auth ) ##NO_TEXT.
 
   ENDMETHOD.
 ENDCLASS.

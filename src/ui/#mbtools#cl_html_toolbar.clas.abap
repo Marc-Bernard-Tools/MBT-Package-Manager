@@ -64,9 +64,9 @@ CLASS /mbtools/cl_html_toolbar DEFINITION
         title TYPE string,
       END OF ty_item.
 
-    TYPES tt_items TYPE STANDARD TABLE OF ty_item.
+    TYPES ty_items TYPE STANDARD TABLE OF ty_item.
 
-    DATA: mt_items TYPE tt_items,
+    DATA: mt_items TYPE ty_items,
           mv_id    TYPE string.
 
     METHODS:

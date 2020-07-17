@@ -11,7 +11,6 @@ CLASS /mbtools/cl_popups DEFINITION
   PUBLIC
   FINAL
   CREATE PRIVATE
-
   GLOBAL FRIENDS /mbtools/cl_gui_factory .
 
   PUBLIC SECTION.

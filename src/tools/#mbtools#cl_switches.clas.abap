@@ -62,7 +62,6 @@ CLASS /MBTOOLS/CL_SWITCHES IMPLEMENTATION.
       lv_name       TYPE string,
       ls_bundle     TYPE /mbtools/cl_registry=>ty_keyobj,
       lt_bundles    TYPE /mbtools/cl_registry=>ty_keyobjs,
-      lo_reg_bundle TYPE REF TO /mbtools/cl_registry,
       lo_reg_tool   TYPE REF TO /mbtools/cl_registry,
       lo_reg_entry  TYPE REF TO /mbtools/cl_registry,
       lt_users      TYPE TABLE OF string,
@@ -91,7 +90,7 @@ CLASS /MBTOOLS/CL_SWITCHES IMPLEMENTATION.
         lv_value = lo_reg_entry->get_value( iv_key ).
         IF lv_value = abap_true.
           rv_result = abap_true.
-        ELSEIF lv_value = sy-uname.
+        ELSEIF lv_value = cl_abap_syst=>get_user_name( ) ##USER_OK.
           rv_result = abap_true.
         ELSEIF lv_value CS ','.
           SPLIT lv_value AT ',' INTO TABLE lt_users.

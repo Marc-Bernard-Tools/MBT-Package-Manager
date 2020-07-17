@@ -20,9 +20,9 @@ CLASS /mbtools/cl_string_map DEFINITION
         v TYPE string,
       END OF ty_entry .
     TYPES:
-      tty_entries TYPE STANDARD TABLE OF ty_entry WITH KEY k .
+      ty_entries TYPE STANDARD TABLE OF ty_entry WITH KEY k .
     TYPES:
-      tts_entries TYPE SORTED TABLE OF ty_entry WITH UNIQUE KEY k .
+      ty_entries_sorted TYPE SORTED TABLE OF ty_entry WITH UNIQUE KEY k .
 
     CLASS-METHODS create
       RETURNING
@@ -58,7 +58,7 @@ CLASS /mbtools/cl_string_map DEFINITION
         /mbtools/cx_exception .
   PROTECTED SECTION.
   PRIVATE SECTION.
-    DATA mt_entries TYPE tts_entries.
+    DATA mt_entries TYPE ty_entries.
 
 ENDCLASS.
 
@@ -135,7 +135,6 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
   METHOD to_abap.
 
     DATA lo_type TYPE REF TO cl_abap_typedescr.
-    DATA lo_struc TYPE REF TO cl_abap_structdescr.
     DATA lv_field TYPE string.
     FIELD-SYMBOLS <ls_entry> LIKE LINE OF mt_entries.
     FIELD-SYMBOLS <lv_val> TYPE any.
@@ -143,10 +142,9 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
     lo_type = cl_abap_typedescr=>describe_by_data( cs_container ).
     IF lo_type->type_kind <> cl_abap_typedescr=>typekind_struct1
       AND lo_type->type_kind <> cl_abap_typedescr=>typekind_struct2.
-      /mbtools/cx_exception=>raise( 'Only structures supported' ).
+      /mbtools/cx_exception=>raise( |Only structures supported| ).
     ENDIF.
 
-    lo_struc ?= lo_type.
     LOOP AT mt_entries ASSIGNING <ls_entry>.
       lv_field = to_upper( <ls_entry>-k ).
       ASSIGN COMPONENT lv_field OF STRUCTURE cs_container TO <lv_val>.

@@ -26,7 +26,7 @@ CLASS /mbtools/cl_hotkeys DEFINITION
         hotkey       TYPE string,
       END OF ty_hotkey .
     TYPES:
-      tty_hotkey TYPE STANDARD TABLE OF ty_hotkey
+      ty_hotkeys TYPE STANDARD TABLE OF ty_hotkey
                       WITH NON-UNIQUE DEFAULT KEY
                       WITH NON-UNIQUE SORTED KEY action
                            COMPONENTS ui_component action.
@@ -284,7 +284,7 @@ CLASS /MBTOOLS/CL_HOTKEYS IMPLEMENTATION.
 
   METHOD merge_hotkeys_with_settings.
 
-    DATA lt_user_defined_hotkeys TYPE tty_hotkey.
+    DATA lt_user_defined_hotkeys TYPE ty_hotkeys.
     FIELD-SYMBOLS <ls_hotkey> LIKE LINE OF ct_hotkey_actions.
     FIELD-SYMBOLS <ls_user_defined_hotkey> LIKE LINE OF lt_user_defined_hotkeys.
 

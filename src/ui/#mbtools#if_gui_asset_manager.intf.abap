@@ -19,11 +19,11 @@ INTERFACE /mbtools/if_gui_asset_manager
       is_cacheable TYPE abap_bool,
     END OF ty_web_asset .
   TYPES:
-    tt_web_assets TYPE STANDARD TABLE OF ty_web_asset WITH DEFAULT KEY .
+    ty_web_assets TYPE STANDARD TABLE OF ty_web_asset WITH DEFAULT KEY .
 
   METHODS get_all_assets
     RETURNING
-      VALUE(rt_assets) TYPE tt_web_assets
+      VALUE(rt_assets) TYPE ty_web_assets
     RAISING
       /mbtools/cx_exception .
 

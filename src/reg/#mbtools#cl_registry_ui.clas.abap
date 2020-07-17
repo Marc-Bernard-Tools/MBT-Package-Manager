@@ -700,7 +700,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
             error_no_gui            = 23
             OTHERS                  = 24 ).
         IF sy-subrc <> 0.
-          MESSAGE e001(/mbtools/bc) DISPLAY LIKE 'I'
+          MESSAGE e000(/mbtools/bc) DISPLAY LIKE 'I'
             WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
         ENDIF.
 

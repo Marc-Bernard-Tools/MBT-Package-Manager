@@ -69,7 +69,7 @@ CLASS /mbtools/cl_html_form DEFINITION
         value TYPE string,
       END OF ty_subitem.
     TYPES:
-      tty_subitems TYPE STANDARD TABLE OF ty_subitem WITH DEFAULT KEY.
+      ty_subitems TYPE STANDARD TABLE OF ty_subitem WITH DEFAULT KEY.
 
     TYPES:
       BEGIN OF ty_field,
@@ -84,7 +84,7 @@ CLASS /mbtools/cl_html_form DEFINITION
         error         TYPE string,
         default_value TYPE string,
         side_action   TYPE string,
-        subitems      TYPE tty_subitems,
+        subitems      TYPE ty_subitems,
 *        onclick ???
       END OF ty_field.
 

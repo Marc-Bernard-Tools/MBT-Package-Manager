@@ -6,25 +6,25 @@
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-CLASS /mbtools/cl_edd DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class /MBTOOLS/CL_EDD definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    CONSTANTS c_name TYPE string VALUE 'MBT_EDD_API' ##NO_TEXT.
-    CONSTANTS c_version TYPE string VALUE '1.0.0' ##NO_TEXT.
-    CONSTANTS c_edd_host TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.
-    CONSTANTS:
-      BEGIN OF c_action,
+  constants C_NAME type STRING value 'MBT_EDD_API' ##NO_TEXT.
+  constants C_VERSION type STRING value '1.0.0' ##NO_TEXT.
+  constants C_EDD_HOST type STRING value 'https://marcbernardtools.com/' ##NO_TEXT.
+  constants:
+    BEGIN OF c_action,
         activate   TYPE string VALUE 'activate_license' ##NO_TEXT,
         deactivate TYPE string VALUE 'deactivate_license' ##NO_TEXT,
         check      TYPE string VALUE 'check_license' ##NO_TEXT,
         version    TYPE string VALUE 'get_version' ##NO_TEXT,
       END OF c_action .
-    CONSTANTS:
-      BEGIN OF c_param,
+  constants:
+    BEGIN OF c_param,
         action TYPE string VALUE '$action$' ##NO_TEXT,
         id     TYPE string VALUE '$id$' ##NO_TEXT,
         key    TYPE string VALUE '$key$' ##NO_TEXT,
@@ -32,62 +32,61 @@ CLASS /mbtools/cl_edd DEFINITION
         system TYPE string VALUE '$system$' ##NO_TEXT,
       END OF c_param .
 
-    CLASS-METHODS activate_license
-      IMPORTING
-        !iv_id      TYPE string
-        !iv_license TYPE string
-      EXPORTING
-        !ev_valid   TYPE abap_bool
-        !ev_expire  TYPE d
-      RAISING
-        /mbtools/cx_exception .
-    CLASS-METHODS deactivate_license
-      IMPORTING
-        !iv_id      TYPE string
-        !iv_license TYPE string
-      EXPORTING
-        !ev_valid   TYPE abap_bool
-        !ev_expire  TYPE d
-      RAISING
-        /mbtools/cx_exception .
-    CLASS-METHODS check_license
-      IMPORTING
-        !iv_id      TYPE string
-        !iv_license TYPE string
-      EXPORTING
-        !ev_valid   TYPE abap_bool
-        !ev_expire  TYPE d
-      RAISING
-        /mbtools/cx_exception .
-    CLASS-METHODS get_version
-      IMPORTING
-        !iv_id      TYPE string
-        !iv_license TYPE string
-      EXPORTING
-        !ev_valid   TYPE abap_bool
-        !ev_expire  TYPE d
-      RAISING
-        /mbtools/cx_exception .
+  class-methods ACTIVATE_LICENSE
+    importing
+      !IV_ID type STRING
+      !IV_LICENSE type STRING
+    exporting
+      !EV_VALID type ABAP_BOOL
+      !EV_EXPIRE type D
+    raising
+      /MBTOOLS/CX_EXCEPTION .
+  class-methods DEACTIVATE_LICENSE
+    importing
+      !IV_ID type STRING
+      !IV_LICENSE type STRING
+    exporting
+      !EV_VALID type ABAP_BOOL
+      !EV_EXPIRE type D
+    raising
+      /MBTOOLS/CX_EXCEPTION .
+  class-methods CHECK_LICENSE
+    importing
+      !IV_ID type STRING
+      !IV_LICENSE type STRING
+    exporting
+      !EV_VALID type ABAP_BOOL
+      !EV_EXPIRE type D
+    raising
+      /MBTOOLS/CX_EXCEPTION .
+  class-methods GET_VERSION
+    importing
+      !IV_ID type STRING
+      !IV_LICENSE type STRING
+    exporting
+      !EV_VALID type ABAP_BOOL
+      !EV_EXPIRE type D
+    raising
+      /MBTOOLS/CX_EXCEPTION .
   PROTECTED SECTION.
-  PRIVATE SECTION.
+private section.
 
-    CLASS-METHODS get_data
-      IMPORTING
-        !iv_url        TYPE string
-      RETURNING
-        VALUE(rv_data) TYPE string
-      RAISING
-        /mbtools/cx_exception .
-
-    CLASS-METHODS get_endpoint
-      IMPORTING
-        !iv_action         TYPE string
-        !iv_id             TYPE string
-        !iv_license        TYPE string
-      RETURNING
-        VALUE(rv_endpoint) TYPE string
-      RAISING
-        /mbtools/cx_exception .
+  class-methods GET_DATA
+    importing
+      !IV_URL type STRING
+    returning
+      value(RV_DATA) type STRING
+    raising
+      /MBTOOLS/CX_EXCEPTION .
+  class-methods GET_ENDPOINT
+    importing
+      !IV_ACTION type STRING
+      !IV_ID type STRING
+      !IV_LICENSE type STRING
+    returning
+      value(RV_ENDPOINT) type STRING
+    raising
+      /MBTOOLS/CX_EXCEPTION .
 ENDCLASS.
 
 
@@ -109,6 +108,8 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     lv_data = get_data( lv_endpoint ).
 
+##TODO.
+
   ENDMETHOD.
 
 
@@ -125,6 +126,8 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
                                 iv_license = iv_license ).
 
     lv_data = get_data( lv_endpoint ).
+
+##TODO.
 
   ENDMETHOD.
 
@@ -143,14 +146,15 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     lv_data = get_data( lv_endpoint ).
 
+##TODO.
+
   ENDMETHOD.
 
 
   METHOD get_data.
 
     DATA:
-      lo_client TYPE REF TO /mbtools/cl_http_client,
-      lv_data   TYPE string.
+      lo_client TYPE REF TO /mbtools/cl_http_client.
 
     lo_client = /mbtools/cl_http=>create_by_url( iv_url     = iv_url
                                                  iv_request = 'POST'
@@ -222,6 +226,8 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
                                 iv_license = iv_license ).
 
     lv_data = get_data( lv_endpoint ).
+
+##TODO.
 
   ENDMETHOD.
 ENDCLASS.
