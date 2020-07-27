@@ -67,7 +67,7 @@ CLASS /MBTOOLS/CL_SWITCHES IMPLEMENTATION.
       lt_users      TYPE TABLE OF string,
       lv_value      TYPE string.
 
-    lv_name = to_upper( iv_title ).
+    lv_name = iv_title.
     REPLACE ALL OCCURRENCES OF ` ` IN lv_name WITH `_`.
 
     TRY.

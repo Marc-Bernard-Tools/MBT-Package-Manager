@@ -104,29 +104,29 @@ CLASS /mbtools/cl_tools DEFINITION
     " Tool Register/Unregister
     METHODS register
       RETURNING
-        VALUE(rv_registered) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool .
     METHODS unregister
       RETURNING
-        VALUE(rv_unregistered) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool .
     " Tool Activate/Deactivate
     METHODS activate
       RETURNING
-        VALUE(rv_activated) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool .
     METHODS deactivate
       RETURNING
-        VALUE(rv_deactivated) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool .
     " Tool License
     METHODS is_licensed
       RETURNING
-        VALUE(rv_licensed) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool .
     METHODS license_add
       IMPORTING
         VALUE(iv_license)  TYPE string
       RETURNING
-        VALUE(rv_licensed) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool .
     METHODS license_remove
       RETURNING
-        VALUE(rv_removed) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool .
     " Tool Get
     METHODS get_id
       RETURNING
@@ -215,9 +215,9 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     TRY.
         " Is tool already registered?
-        lo_reg_tool = go_reg_root->get_subentry( mv_name ).
+        lo_reg_tool = get_reg_tool( mv_name ).
         IF NOT lo_reg_tool IS BOUND.
-          rv_activated = abap_false.
+          rv_result = abap_false.
           RETURN.
         ENDIF.
 
@@ -229,10 +229,10 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           lo_reg_entry->save( ).
         ENDIF.
 
-        rv_activated = abap_true.
+        rv_result = abap_true.
 
       CATCH cx_root.
-        rv_activated = abap_false.
+        rv_result = abap_false.
     ENDTRY.
 
   ENDMETHOD.
@@ -334,7 +334,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         " Is tool already registered?
         lo_reg_tool = get_reg_tool( mv_name ).
         IF NOT lo_reg_tool IS BOUND.
-          rv_deactivated = abap_false.
+          rv_result = abap_false.
           RETURN.
         ENDIF.
 
@@ -346,10 +346,10 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           lo_reg_entry->save( ).
         ENDIF.
 
-        rv_deactivated = abap_true.
+        rv_result = abap_true.
 
       CATCH cx_root.
-        rv_deactivated = abap_false.
+        rv_result = abap_false.
     ENDTRY.
 
   ENDMETHOD.
@@ -742,7 +742,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       WHERE ustyp = 'A' AND trdat BETWEEN lv_date_from AND sy-datum
         AND ( bname <> 'DDIC' AND bname NOT LIKE '%SUPPORT%' ).
     IF lv_user_count <= c_eval_users.
-      rv_licensed = abap_true.
+      rv_result = abap_true.
       RETURN.
     ENDIF.
 
@@ -759,7 +759,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         lv_value = lo_reg_entry->get_value( c_reg-key_install_time ).
         lv_date_from = lv_value(8) + c_eval_days.
         IF lv_date_from >= sy-datum.
-          rv_licensed = abap_true.
+          rv_result = abap_true.
           RETURN.
         ENDIF.
 
@@ -771,11 +771,11 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         lv_value = lo_reg_entry->get_value( c_reg-key_lic_valid ).
         lv_expire = lo_reg_entry->get_value( c_reg-key_lic_expire ).
         IF lv_value = abap_true AND lv_expire >= sy-datum.
-          rv_licensed = abap_true.
+          rv_result = abap_true.
         ENDIF.
 
       CATCH cx_root.
-        rv_licensed = abap_false.
+        rv_result = abap_false.
     ENDTRY.
 
   ENDMETHOD.
@@ -821,11 +821,11 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         lo_reg_entry->save( ).
 
         IF lv_valid = abap_true AND lv_expire >= sy-datum.
-          rv_licensed = abap_true.
+          rv_result = abap_true.
         ENDIF.
 
       CATCH cx_root.
-        rv_licensed = abap_false.
+        rv_result = abap_false.
     ENDTRY.
 
   ENDMETHOD.
@@ -854,10 +854,10 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
         lo_reg_entry->save( ).
 
-        rv_removed = abap_true.
+        rv_result = abap_true.
 
       CATCH cx_root.
-        rv_removed = abap_false.
+        rv_result = abap_false.
     ENDTRY.
 
   ENDMETHOD.
@@ -879,7 +879,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           lo_reg_tool = go_reg_root->get_subentry( mv_name ).
         ENDIF.
         IF lo_reg_tool IS BOUND.
-          rv_registered = abap_true.
+          rv_result = abap_true.
         ELSE.
           " Create registry entries
           IF mv_is_bundle IS INITIAL.
@@ -897,7 +897,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         ENDIF.
 
         " General
-        IF rv_registered = abap_true.
+        IF rv_result = abap_true.
           lo_reg_entry = lo_reg_tool->get_subentry( c_reg-general ).
         ELSE.
           lo_reg_entry = lo_reg_tool->add_subentry( c_reg-general ).
@@ -923,14 +923,14 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         ENDIF.
 
         " Properties
-        IF rv_registered = abap_true.
+        IF rv_result = abap_true.
           lo_reg_entry = lo_reg_tool->get_subentry( c_reg-properties ).
         ELSE.
           lo_reg_entry = lo_reg_tool->add_subentry( c_reg-properties ).
         ENDIF.
         IF lo_reg_entry IS BOUND.
           GET TIME STAMP FIELD lv_timestamp.
-          IF rv_registered = abap_true.
+          IF rv_result = abap_true.
             lo_reg_entry->set_value( iv_key = c_reg-key_update_time
                                      iv_value = lv_timestamp ).
             lo_reg_entry->set_value( iv_key = c_reg-key_update_user
@@ -948,7 +948,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           lo_reg_entry->save( ).
         ENDIF.
 
-        IF rv_registered = abap_false.
+        IF rv_result = abap_false.
 *         Switches
           IF mv_is_bundle IS INITIAL.
             lo_reg_entry = lo_reg_tool->add_subentry( c_reg-switches ).
@@ -983,10 +983,10 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         " Save
         lo_reg_tool->save( ).
 
-        rv_registered = abap_true.
+        rv_result = abap_true.
 
       CATCH cx_root.
-        rv_registered = abap_false.
+        rv_result = abap_false.
     ENDTRY.
 
   ENDMETHOD.
@@ -1044,7 +1044,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           lo_reg_tool = go_reg_root->get_subentry( mv_name ).
         ENDIF.
         IF NOT lo_reg_tool IS BOUND.
-          rv_unregistered = abap_true.
+          rv_result = abap_true.
           RETURN.
         ENDIF.
 
@@ -1070,10 +1070,10 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           ENDIF.
         ENDIF.
 
-        rv_unregistered = abap_true.
+        rv_result = abap_true.
 
       CATCH cx_root.
-        rv_unregistered = abap_false.
+        rv_result = abap_false.
     ENDTRY.
 
   ENDMETHOD.
