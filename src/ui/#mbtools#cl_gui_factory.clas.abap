@@ -1,5 +1,7 @@
+CLASS /mbtools/cl_gui_factory DEFINITION
+  PUBLIC
+  CREATE PRIVATE.
 ************************************************************************
-* /MBTOOLS/CL_GUI_FACTORY
 * MBT GUI Factory
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,9 +9,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-CLASS /mbtools/cl_gui_factory DEFINITION
-  PUBLIC
-  CREATE PRIVATE.
 
   PUBLIC SECTION.
 

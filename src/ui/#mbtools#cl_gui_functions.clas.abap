@@ -1,5 +1,7 @@
+CLASS /mbtools/cl_gui_functions DEFINITION
+  PUBLIC
+  CREATE PUBLIC .
 ************************************************************************
-* /MBTOOLS/CL_GUI_FUNCTIONS
 * MBT GUI Functions
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,9 +9,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-CLASS /mbtools/cl_gui_functions DEFINITION
-  PUBLIC
-  CREATE PUBLIC .
 
   PUBLIC SECTION.
 

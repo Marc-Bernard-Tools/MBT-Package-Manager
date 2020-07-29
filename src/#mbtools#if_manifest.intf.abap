@@ -1,11 +1,10 @@
+INTERFACE /mbtools/if_manifest
+  PUBLIC .
 ************************************************************************
-* /MBTOOLS/IF_MANIFEST
 * MBT Manifest
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-INTERFACE /mbtools/if_manifest
-  PUBLIC .
 
   " APACK manifest
   TYPES:

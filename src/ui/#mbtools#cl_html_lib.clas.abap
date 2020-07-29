@@ -1,5 +1,8 @@
+CLASS /mbtools/cl_html_lib DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 ************************************************************************
-* /MBTOOLS/CL_HTML_LIB (CL_GUI_CHUNK_LIB)
 * MBT HTML Library
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,10 +10,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-CLASS /mbtools/cl_html_lib DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
 
   PUBLIC SECTION.
 

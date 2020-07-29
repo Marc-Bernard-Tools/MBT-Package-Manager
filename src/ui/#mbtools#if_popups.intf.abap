@@ -1,5 +1,6 @@
+INTERFACE /mbtools/if_popups
+  PUBLIC .
 ************************************************************************
-* /MBTOOLS/IF_POPUPS
 * MBT Popups
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,9 +8,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-INTERFACE /mbtools/if_popups
-  PUBLIC .
-
 
   METHODS popup_search_help
     IMPORTING

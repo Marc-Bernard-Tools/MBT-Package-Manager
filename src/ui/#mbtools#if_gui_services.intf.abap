@@ -1,5 +1,6 @@
+INTERFACE /mbtools/if_gui_services
+  PUBLIC .
 ************************************************************************
-* /MBTOOLS/IF_GUI_SERVICES
 * MBT GUI Services
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,8 +8,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-INTERFACE /mbtools/if_gui_services
-  PUBLIC .
 
   METHODS cache_asset
     IMPORTING

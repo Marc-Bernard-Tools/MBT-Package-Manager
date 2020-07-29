@@ -1,5 +1,6 @@
+INTERFACE /mbtools/if_gui_functions
+  PUBLIC .
 ************************************************************************
-* /MBTOOLS/IF_GUI_FUNCTIONS
 * MBT GUI Functions
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,8 +8,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-INTERFACE /mbtools/if_gui_functions
-  PUBLIC .
 
   METHODS gui_is_available
     RETURNING

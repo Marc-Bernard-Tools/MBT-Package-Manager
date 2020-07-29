@@ -1,5 +1,8 @@
+CLASS /mbtools/cl_progress DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PROTECTED .
 ************************************************************************
-* /MBTOOLS/CL_PROGRESS
 * MBT Progress Indicator
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,10 +10,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-CLASS /mbtools/cl_progress DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PROTECTED .
 
   PUBLIC SECTION.
 

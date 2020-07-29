@@ -58,6 +58,8 @@ CLASS ltcl_parser_test DEFINITION FINAL
   PUBLIC SECTION.
 
     CLASS-METHODS sample_json
+      IMPORTING
+        iv_separator   TYPE string OPTIONAL
       RETURNING
         VALUE(rv_json) TYPE string.
 
@@ -72,43 +74,45 @@ CLASS ltcl_parser_test IMPLEMENTATION.
   METHOD sample_json.
 
     rv_json =
-      '{' &&
-      '  "string": "abc",' &&
-      '  "number": 123,' &&
-      '  "float": 123.45,' &&
-      '  "boolean": true,' &&
-      '  "false": false,' &&
-      '  "null": null,' &&
-      '  "date": "2020-03-15",' &&
-      '  "issues": [' &&
-      '    {' &&
-      '      "message": "Indentation problem ...",' &&
-      '      "key": "indentation",' &&
-      '      "start": {' &&
-      '        "row": 4,' &&
-      '        "col": 3' &&
-      '      },' &&
-      '      "end": {' &&
-      '        "row": 4,' &&
-      '        "col": 26' &&
-      '      },' &&
-      '      "filename": "./zxxx.prog.abap"' &&
-      '    },' &&
-      '    {' &&
-      '      "message": "Remove space before XXX",' &&
-      '      "key": "space_before_dot",' &&
-      '      "start": {' &&
-      '        "row": 3,' &&
-      '        "col": 21' &&
-      '      },' &&
-      '      "end": {' &&
-      '        "row": 3,' &&
-      '        "col": 22' &&
-      '      },' &&
-      '      "filename": "./zxxx.prog.abap"' &&
-      '    }' &&
-      '  ]' &&
+      '{\n' &&
+      '  "string": "abc",\n' &&
+      '  "number": 123,\n' &&
+      '  "float": 123.45,\n' &&
+      '  "boolean": true,\n' &&
+      '  "false": false,\n' &&
+      '  "null": null,\n' &&
+      '  "date": "2020-03-15",\n' &&
+      '  "issues": [\n' &&
+      '    {\n' &&
+      '      "message": "Indentation problem ...",\n' &&
+      '      "key": "indentation",\n' &&
+      '      "start": {\n' &&
+      '        "row": 4,\n' &&
+      '        "col": 3\n' &&
+      '      },\n' &&
+      '      "end": {\n' &&
+      '        "row": 4,\n' &&
+      '        "col": 26\n' &&
+      '      },\n' &&
+      '      "filename": "./zxxx.prog.abap"\n' &&
+      '    },\n' &&
+      '    {\n' &&
+      '      "message": "Remove space before XXX",\n' &&
+      '      "key": "space_before_dot",\n' &&
+      '      "start": {\n' &&
+      '        "row": 3,\n' &&
+      '        "col": 21\n' &&
+      '      },\n' &&
+      '      "end": {\n' &&
+      '        "row": 3,\n' &&
+      '        "col": 22\n' &&
+      '      },\n' &&
+      '      "filename": "./zxxx.prog.abap"\n' &&
+      '    }\n' &&
+      '  ]\n' &&
       '}'.
+
+    REPLACE ALL OCCURRENCES OF '\n' IN rv_json WITH iv_separator.
 
   ENDMETHOD.
 
@@ -151,6 +155,16 @@ CLASS ltcl_parser_test IMPLEMENTATION.
 
     CREATE OBJECT lo_cut.
     lt_act = lo_cut->parse( sample_json( ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = nodes->mt_nodes ).
+
+    lt_act = lo_cut->parse( sample_json( |{ cl_abap_char_utilities=>newline }| ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = nodes->mt_nodes ).
+
+    lt_act = lo_cut->parse( sample_json( |{ cl_abap_char_utilities=>cr_lf }| ) ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
       exp = nodes->mt_nodes ).
@@ -485,12 +499,33 @@ CLASS ltcl_utils_test DEFINITION FINAL
 
     METHODS normalize_path FOR TESTING.
     METHODS split_path FOR TESTING.
+    METHODS validate_array_index FOR TESTING RAISING /mbtools/cx_ajson_error.
 
 ENDCLASS.
 
 CLASS /mbtools/cl_ajson DEFINITION LOCAL FRIENDS ltcl_utils_test.
 
 CLASS ltcl_utils_test IMPLEMENTATION.
+
+  METHOD validate_array_index.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lcl_utils=>validate_array_index( iv_path = 'x' iv_index = '123' )
+      exp = 123 ).
+
+    TRY .
+        lcl_utils=>validate_array_index( iv_path = 'x' iv_index = 'a' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error.
+    ENDTRY.
+
+    TRY .
+        lcl_utils=>validate_array_index( iv_path = 'x' iv_index = '0' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error.
+    ENDTRY.
+
+  ENDMETHOD.
 
   METHOD normalize_path.
 
@@ -599,6 +634,8 @@ CLASS ltcl_reader_test DEFINITION FINAL
     METHODS value_string FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS members FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS slice FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS array_to_string_table FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS get_date FOR TESTING RAISING /mbtools/cx_ajson_error.
 
 ENDCLASS.
 
@@ -701,20 +738,58 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     lo_cut ?= /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value( '/string' )
+      act = lo_cut->get( '/string' )
       exp = 'abc' ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value( '/string/' )
+      act = lo_cut->get( '/string/' )
       exp = 'abc' ). " Hmmm ?
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value( '/boolean' )
+      act = lo_cut->get( '/boolean' )
       exp = 'true' ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value( '/issues/2/start/row' )
+      act = lo_cut->get( '/issues/2/start/row' )
       exp = '3' ).
+
+  ENDMETHOD.
+
+  METHOD get_date.
+
+    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
+    DATA nodes TYPE REF TO lcl_nodes_helper.
+    DATA lv_exp TYPE d.
+
+    CREATE OBJECT lo_cut.
+    lv_exp = '20200728'.
+
+    CREATE OBJECT nodes.
+    nodes->add( '  |         |object |                        | |1' ).
+    nodes->add( '/ |date1    |str    |2020-07-28              | |0' ).
+    lo_cut->mt_json_tree = nodes->mt_nodes.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->/mbtools/if_ajson_reader~get_date( '/date1' )
+      exp = lv_exp ).
+
+    CREATE OBJECT nodes.
+    nodes->add( '  |         |object |                        | |1' ).
+    nodes->add( '/ |date1    |str    |2020-07-28T01:00:00Z    | |0' ).
+    lo_cut->mt_json_tree = nodes->mt_nodes.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->/mbtools/if_ajson_reader~get_date( '/date1' )
+      exp = lv_exp ).
+
+    CREATE OBJECT nodes.
+    nodes->add( '  |         |object |                        | |1' ).
+    nodes->add( '/ |date1    |str    |20200728                | |0' ).
+    lo_cut->mt_json_tree = nodes->mt_nodes.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->/mbtools/if_ajson_reader~get_date( '/date1' )
+      exp = '' ).
 
   ENDMETHOD.
 
@@ -748,15 +823,15 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     lo_cut ?= /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_integer( '/string' )
+      act = lo_cut->get_integer( '/string' )
       exp = 0 ). " Hmmmm ????
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_integer( '/number' )
+      act = lo_cut->get_integer( '/number' )
       exp = 123 ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_integer( '/float' )
+      act = lo_cut->get_integer( '/float' )
       exp = 123 ).
 
   ENDMETHOD.
@@ -767,15 +842,15 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     lo_cut ?= /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_number( '/string' )
+      act = lo_cut->get_number( '/string' )
       exp = 0 ). " Hmmmm ????
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_number( '/number' )
+      act = lo_cut->get_number( '/number' )
       exp = +'123.0' ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_number( '/float' )
+      act = lo_cut->get_number( '/float' )
       exp = +'123.45' ).
 
   ENDMETHOD.
@@ -786,19 +861,19 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     lo_cut ?= /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_boolean( '/string' )
+      act = lo_cut->get_boolean( '/string' )
       exp = abap_true ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_boolean( '/number' )
+      act = lo_cut->get_boolean( '/number' )
       exp = abap_true ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_boolean( '/xxx' )
+      act = lo_cut->get_boolean( '/xxx' )
       exp = abap_false ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_boolean( '/boolean' )
+      act = lo_cut->get_boolean( '/boolean' )
       exp = abap_true ).
 
   ENDMETHOD.
@@ -809,19 +884,19 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     lo_cut ?= /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_string( '/string' )
+      act = lo_cut->get_string( '/string' )
       exp = 'abc' ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_string( '/number' )
+      act = lo_cut->get_string( '/number' )
       exp = '123' ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_string( '/xxx' )
+      act = lo_cut->get_string( '/xxx' )
       exp = '' ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lo_cut->value_string( '/boolean' )
+      act = lo_cut->get_string( '/boolean' )
       exp = 'true' ).
 
   ENDMETHOD.
@@ -848,6 +923,88 @@ CLASS ltcl_reader_test IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD array_to_string_table.
+
+    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
+    DATA nodes TYPE REF TO lcl_nodes_helper.
+    DATA lt_act TYPE string_table.
+    DATA lt_exp TYPE string_table.
+
+    CREATE OBJECT nodes.
+    nodes->add( '  |         |array  |                        | |6' ).
+    nodes->add( '/ |1        |num    |123                     |1|0' ).
+    nodes->add( '/ |2        |num    |234                     |2|0' ).
+    nodes->add( '/ |3        |str    |abc                     |3|0' ).
+    nodes->add( '/ |4        |bool   |true                    |4|0' ).
+    nodes->add( '/ |5        |bool   |false                   |5|0' ).
+    nodes->add( '/ |6        |null   |null                    |6|0' ).
+
+    APPEND '123' TO lt_exp.
+    APPEND '234' TO lt_exp.
+    APPEND 'abc' TO lt_exp.
+    APPEND 'X' TO lt_exp.
+    APPEND '' TO lt_exp.
+    APPEND '' TO lt_exp.
+
+    CREATE OBJECT lo_cut.
+    lo_cut->mt_json_tree = nodes->mt_nodes.
+
+    lt_act = lo_cut->/mbtools/if_ajson_reader~array_to_string_table( '/' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = lt_exp ).
+
+    " negative
+    DATA lx TYPE REF TO /mbtools/cx_ajson_error.
+
+    CREATE OBJECT nodes.
+    nodes->add( '  |         |object |                        | |1' ).
+    nodes->add( '/ |a        |str    |abc                     | |0' ).
+    lo_cut->mt_json_tree = nodes->mt_nodes.
+
+    TRY.
+        lo_cut->/mbtools/if_ajson_reader~array_to_string_table( '/x' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+          act = lx->message
+          exp = 'Path not found: /x' ).
+    ENDTRY.
+
+    TRY.
+        lo_cut->/mbtools/if_ajson_reader~array_to_string_table( '/' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+          act = lx->message
+          exp = 'Array expected at: /' ).
+    ENDTRY.
+
+    TRY.
+        lo_cut->/mbtools/if_ajson_reader~array_to_string_table( '/a' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+          act = lx->message
+          exp = 'Array expected at: /a' ).
+    ENDTRY.
+
+    CREATE OBJECT nodes.
+    nodes->add( '  |         |array  |                        | |1' ).
+    nodes->add( '/ |1        |object |                        |1|0' ).
+    lo_cut->mt_json_tree = nodes->mt_nodes.
+
+    TRY.
+        lo_cut->/mbtools/if_ajson_reader~array_to_string_table( '/' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+          act = lx->message
+          exp = 'Cannot convert [object] to string at [/1]' ).
+    ENDTRY.
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 
@@ -868,15 +1025,17 @@ CLASS ltcl_json_to_abap DEFINITION
         a TYPE string,
         b TYPE i,
       END OF ty_struc,
-      ty_strucs TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
+      tty_struc TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
       BEGIN OF ty_complex,
         str   TYPE string,
         int   TYPE i,
         float TYPE f,
         bool  TYPE abap_bool,
         obj   TYPE ty_struc,
-        tab   TYPE ty_strucs,
+        tab   TYPE tty_struc,
         oref  TYPE REF TO object,
+        date1 TYPE d,
+        date2 TYPE d,
       END OF ty_complex.
 
     METHODS find_loc FOR TESTING RAISING /mbtools/cx_ajson_error.
@@ -953,8 +1112,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
       act = <val>
       exp = 'World' ).
 
-    ref = lo_cut->find_loc( iv_path = '/obj'
-                            iv_name = 'a' ).
+    ref = lo_cut->find_loc( iv_path = '/obj' iv_name = 'a' ).
     ASSIGN ref->* TO <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
@@ -1021,8 +1179,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
           exp = 'Index not found in table' ).
     ENDTRY.
 
-    ref = lo_cut->find_loc( iv_path = '/tab/3/a'
-                            iv_append_tables = abap_true ).
+    ref = lo_cut->find_loc( iv_path = '/tab/3/a' iv_append_tables = abap_true ).
     ASSIGN ref->* TO <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
@@ -1095,6 +1252,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
 
     DATA lo_cut TYPE REF TO lcl_json_to_abap.
     DATA mock TYPE ty_complex.
+    DATA lv_exp_date TYPE d VALUE '20200728'.
     lcl_json_to_abap=>bind(
       CHANGING
         c_obj = mock
@@ -1114,6 +1272,8 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     nodes->add( '/tab/1 |a     |str    | One   | ' ).
     nodes->add( '/tab   |2     |object |       |2' ).
     nodes->add( '/tab/2 |a     |str    | Two   | ' ).
+    nodes->add( '/      |date1 |str    |2020-07-28 | ' ).
+    nodes->add( '/      |date2 |str    |2020-07-28T00:00:00Z | ' ).
 
     lo_cut->to_abap( nodes->sorted( ) ).
 
@@ -1132,6 +1292,12 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = mock-obj-a
       exp = 'world' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = mock-date1
+      exp = lv_exp_date ).
+    cl_abap_unit_assert=>assert_equals(
+      act = mock-date2
+      exp = lv_exp_date ).
 
     DATA elem LIKE LINE OF mock-tab.
     cl_abap_unit_assert=>assert_equals(
@@ -1200,6 +1366,18 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
           exp = 'Source is not a number' ).
     ENDTRY.
 
+    TRY.
+        CREATE OBJECT nodes.
+        nodes->add( '/    |      |object |        ' ).
+        nodes->add( '/    |date1 |str    |baddate ' ).
+
+        lo_cut->to_abap( nodes->sorted( ) ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+          act = lx->message
+          exp = 'Unexpected date format' ).
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -1233,6 +1411,7 @@ CLASS ltcl_writer_test DEFINITION FINAL
     METHODS set_str FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS set_int FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS set_date FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS read_only FOR TESTING RAISING /mbtools/cx_ajson_error.
 
 ENDCLASS.
 
@@ -1621,6 +1800,25 @@ CLASS ltcl_writer_test IMPLEMENTATION.
       act = lo_cut->mt_json_tree
       exp = nodes_exp->sorted( ) ).
 
+    " free-add array item (index must be updated)
+    CREATE OBJECT nodes_exp.
+    nodes_exp->add( '        |      |object |     | |1' ).
+    nodes_exp->add( '/       |a     |array  |     | |2' ).
+    nodes_exp->add( '/a/     |1     |object |     |1|1' ).
+    nodes_exp->add( '/a/1/   |x     |num    |123  | |0' ).
+    nodes_exp->add( '/a/     |2     |num    |234  |2|0' ).
+
+    li_writer->set(
+      iv_path = '/a/1/x'
+      iv_val  = 123 ).
+    li_writer->set(
+      iv_path = '/a/2'
+      iv_val  = 234 ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
   ENDMETHOD.
 
   METHOD arrays_negative.
@@ -1672,7 +1870,43 @@ CLASS ltcl_writer_test IMPLEMENTATION.
           exp = 'Path [/x] does not exist' ).
     ENDTRY.
 
+    " set array item with non-numeric key
+    TRY.
+        li_writer->set(
+          iv_path = '/a/abc/x'
+          iv_val  = 123 ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+          act = lx->message
+          exp = 'Cannot add non-numeric key [abc] to array [/a/]' ).
+    ENDTRY.
+
+    TRY.
+        li_writer->set(
+          iv_path = '/a/abc'
+          iv_val  = 123 ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+          act = lx->message
+          exp = 'Cannot add non-numeric key [abc] to array [/a/]' ).
+    ENDTRY.
+
+    " set array item with zero key
+    TRY.
+        li_writer->set(
+          iv_path = '/a/0'
+          iv_val  = 123 ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+          act = lx->message
+          exp = 'Cannot add zero key to array [/a/]' ).
+    ENDTRY.
+
   ENDMETHOD.
+
 
   METHOD root_assignment.
 
@@ -1890,6 +2124,64 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD read_only.
+
+    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
+    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
+
+    lo_cut = /mbtools/cl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    " Prepare source
+    li_writer->set(
+      iv_path = '/a'
+      iv_val  = 'abc' ).
+    li_writer->touch_array(
+      iv_path = '/b' ).
+    li_writer->push(
+      iv_path = '/b'
+      iv_val  = 'abc' ).
+
+    lo_cut->freeze( ).
+
+    TRY.
+        li_writer->set(
+          iv_path = '/c'
+          iv_val  = 'abc' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error.
+    ENDTRY.
+
+    TRY.
+        li_writer->touch_array(
+          iv_path = '/d' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error.
+    ENDTRY.
+
+    TRY.
+        li_writer->push(
+          iv_path = '/b'
+          iv_val  = 'xyz' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error.
+    ENDTRY.
+
+    TRY.
+        li_writer->delete(
+          iv_path = '/a' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error.
+    ENDTRY.
+
+    TRY.
+        li_writer->clear( ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error.
+    ENDTRY.
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 
@@ -1916,7 +2208,7 @@ CLASS ltcl_integrated DEFINITION
         start    TYPE ty_loc,
         end      TYPE ty_loc,
       END OF ty_issue,
-      ty_issues TYPE STANDARD TABLE OF ty_issue WITH DEFAULT KEY,
+      tt_issues TYPE STANDARD TABLE OF ty_issue WITH DEFAULT KEY,
       BEGIN OF ty_target,
         string  TYPE string,
         number  TYPE i,
@@ -1925,7 +2217,7 @@ CLASS ltcl_integrated DEFINITION
         false   TYPE abap_bool,
         null    TYPE string,
         date    TYPE string, " ??? TODO
-        issues  TYPE ty_issues,
+        issues  TYPE tt_issues,
       END OF ty_target.
 
     METHODS reader FOR TESTING RAISING /mbtools/cx_ajson_error.
@@ -2002,7 +2294,7 @@ CLASS ltcl_integrated IMPLEMENTATION.
     li_reader = /mbtools/cl_ajson=>parse( lv_source ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = li_reader->value( '/string' )
+      act = li_reader->get( '/string' )
       exp = 'abc' ).
 
     DATA ls_act TYPE ty_target.
@@ -2140,13 +2432,13 @@ CLASS ltcl_abap_to_json DEFINITION
         c TYPE abap_bool,
         d TYPE xfeld,
       END OF ty_struc,
-      ty_strucs TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
+      tt_struc TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
       BEGIN OF ty_struc_complex.
         INCLUDE TYPE ty_struc.
       TYPES:
         el    TYPE string,
         struc TYPE ty_struc,
-        tab   TYPE ty_strucs,
+        tab   TYPE tt_struc,
         stab  TYPE string_table,
       END OF ty_struc_complex.
 

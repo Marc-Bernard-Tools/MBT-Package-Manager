@@ -1,5 +1,8 @@
+CLASS /mbtools/cl_password_dialog DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 ************************************************************************
-* /MBTOOLS/CL_PASSWORD_DIALOG
 * MBT Password Popup
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,10 +10,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-CLASS /mbtools/cl_password_dialog DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
 
   PUBLIC SECTION.
 

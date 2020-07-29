@@ -1,5 +1,6 @@
+INTERFACE /mbtools/if_gui_hotkey_ctl
+  PUBLIC .
 ************************************************************************
-* /MBTOOLS/IF_GUI_HOTKEY_CTL
 * MBT GUI Hotkey Controller
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,8 +8,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-INTERFACE /mbtools/if_gui_hotkey_ctl
-  PUBLIC .
 
   METHODS register_hotkeys
     IMPORTING

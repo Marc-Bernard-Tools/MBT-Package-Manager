@@ -1,5 +1,8 @@
+CLASS /mbtools/cl_gui_css_processor DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 ************************************************************************
-* /MBTOOLS/CL_GUI_CSS_PROCESSOR
 * MBT GUI CSS Processor
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,10 +10,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-CLASS /mbtools/cl_gui_css_processor DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
 
   PUBLIC SECTION.
 

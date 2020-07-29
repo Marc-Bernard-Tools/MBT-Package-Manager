@@ -1,5 +1,5 @@
+REPORT /mbtools/registry MESSAGE-ID /mbtools/bc.
 ************************************************************************
-* /MBTOOLS/REGISTRY
 * MBT Registry
 *
 * Viewer and editor for registry stored in /MBTOOLS/REGS
@@ -11,7 +11,6 @@
 *
 * Ported to namespace and enhanced by Marc Bernard Tools
 ************************************************************************
-REPORT /mbtools/registry MESSAGE-ID /mbtools/bc.
 
 TYPE-POOLS: icon.
 

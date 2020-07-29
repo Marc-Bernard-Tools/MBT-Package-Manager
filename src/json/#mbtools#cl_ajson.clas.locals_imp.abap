@@ -15,10 +15,30 @@ CLASS lcl_utils DEFINITION FINAL.
         iv_path             TYPE string
       RETURNING
         VALUE(rv_path_name) TYPE /mbtools/cl_ajson=>ty_path_name.
+    CLASS-METHODS validate_array_index
+      IMPORTING
+        iv_path         TYPE string
+        iv_index        TYPE string
+      RETURNING
+        VALUE(rv_index) TYPE i
+      RAISING
+        /mbtools/cx_ajson_error.
 
 ENDCLASS.
 
 CLASS lcl_utils IMPLEMENTATION.
+
+  METHOD validate_array_index.
+
+    IF NOT iv_index CO '0123456789'.
+      /mbtools/cx_ajson_error=>raise( |Cannot add non-numeric key [{ iv_index }] to array [{ iv_path }]| ).
+    ENDIF.
+    rv_index = iv_index.
+    IF rv_index = 0.
+      /mbtools/cx_ajson_error=>raise( |Cannot add zero key to array [{ iv_path }]| ).
+    ENDIF.
+
+  ENDMETHOD.
 
   METHOD normalize_path.
 
@@ -29,8 +49,7 @@ CLASS lcl_utils IMPLEMENTATION.
     IF rv_path+0(1) <> '/'.
       rv_path = '/' && rv_path.
     ENDIF.
-    IF substring( val = rv_path
-                  off = strlen( rv_path ) - 1 ) <> '/'.
+    IF substring( val = rv_path off = strlen( rv_path ) - 1 ) <> '/'.
       rv_path = rv_path && '/'.
     ENDIF.
 
@@ -47,24 +66,18 @@ CLASS lcl_utils IMPLEMENTATION.
       RETURN. " empty path is the alias for root item = '' + ''
     ENDIF.
 
-    IF substring( val = iv_path
-                  off = lv_len - 1 ) = '/'.
+    IF substring( val = iv_path off = lv_len - 1 ) = '/'.
       lv_trim_slash = 1. " ignore last '/'
     ENDIF.
 
-    lv_offs = find( val = reverse( iv_path )
-                    sub = '/'
-                    off = lv_trim_slash ).
+    lv_offs = find( val = reverse( iv_path ) sub = '/' off = lv_trim_slash ).
     IF lv_offs = -1.
       lv_offs  = lv_len. " treat whole string as the 'name' part
     ENDIF.
     lv_offs = lv_len - lv_offs.
 
-    rv_path_name-path = normalize_path( substring( val = iv_path
-                                                   len = lv_offs ) ).
-    rv_path_name-name = substring( val = iv_path
-                                   off = lv_offs
-                                   len = lv_len - lv_offs - lv_trim_slash ).
+    rv_path_name-path = normalize_path( substring( val = iv_path len = lv_offs ) ).
+    rv_path_name-name = substring( val = iv_path off = lv_offs len = lv_len - lv_offs - lv_trim_slash ).
 
   ENDMETHOD.
 
@@ -199,11 +212,9 @@ CLASS lcl_json_parser IMPLEMENTATION.
 
   METHOD raise.
 
-    RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
-      EXPORTING
-        location = join_path( mt_stack )
-        rc       = 'PARS'
-        message  = |JSON PARSER: { iv_error } @ { join_path( mt_stack ) }|.
+    /mbtools/cx_ajson_error=>raise(
+      iv_location = join_path( mt_stack )
+      iv_msg      = |JSON PARSER: { iv_error } @ { join_path( mt_stack ) }| ).
 
   ENDMETHOD.
 
@@ -302,8 +313,7 @@ CLASS lcl_json_serializer IMPLEMENTATION.
     DATA lv_indent_prefix TYPE string.
 
     IF mv_indent_step > 0.
-      lv_indent_prefix = repeat( val = ` `
-                                 occ = mv_indent_step * mv_level ).
+      lv_indent_prefix = repeat( val = ` ` occ = mv_indent_step * mv_level ).
       lv_item = lv_indent_prefix.
     ENDIF.
 
@@ -327,10 +337,9 @@ CLASS lcl_json_serializer IMPLEMENTATION.
       WHEN 'null'.
         lv_item = lv_item && 'null'.
       WHEN OTHERS.
-        RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
-          EXPORTING
-            message  = |Unexpected type [{ is_node-type }]|
-            location = is_node-path && is_node-name.
+        /mbtools/cx_ajson_error=>raise(
+          iv_msg = |Unexpected type [{ is_node-type }]|
+          iv_location = is_node-path && is_node-name ).
     ENDCASE.
 
     IF mv_indent_step > 0 AND ( is_node-type = 'array' OR is_node-type = 'object' ) AND is_node-children > 0.
@@ -507,34 +516,46 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
             WHEN 'num'.
               <value> = <n>-value.
             WHEN 'str'.
-              <value> = <n>-value.
+              IF lv_type = 'D' AND <n>-value IS NOT INITIAL.
+                DATA lv_y TYPE c LENGTH 4.
+                DATA lv_m TYPE c LENGTH 2.
+                DATA lv_d TYPE c LENGTH 2.
+
+                FIND FIRST OCCURRENCE OF REGEX '^(\d{4})-(\d{2})-(\d{2})(T|$)'
+                  IN <n>-value
+                  SUBMATCHES lv_y lv_m lv_d.
+                IF sy-subrc <> 0.
+                  /mbtools/cx_ajson_error=>raise(
+                    iv_msg      = 'Unexpected date format'
+                    iv_location = <n>-path && <n>-name ).
+                ENDIF.
+                CONCATENATE lv_y lv_m lv_d INTO <value>.
+              ELSE.
+                <value> = <n>-value.
+              ENDIF.
             WHEN 'object'.
               IF NOT lv_type CO 'uv'.
-                RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
-                  EXPORTING
-                    message  = 'Expected structure'
-                    location = <n>-path && <n>-name.
+                /mbtools/cx_ajson_error=>raise(
+                  iv_msg      = 'Expected structure'
+                  iv_location = <n>-path && <n>-name ).
               ENDIF.
             WHEN 'array'.
               IF NOT lv_type CO 'h'.
-                RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
-                  EXPORTING
-                    message  = 'Expected table'
-                    location = <n>-path && <n>-name.
+                /mbtools/cx_ajson_error=>raise(
+                  iv_msg      = 'Expected table'
+                  iv_location = <n>-path && <n>-name ).
               ENDIF.
             WHEN OTHERS.
-              RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
-                EXPORTING
-                  message  = |Unexpected JSON type [{ <n>-type }]|
-                  location = <n>-path && <n>-name.
+              /mbtools/cx_ajson_error=>raise(
+                iv_msg      = |Unexpected JSON type [{ <n>-type }]|
+                iv_location = <n>-path && <n>-name ).
           ENDCASE.
 
         ENDLOOP.
       CATCH cx_sy_conversion_no_number INTO lx.
-        RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
-          EXPORTING
-            message  = |Source is not a number|
-            location = <n>-path && <n>-name.
+        /mbtools/cx_ajson_error=>raise(
+          iv_msg      = |Source is not a number|
+          iv_location = <n>-path && <n>-name ).
     ENDTRY.
 
   ENDMETHOD.
@@ -569,17 +590,15 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
 
       IF lv_type CA 'lr'. " data/obj ref
         " TODO maybe in future
-        RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
-          EXPORTING
-            message  = 'Cannot assign to ref'
-            location = lv_trace.
+        /mbtools/cx_ajson_error=>raise(
+          iv_msg      = 'Cannot assign to ref'
+          iv_location = lv_trace ).
 
       ELSEIF lv_type = 'h'. " table
         IF NOT <seg> CO '0123456789'.
-          RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
-            EXPORTING
-              message  = 'Need index to access tables'
-              location = lv_trace.
+          /mbtools/cx_ajson_error=>raise(
+            iv_msg      = 'Need index to access tables'
+            iv_location = lv_trace ).
         ENDIF.
         lv_index = <seg>.
         ASSIGN r_ref->* TO <table>.
@@ -592,25 +611,22 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
 
         READ TABLE <table> INDEX lv_index ASSIGNING <value>.
         IF sy-subrc <> 0.
-          RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
-            EXPORTING
-              message  = 'Index not found in table'
-              location = lv_trace.
+          /mbtools/cx_ajson_error=>raise(
+            iv_msg      = 'Index not found in table'
+            iv_location = lv_trace ).
         ENDIF.
 
       ELSEIF lv_type CA 'uv'. " structure
         ASSIGN COMPONENT <seg> OF STRUCTURE <struc> TO <value>.
         IF sy-subrc <> 0.
-          RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
-            EXPORTING
-              message  = 'Path not found'
-              location = lv_trace.
+          /mbtools/cx_ajson_error=>raise(
+            iv_msg      =  'Path not found'
+            iv_location = lv_trace ).
         ENDIF.
       ELSE.
-        RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
-          EXPORTING
-            message  = 'Target is not deep'
-            location = lv_trace.
+        /mbtools/cx_ajson_error=>raise(
+          iv_msg = 'Target is not deep'
+          iv_location = lv_trace ).
       ENDIF.
       GET REFERENCE OF <value> INTO r_ref.
     ENDLOOP.
@@ -630,6 +646,7 @@ CLASS lcl_abap_to_json DEFINITION FINAL.
       IMPORTING
         iv_data         TYPE any
         is_prefix       TYPE /mbtools/cl_ajson=>ty_path_name OPTIONAL
+        iv_array_index  TYPE i DEFAULT 0
       RETURNING
         VALUE(rt_nodes) TYPE /mbtools/cl_ajson=>ty_nodes_tt
       RAISING
@@ -733,6 +750,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
         iv_data   = iv_data
         io_type   = lo_type
         is_prefix = is_prefix
+        iv_index  = iv_array_index
       CHANGING
         ct_nodes = rt_nodes ).
 
@@ -793,9 +811,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
             CHANGING
               ct_nodes = ct_nodes ).
         ELSE.
-          RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
-            EXPORTING
-              message = |Unsupported type [{ io_type->type_kind }] @{ is_prefix-path && is_prefix-name }|.
+          /mbtools/cx_ajson_error=>raise( |Unsupported type [{ io_type->type_kind }] @{ is_prefix-path && is_prefix-name }| ).
         ENDIF.
 
     ENDCASE.
@@ -844,9 +860,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
       <n>-type = 'num'.
       <n>-value = |{ iv_data }|.
     ELSE.
-      RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
-        EXPORTING
-          message = |Unexpected elemetary type [{ io_type->type_kind }] @{ is_prefix-path && is_prefix-name }|.
+      /mbtools/cx_ajson_error=>raise( |Unexpected elemetary type [{ io_type->type_kind }] @{ is_prefix-path && is_prefix-name }| ).
     ENDIF.
 
   ENDMETHOD.
@@ -866,9 +880,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
       <n>-value = 'null'.
     ELSE.
       " TODO support data references
-      RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
-        EXPORTING
-          message = |Unexpected reference @{ is_prefix-path && is_prefix-name }|.
+      /mbtools/cx_ajson_error=>raise( |Unexpected reference @{ is_prefix-path && is_prefix-name }| ).
     ENDIF.
 
   ENDMETHOD.

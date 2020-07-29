@@ -1,5 +1,6 @@
+INTERFACE /mbtools/if_gui_error_handler
+  PUBLIC .
 ************************************************************************
-* /MBTOOLS/IF_GUI_ERROR_HANDLER
 * MBT GUI Error Handler
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,8 +8,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-INTERFACE /mbtools/if_gui_error_handler
-  PUBLIC .
 
   METHODS handle_error
     IMPORTING

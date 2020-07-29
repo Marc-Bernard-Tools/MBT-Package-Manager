@@ -1,5 +1,9 @@
+CLASS /mbtools/cl_popups DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PRIVATE
+  GLOBAL FRIENDS /mbtools/cl_gui_factory .
 ************************************************************************
-* /MBTOOLS/CL_POPUPS
 * MBT Popups
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,11 +11,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-CLASS /mbtools/cl_popups DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PRIVATE
-  GLOBAL FRIENDS /mbtools/cl_gui_factory .
 
   PUBLIC SECTION.
 

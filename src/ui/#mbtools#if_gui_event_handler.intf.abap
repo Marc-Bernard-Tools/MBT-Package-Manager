@@ -1,5 +1,6 @@
+INTERFACE /mbtools/if_gui_event_handler
+  PUBLIC .
 ************************************************************************
-* /MBTOOLS/IF_GUI_EVENT_HANDLER
 * MBT GUI Event Handler
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,8 +8,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-INTERFACE /mbtools/if_gui_event_handler
-  PUBLIC .
 
   METHODS on_event
     IMPORTING

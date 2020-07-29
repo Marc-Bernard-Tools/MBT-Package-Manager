@@ -1,5 +1,8 @@
+CLASS /mbtools/cl_gui DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 ************************************************************************
-* /MBTOOLS/CL_GUI
 * MBT GUI
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,10 +10,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-CLASS /mbtools/cl_gui DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
 
   PUBLIC SECTION.
 
@@ -112,9 +111,10 @@ CLASS /mbtools/cl_gui DEFINITION
 
     METHODS handle_action
       IMPORTING
-        iv_action   TYPE c
-        iv_getdata  TYPE c OPTIONAL
-        it_postdata TYPE cnht_post_data_tab OPTIONAL.
+        iv_action      TYPE c
+        iv_getdata     TYPE c OPTIONAL
+        it_postdata    TYPE cnht_post_data_tab OPTIONAL
+        it_query_table TYPE cnht_query_table OPTIONAL.
 
     METHODS handle_error
       IMPORTING
@@ -416,9 +416,10 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
   METHOD on_event.
 
     handle_action(
-      iv_action   = action
-      iv_getdata  = getdata
-      it_postdata = postdata ).
+      iv_action      = action
+      iv_getdata     = getdata
+      it_postdata    = postdata
+      it_query_table = query_table ).
 
   ENDMETHOD.
 
@@ -469,7 +470,7 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
 
     CREATE OBJECT mo_html_viewer
       EXPORTING
-        query_table_disabled = abap_true
+        query_table_disabled = abap_false
         parent               = cl_gui_container=>screen0.
 
     IF mi_asset_man IS BOUND.

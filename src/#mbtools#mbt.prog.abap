@@ -1,10 +1,9 @@
+REPORT /mbtools/mbt.
 ************************************************************************
-* /MBTOOLS/MARC_BERNARD_TOOLS
 * Marc Bernard Tools
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-REPORT /mbtools/mbt.
 
 TABLES:
   sscrfields.

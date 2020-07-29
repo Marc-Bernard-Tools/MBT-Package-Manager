@@ -1,5 +1,6 @@
+INTERFACE /mbtools/if_gui_asset_manager
+  PUBLIC .
 ************************************************************************
-* /MBTOOLS/IF_GUI_
 * MBT GUI Asset Manager
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,8 +8,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-INTERFACE /mbtools/if_gui_asset_manager
-  PUBLIC .
 
   TYPES:
     BEGIN OF ty_web_asset,

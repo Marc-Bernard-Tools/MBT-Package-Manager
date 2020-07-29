@@ -1,12 +1,11 @@
+CLASS /mbtools/cl_screen DEFINITION
+  PUBLIC
+  CREATE PUBLIC .
 ************************************************************************
-* /MBTOOLS/CL_SCREEN
 * MBT Screen
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-CLASS /mbtools/cl_screen DEFINITION
-  PUBLIC
-  CREATE PUBLIC .
 
   PUBLIC SECTION.
     TYPE-POOLS cndp .

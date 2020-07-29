@@ -1,13 +1,12 @@
-************************************************************************
-* /MBTOOLS/CL_BUNDLE_PREM_BASIS
-* MBT Premium Basis
-*
-* (c) MBT 2020 https://marcbernardtools.com/
-************************************************************************
 CLASS /mbtools/cl_bundle_prem_basis DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+************************************************************************
+* MBT Premium Basis
+*
+* (c) MBT 2020 https://marcbernardtools.com/
+************************************************************************
 
   PUBLIC SECTION.
 

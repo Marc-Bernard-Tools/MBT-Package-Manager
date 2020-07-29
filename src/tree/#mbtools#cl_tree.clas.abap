@@ -1,12 +1,11 @@
+CLASS /mbtools/cl_tree DEFINITION
+  PUBLIC
+  CREATE PUBLIC .
 ************************************************************************
-* /MBTOOLS/CL_TREE
 * MBT Tree
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-CLASS /mbtools/cl_tree DEFINITION
-  PUBLIC
-  CREATE PUBLIC .
 
   PUBLIC SECTION.
     TYPE-POOLS icon .

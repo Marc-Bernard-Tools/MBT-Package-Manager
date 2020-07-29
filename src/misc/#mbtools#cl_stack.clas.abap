@@ -1,5 +1,8 @@
+CLASS /mbtools/cl_stack DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 ************************************************************************
-* /MBTOOLS/CL_STACK
 * MBT Stack
 *
 * Based on https://blogs.sap.com/2017/03/25/noitab-a-stack/
@@ -7,10 +10,6 @@
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-CLASS /mbtools/cl_stack DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
 
   PUBLIC SECTION.
     METHODS push

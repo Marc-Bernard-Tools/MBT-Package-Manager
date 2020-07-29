@@ -1,5 +1,6 @@
+INTERFACE /mbtools/if_gui_html_processor
+  PUBLIC .
 ************************************************************************
-* /MBTOOLS/IF_GUI_HTML_PROCESSOR
 * MBT GUI HTML Processor
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,8 +8,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-INTERFACE /mbtools/if_gui_html_processor
-  PUBLIC .
 
   METHODS process
     IMPORTING

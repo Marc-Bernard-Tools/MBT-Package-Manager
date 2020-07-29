@@ -1,11 +1,10 @@
+INTERFACE /mbtools/if_objects
+  PUBLIC .
 ************************************************************************
-* /MBTOOLS/IF_OBJECTS
 * MBT Objects
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-INTERFACE /mbtools/if_objects
-  PUBLIC .
 
   TYPE-POOLS rs .
   TYPE-POOLS rzd1 .

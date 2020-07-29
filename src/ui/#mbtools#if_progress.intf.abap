@@ -1,5 +1,6 @@
+INTERFACE /mbtools/if_progress
+  PUBLIC .
 ************************************************************************
-* /MBTOOLS/IF_PROGRESS
 * MBT Progress Indicator
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,9 +8,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-INTERFACE /mbtools/if_progress
-  PUBLIC .
-
 
   METHODS show
     IMPORTING

@@ -1,10 +1,9 @@
+REPORT /mbtools/marc_bernard_tools.
 ************************************************************************
-* /MBTOOLS/MARC_BERNARD_TOOLS
 * Marc Bernard Tools
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-REPORT /mbtools/marc_bernard_tools.
 
 TABLES:
   sscrfields, icon, icont.
@@ -84,6 +83,7 @@ DATA:
   go_app     TYPE REF TO /mbtools/cl_base,
   gv_tool    TYPE string,
   gv_action  TYPE string,
+  gv_msg     TYPE string,
   gv_flag    TYPE abap_bool.
 
 *-----------------------------------------------------------------------
@@ -258,7 +258,9 @@ START-OF-SELECTION.
   ENDIF.
 
   IF gv_flag = abap_true.
-    MESSAGE |{ gv_tool } { gv_action } successfully| TYPE 'S'.
+    gv_msg = |{ gv_tool } { gv_action } successfully|.
+    MESSAGE gv_msg TYPE 'S'.
   ELSE.
-    MESSAGE |Error: { gv_tool } not { gv_action } properly| TYPE 'E' DISPLAY LIKE 'I'.
+    gv_msg = |Error: { gv_tool } not { gv_action } properly|.
+    MESSAGE gv_msg TYPE 'E' DISPLAY LIKE 'I'.
   ENDIF.

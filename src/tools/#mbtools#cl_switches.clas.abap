@@ -1,5 +1,8 @@
+CLASS /mbtools/cl_switches DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 ************************************************************************
-* /MBTOOLS/CL_SWITCHES
 * MBT Switches
 *
 * WARNING: Any syntax errors in this class may impact system stability
@@ -7,10 +10,6 @@
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-CLASS /mbtools/cl_switches DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
 
   PUBLIC SECTION.
 

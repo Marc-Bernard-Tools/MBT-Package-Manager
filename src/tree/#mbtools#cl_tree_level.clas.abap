@@ -1,12 +1,11 @@
+CLASS /mbtools/cl_tree_level DEFINITION
+  PUBLIC
+  CREATE PUBLIC .
 ************************************************************************
-* /MBTOOLS/CL_TREE_LEVEL
 * MBT Tree Level
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-CLASS /mbtools/cl_tree_level DEFINITION
-  PUBLIC
-  CREATE PUBLIC .
 
   PUBLIC SECTION.
 

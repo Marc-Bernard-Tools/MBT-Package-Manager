@@ -1,5 +1,7 @@
+CLASS /mbtools/cl_registry DEFINITION
+  PUBLIC
+  CREATE PROTECTED .
 ************************************************************************
-* /MBTOOLS/CL_REGISTRY
 * MBT Registry
 *
 * WARNING: Any syntax errors in this class may impact system stability
@@ -13,9 +15,6 @@
 *
 * Ported to namespace and enhanced by Marc Bernard Tools
 ************************************************************************
-CLASS /mbtools/cl_registry DEFINITION
-  PUBLIC
-  CREATE PROTECTED .
 
   PUBLIC SECTION.
 

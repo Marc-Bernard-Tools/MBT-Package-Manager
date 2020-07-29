@@ -1,13 +1,12 @@
-************************************************************************
-* /MBTOOLS/CL_BUNDLE_PREM_BW
-* MBT Premium BW
-*
-* (c) MBT 2020 https://marcbernardtools.com/
-************************************************************************
 CLASS /mbtools/cl_bundle_prem_bw DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+************************************************************************
+* MBT Premium BW
+*
+* (c) MBT 2020 https://marcbernardtools.com/
+************************************************************************
 
   PUBLIC SECTION.
 

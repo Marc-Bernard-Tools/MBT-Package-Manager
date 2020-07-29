@@ -1,5 +1,8 @@
+CLASS /mbtools/cl_gui_component DEFINITION
+  PUBLIC
+  ABSTRACT
+  CREATE PUBLIC .
 ************************************************************************
-* /MBTOOLS/CL_GUI_COMPONENT
 * MBT GUI Component
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,10 +10,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-CLASS /mbtools/cl_gui_component DEFINITION
-  PUBLIC
-  ABSTRACT
-  CREATE PUBLIC .
 
   PUBLIC SECTION.
 

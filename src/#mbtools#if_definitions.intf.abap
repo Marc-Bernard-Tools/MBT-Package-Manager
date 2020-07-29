@@ -1,11 +1,10 @@
+INTERFACE /mbtools/if_definitions
+  PUBLIC .
 ************************************************************************
-* /MBTOOLS/IF_DEFINITIONS
 * MBT Definitions
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-INTERFACE /mbtools/if_definitions
-  PUBLIC .
 
   TYPES:
     ty_icon     TYPE c LENGTH 4, " icon_d

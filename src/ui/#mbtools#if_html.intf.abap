@@ -1,5 +1,6 @@
+INTERFACE /mbtools/if_html
+  PUBLIC .
 ************************************************************************
-* /MBTOOLS/IF_HTML
 * MBT HTML
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,8 +8,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-INTERFACE /mbtools/if_html
-  PUBLIC .
 
   TYPES:
     ty_table_of TYPE STANDARD TABLE OF REF TO /mbtools/if_html WITH DEFAULT KEY .

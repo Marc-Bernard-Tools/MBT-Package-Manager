@@ -1,5 +1,9 @@
+CLASS /mbtools/cl_gui_page DEFINITION
+  PUBLIC
+  INHERITING FROM /mbtools/cl_gui_component
+  ABSTRACT
+  CREATE PUBLIC .
 ************************************************************************
-* /MBTOOLS/CL_GUI_PAGE
 * MBT GUI Page
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
@@ -7,11 +11,6 @@
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-CLASS /mbtools/cl_gui_page DEFINITION
-  PUBLIC
-  INHERITING FROM /mbtools/cl_gui_component
-  ABSTRACT
-  CREATE PUBLIC .
 
   PUBLIC SECTION.
 

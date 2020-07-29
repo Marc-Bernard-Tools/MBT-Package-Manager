@@ -1,13 +1,12 @@
-************************************************************************
-* /MBTOOLS/CL_BUNDLE_FREE
-* MBT Free Version
-*
-* (c) MBT 2020 https://marcbernardtools.com/
-************************************************************************
 CLASS /mbtools/cl_bundle_free DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+************************************************************************
+* MBT Free Version
+*
+* (c) MBT 2020 https://marcbernardtools.com/
+************************************************************************
 
   PUBLIC SECTION.
 

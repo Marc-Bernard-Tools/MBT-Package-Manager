@@ -1,5 +1,8 @@
+CLASS /mbtools/cl_registry_ui DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 ************************************************************************
-* /MBTOOLS/CL_REGISTRY_UI
 * MBT Registry
 *
 * Implementation of a registry for storing arbitrary values (similar
@@ -10,10 +13,6 @@
 *
 * Ported to namespace and enhanced by Marc Bernard Tools
 ************************************************************************
-CLASS /mbtools/cl_registry_ui DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
 
   PUBLIC SECTION.
     TYPE-POOLS icon .
