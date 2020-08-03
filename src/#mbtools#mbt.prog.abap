@@ -115,11 +115,14 @@ CLASS lcl_main IMPLEMENTATION.
 
     CASE sy-ucomm.
       WHEN 'CBAC'.  "Back
-*        IF /mbtools/cl_ui_factory=>get_gui( )->back( ) = abap_true. " end of stack
-*          /mbtools/cl_ui_factory=>get_gui( )->free( ). " Graceful shutdown
-*        ELSE.
-        LEAVE TO SCREEN c_dynnr-main.
-*        ENDIF.
+        TRY.
+            IF /mbtools/cl_gui_factory=>get_gui( )->back( ) = abap_true. " end of stack
+              /mbtools/cl_gui_factory=>get_gui( )->free( ). " Graceful shutdown
+            ELSE.
+              LEAVE TO SCREEN c_dynnr-main.
+            ENDIF.
+          CATCH cx_root.
+        ENDTRY.
     ENDCASE.
 
   ENDMETHOD.

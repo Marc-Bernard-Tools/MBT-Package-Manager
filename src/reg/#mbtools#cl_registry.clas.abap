@@ -4,8 +4,8 @@ CLASS /mbtools/cl_registry DEFINITION
 ************************************************************************
 * MBT Registry
 *
-* WARNING: Any syntax errors in this class may impact system stability
-* DO NOT CHANGE
+* WARNING: DO NOT CHANGE!
+* Syntax errors in this class may impact system stability
 *
 * Implementation of a registry for storing arbitrary values (similar
 * to the MS Windows registry)

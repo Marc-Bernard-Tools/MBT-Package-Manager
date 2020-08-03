@@ -2,6 +2,7 @@ CLASS /mbtools/cl_gui DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT GUI
 *
@@ -10,7 +11,6 @@ CLASS /mbtools/cl_gui DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-
   PUBLIC SECTION.
 
     INTERFACES /mbtools/if_gui_services .
@@ -26,7 +26,6 @@ CLASS /mbtools/cl_gui DEFINITION
         go_back_to_bookmark TYPE i VALUE 6,
         new_page_replacing  TYPE i VALUE 7,
       END OF c_event_state .
-
     CONSTANTS:
       BEGIN OF c_action,
         go_home TYPE string VALUE 'go_home',
@@ -66,6 +65,14 @@ CLASS /mbtools/cl_gui DEFINITION
       RAISING
         /mbtools/cx_exception .
     METHODS free .
+    METHODS parse_data
+      IMPORTING
+        !iv_getdata          TYPE c
+        !it_postdata         TYPE cnht_post_data_tab
+      RETURNING
+        VALUE(ro_parameters) TYPE REF TO /mbtools/cl_string_map
+      RAISING
+        /mbtools/cx_exception .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -73,52 +80,47 @@ CLASS /mbtools/cl_gui DEFINITION
       BEGIN OF ty_page_stack,
         page     TYPE REF TO /mbtools/if_gui_renderable,
         bookmark TYPE abap_bool,
-      END OF ty_page_stack.
+      END OF ty_page_stack .
 
+    DATA mv_rollback_on_error TYPE abap_bool .
+    DATA mi_cur_page TYPE REF TO /mbtools/if_gui_renderable .
     DATA:
-      mv_rollback_on_error TYPE abap_bool,
-      mi_cur_page          TYPE REF TO /mbtools/if_gui_renderable,
-      mt_stack             TYPE STANDARD TABLE OF ty_page_stack,
-      mt_event_handlers    TYPE STANDARD TABLE OF REF TO /mbtools/if_gui_event_handler,
-      mi_router            TYPE REF TO /mbtools/if_gui_event_handler,
-      mi_asset_man         TYPE REF TO /mbtools/if_gui_asset_manager,
-      mi_hotkey_ctl        TYPE REF TO /mbtools/if_gui_hotkey_ctl,
-      mi_html_processor    TYPE REF TO /mbtools/if_gui_html_processor,
-      mo_html_viewer       TYPE REF TO cl_gui_html_viewer,
-      mo_html_parts        TYPE REF TO /mbtools/cl_html_parts.
+      mt_stack             TYPE STANDARD TABLE OF ty_page_stack .
+    DATA:
+      mt_event_handlers    TYPE STANDARD TABLE OF REF TO /mbtools/if_gui_event_handler .
+    DATA mi_router TYPE REF TO /mbtools/if_gui_event_handler .
+    DATA mi_asset_man TYPE REF TO /mbtools/if_gui_asset_manager .
+    DATA mi_hotkey_ctl TYPE REF TO /mbtools/if_gui_hotkey_ctl .
+    DATA mi_html_processor TYPE REF TO /mbtools/if_gui_html_processor .
+    DATA mo_html_viewer TYPE REF TO cl_gui_html_viewer .
+    DATA mo_html_parts TYPE REF TO /mbtools/cl_html_parts .
 
     METHODS startup
       RAISING
-        /mbtools/cx_exception.
-
+        /mbtools/cx_exception .
     METHODS cache_html
       IMPORTING
-        iv_text       TYPE string
+        !iv_text      TYPE string
       RETURNING
-        VALUE(rv_url) TYPE w3url.
-
+        VALUE(rv_url) TYPE w3url .
     METHODS render
       RAISING
-        /mbtools/cx_exception.
-
+        /mbtools/cx_exception .
     METHODS call_page
       IMPORTING
-        ii_page          TYPE REF TO /mbtools/if_gui_renderable
-        iv_with_bookmark TYPE abap_bool DEFAULT abap_false
-        iv_replacing     TYPE abap_bool DEFAULT abap_false
+        !ii_page          TYPE REF TO /mbtools/if_gui_renderable
+        !iv_with_bookmark TYPE abap_bool DEFAULT abap_false
+        !iv_replacing     TYPE abap_bool DEFAULT abap_false
       RAISING
-        /mbtools/cx_exception.
-
+        /mbtools/cx_exception .
     METHODS handle_action
       IMPORTING
-        iv_action      TYPE c
-        iv_getdata     TYPE c OPTIONAL
-        it_postdata    TYPE cnht_post_data_tab OPTIONAL
-        it_query_table TYPE cnht_query_table OPTIONAL.
-
+        !iv_action   TYPE c
+        !iv_getdata  TYPE c OPTIONAL
+        !it_postdata TYPE cnht_post_data_tab OPTIONAL .
     METHODS handle_error
       IMPORTING
-        ix_exception TYPE REF TO /mbtools/cx_exception.
+        !ix_exception TYPE REF TO /mbtools/cx_exception .
 ENDCLASS.
 
 
@@ -334,21 +336,27 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
 
   METHOD handle_action.
 
-    DATA: lx_exception TYPE REF TO /mbtools/cx_exception,
-          li_handler   TYPE REF TO /mbtools/if_gui_event_handler,
-          li_page      TYPE REF TO /mbtools/if_gui_renderable,
-          lv_state     TYPE i.
+    DATA: lx_exception  TYPE REF TO /mbtools/cx_exception,
+          lo_parameters TYPE REF TO /mbtools/cl_string_map,
+          li_handler    TYPE REF TO /mbtools/if_gui_event_handler,
+          li_page       TYPE REF TO /mbtools/if_gui_renderable,
+          lv_state      TYPE i.
 
     TRY.
+        lo_parameters = parse_data(
+          iv_getdata  = iv_getdata
+          it_postdata = it_postdata ).
+
         LOOP AT mt_event_handlers INTO li_handler.
           li_handler->on_event(
             EXPORTING
-              iv_action    = iv_action
-              iv_getdata   = iv_getdata
-              it_postdata  = it_postdata
+              iv_action     = iv_action
+              iv_getdata    = iv_getdata
+              it_postdata   = it_postdata
+              io_parameters = lo_parameters
             IMPORTING
-              ei_page      = li_page
-              ev_state     = lv_state ).
+              ei_page       = li_page
+              ev_state      = lv_state ).
           IF lv_state IS NOT INITIAL AND lv_state <> c_event_state-not_handled. " is handled
             EXIT.
           ENDIF.
@@ -361,11 +369,11 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
             call_page( li_page ).
           WHEN c_event_state-new_page_w_bookmark.
             call_page(
-              ii_page = li_page
+              ii_page          = li_page
               iv_with_bookmark = abap_true ).
           WHEN c_event_state-new_page_replacing.
             call_page(
-              ii_page = li_page
+              ii_page      = li_page
               iv_replacing = abap_true ).
           WHEN c_event_state-go_back.
             back( ).
@@ -418,8 +426,71 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
     handle_action(
       iv_action      = action
       iv_getdata     = getdata
-      it_postdata    = postdata
-      it_query_table = query_table ).
+      it_postdata    = postdata ).
+
+  ENDMETHOD.
+
+
+  METHOD parse_data.
+
+    DATA:
+      lv_buffer TYPE string,
+      lo_data   TYPE REF TO cnht_post_data_line,
+      lv_count  TYPE n LENGTH 4,
+      ls_entry  TYPE /mbtools/cl_string_map=>ty_entry,
+      lv_param  TYPE string,
+      lt_params TYPE TABLE OF string.
+
+    " Combine get and post data
+    lv_buffer = iv_getdata.
+    IF NOT iv_getdata IS INITIAL AND NOT it_postdata IS INITIAL.
+      CONCATENATE lv_buffer '&' INTO lv_buffer.
+    ENDIF.
+    LOOP AT it_postdata REFERENCE INTO lo_data.
+      IF sy-tabix < lines( it_postdata ).
+        " Preserve trailing spaces...
+        CONCATENATE lv_buffer '' INTO lv_buffer SEPARATED BY lo_data->*
+          IN CHARACTER MODE.
+      ELSE.
+        " ...but not on last line
+        CONCATENATE lv_buffer lo_data->* INTO lv_buffer
+          IN CHARACTER MODE.
+      ENDIF.
+    ENDLOOP.
+
+    CREATE OBJECT ro_parameters.
+
+    IF lv_buffer CS '&'.
+      SPLIT lv_buffer AT '&' INTO TABLE lt_params.
+    ELSE.
+      APPEND lv_buffer TO lt_params.
+    ENDIF.
+
+    LOOP AT lt_params INTO lv_param WHERE NOT table_line IS INITIAL.
+      lv_count = lv_count + 1.
+
+      CLEAR ls_entry.
+
+      " Split parameter into key and value
+      IF lv_param CS '='.
+        SPLIT lv_param AT '=' INTO ls_entry-k ls_entry-v.
+      ELSE.
+        " Unnamed parameters get a running number as key i.e. "param_0001"
+        ls_entry-k = 'param_' && lv_count.
+        ls_entry-v = lv_param.
+      ENDIF.
+
+      " Unescape entry and convert key to lower case without leading/trailing spaces
+      ls_entry-k = condense( to_lower( cl_http_utility=>unescape_url( ls_entry-k ) ) ).
+      ls_entry-v = cl_http_utility=>unescape_url( ls_entry-v ).
+
+      IF ro_parameters->has( ls_entry-k ).
+        /mbtools/cx_exception=>raise( |Duplicate parameter { ls_entry-k }| ).
+      ELSE.
+        ro_parameters->set( iv_key = ls_entry-k
+                            iv_val = ls_entry-v ).
+      ENDIF.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -470,7 +541,7 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
 
     CREATE OBJECT mo_html_viewer
       EXPORTING
-        query_table_disabled = abap_false
+        query_table_disabled = abap_true
         parent               = cl_gui_container=>screen0.
 
     IF mi_asset_man IS BOUND.

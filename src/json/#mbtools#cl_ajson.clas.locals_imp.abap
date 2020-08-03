@@ -118,11 +118,28 @@ CLASS lcl_json_parser DEFINITION FINAL.
       RAISING
         /mbtools/cx_ajson_error.
 
+    METHODS _parse
+      IMPORTING
+        iv_json             TYPE string
+      RETURNING
+        VALUE(rt_json_tree) TYPE /mbtools/cl_ajson=>ty_nodes_tt
+      RAISING
+        /mbtools/cx_ajson_error cx_sxml_error.
+
 ENDCLASS.
 
 CLASS lcl_json_parser IMPLEMENTATION.
 
   METHOD parse.
+    DATA lx_sxml TYPE REF TO cx_sxml_error.
+    TRY.
+        rt_json_tree = _parse( iv_json ).
+      CATCH cx_sxml_error INTO lx_sxml.
+        /mbtools/cx_ajson_error=>raise( `SXML: ` && lx_sxml->get_text( ) ).
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD _parse.
 
     DATA lo_reader TYPE REF TO if_sxml_reader.
     DATA lr_stack_top LIKE LINE OF mt_stack.

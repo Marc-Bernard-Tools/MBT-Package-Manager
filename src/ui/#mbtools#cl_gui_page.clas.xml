@@ -12,6 +12,14 @@
     <UNICODE>X</UNICODE>
     <RSTAT>K</RSTAT>
    </VSEOCLASS>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_GUI_PAGE</CLSNAME>
+     <CMPNAME>MI_CHILD</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>MBT GUI Renderable</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
   </asx:values>
  </asx:abap>
 </abapGit>

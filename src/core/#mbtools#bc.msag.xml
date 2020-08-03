@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_MSAG" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <T100A>
+    <ARBGB>/MBTOOLS/BC</ARBGB>
+    <MASTERLANG>E</MASTERLANG>
+    <STEXT>MBT Messages</STEXT>
+   </T100A>
+   <T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/MBTOOLS/BC</ARBGB>
+     <MSGNR>000</MSGNR>
+     <TEXT>&amp;1 &amp;2 &amp;3 &amp;4</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/MBTOOLS/BC</ARBGB>
+     <MSGNR>001</MSGNR>
+     <TEXT>Last change on &amp;1 at &amp;2 by &amp;3 (system time)</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/MBTOOLS/BC</ARBGB>
+     <MSGNR>002</MSGNR>
+     <TEXT>There are no Marc Bernard Tools installed</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/MBTOOLS/BC</ARBGB>
+     <MSGNR>003</MSGNR>
+     <TEXT>This program includes an enhancement. Nothing to run here.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/MBTOOLS/BC</ARBGB>
+     <MSGNR>004</MSGNR>
+     <TEXT>&amp;1 is not active. Start Marc Bernard Tools and activate the tool.</TEXT>
+    </T100>
+   </T100>
+  </asx:values>
+ </asx:abap>
+</abapGit>

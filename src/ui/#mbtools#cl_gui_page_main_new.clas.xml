@@ -3,14 +3,14 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>/MBTOOLS/CL_GUI</CLSNAME>
+    <CLSNAME>/MBTOOLS/CL_GUI_PAGE_MAIN_NEW</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>MBT GUI</DESCRIPT>
+    <DESCRIPT>MBT GUI Page Main</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
     <UNICODE>X</UNICODE>
-    <WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>
+    <RSTAT>K</RSTAT>
    </VSEOCLASS>
   </asx:values>
  </asx:abap>

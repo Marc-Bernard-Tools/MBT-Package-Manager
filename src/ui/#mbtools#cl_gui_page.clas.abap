@@ -1,8 +1,9 @@
 CLASS /mbtools/cl_gui_page DEFINITION
   PUBLIC
   INHERITING FROM /mbtools/cl_gui_component
-  ABSTRACT
+  FINAL
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT GUI Page
 *
@@ -11,7 +12,6 @@ CLASS /mbtools/cl_gui_page DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-
   PUBLIC SECTION.
 
     INTERFACES /mbtools/if_gui_renderable .
@@ -21,6 +21,13 @@ CLASS /mbtools/cl_gui_page DEFINITION
     METHODS constructor
       RAISING
         /mbtools/cx_exception .
+    CLASS-METHODS create
+      IMPORTING
+        !ii_child_component TYPE REF TO /mbtools/if_gui_renderable
+        !iv_page_title      TYPE string
+        !io_page_menu       TYPE REF TO /mbtools/cl_html_toolbar OPTIONAL
+      RETURNING
+        VALUE(ri_page_wrap) TYPE REF TO /mbtools/if_gui_renderable .
   PROTECTED SECTION.
 
     TYPES:
@@ -32,7 +39,6 @@ CLASS /mbtools/cl_gui_page DEFINITION
     DATA ms_control TYPE ty_control .
 
     METHODS render_content
-          ABSTRACT
       RETURNING
         VALUE(ri_html) TYPE REF TO /mbtools/if_html
       RAISING
@@ -41,6 +47,7 @@ CLASS /mbtools/cl_gui_page DEFINITION
 
     DATA mx_error TYPE REF TO /mbtools/cx_exception .
     DATA mo_exception_viewer TYPE REF TO /mbtools/cl_exception_viewer .
+    DATA mi_child TYPE REF TO /mbtools/if_gui_renderable .
 
     METHODS render_deferred_parts
       IMPORTING
@@ -147,7 +154,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
 
     ri_html->add( '<div id="main" class="main">' ).         "#EC NOTEXT
     ri_html->add( render_content( ) ). " TODO -> render child
-    ri_html->add( '</div><!--main-->' ).                               "#EC NOTEXT
+    ri_html->add( '</div><!--main-->' ).                    "#EC NOTEXT
 
     ri_html->add( render_hotkey_overview( ) ).
     ri_html->add( render_error_message_box( ) ).
@@ -158,8 +165,8 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
 
     ri_html->add( footer( ) ).
 
-    ri_html->add( '</div><!--wrapper-->' ).                               "#EC NOTEXT
-    ri_html->add( '</div><!--outer-->' ).                               "#EC NOTEXT
+    ri_html->add( '</div><!--wrapper-->' ).                 "#EC NOTEXT
+    ri_html->add( '</div><!--outer-->' ).                   "#EC NOTEXT
 
     li_script = scripts( ).
 
@@ -179,6 +186,20 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( ).
+
+  ENDMETHOD.
+
+
+  METHOD create.
+
+    DATA lo_page TYPE REF TO /mbtools/cl_gui_page.
+
+    CREATE OBJECT lo_page.
+    lo_page->ms_control-page_title = iv_page_title.
+    lo_page->ms_control-page_menu  = io_page_menu.
+    lo_page->mi_child              = ii_child_component.
+
+    ri_page_wrap = lo_page.
 
   ENDMETHOD.
 
@@ -256,6 +277,15 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
     ii_html->add( '  toggleKey: "F1",' ).
     ii_html->add( '  hotkeyDescription: "Command ..."' ).
     ii_html->add( '});' ).
+
+  ENDMETHOD.
+
+
+  METHOD render_content.
+
+    IF mi_child IS BOUND.
+      ri_html = mi_child->render( ).
+    ENDIF.
 
   ENDMETHOD.
 

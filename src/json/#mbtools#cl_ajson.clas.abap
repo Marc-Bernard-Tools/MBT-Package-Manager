@@ -8,6 +8,8 @@ CLASS /mbtools/cl_ajson DEFINITION
 * https://github.com/sbcgua/ajson
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
+*
+* Last update: 2020-08-02
 ************************************************************************
 
   PUBLIC SECTION.
