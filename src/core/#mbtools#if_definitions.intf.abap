@@ -98,6 +98,14 @@ INTERFACE /mbtools/if_definitions
       change_order_by TYPE string VALUE 'change_order_by',
       goto_message    TYPE string VALUE 'goto_message',
       direction       TYPE string VALUE 'direction',
+      tools_add       TYPE string VALUE 'tools_add',
+      tools_check     TYPE string VALUE 'tools_check',
+      tools_update    TYPE string VALUE 'tools_update',
+      go_faq          TYPE string VALUE 'go_faq',
+      go_about        TYPE string VALUE 'go_about',
+      mbt_docs        TYPE string VALUE 'mbt_docs',
+      mbt_support     TYPE string VALUE 'mbt_support',
+      mbt_website     TYPE string VALUE 'mbt_website',
     END OF c_action.
 
 ENDINTERFACE.

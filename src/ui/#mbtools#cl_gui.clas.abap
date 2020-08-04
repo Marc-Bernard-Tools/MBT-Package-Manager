@@ -288,6 +288,7 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
     mi_asset_man      = ii_asset_man.
     mi_hotkey_ctl     = ii_hotkey_ctl.
     mi_html_processor = ii_html_processor. " Maybe improve to middlewares stack ??
+
     startup( ).
 
   ENDMETHOD.

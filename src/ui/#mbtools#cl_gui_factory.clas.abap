@@ -89,6 +89,7 @@ CLASS /MBTOOLS/CL_GUI_FACTORY IMPLEMENTATION.
           ii_html_processor = lo_html_preprocessor
           ii_asset_man      = li_asset_man.
     ENDIF.
+
     ro_gui = go_gui.
 
   ENDMETHOD.
@@ -147,24 +148,39 @@ CLASS /MBTOOLS/CL_GUI_FACTORY IMPLEMENTATION.
       iv_mime_name = '/MBTOOLS/MBT_FONT_ICONS_CSS' ).
 
     ro_asset_man->register_asset(
-      iv_url       = 'font/icons.woff'
-      iv_type      = 'font/woff'
+      iv_url       = 'fonts/icons.woff'
+      iv_type      = 'application/x-font-woff'
       iv_mime_name = '/MBTOOLS/MBT_FONT_ICONS' ).
 
     ro_asset_man->register_asset(
-      iv_url       = 'font/opensans.woff2'
-      iv_type      = 'font/woff'
+      iv_url       = 'fonts/fa-solid-900.woff'
+      iv_type      = 'application/x-font-woff'
+      iv_mime_name = '/MBTOOLS/MBT_FONT_AWESOME' ).
+
+    ro_asset_man->register_asset(
+      iv_url       = 'fonts/opensans.woff2'
+      iv_type      = 'application/x-font-woff'
       iv_mime_name = '/MBTOOLS/MBT_FONT_OPEN_SANS' ).
 
     ro_asset_man->register_asset(
-      iv_url       = 'font/righteous.woff2'
-      iv_type      = 'font/woff'
+      iv_url       = 'fonts/righteous.woff2'
+      iv_type      = 'application/x-font-woff'
       iv_mime_name = '/MBTOOLS/MBT_FONT_RIGHTEOUS' ).
 
     ro_asset_man->register_asset(
       iv_url       = 'img/logo.png'
       iv_type      = 'image/png'
       iv_mime_name = '/MBTOOLS/LOGO' ).
+
+    ro_asset_man->register_asset(
+      iv_url       = 'img/banner.png'
+      iv_type      = 'image/png'
+      iv_mime_name = '/MBTOOLS/BANNER' ).
+
+    ro_asset_man->register_asset(
+      iv_url       = 'img/background.jpg'
+      iv_type      = 'image/jpg'
+      iv_mime_name = '/MBTOOLS/BACKGROUND' ).
 
   ENDMETHOD.
 ENDCLASS.

@@ -10,20 +10,20 @@
  */
 
 @font-face {
-    font-family: 'Righteous';
+    font-family: "Righteous";
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: local('Righteous'), local('Righteous-Regular'), url("../fonts/righteous.woff2") format("woff2");
+    src: local("Righteous"), local("Righteous-Regular"), url("fonts/righteous.woff2") format("woff2");
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
-    font-family: 'Open Sans';
+    font-family: "Open Sans";
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: local('Open Sans Regular'), local('OpenSans-Regular'), url("../fonts/opensans.woff2") format("woff2");
+    src: local("Open Sans Regular"), local("OpenSans-Regular"), url("fonts/opensans.woff2") format("woff2");
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -32,14 +32,14 @@
  * License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
  */
 @font-face {
-    font-family: 'Font Awesome 5 Free';
+    font-family: "Font Awesome 5 Free";
     font-style: normal;
     font-weight: 900;
     font-display: block;
-    src: url("../fonts/fa-solid-900.woff") format("woff"); 
+    src: url("fonts/fa-solid-900.woff") format("woff"); 
 }
 .fa, .fas {
-    font-family: 'Font Awesome 5 Free';
+    font-family: "Font Awesome 5 Free";
     font-weight: 900; 
 }
 
@@ -47,7 +47,7 @@
     line-height: 1;
 }
 .icon:before {
-    font-family: 'Font Awesome 5 Free' !important;
+    font-family: "Font Awesome 5 Free" !important;
     font-style: normal;
     font-weight: 900 !important;
 
@@ -73,11 +73,12 @@ body {
     background: #fff;
     color: #000;
     font-size: 1em;
-    line-height: 1.6;
+    line-height: 1.5;
+    overflow-x: hidden;
 }
 
 body.custom-background {
-    background-image: url("/wp-content/uploads/2012/04/luca-zanon-26595-1.jpg");
+    background-image: url("img/background.jpg");
     background-position: center top;
     background-size: cover;
     background-repeat: no-repeat;
@@ -134,7 +135,7 @@ h6 {
 /* HYPERLINKS */
 
 a {
-    color: #f70;
+    color: #04c;
 }
 
 a:link,
@@ -146,8 +147,215 @@ a:hover,
 a:focus,
 body .dark a:hover,
 body .dark a:focus {
-    color: #f70;
+    color: #04c;
     text-decoration: underline;
+}
+
+/* MAIN THEME COLORS */
+
+.primary-color {
+    color: #07c;
+}
+.primary-color-bg {
+    background-color: #07c;
+}
+.primary-color-border {
+    border-color: #07c;
+}
+
+.secondary-color {
+    color: #999;
+}
+.secondary-color-bg {
+    background-color: #999;
+}
+.secondary-color-border {
+    border-color: #999;
+}
+
+/* GLOBALS */
+
+img {
+    border-width: 0px;
+    vertical-align: middle;
+}
+pre {
+    display: inline; 
+    background-image: none;
+    background-color: #fff;
+    color: #666;
+}
+sup {
+    vertical-align: top;
+    position: relative;
+    top: -0.5em;
+    font-size: 75%;
+}
+.cursor-pointer {
+    cursor: pointer;
+}
+span.separator {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    opacity: 0.25;
+}
+
+/* MODIFIERS */
+
+.title        { font-family: "Righteous"; font-size: 24px; }
+.emphasis     { font-weight: bold !important; }
+.crossout     { text-decoration: line-through !important; }
+.right        { text-align:right; }
+.center       { text-align:center; }
+.paddings     { padding: 0.5em 0.5em; }
+.pad-sides    { padding-left: 0.3em; padding-right: 0.3em; }
+.margin-v5    { margin-top: 0.5em; margin-bottom: 0.5em; }
+.margin-v1    { margin-top: 1em; margin-bottom: 1em; }
+.indent5em    { padding-left: 0.5em; }
+.pad4px       { padding: 4px; }
+.w100         { width: 100%; }
+.wmin         { width: 1%; }
+.w40          { width: 40%; }
+.float-right  { float: right; }
+.pad-right    { padding-right: 6px; }
+.inline       { display: inline; }
+.hidden       { visibility: hidden; }
+.nodisplay    { display: none; }
+.m-em5-sides  { margin-left: 0.5em; margin-right: 0.5em; }
+.w600px       { width: 600px; }
+.wmax600px    { max-width: 600px; }
+.auto-center  { /* use with max-width */
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* --------------------------------------------------------------
+LAYOUT
+-------------------------------------------------------------- */
+
+/* WRAPPERS */
+
+.outer {
+    width: 100%;
+}
+
+.wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* HEADER */
+
+.header {
+    background: #ddd;
+    height: 60px;
+    border-bottom: 1px solid #999;
+}
+
+.header .wrapper .box {
+    position: relative;
+}
+
+.header .box .logo {
+    float: left;
+}
+
+.header .box .title {
+    font-size: 28px;
+    margin-left: 15px;
+}
+
+.header .box > div { 
+    display: inline-block;
+}
+
+.header .box span.spacer {
+    display: inline-block;
+    padding-right: 0.25em;
+    padding-left: 0.25em;
+}
+
+/* FOOTER */
+
+.footer {
+    background-color: #fff;
+    border-top: 1px solid #999;
+}
+.footer table {
+    border: 0px;
+}
+.footer .logo { 
+    font-size: large;
+}
+.footer .version {
+    margin-top: 0.5em;
+    font-size: small;
+}
+
+/* PAGE CONTENT */
+
+.main {
+    background: #eee;
+}
+
+/* TABLES */
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 0 0 24px;
+    text-align: left;
+    background-color: #fff;
+    border: 1px solid #999;
+    max-width: 100%;
+    width: 100%;
+}
+
+tr th, thead th {
+    border: none;
+    font-weight: bold;
+    padding: 10px;
+    border-bottom: 1px solid #999;
+    background: #ddd;
+    line-height: 20px;
+    text-align: left;
+    padding: 10px;
+    border: none;
+    vertical-align: top;
+}
+
+tr td {
+    border: none;
+    padding: 10px;
+    border-bottom: 1px solid #999;
+    background: #fff;
+    line-height: 20px;
+    text-align: left;
+    vertical-align: middle;
+}
+
+tbody td:last-child {
+    border-right: none;
+}
+
+tbody>tr:last-child>td {
+    border-bottom: none;
+}
+
+tfoot tr td {
+    border-bottom: none;
+}
+
+tr td, tr th, thead th, tr th, thead th {
+}
+
+.dark tr th, .dark thead th {
+    border-bottom: 1px solid #ddd;
+}
+
+.dark tr td {
+    border-bottom: 1px solid #ddd;
 }
 
 /* FORMS */
@@ -255,196 +463,6 @@ button[type=submit]:focus {
     color: #b00;
 }
 
-/* MAIN THEME COLORS */
-
-.primary-color {
-    color: #07c;
-}
-.primary-color-bg {
-    background-color: #07c;
-}
-.primary-color-border {
-    border-color: #07c;
-}
-.tp-caption.primary_color_background {
-    background: #07c;
-}
-.tp-caption.primary_color_text{
-    color: #07c;
-}
-
-.secondary-color {
-    color: #999;
-}
-.secondary-color-bg {
-    background-color: #999;
-}
-.secondary-color-border {
-    border-color: #999;
-}
-.tp-caption.secondary_color_background {
-    background: #999;
-}
-.tp-caption.secondary_color_text{
-    color: #999;
-}
-
-/* TABLES */
-
-table {
-    border-collapse: collapse;
-    border-spacing: 0;
-    margin: 0 0 24px;
-    text-align: left;
-    background-color: #fff;
-    border: 1px solid #999;
-    max-width: 100%;
-    width: 100%;
-}
-
-tr th, thead th {
-    border: none;
-    font-weight: bold;
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    background: #ddd;
-    line-height: 20px;
-    text-align: left;
-    padding: 10px;
-    border: none;
-    vertical-align: top;
-}
-
-tr td {
-    border: none;
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    background: #fff;
-    line-height: 20px;
-    text-align: left;
-    vertical-align: middle;
-}
-
-tbody td:last-child {
-    border-right: none;
-}
-
-tbody>tr:last-child>td {
-    border-bottom: none;
-}
-
-tfoot tr td {
-    border-bottom: none;
-}
-
-tr td, tr th, thead th, tr th, thead th {
-}
-
-.dark tr th, .dark thead th {
-    border-bottom: 1px solid #ddd;
-}
-
-.dark tr td {
-    border-bottom: 1px solid #ddd;
-}
-
-
-/* GLOBALS */
-
-img {
-    border-width: 0px;
-    vertical-align: middle;
-}
-pre {
-    display: inline; 
-    background-image: none;
-    background-color: #fff;
-    color: #666;
-}
-sup {
-    vertical-align: top;
-    position: relative;
-    top: -0.5em;
-    font-size: 75%;
-}
-.cursor-pointer {
-    cursor: pointer;
-}
-span.separator {
-    padding-left: 0.5em;
-    padding-right: 0.5em;
-    opacity: 0.25;
-}
-
-/* MODIFIERS */
-
-.emphasis     { font-weight: bold !important; }
-.crossout     { text-decoration: line-through !important; }
-.right        { text-align:right; }
-.center       { text-align:center; }
-.paddings     { padding: 0.5em 0.5em; }
-.pad-sides    { padding-left: 0.3em; padding-right: 0.3em; }
-.margin-v5    { margin-top: 0.5em; margin-bottom: 0.5em; }
-.margin-v1    { margin-top: 1em; margin-bottom: 1em; }
-.indent5em    { padding-left: 0.5em; }
-.pad4px       { padding: 4px; }
-.w100         { width: 100%; }
-.wmin         { width: 1%; }
-.w40          { width: 40%; }
-.float-right  { float: right; }
-.pad-right    { padding-right: 6px; }
-.inline       { display: inline; }
-.hidden       { visibility: hidden; }
-.nodisplay    { display: none; }
-.m-em5-sides  { margin-left: 0.5em; margin-right: 0.5em; }
-.w600px       { width: 600px; }
-.wmax600px    { max-width: 600px; }
-.auto-center  { /* use with max-width */
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* --------------------------------------------------------------
-LAYOUT
--------------------------------------------------------------- */
-
-/* WRAPPERS */
-
-.wrapper {
-    margin: 0 auto;
-}
-
-/* HEADER */
-
-.header {
-    position: relative;
-    background: #ddd;
-    width: 100%;
-    padding: 5px 0;
-    border-bottom: 1px solid #ddd;
-}
-
-.header .logo {
-    float: left;
-    padding-top: 0;
-}
-
-/* PAGE CONTENT */
-
-.main {
-    background: #eee;
-}
-
-/* LOGO */
-
-.logo { 
-    font-style: "Righteous" 
-}
-.logo img { 
-    vertical-align: bottom;
-}
-
 /* PANELS */
 
 div.panel {
@@ -456,39 +474,6 @@ div.dummydiv {
 }
 a.close-btn {
     text-decoration: none;
-}
-
-/* STRUCTURE DIVS, HEADER & FOOTER */
-
-div#header {
-    padding: 0.5em 0.5em;
-    border-bottom: 3px double;
-}
-div#header > div { 
-    display: inline-block;
-}
-
-div#header .logo { 
-    font-size: x-large; 
-}
-div#header .page-title { 
-    font-size: x-large; 
-}
-div#header span.spacer {
-    display: inline-block;
-    padding-right: 0.25em;
-    padding-left: 0.25em;
-}
-div#footer .logo { 
-    font-size: large;
-}
-div#footer {
-    padding: 0.5em 1em;
-    border-top: 3px double;
-}
-div#footer .version {
-    margin-top: 0.5em;
-    font-size: small;
 }
 
 /* ERROR LOG */
@@ -517,34 +502,17 @@ div.log .icon {
     overflow: hidden;
 }
 
-/* DEBUG INFO STYLES */
-
-#debug-output {
-    text-align: right;
-    padding-right: 0.5em;
-    font-size: smaller;
-    font-family: Consolas, Courier, monospace;
-}
-#debug-output p {
-    margin-top: 0em;
-    margin-bottom: 0em;
-}
-div.debug_container {
-    padding: 0.5em;
-    font-size: 10pt;
-    font-family: Consolas, Courier, monospace;
-}
-
-div.debug_container p {
-    margin: 0px;
-}
-
 /* MENU */
 
 /* Special credits to example at https://codepen.io/philhoyt/pen/ujHzd */
 /* container div, aligned left,
    but with .float-right modifier alignes right */
 
+.nav-container {
+    margin-top: 15px;
+    margin-right: 10px;
+    transition: all .4s;
+}
 .nav-container ul {
     list-style: none;
     position: relative;
@@ -562,6 +530,8 @@ div.debug_container p {
     text-decoration: none;
     line-height: 30px;
     padding: 0 12px;
+    color: #666;
+    border-radius: 2px;
 }
 
 /* clearfix https://css-tricks.com/snippets/css/clear-fix/ */
@@ -578,6 +548,7 @@ div.debug_container p {
     float: left;
     margin: 0;
     padding: 0;
+    color: #666;
 }
 .nav-container.float-right ul ul { 
     left: auto; 
@@ -590,7 +561,34 @@ div.debug_container p {
     display: block; 
 }
 .nav-container ul li:hover > ul { 
-    display: block; 
+    display: block;
+    background-color: #fff;
+}
+.nav-container ul li:hover { 
+    background-color: #999;
+    color: #04c;
+}
+.nav-container ul li:hover a:hover { 
+    color: #04c;
+}
+.nav-container ul li a:hover { 
+    color: #04c;
+}
+
+.nav-container .has-submenu:before {
+    display: block;
+    content: ' ';
+    position: absolute;
+    top: 50%;
+    opacity: 0.7;
+    right: 10px;
+    margin: -1px 0 0;
+    border-top: 4px solid #666;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+}
+.nav-container .has-submenu /* > a */ {
+    padding-right: 25px;
 }
 
 /* special selection style for 1st level items (see also .corner below) */
@@ -600,16 +598,23 @@ div.debug_container p {
     top: 100%;
     left: 0;
     z-index: 1;
-    padding: 0;
-    box-shadow: 1px 1px 3px 0px #bbb;
+    padding: 5px;
 }
 .nav-container ul ul li {
     float: none;
     min-width: 160px;
+    background-color: #fff;
+    color: #666;
 }
 .nav-container ul ul a {
     line-height: 120%;
     padding: 8px 15px;
+    color: #666;
+    border-radius: 2px;
+}
+.nav-container ul ul li a:hover {
+    background-color: #999;
+    color: #04c;
 }
 .nav-container ul ul ul {
     top: 0;
@@ -682,7 +687,7 @@ div.info-panel {
     left: 50%;
     width: 40em;
     margin-left: -20em;
-    box-shadow: 1px 1px 3px 2px #dcdcdc;
+    /* box-shadow: 1px 1px 3px 0px #bbb; */
 }
 div.info-panel-fixed {
     position: fixed;
@@ -741,7 +746,7 @@ div.info-panel div.info-list td {
 
 div.message-panel {
     z-index: 99;
-    box-shadow: 2px 2px 4px 0px hsla(0, 0%, 0%, .1);
+    box-shadow: 1px 1px 3px 0px hsla(0, 0%, 0%, .1);
     padding: 12px;
     margin-left: -48%;
     position: fixed;
@@ -848,7 +853,7 @@ div.corner-hint {
     border-radius: 4px;
     border-width: 1px;
     border-style: solid;
-    box-shadow: 2px 2px 6px 0px #ccc;
+    box-shadow: 2px 2px 6px 0px #bbb;
     cursor: pointer;
 }
 
@@ -861,7 +866,7 @@ div.corner-hint {
     left: 50%;
     width: 40em;
     margin-left: -20em;
-    box-shadow: 1px 1px 3px 2px #dcdcdc;
+    box-shadow: 1px 1px 3px 0px #bbb;
     background-color: white;
     border: solid 2px;
     padding: 0px 1px;
@@ -993,4 +998,28 @@ div.corner-hint {
     text-transform: uppercase;
     padding-left: 0.5em;
     padding-right: 0.5em;
+}
+
+/* DEBUG INFO STYLES */
+
+#debug-output {
+    font-family: "Consolas", "Courier", "monospace";
+    font-size: smaller;
+    color: #eee;
+    text-align: right;
+    padding-right: 0.5em;
+}
+#debug-output p {
+    margin-top: 0em;
+    margin-bottom: 0em;
+}
+div.debug_container {
+    font-family: "Consolas", "Courier", "monospace";
+    font-size: 10pt;
+    color: #eee;
+    padding: 0.5em;
+}
+
+div.debug_container p {
+    margin: 0px;
 }

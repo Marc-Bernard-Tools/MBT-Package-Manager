@@ -2,6 +2,7 @@ CLASS /mbtools/cl_string_map DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT String Map
 *
@@ -9,8 +10,9 @@ CLASS /mbtools/cl_string_map DEFINITION
 * http://www.abapgit.org
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
+*
+* Last update: 2020-08-01
 ************************************************************************
-
   PUBLIC SECTION.
 
     TYPES:
@@ -19,9 +21,9 @@ CLASS /mbtools/cl_string_map DEFINITION
         v TYPE string,
       END OF ty_entry .
     TYPES:
-      ty_entries TYPE STANDARD TABLE OF ty_entry WITH KEY k .
+      tty_entries TYPE STANDARD TABLE OF ty_entry WITH KEY k .
     TYPES:
-      ty_entries_sorted TYPE SORTED TABLE OF ty_entry WITH UNIQUE KEY k .
+      tts_entries TYPE SORTED TABLE OF ty_entry WITH UNIQUE KEY k .
 
     CLASS-METHODS create
       RETURNING
@@ -38,8 +40,12 @@ CLASS /mbtools/cl_string_map DEFINITION
         VALUE(rv_has) TYPE abap_bool .
     METHODS set
       IMPORTING
-        !iv_key TYPE string
-        !iv_val TYPE string OPTIONAL .
+        !iv_key       TYPE string
+        !iv_val       TYPE string OPTIONAL
+      RETURNING
+        VALUE(ro_map) TYPE REF TO /mbtools/cl_string_map
+      RAISING
+        /mbtools/cx_exception .
     METHODS size
       RETURNING
         VALUE(rv_size) TYPE i .
@@ -48,16 +54,22 @@ CLASS /mbtools/cl_string_map DEFINITION
         VALUE(rv_yes) TYPE abap_bool .
     METHODS delete
       IMPORTING
-        !iv_key TYPE string .
-    METHODS clear .
+        !iv_key TYPE string
+      RAISING
+        /mbtools/cx_exception .
+    METHODS clear
+      RAISING
+        /mbtools/cx_exception .
     METHODS to_abap
       CHANGING
         !cs_container TYPE any
       RAISING
         /mbtools/cx_exception .
+    METHODS freeze .
   PROTECTED SECTION.
   PRIVATE SECTION.
-    DATA mt_entries TYPE ty_entries.
+    DATA mt_entries TYPE tts_entries.
+    DATA mv_read_only TYPE abap_bool.
 
 ENDCLASS.
 
@@ -67,6 +79,9 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
 
 
   METHOD clear.
+    IF mv_read_only = abap_true.
+      /mbtools/cx_exception=>raise( 'Cannot clear. This string map is immutable' ).
+    ENDIF.
     CLEAR mt_entries.
   ENDMETHOD.
 
@@ -78,8 +93,17 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
 
   METHOD delete.
 
+    IF mv_read_only = abap_true.
+      /mbtools/cx_exception=>raise( 'Cannot delete. This string map is immutable' ).
+    ENDIF.
+
     DELETE mt_entries WHERE k = iv_key.
 
+  ENDMETHOD.
+
+
+  METHOD freeze.
+    mv_read_only = abap_true.
   ENDMETHOD.
 
 
@@ -112,6 +136,10 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
     DATA ls_entry LIKE LINE OF mt_entries.
     FIELD-SYMBOLS <ls_entry> LIKE LINE OF mt_entries.
 
+    IF mv_read_only = abap_true.
+      /mbtools/cx_exception=>raise( 'Cannot set. This string map is immutable' ).
+    ENDIF.
+
     READ TABLE mt_entries ASSIGNING <ls_entry> WITH KEY k = iv_key.
     IF sy-subrc IS INITIAL.
       <ls_entry>-v = iv_val.
@@ -120,6 +148,8 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
       ls_entry-v = iv_val.
       INSERT ls_entry INTO TABLE mt_entries.
     ENDIF.
+
+    ro_map = me.
 
   ENDMETHOD.
 
@@ -134,6 +164,7 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
   METHOD to_abap.
 
     DATA lo_type TYPE REF TO cl_abap_typedescr.
+    DATA lo_struc TYPE REF TO cl_abap_structdescr.
     DATA lv_field TYPE string.
     FIELD-SYMBOLS <ls_entry> LIKE LINE OF mt_entries.
     FIELD-SYMBOLS <lv_val> TYPE any.
@@ -141,9 +172,10 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
     lo_type = cl_abap_typedescr=>describe_by_data( cs_container ).
     IF lo_type->type_kind <> cl_abap_typedescr=>typekind_struct1
       AND lo_type->type_kind <> cl_abap_typedescr=>typekind_struct2.
-      /mbtools/cx_exception=>raise( |Only structures supported| ).
+      /mbtools/cx_exception=>raise( 'Only structures supported' ).
     ENDIF.
 
+    lo_struc ?= lo_type.
     LOOP AT mt_entries ASSIGNING <ls_entry>.
       lv_field = to_upper( <ls_entry>-k ).
       ASSIGN COMPONENT lv_field OF STRUCTURE cs_container TO <lv_val>.

@@ -1,8 +1,9 @@
-CLASS /mbtools/cl_gui_page_main DEFINITION
-  PUBLIC
-  INHERITING FROM /mbtools/cl_gui_page
-  FINAL
-  CREATE PUBLIC .
+class /MBTOOLS/CL_GUI_PAGE_MAIN definition
+  public
+  inheriting from /MBTOOLS/CL_GUI_COMPONENT
+  final
+  create public .
+
 ************************************************************************
 * MBT GUI Page Main
 *
@@ -11,32 +12,45 @@ CLASS /mbtools/cl_gui_page_main DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
+public section.
 
-  PUBLIC SECTION.
+  interfaces /MBTOOLS/IF_GUI_EVENT_HANDLER .
+  interfaces /MBTOOLS/IF_GUI_RENDERABLE .
+  interfaces /MBTOOLS/IF_GUI_HOTKEYS .
 
-    INTERFACES /mbtools/if_gui_hotkeys .
-
-    METHODS constructor
-      RAISING
-        /mbtools/cx_exception .
-
-    METHODS /mbtools/if_gui_event_handler~on_event
-        REDEFINITION .
+  methods CONSTRUCTOR
+    raising
+      /MBTOOLS/CX_EXCEPTION .
+  class-methods CREATE
+    returning
+      value(RI_PAGE) type ref to /MBTOOLS/IF_GUI_RENDERABLE
+    raising
+      /MBTOOLS/CX_EXCEPTION .
   PROTECTED SECTION.
-    METHODS:
-      render_content REDEFINITION.
+private section.
 
-  PRIVATE SECTION.
-    METHODS render_scripts
-      RETURNING
-        VALUE(ro_html) TYPE REF TO /mbtools/cl_html
-      RAISING
-        /mbtools/cx_exception.
-
-    METHODS build_main_menu
-      RETURNING VALUE(ro_menu) TYPE REF TO /mbtools/cl_html_toolbar.
-
-
+  class-methods BUILD_MENU
+    returning
+      value(RO_MENU) type ref to /MBTOOLS/CL_HTML_TOOLBAR .
+  methods RENDER_BUNDLE
+    importing
+      !IV_TITLE type CSEQUENCE
+    returning
+      value(RI_HTML) type ref to /MBTOOLS/IF_HTML
+    raising
+      /MBTOOLS/CX_EXCEPTION .
+  methods RENDER_BUNDLES
+    returning
+      value(RI_HTML) type ref to /MBTOOLS/IF_HTML
+    raising
+      /MBTOOLS/CX_EXCEPTION .
+  methods RENDER_TOOL
+    importing
+      !IV_TITLE type CSEQUENCE
+    returning
+      value(RI_HTML) type ref to /MBTOOLS/IF_HTML
+    raising
+      /MBTOOLS/CX_EXCEPTION .
 ENDCLASS.
 
 
@@ -48,19 +62,11 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
     CASE iv_action.
 
+      WHEN /mbtools/if_definitions=>c_action-go_back.
+        ev_state = /mbtools/cl_gui=>c_event_state-go_back.
+
       WHEN /mbtools/if_definitions=>c_action-go_home.
         ev_state = /mbtools/cl_gui=>c_event_state-re_render.
-
-      WHEN OTHERS.
-
-        super->/mbtools/if_gui_event_handler~on_event(
-          EXPORTING
-            iv_action    = iv_action
-            iv_getdata   = iv_getdata
-            it_postdata  = it_postdata
-          IMPORTING
-            ei_page      = ei_page
-            ev_state     = ev_state ).
 
     ENDCASE.
 
@@ -78,6 +84,11 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
     ls_hotkey_action-hotkey      = |a|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
+    ls_hotkey_action-description = |Quit|.
+    ls_hotkey_action-action      = /mbtools/if_definitions=>c_action-quit.
+    ls_hotkey_action-hotkey      = |q|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
     ls_hotkey_action-description = |Settings|.
     ls_hotkey_action-action      = /mbtools/if_definitions=>c_action-go_settings.
     ls_hotkey_action-hotkey      = |s|.
@@ -86,64 +97,158 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD build_main_menu.
+  METHOD /mbtools/if_gui_renderable~render.
+
+    gui_services( )->register_event_handler( me ).
+    gui_services( )->get_hotkeys_ctl( )->register_hotkeys( me ).
+
+    ri_html = /mbtools/cl_html=>create( ).
+
+    ri_html->add( render_bundles( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD build_menu.
 
     DATA:
-      lo_tools_menu TYPE REF TO /mbtools/cl_html_toolbar,
-      lo_help_menu  TYPE REF TO /mbtools/cl_html_toolbar.
+      lo_tools_menu   TYPE REF TO /mbtools/cl_html_toolbar,
+      lo_support_menu TYPE REF TO /mbtools/cl_html_toolbar,
+      lo_help_menu    TYPE REF TO /mbtools/cl_html_toolbar.
 
     CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
 
     CREATE OBJECT lo_tools_menu.
 
-    lo_tools_menu->add( iv_txt = 'Add Tool'
-                        iv_act = /mbtools/if_definitions=>c_action-go_home ) ##NO_TEXT.
-    lo_tools_menu->add( iv_txt = 'Check for Updates'
-                        iv_act = /mbtools/if_definitions=>c_action-go_settings ) ##NO_TEXT.
-    lo_tools_menu->add( iv_txt = 'Update All Tools'
-                        iv_act = /mbtools/if_definitions=>c_action-go_settings ) ##NO_TEXT.
+    lo_tools_menu->add(
+      iv_txt = 'Add Tool'
+      iv_act = /mbtools/if_definitions=>c_action-tools_add
+    )->add(
+      iv_txt = 'Check for Updates'
+      iv_act = /mbtools/if_definitions=>c_action-tools_check
+    )->add(
+      iv_txt = 'Update All Tools'
+      iv_act = /mbtools/if_definitions=>c_action-tools_update ) ##NO_TEXT.
 
-    ro_menu->add( iv_txt = 'Tools'
-                  io_sub = lo_tools_menu ) ##NO_TEXT.
+    CREATE OBJECT lo_support_menu.
 
+    lo_support_menu->add(
+      iv_txt = 'FAQ'
+      iv_act = /mbtools/if_definitions=>c_action-go_faq
+    )->add(
+      iv_txt = 'Documentation'
+      iv_act = /mbtools/if_definitions=>c_action-mbt_docs
+    )->add(
+      iv_txt = 'Ticket'
+      iv_act = /mbtools/if_definitions=>c_action-mbt_support ) ##NO_TEXT.
 
     CREATE OBJECT lo_help_menu.
 
-    lo_help_menu->add( iv_txt = 'Documentation'
-                       iv_act = /mbtools/if_definitions=>c_action-go_home ) ##NO_TEXT.
+    lo_help_menu->add(
+      iv_txt = 'Website'
+      iv_act = /mbtools/if_definitions=>c_action-mbt_website
+    )->add(
+      iv_txt = 'About'
+      iv_act = /mbtools/if_definitions=>c_action-go_about ) ##NO_TEXT.
 
-    lo_help_menu->add( iv_txt = 'Support'
-                       iv_act = /mbtools/if_definitions=>c_action-go_home ) ##NO_TEXT.
-
-    ro_menu->add( iv_txt = 'Help'
-                  io_sub = lo_help_menu ) ##NO_TEXT.
+    ro_menu->add(
+      iv_txt = 'Tools'
+      io_sub = lo_tools_menu
+    )->add(
+      iv_txt = 'Support'
+      io_sub = lo_support_menu
+    )->add(
+      iv_txt = 'MBT'
+      io_sub = lo_help_menu ) ##NO_TEXT.
 
   ENDMETHOD.
 
 
   METHOD constructor.
     super->constructor( ).
-    ms_control-page_menu  = build_main_menu( ).
-    ms_control-page_title = 'Marc Bernard Tools'.
   ENDMETHOD.
 
 
-  METHOD render_content.
+  METHOD create.
 
-    gui_services( )->get_hotkeys_ctl( )->register_hotkeys( me ).
+    DATA lo_component TYPE REF TO /mbtools/cl_gui_page_main.
 
-    CREATE OBJECT ri_html TYPE /mbtools/cl_html.
+    CREATE OBJECT lo_component.
 
-    ri_html->add( |Hello World!| ).
+    ri_page = /mbtools/cl_gui_page=>create(
+      iv_has_logo        = abap_false
+      iv_has_banner      = abap_true
+      iv_page_title      = ''
+      io_page_menu       = build_menu( )
+      ii_child_component = lo_component ).
 
   ENDMETHOD.
 
 
-  METHOD render_scripts.
+  METHOD render_bundle.
 
-    CREATE OBJECT ro_html.
+    DATA:
+      lo_bundle TYPE REF TO /mbtools/cl_tools,
+      ls_tool   TYPE /mbtools/tool_with_text,
+      lt_tools  TYPE TABLE OF /mbtools/tool_with_text.
 
-    ro_html->/mbtools/if_html~set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
+    lo_bundle = /mbtools/cl_tools=>factory( iv_title ).
+
+    lt_tools = /mbtools/cl_tools=>get_tools( iv_bundle_id   = lo_bundle->build_manifest( )-bundle_id
+                                             iv_get_bundles = abap_false
+                                             iv_get_tools   = abap_true ).
+
+    ri_html = /mbtools/cl_html=>create( ).
+
+    ri_html->add( '<table class="bundle"><tr>' ).
+
+    ri_html->add( '<td width="400px">' && lo_bundle->get_thumbnail( ) && '</td>' ).
+    ri_html->add( '<td><span class="title">' && lo_bundle->get_title( ) && '</span><br>'
+      && lo_bundle->get_description( ) && '</td>' ).
+
+    ri_html->add( '</tr></table>' ).
+
+    LOOP AT lt_tools INTO ls_tool.
+      ri_html->add( render_tool( ls_tool-name ) ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD render_bundles.
+
+    DATA:
+      ls_bundle  TYPE /mbtools/tool_with_text,
+      lt_bundles TYPE TABLE OF /mbtools/tool_with_text.
+
+    lt_bundles = /mbtools/cl_tools=>get_tools( iv_get_bundles = abap_true
+                                               iv_get_tools   = abap_false ).
+
+    ri_html = /mbtools/cl_html=>create( ).
+
+    LOOP AT lt_bundles INTO ls_bundle.
+      ri_html->add( render_bundle( ls_bundle-name ) ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD render_tool.
+
+    DATA:
+      lo_tool TYPE REF TO /mbtools/cl_tools.
+
+    lo_tool = /mbtools/cl_tools=>factory( iv_title ).
+
+    ri_html = /mbtools/cl_html=>create( ).
+
+    ri_html->add( '<table class="tool"><tr>' ).
+
+    ri_html->add( '<td width="400px">' && lo_tool->get_thumbnail( ) && '</td>' ).
+    ri_html->add( '<td><span class="title">' && lo_tool->get_title( ) && '</span><br>'
+      && lo_tool->get_description( ) && '</td>' ).
+
+    ri_html->add( '</tr></table>' ).
 
   ENDMETHOD.
 ENDCLASS.

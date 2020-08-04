@@ -2,18 +2,20 @@ CLASS /mbtools/cl_tools DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT Tool Manager
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-
   PUBLIC SECTION.
 
     " Global Constant
     CONSTANTS c_github TYPE string VALUE 'github.com/mbtools' ##NO_TEXT.
     CONSTANTS c_home TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.
-    CONSTANTS c_terms TYPE string VALUE 'https://marcbernardtools.com/company/terms-software/' ##NO_TEXT.
+    CONSTANTS c_terms TYPE string VALUE 'company/terms-software/' ##NO_TEXT.
+    CONSTANTS c_docs TYPE string VALUE 'support/docs/' ##NO_TEXT.
+    CONSTANTS c_support TYPE string VALUE 'support/ticket/' ##NO_TEXT.
     CONSTANTS c_namespace TYPE devclass VALUE '/MBTOOLS/' ##NO_TEXT.
     CONSTANTS c_manifest TYPE seoclsname VALUE '/MBTOOLS/IF_MANIFEST' ##NO_TEXT.
     CONSTANTS:
@@ -76,16 +78,20 @@ CLASS /mbtools/cl_tools DEFINITION
         VALUE(ro_tool)  TYPE REF TO /mbtools/cl_tools .
     CLASS-METHODS get_tools
       IMPORTING
-        VALUE(iv_pattern)      TYPE csequence OPTIONAL
-        VALUE(iv_with_bundles) TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_pattern)     TYPE csequence OPTIONAL
+        VALUE(iv_bundle_id)   TYPE i DEFAULT -1
+        VALUE(iv_get_bundles) TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_get_tools)   TYPE abap_bool DEFAULT abap_true
       RETURNING
-        VALUE(rt_tools)        TYPE /mbtools/tools_with_text .
+        VALUE(rt_tools)       TYPE /mbtools/tools_with_text .
     CLASS-METHODS f4_tools
       IMPORTING
-        VALUE(iv_pattern)      TYPE csequence OPTIONAL
-        VALUE(iv_with_bundles) TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_pattern)     TYPE csequence OPTIONAL
+        VALUE(iv_bundle_id)   TYPE i DEFAULT -1
+        VALUE(iv_get_bundles) TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_get_tools)   TYPE abap_bool DEFAULT abap_true
       RETURNING
-        VALUE(rv_title)        TYPE string .
+        VALUE(rv_title)       TYPE string .
     " Class Actions
     CLASS-METHODS run_action
       IMPORTING
@@ -120,9 +126,9 @@ CLASS /mbtools/cl_tools DEFINITION
         VALUE(rv_result) TYPE abap_bool .
     METHODS license_add
       IMPORTING
-        VALUE(iv_license)  TYPE string
+        VALUE(iv_license) TYPE string
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result)  TYPE abap_bool .
     METHODS license_remove
       RETURNING
         VALUE(rv_result) TYPE abap_bool .
@@ -361,8 +367,10 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       ls_return TYPE ddshretval,
       lt_return TYPE TABLE OF ddshretval.
 
-    lt_tools = get_tools( iv_pattern      = iv_pattern
-                          iv_with_bundles = iv_with_bundles ).
+    lt_tools = get_tools( iv_pattern     = iv_pattern
+                          iv_bundle_id   = iv_bundle_id
+                          iv_get_bundles = iv_get_bundles
+                          iv_get_tools   = iv_get_tools ).
 
     " Show F4-Popup
     CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
@@ -656,20 +664,23 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
             CONTINUE. "ignore
           ENDIF.
 
-          IF iv_with_bundles IS INITIAL AND lo_manifest->descriptor-is_bundle = abap_true.
+          IF iv_bundle_id >= 0 AND lo_manifest->descriptor-bundle_id <> iv_bundle_id.
             CONTINUE.
           ENDIF.
 
-          CLEAR ls_tool_with_text.
-
-          " Change base tool so it will be first in sort order
-          IF lo_manifest->descriptor-title = /mbtools/cl_tool_bc=>c_tool-title.
-            ls_tool_with_text-name = to_upper( lo_manifest->descriptor-title ).
-          ELSE.
-            ls_tool_with_text-name = lo_manifest->descriptor-title.
+          IF lo_manifest->descriptor-is_bundle = abap_true.
+            IF iv_get_bundles = abap_false.
+              CONTINUE.
+            ENDIF.
+          ELSE. "tool
+            IF iv_get_tools = abap_false.
+              CONTINUE.
+            ENDIF.
           ENDIF.
 
-          IF iv_pattern IS INITIAL OR ls_tool_with_text-name CP iv_pattern.
+          IF iv_pattern IS INITIAL OR lo_manifest->descriptor-title CP iv_pattern.
+            CLEAR ls_tool_with_text.
+            ls_tool_with_text-name        = lo_manifest->descriptor-title.
             ls_tool_with_text-version     = lo_manifest->descriptor-version.
             ls_tool_with_text-description = lo_manifest->descriptor-description.
             INSERT ls_tool_with_text INTO TABLE rt_tools.
@@ -681,13 +692,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     ENDLOOP.
 
-    SORT rt_tools BY name.
-
-    " Change name of base tool back to what it was
-    READ TABLE rt_tools ASSIGNING <ls_tool> INDEX 1.
-    IF sy-subrc = 0.
-      <ls_tool>-name = /mbtools/cl_tool_bc=>c_tool-title.
-    ENDIF.
+    SORT rt_tools BY name AS TEXT.
 
   ENDMETHOD.
 
@@ -998,7 +1003,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lt_tools  TYPE TABLE OF /mbtools/tool_with_text,
       lv_result TYPE abap_bool.
 
-    lt_tools = get_tools( iv_with_bundles = abap_false ).
+    lt_tools = get_tools( iv_get_bundles = abap_false ).
 
     rv_result = abap_true.
 

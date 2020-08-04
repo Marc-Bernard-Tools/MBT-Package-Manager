@@ -1,8 +1,8 @@
-CLASS /mbtools/cl_gui_page DEFINITION
-  PUBLIC
-  INHERITING FROM /mbtools/cl_gui_component
-  FINAL
-  CREATE PUBLIC .
+class /MBTOOLS/CL_GUI_PAGE definition
+  public
+  inheriting from /MBTOOLS/CL_GUI_COMPONENT
+  final
+  create public .
 
 ************************************************************************
 * MBT GUI Page
@@ -12,28 +12,32 @@ CLASS /mbtools/cl_gui_page DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-  PUBLIC SECTION.
+public section.
 
-    INTERFACES /mbtools/if_gui_renderable .
-    INTERFACES /mbtools/if_gui_event_handler .
-    INTERFACES /mbtools/if_gui_error_handler .
+  interfaces /MBTOOLS/IF_GUI_RENDERABLE .
+  interfaces /MBTOOLS/IF_GUI_EVENT_HANDLER .
+  interfaces /MBTOOLS/IF_GUI_ERROR_HANDLER .
 
-    METHODS constructor
-      RAISING
-        /mbtools/cx_exception .
-    CLASS-METHODS create
-      IMPORTING
-        !ii_child_component TYPE REF TO /mbtools/if_gui_renderable
-        !iv_page_title      TYPE string
-        !io_page_menu       TYPE REF TO /mbtools/cl_html_toolbar OPTIONAL
-      RETURNING
-        VALUE(ri_page_wrap) TYPE REF TO /mbtools/if_gui_renderable .
+  methods CONSTRUCTOR
+    raising
+      /MBTOOLS/CX_EXCEPTION .
+  class-methods CREATE
+    importing
+      !II_CHILD_COMPONENT type ref to /MBTOOLS/IF_GUI_RENDERABLE
+      !IV_PAGE_TITLE type STRING
+      !IV_HAS_LOGO type ABAP_BOOL default ABAP_TRUE
+      !IV_HAS_BANNER type ABAP_BOOL default ABAP_FALSE
+      !IO_PAGE_MENU type ref to /MBTOOLS/CL_HTML_TOOLBAR optional
+    returning
+      value(RI_PAGE_WRAP) type ref to /MBTOOLS/IF_GUI_RENDERABLE .
   PROTECTED SECTION.
 
     TYPES:
       BEGIN OF ty_control,
         page_title TYPE string,
         page_menu  TYPE REF TO /mbtools/cl_html_toolbar,
+        has_logo   TYPE abap_bool,
+        has_banner TYPE abap_bool,
       END OF  ty_control .
 
     DATA ms_control TYPE ty_control .
@@ -148,13 +152,10 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
 
     ri_html->add( '<body>' ).                               "#EC NOTEXT
     ri_html->add( '<div class="outer" id="top">' ).         "#EC NOTEXT
-    ri_html->add( '<div class="wrapper">' ).                "#EC NOTEXT
 
     ri_html->add( header( ) ).
 
-    ri_html->add( '<div id="main" class="main">' ).         "#EC NOTEXT
-    ri_html->add( render_content( ) ). " TODO -> render child
-    ri_html->add( '</div><!--main-->' ).                    "#EC NOTEXT
+    ri_html->add( render_content( ) ).
 
     ri_html->add( render_hotkey_overview( ) ).
     ri_html->add( render_error_message_box( ) ).
@@ -165,13 +166,12 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
 
     ri_html->add( footer( ) ).
 
-    ri_html->add( '</div><!--wrapper-->' ).                 "#EC NOTEXT
     ri_html->add( '</div><!--outer-->' ).                   "#EC NOTEXT
 
     li_script = scripts( ).
 
     IF li_script IS BOUND AND li_script->is_empty( ) = abap_false.
-      ri_html->add( '<script type="text/javascript">' ).
+      ri_html->add( '<script>' ).
       ri_html->add( li_script ).
       ri_html->add( 'confirmInitialized();' ).
       ri_html->add( '</script>' ).
@@ -195,6 +195,8 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
     DATA lo_page TYPE REF TO /mbtools/cl_gui_page.
 
     CREATE OBJECT lo_page.
+    lo_page->ms_control-has_logo   = iv_has_logo.
+    lo_page->ms_control-has_banner = iv_has_banner.
     lo_page->ms_control-page_title = iv_page_title.
     lo_page->ms_control-page_menu  = io_page_menu.
     lo_page->mi_child              = ii_child_component.
@@ -209,6 +211,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
     CREATE OBJECT ri_html TYPE /mbtools/cl_html.
 
     ri_html->add( '<div id="footer" class="footer">' ).
+    ri_html->add( '<div class="wrapper">' ).
 
     ri_html->add( '<table class="w100"><tr>' ).
 
@@ -225,6 +228,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
 
     ri_html->add( '</tr></table>' ).
 
+    ri_html->add( '</div><!--wrapper-->' ).
     ri_html->add( '</div><!--footer-->' ).
 
   ENDMETHOD.
@@ -235,17 +239,31 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
     CREATE OBJECT ri_html TYPE /mbtools/cl_html.
 
     ri_html->add( '<div id="header" class="header">' ).
+    ri_html->add( '<div class="wrapper">' ).
+    ri_html->add( '<div class="box">' ).
 
     ri_html->add( '<div class="logo">' ).
-    ri_html->add( '<img src="img/logo.png" alt="MBT Logo">' ).
+    IF ms_control-has_logo = abap_true.
+      ri_html->add( '<img src="img/logo.png" alt="MBT Logo">' ).
+    ELSEIF ms_control-has_banner = abap_true.
+      ri_html->add( '<img src="img/banner.png" alt="MBT Banner" width="66%" height="66%">' ).
+    ENDIF.
     ri_html->add( '</div>' ).
 
-    ri_html->add( |<div class="page-title"><!--span class="spacer">&#x25BA;</span-->{ ms_control-page_title }</div>| ).
+    ri_html->add( '<div class="title">' ).
+    IF ms_control-page_title IS INITIAL.
+      ri_html->add( '&nbsp;' ).
+    ELSE.
+      ri_html->add( |<!--span class="spacer">&#x25BA;</span-->{ ms_control-page_title }| ).
+    ENDIF.
+    ri_html->add( '</div>' ).
 
     IF ms_control-page_menu IS BOUND.
       ri_html->add( ms_control-page_menu->render( iv_right = abap_true ) ).
     ENDIF.
 
+    ri_html->add( '</div><!--box-->' ).
+    ri_html->add( '</div><!--wrapper-->' ).
     ri_html->add( '</div><!--header-->' ).
 
   ENDMETHOD.
@@ -264,7 +282,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
     ri_html->add( '<link rel="stylesheet" type="text/css" href="css/common.css">' ).
     ri_html->add( '<link rel="stylesheet" type="text/css" href="css/icons.css">' ).
 
-    ri_html->add( '<script type="text/javascript" src="js/common.js"></script>' ). "#EC NOTEXT
+    ri_html->add( '<script src="js/common.js"></script>' ). "#EC NOTEXT
 
     ri_html->add( '</head>' ).                              "#EC NOTEXT
 
@@ -283,9 +301,17 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
 
   METHOD render_content.
 
+    CREATE OBJECT ri_html TYPE /mbtools/cl_html.
+
+    ri_html->add( '<div id="main" class="main">' ).
+    ri_html->add( '<div class="wrapper">' ).
+
     IF mi_child IS BOUND.
-      ri_html = mi_child->render( ).
+      ri_html->add( mi_child->render( ) ).
     ENDIF.
+
+    ri_html->add( '</div><!--wrapper-->' ).
+    ri_html->add( '</div><!--main-->' ).
 
   ENDMETHOD.
 

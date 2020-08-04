@@ -11,6 +11,8 @@ CLASS /mbtools/cl_registry DEFINITION
 * to the MS Windows registry)
 *
 * Original Author: (c) Martin Ceronio (2015), http://ceronio.net
+* https://ceronio.net/2015/05/arbitrary-value-store-registry-for-abap/
+*
 * Released under MIT License: https://opensource.org/licenses/MIT
 *
 * Ported to namespace and enhanced by Marc Bernard Tools
