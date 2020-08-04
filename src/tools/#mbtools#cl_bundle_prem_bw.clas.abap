@@ -2,6 +2,7 @@ CLASS /mbtools/cl_bundle_prem_bw DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT Premium BW
 *
@@ -11,6 +12,9 @@ CLASS /mbtools/cl_bundle_prem_bw DEFINITION
   PUBLIC SECTION.
 
     INTERFACES /mbtools/if_manifest .
+
+    ALIASES mbt_manifest
+      FOR /mbtools/if_manifest~descriptor .
 
     CONSTANTS:
       BEGIN OF c_tool,
@@ -26,10 +30,8 @@ CLASS /mbtools/cl_bundle_prem_bw DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    ALIASES mbt_manifest
-      FOR /mbtools/if_manifest~descriptor .
-
     DATA mo_tool TYPE REF TO /mbtools/cl_tools .
+
 ENDCLASS.
 
 

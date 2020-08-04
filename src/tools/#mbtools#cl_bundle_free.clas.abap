@@ -2,6 +2,7 @@ CLASS /mbtools/cl_bundle_free DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT Free Version
 *
@@ -11,6 +12,9 @@ CLASS /mbtools/cl_bundle_free DEFINITION
   PUBLIC SECTION.
 
     INTERFACES /mbtools/if_manifest .
+
+    ALIASES mbt_manifest
+      FOR /mbtools/if_manifest~descriptor .
 
     CONSTANTS:
       BEGIN OF c_tool,
@@ -26,9 +30,6 @@ CLASS /mbtools/cl_bundle_free DEFINITION
     METHODS constructor .
   PROTECTED SECTION.
   PRIVATE SECTION.
-
-    ALIASES mbt_manifest
-      FOR /mbtools/if_manifest~descriptor .
 
     DATA mo_tool TYPE REF TO /mbtools/cl_tools .
 ENDCLASS.

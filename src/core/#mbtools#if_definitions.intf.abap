@@ -6,6 +6,15 @@ INTERFACE /mbtools/if_definitions
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
 
+  CONSTANTS c_github TYPE string VALUE 'github.com/mbtools' ##NO_TEXT.
+  CONSTANTS c_home TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.
+  CONSTANTS c_www_terms TYPE string VALUE 'company/terms-software/' ##NO_TEXT.
+  CONSTANTS c_www_docs TYPE string VALUE 'support/docs/' ##NO_TEXT.
+  CONSTANTS c_www_support TYPE string VALUE 'support/ticket/' ##NO_TEXT.
+  CONSTANTS c_www_portfolio TYPE string VALUE 'tools/portfolio/' ##NO_TEXT.
+  CONSTANTS c_namespace TYPE devclass VALUE '/MBTOOLS/' ##NO_TEXT.
+  CONSTANTS c_manifest TYPE seoclsname VALUE '/MBTOOLS/IF_MANIFEST' ##NO_TEXT.
+
   TYPES:
     ty_icon     TYPE c LENGTH 4, " icon_d
     ty_text     TYPE c LENGTH 60, " ddtext
@@ -98,9 +107,13 @@ INTERFACE /mbtools/if_definitions
       change_order_by TYPE string VALUE 'change_order_by',
       goto_message    TYPE string VALUE 'goto_message',
       direction       TYPE string VALUE 'direction',
-      tools_add       TYPE string VALUE 'tools_add',
       tools_check     TYPE string VALUE 'tools_check',
       tools_update    TYPE string VALUE 'tools_update',
+      tool_launch     TYPE string VALUE 'tool_launch',
+      tool_activate   TYPE string VALUE 'tool_activate',
+      tool_deactivate TYPE string VALUE 'tool_deactivate',
+      tool_install    TYPE string VALUE 'tool_install',
+      tool_uninstall  TYPE string VALUE 'tool_uninstall',
       go_faq          TYPE string VALUE 'go_faq',
       go_about        TYPE string VALUE 'go_about',
       mbt_docs        TYPE string VALUE 'mbt_docs',

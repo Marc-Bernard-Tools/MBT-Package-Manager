@@ -388,7 +388,7 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
         /mbtools/cl_utilities=>call_browser( mo_tool->get_url_tool( ) ).
 
       WHEN 'HOME'.
-        /mbtools/cl_utilities=>call_browser( /mbtools/cl_tools=>c_home ).
+        /mbtools/cl_utilities=>call_browser( /mbtools/if_definitions=>c_home ).
 
     ENDCASE.
 

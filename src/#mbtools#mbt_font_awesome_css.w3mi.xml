@@ -2,26 +2,26 @@
 <abapGit version="v1.0.0" serializer="LCL_OBJECT_W3MI" serializer_version="v2.0.0">
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
-   <NAME>/MBTOOLS/MBT_FONT_ICONS</NAME>
-   <TEXT>MBT Font Icons</TEXT>
+   <NAME>/MBTOOLS/MBT_FONT_AWESOME_CSS</NAME>
+   <TEXT>MBT Font Awesome CSS</TEXT>
    <PARAMS>
     <WWWPARAMS>
      <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_FONT_ICONS</OBJID>
+     <OBJID>/MBTOOLS/MBT_FONT_AWESOME_CSS</OBJID>
      <NAME>fileextension</NAME>
-     <VALUE>.woff</VALUE>
+     <VALUE>.css</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
      <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_FONT_ICONS</OBJID>
+     <OBJID>/MBTOOLS/MBT_FONT_AWESOME_CSS</OBJID>
      <NAME>filename</NAME>
-     <VALUE>ZABAPGIT_ICON_FONT.woff</VALUE>
+     <VALUE>fontawesome.min.css</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
      <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_FONT_ICONS</OBJID>
+     <OBJID>/MBTOOLS/MBT_FONT_AWESOME_CSS</OBJID>
      <NAME>mimetype</NAME>
-     <VALUE>application/x-font-woff</VALUE>
+     <VALUE>text/css</VALUE>
     </WWWPARAMS>
    </PARAMS>
   </asx:values>

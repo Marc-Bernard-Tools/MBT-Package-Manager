@@ -150,10 +150,11 @@ AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_title.
 
   /mbtools/cl_tools=>f4_tools(
     EXPORTING
-      iv_pattern      = p_title
-      iv_with_bundles = abap_true
+      iv_pattern     = p_title
+      iv_get_bundles = abap_true
+      iv_get_tools   = abap_true
     RECEIVING
-      rv_title        = p_title ).
+      rv_title       = p_title ).
 
 *-----------------------------------------------------------------------
 

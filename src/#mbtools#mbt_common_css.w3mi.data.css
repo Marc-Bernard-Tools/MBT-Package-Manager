@@ -4,7 +4,8 @@
 
 /* FONTS */
 
-/* Google fonts: 
+/* 
+ * Google fonts: 
  * https://fonts.google.com/specimen/Righteous
  * https://fonts.google.com/specimen/Open+Sans
  */
@@ -14,7 +15,7 @@
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: local("Righteous"), local("Righteous-Regular"), url("fonts/righteous.woff2") format("woff2");
+    src: local("Righteous"), local("Righteous-Regular"), url("../fonts/righteous.woff2") format("woff2");
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -23,12 +24,12 @@
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: local("Open Sans Regular"), local("OpenSans-Regular"), url("fonts/opensans.woff2") format("woff2");
+    src: local("Open Sans Regular"), local("OpenSans-Regular"), url("../fonts/opensans.woff2") format("woff2");
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/*!
- * Font Awesome Free 5.13.1 by @fontawesome - https://fontawesome.com
+/*
+ * Font Awesome Free 5.14.0 by @fontawesome - https://fontawesome.com
  * License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
  */
 @font-face {
@@ -36,33 +37,20 @@
     font-style: normal;
     font-weight: 900;
     font-display: block;
-    src: url("fonts/fa-solid-900.woff") format("woff"); 
+    src: url("../fonts/fa-solid-900.woff2") format("woff2"); 
 }
 .fa, .fas {
     font-family: "Font Awesome 5 Free";
     font-weight: 900; 
-}
 
-.icon {
-    line-height: 1;
-}
-.icon:before {
-    font-family: "Font Awesome 5 Free" !important;
-    font-style: normal;
-    font-weight: 900 !important;
-
-    display: inline-block;
+    /* MBT >>> */
     text-decoration: none;
     text-align: center;
     vertical-align: text-top;
-    width: 1em;
-
     /* For safety - reset parent styles, that can break glyph codes*/
     font-variant: normal;
     text-transform: none;
-}
-.icon.large { 
-    font-size: 200%; 
+    /* <<< MBT */
 }
 
 /* BODY */
@@ -151,27 +139,89 @@ body .dark a:focus {
     text-decoration: underline;
 }
 
-/* MAIN THEME COLORS */
+/* MBT THEME - COLORS */
 
-.primary-color {
-    color: #07c;
+.has-mbt-menu-bar-background-color {
+    background-color: #ddd;
 }
-.primary-color-bg {
-    background-color: #07c;
+.has-mbt-main-background-color {
+    background-color: #eee;
 }
-.primary-color-border {
-    border-color: #07c;
-}
-
-.secondary-color {
-    color: #999;
-}
-.secondary-color-bg {
+.has-mbt-footer-background-color {
     background-color: #999;
 }
-.secondary-color-border {
-    border-color: #999;
+
+/* Primary */
+.has-mbt-black-background-color {
+    background-color: #000;
 }
+.has-mbt-dark-gray-background-color {
+    background-color: #666;
+}
+.has-mbt-gray-background-color {
+    background-color: #999;
+}
+.has-mbt-white-background-color {
+    background-color: #fff;
+}
+/* Secondary */
+.has-mbt-dark-blue-background-color {
+    background-color: #04c;
+}
+.has-mbt-blue-background-color {
+    background-color: #07c;
+}
+.has-mbt-orange-background-color {
+    background-color: #f70;
+}
+/* Tertiary */
+.has-mbt-light-green-background-color {
+    background-color: #dfd;
+}
+.has-mbt-light-yellow-background-color {
+    background-color: #ffd;
+}
+.has-mbt-light-red-background-color {
+    background-color: #fdd;
+}
+.has-mbt-light-blue-background-color {
+    background-color: #ddf;
+}
+
+/* Primary */
+.has-mbt-black-color {
+    color: #000;
+}
+.has-mbt-dark-gray-color {
+    color: #666;
+}
+.has-mbt-gray-color {
+    color: #999;
+}
+.has-mbt-white-color {
+    color: #fff;
+}
+/* Secondary */
+.has-mbt-dark-blue-color {
+    color: #04c;
+}
+.has-mbt-blue-color {
+    color: #07c;
+}
+.has-mbt-orange-color {
+    color: #f70;
+}
+/* Tertiary */
+.has-mbt-green-color {
+    color: #0b0;
+}
+.has-mbt-yellow-color {
+    color: #fb0;
+}
+.has-mbt-red-color {
+    color: #b00;
+}
+
 
 /* GLOBALS */
 
@@ -297,6 +347,10 @@ LAYOUT
 
 .main {
     background: #eee;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+.main .wrapper {
 }
 
 /* TABLES */
@@ -306,7 +360,7 @@ table {
     border-spacing: 0;
     margin: 0 0 24px;
     text-align: left;
-    background-color: #fff;
+    background: #fff;
     border: 1px solid #999;
     max-width: 100%;
     width: 100%;
@@ -385,7 +439,7 @@ input[type=submit],
 button[type=submit] {
     font-family: "Open Sans";
     font-weight: 400;
-    border-radius: 2px !important;
+    border-radius: 3px !important;
     text-shadow: none;
     -moz-transition: 0.4s all;
     -webkit-transition: 0.4s all;
@@ -481,8 +535,8 @@ a.close-btn {
 div.log {
     padding: 6px;
     margin: 4px;
-    border: 1px  solid;
-    border-radius: 4px;
+    border: 1px solid;
+    border-radius: 3px;
 }
 div.log > span { 
     display:block; 
@@ -531,7 +585,7 @@ div.log .icon {
     line-height: 30px;
     padding: 0 12px;
     color: #666;
-    border-radius: 2px;
+    border-radius: 3px;
 }
 
 /* clearfix https://css-tricks.com/snippets/css/clear-fix/ */
@@ -610,7 +664,7 @@ div.log .icon {
     line-height: 120%;
     padding: 8px 15px;
     color: #666;
-    border-radius: 2px;
+    border-radius: 3px;
 }
 .nav-container ul ul li a:hover {
     background-color: #999;
@@ -687,20 +741,20 @@ div.info-panel {
     left: 50%;
     width: 40em;
     margin-left: -20em;
-    /* box-shadow: 1px 1px 3px 0px #bbb; */
+    background-color: #fff;
+    border: 1px solid;
+    border-radius: 3px;
 }
 div.info-panel-fixed {
     position: fixed;
     top: 15%;
 }
 div.info-panel div.info-hint {
-    text-transform: uppercase;
     font-size: small;
     padding: 8px 6px 0px;
     text-align: center;
 }
 div.info-panel div.info-title {
-    text-transform: uppercase;
     font-size: small;
     padding: 6px;
     text-align: center;
@@ -755,7 +809,7 @@ div.message-panel {
     left: 50%;
 
     border: 1px solid;
-    border-radius: 5px;
+    border-radius: 3px;
     border-color: hsl(0, 42%, 64%);
     background-color: hsla(0, 42%, 90%, 1);
 }
@@ -782,7 +836,7 @@ div.message-panel:hover .message-panel-commands {
     line-height: 1em;
     text-align: center;
     padding: 5px 15px;
-    border-radius: 4px;
+    border-radius: 3px;
 
     /* Position the tooltip text */
     position: absolute;
@@ -841,6 +895,7 @@ div.corner-hint {
     font-size: smaller;
     opacity: 0.5;
     z-index: 99;
+    background-color: #fff;
 }
 
 /* FLOATING BUTTONS */
@@ -850,11 +905,14 @@ div.corner-hint {
     top: 6em;
     right: 2.8em;
     padding: 1em 1.8em;
-    border-radius: 4px;
-    border-width: 1px;
-    border-style: solid;
-    box-shadow: 2px 2px 6px 0px #bbb;
+    color: #fff;
+    background-color: #07c;
+    border: 1px solid #04c;
+    border-radius: 3px;
     cursor: pointer;
+}
+.floating-button:hover {
+    color: #f70;
 }
 
 /* COMMAND PALETTE */
@@ -866,9 +924,9 @@ div.corner-hint {
     left: 50%;
     width: 40em;
     margin-left: -20em;
-    box-shadow: 1px 1px 3px 0px #bbb;
-    background-color: white;
-    border: solid 2px;
+    background-color: #fff;
+    border: 1px solid;
+    border-radius: 3px;
     padding: 0px 1px;
 }
 .cmd-palette input {
@@ -893,9 +951,9 @@ div.corner-hint {
 /* DIALOGS */
 
 .dialog {
-    border: 1px solid;
     padding: 1em 1em;
-    border-radius: 6px;
+    border: 1px solid;
+    border-radius: 3px;
     text-align: left;
 }
 .dialog ul {
@@ -913,16 +971,16 @@ div.corner-hint {
     margin-top: 12px;
 }
 .dialog li.dialog-commands a {
-    border: 1px solid;
     cursor: pointer;
     text-decoration: none;
     padding: 6px 12px;
+    border: 1px solid;
     border-radius: 3px;
     font-size: smaller;
 }
 .dialog li.dialog-commands input[type="submit"] {
-    border: 1px solid;
     padding: 6px 12px;
+    border: 1px solid;
     border-radius: 3px;
     cursor: pointer;
 }
@@ -943,9 +1001,9 @@ div.corner-hint {
     padding-left: 0.5em;
 }
 .dialog .radio-container {
-    border: 1px solid;
     display: inline-block;
     padding: 4px;
+    border: 1px solid;
     border-radius: 3px;
 }
 .dialog input[type="checkbox"] + label {
@@ -963,12 +1021,12 @@ div.corner-hint {
     width: 0px;
 }
 .dialog .radio-container input[type="radio"] + label {
-    border: 1px solid transparent;
     cursor: pointer;
     width: auto;
     margin: 0px;
     padding: 3px 8px;
-    border-radius: 2px;
+    border: 1px solid transparent;
+    border-radius: 3px;
     display: inline-block;
 }
 .dialog .radio-container input[type="radio"]:checked + label {
@@ -987,7 +1045,7 @@ div.corner-hint {
 .dialog fieldset {
     margin-top: 1em;
     border: 1px solid;
-    border-radius: 6px; /* doesn't work in IE ? */
+    border-radius: 3px; /* doesn't work in IE ? */
     padding-bottom: 1em;
 }
 .dialog fieldset:first-child {
@@ -1019,7 +1077,41 @@ div.debug_container {
     color: #eee;
     padding: 0.5em;
 }
-
 div.debug_container p {
     margin: 0px;
 }
+
+/* BUNDLES & TOOLS */
+
+.bundles .inactive,
+.tools .inactive {
+    color: #999;
+}
+.bundles ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.tools ul {
+    list-style: none;
+    margin: 0;
+    padding-left: 50px;
+}
+.bundles tr:hover,
+.tools tr:hover {
+    background: #999 !important;
+}
+.bundles .thumbnail,
+.tools .thumbnail {
+    width: 350px;
+}
+.bundles td.actions,
+.tools td.actions {
+    width: 150px;
+    text-align: right;
+}
+.bundles .actions a,
+.tools .actions a {
+    padding-left: 10px;
+}
+

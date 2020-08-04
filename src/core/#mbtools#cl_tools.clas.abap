@@ -11,13 +11,6 @@ CLASS /mbtools/cl_tools DEFINITION
   PUBLIC SECTION.
 
     " Global Constant
-    CONSTANTS c_github TYPE string VALUE 'github.com/mbtools' ##NO_TEXT.
-    CONSTANTS c_home TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.
-    CONSTANTS c_terms TYPE string VALUE 'company/terms-software/' ##NO_TEXT.
-    CONSTANTS c_docs TYPE string VALUE 'support/docs/' ##NO_TEXT.
-    CONSTANTS c_support TYPE string VALUE 'support/ticket/' ##NO_TEXT.
-    CONSTANTS c_namespace TYPE devclass VALUE '/MBTOOLS/' ##NO_TEXT.
-    CONSTANTS c_manifest TYPE seoclsname VALUE '/MBTOOLS/IF_MANIFEST' ##NO_TEXT.
     CONSTANTS:
       BEGIN OF c_reg,
         " Registry General
@@ -53,7 +46,7 @@ CLASS /mbtools/cl_tools DEFINITION
         settings           TYPE string VALUE 'Settings' ##NO_TEXT,
       END OF c_reg .
     " Evaluation
-    CONSTANTS c_eval_days TYPE i VALUE 30 ##NO_TEXT.
+    CONSTANTS c_eval_days TYPE i VALUE 60 ##NO_TEXT.
     CONSTANTS c_eval_users TYPE i VALUE 10 ##NO_TEXT.
     CONSTANTS:
       " Actions
@@ -120,6 +113,9 @@ CLASS /mbtools/cl_tools DEFINITION
     METHODS deactivate
       RETURNING
         VALUE(rv_result) TYPE abap_bool .
+    METHODS is_bundle
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool .
     " Tool License
     METHODS is_licensed
       RETURNING
@@ -148,6 +144,9 @@ CLASS /mbtools/cl_tools DEFINITION
     METHODS get_version
       RETURNING
         VALUE(rv_version) TYPE string .
+    METHODS get_bundle_id
+      RETURNING
+        VALUE(rv_result) TYPE string .
     METHODS get_description
       RETURNING
         VALUE(rv_description) TYPE string .
@@ -254,11 +253,11 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     rs_manifest-description = mv_description.
 
     IF mv_is_bundle IS INITIAL.
-      rs_manifest-namespace   = c_namespace.
+      rs_manifest-namespace   = /mbtools/if_definitions=>c_namespace.
       rs_manifest-package     = get_package( ).
       rs_manifest-class       = get_class( ).
       " APACK fields
-      rs_manifest-group_id    = c_github.
+      rs_manifest-group_id    = /mbtools/if_definitions=>c_github.
       rs_manifest-artifact_id = mv_name.
       rs_manifest-git_url     = get_url_repo( ).
     ENDIF.
@@ -411,7 +410,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     LOOP AT lt_implementations INTO lv_implementation.
 
       TRY.
-          " Get instance of tool
+         " Get instance of tool
           CREATE OBJECT lo_tool TYPE (lv_implementation).
           IF lo_tool IS BOUND.
             lo_manifest ?= lo_tool.
@@ -429,6 +428,13 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       ENDTRY.
 
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD get_bundle_id.
+
+    rv_result = mv_bundle_id.
 
   ENDMETHOD.
 
@@ -456,7 +462,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD get_id.
 
     " Upper case, Underscore, Namespaced
-    rv_id =  to_upper( c_namespace && mv_title ).
+    rv_id =  to_upper( /mbtools/if_definitions=>c_namespace && mv_title ).
 
     REPLACE ALL OCCURRENCES OF ` ` IN rv_id WITH '_'.
 
@@ -468,7 +474,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     " Get all classes that implement the MBT Manifest
     SELECT clsname FROM seometarel INTO TABLE rt_classes
       WHERE version    = '1'
-        AND refclsname = c_manifest.
+        AND refclsname = /mbtools/if_definitions=>c_manifest.
     IF sy-subrc <> 0 AND iv_quiet IS INITIAL.
       " There are no tools installed
       MESSAGE s002(/mbtools/bc).
@@ -639,7 +645,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_tools.
+METHOD get_tools.
 
     DATA:
       lv_implementation  TYPE seoclsname,
@@ -700,7 +706,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD get_url_docs.
 
     " Link to documentation page on marcbernardtools.com
-    rv_url = c_home && 'docs/' && get_slug( ) && '/'.
+    rv_url = /mbtools/if_definitions=>c_home && 'docs/' && get_slug( ) && '/'.
 
   ENDMETHOD.
 
@@ -708,7 +714,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD get_url_repo.
 
     " Link to repository on GitHub.com
-    rv_url = 'https://' && c_github && '/' && mv_name && '.git'.
+    rv_url = 'https://' && /mbtools/if_definitions=>c_github && '/' && mv_name && '.git'.
 
   ENDMETHOD.
 
@@ -716,7 +722,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD get_url_tool.
 
     " Link to tool page on marcbernardtools.com
-    rv_url = c_home && 'downloads/' && get_slug( ) && '/'.
+    rv_url = /mbtools/if_definitions=>c_home && 'downloads/' && get_slug( ) && '/'.
 
   ENDMETHOD.
 
@@ -724,6 +730,13 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD get_version.
 
     rv_version = mv_version.
+
+  ENDMETHOD.
+
+
+  METHOD is_bundle.
+
+    rv_result = boolc( mbt_manifest-is_bundle = abap_true ).
 
   ENDMETHOD.
 
@@ -917,7 +930,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
                                    iv_value = mv_description ).
           IF mv_is_bundle IS INITIAL.
             lo_reg_entry->set_value( iv_key   = c_reg-key_namespace
-                                     iv_value = c_namespace ).
+                                     iv_value = /mbtools/if_definitions=>c_namespace ).
             lo_reg_entry->set_value( iv_key   = c_reg-key_package
                                      iv_value = get_package( ) ).
             lo_reg_entry->set_value( iv_key   = c_reg-key_class
@@ -1003,7 +1016,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lt_tools  TYPE TABLE OF /mbtools/tool_with_text,
       lv_result TYPE abap_bool.
 
-    lt_tools = get_tools( iv_get_bundles = abap_false ).
+    lt_tools = get_tools( ).
 
     rv_result = abap_true.
 

@@ -118,15 +118,15 @@ CLASS /MBTOOLS/CL_GUI_ROUTER IMPLEMENTATION.
     CASE is_event_data-action.
 
       WHEN /mbtools/if_definitions=>c_action-mbt_docs.
-        /mbtools/cl_utilities=>call_browser( /mbtools/cl_tools=>c_home && /mbtools/cl_tools=>c_docs ).
+        /mbtools/cl_utilities=>call_browser( /mbtools/if_definitions=>c_home && /mbtools/if_definitions=>c_www_docs ).
         ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
       WHEN /mbtools/if_definitions=>c_action-mbt_support.
-        /mbtools/cl_utilities=>call_browser( /mbtools/cl_tools=>c_home && /mbtools/cl_tools=>c_support ).
+        /mbtools/cl_utilities=>call_browser( /mbtools/if_definitions=>c_home && /mbtools/if_definitions=>c_www_support ).
         ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
       WHEN /mbtools/if_definitions=>c_action-mbt_website.
-        /mbtools/cl_utilities=>call_browser( /mbtools/cl_tools=>c_home ).
+        /mbtools/cl_utilities=>call_browser( /mbtools/if_definitions=>c_home ).
         ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
     ENDCASE.

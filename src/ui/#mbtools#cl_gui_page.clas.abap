@@ -219,7 +219,9 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
 
     ri_html->add( '<td class="center">' ).
     ri_html->add( '<div class="logo">' ).
-    ri_html->add( '<img src="img/logo.png" alt="MBT Logo">' ).
+    ri_html->add_a( iv_txt = '<img src="img/logo.png" alt="MBT Logo">'
+                    iv_act = /mbtools/if_definitions=>c_home
+                    iv_typ = /mbtools/if_html=>c_action_type-url ).
     ri_html->add( '</div>' ).
     ri_html->add( |<div class="version">{ /mbtools/cl_tool_bc=>c_tool-version }</div>| ).
     ri_html->add( '</td>' ).
@@ -280,7 +282,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
 
     ri_html->add( '<title>Marc Bernard Tools</title>' ).    "#EC NOTEXT
     ri_html->add( '<link rel="stylesheet" type="text/css" href="css/common.css">' ).
-    ri_html->add( '<link rel="stylesheet" type="text/css" href="css/icons.css">' ).
+    ri_html->add( '<link rel="stylesheet" type="text/css" href="css/fontawesome.css">' ). "<<<MBT
 
     ri_html->add( '<script src="js/common.js"></script>' ). "#EC NOTEXT
 

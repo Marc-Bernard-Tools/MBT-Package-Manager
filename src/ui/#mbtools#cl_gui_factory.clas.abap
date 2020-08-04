@@ -143,17 +143,12 @@ CLASS /MBTOOLS/CL_GUI_FACTORY IMPLEMENTATION.
       iv_mime_name = '/MBTOOLS/MBT_COMMON_JS' ).
 
     ro_asset_man->register_asset(
-      iv_url       = 'css/icons.css'
+      iv_url       = 'css/fontawesome.css'
       iv_type      = 'text/css'
-      iv_mime_name = '/MBTOOLS/MBT_FONT_ICONS_CSS' ).
+      iv_mime_name = '/MBTOOLS/MBT_FONT_AWESOME_CSS' ).
 
     ro_asset_man->register_asset(
-      iv_url       = 'fonts/icons.woff'
-      iv_type      = 'application/x-font-woff'
-      iv_mime_name = '/MBTOOLS/MBT_FONT_ICONS' ).
-
-    ro_asset_man->register_asset(
-      iv_url       = 'fonts/fa-solid-900.woff'
+      iv_url       = 'fonts/fa-solid-900.woff2'
       iv_type      = 'application/x-font-woff'
       iv_mime_name = '/MBTOOLS/MBT_FONT_AWESOME' ).
 

@@ -27,30 +27,37 @@ public section.
     raising
       /MBTOOLS/CX_EXCEPTION .
   PROTECTED SECTION.
-private section.
+PRIVATE SECTION.
 
-  class-methods BUILD_MENU
-    returning
-      value(RO_MENU) type ref to /MBTOOLS/CL_HTML_TOOLBAR .
-  methods RENDER_BUNDLE
-    importing
-      !IV_TITLE type CSEQUENCE
-    returning
-      value(RI_HTML) type ref to /MBTOOLS/IF_HTML
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  methods RENDER_BUNDLES
-    returning
-      value(RI_HTML) type ref to /MBTOOLS/IF_HTML
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  methods RENDER_TOOL
-    importing
-      !IV_TITLE type CSEQUENCE
-    returning
-      value(RI_HTML) type ref to /MBTOOLS/IF_HTML
-    raising
-      /MBTOOLS/CX_EXCEPTION .
+  CLASS-METHODS build_menu
+    RETURNING
+      VALUE(ro_menu) TYPE REF TO /mbtools/cl_html_toolbar .
+  METHODS render_actions
+    IMPORTING
+      !io_tool       TYPE REF TO /mbtools/cl_tools
+    RETURNING
+      VALUE(ri_html) TYPE REF TO /mbtools/if_html
+    RAISING
+      /mbtools/cx_exception .
+  METHODS render_bundle
+    IMPORTING
+      !iv_title      TYPE csequence
+    RETURNING
+      VALUE(ri_html) TYPE REF TO /mbtools/if_html
+    RAISING
+      /mbtools/cx_exception .
+  METHODS render_bundles
+    RETURNING
+      VALUE(ri_html) TYPE REF TO /mbtools/if_html
+    RAISING
+      /mbtools/cx_exception .
+  METHODS render_tool
+    IMPORTING
+      !iv_title      TYPE csequence
+    RETURNING
+      VALUE(ri_html) TYPE REF TO /mbtools/if_html
+    RAISING
+      /mbtools/cx_exception .
 ENDCLASS.
 
 
@@ -122,7 +129,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
     lo_tools_menu->add(
       iv_txt = 'Add Tool'
-      iv_act = /mbtools/if_definitions=>c_action-tools_add
+      iv_act = /mbtools/if_definitions=>c_action-tool_install
     )->add(
       iv_txt = 'Check for Updates'
       iv_act = /mbtools/if_definitions=>c_action-tools_check
@@ -185,12 +192,42 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD render_actions.
+
+    ri_html = /mbtools/cl_html=>create( ).
+
+    ri_html->add_a(
+      iv_act = |{ /mbtools/if_definitions=>c_action-tool_launch }?name={ io_tool->get_name( ) }|
+      iv_txt = /mbtools/cl_html=>icon( iv_name  = 'rocket/black'
+                                       iv_hint  = 'Launch tool' ) ).
+
+    IF /mbtools/cl_switches=>is_active( io_tool->get_title( ) ) = abap_false.
+      ri_html->add_a(
+        iv_act = |{ /mbtools/if_definitions=>c_action-tool_activate }?name={ io_tool->get_name( ) }|
+        iv_txt = /mbtools/cl_html=>icon( iv_name  = 'fire-alt/black'
+                                         iv_hint  = 'Activate tool' ) ).
+    ELSE.
+      ri_html->add_a(
+        iv_act = |{ /mbtools/if_definitions=>c_action-tool_deactivate }?name={ io_tool->get_name( ) }|
+        iv_txt = /mbtools/cl_html=>icon( iv_name  = 'snowflake/black'
+                                         iv_hint  = 'Deactivate tool' ) ).
+    ENDIF.
+
+    ri_html->add_a(
+      iv_act = |{ /mbtools/if_definitions=>c_action-tool_uninstall }?name={ io_tool->get_name( ) }|
+      iv_txt = /mbtools/cl_html=>icon( iv_name  = 'trash-alt/black'
+                                       iv_hint  = 'Uninstall tool' ) ).
+
+  ENDMETHOD.
+
+
   METHOD render_bundle.
 
     DATA:
       lo_bundle TYPE REF TO /mbtools/cl_tools,
       ls_tool   TYPE /mbtools/tool_with_text,
-      lt_tools  TYPE TABLE OF /mbtools/tool_with_text.
+      lt_tools  TYPE TABLE OF /mbtools/tool_with_text,
+      lv_link   TYPE string.
 
     lo_bundle = /mbtools/cl_tools=>factory( iv_title ).
 
@@ -200,17 +237,29 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
     ri_html = /mbtools/cl_html=>create( ).
 
-    ri_html->add( '<table class="bundle"><tr>' ).
-
-    ri_html->add( '<td width="400px">' && lo_bundle->get_thumbnail( ) && '</td>' ).
+    ri_html->add( '<table><tr>' ).
+    ri_html->add( '<td class="thumbnail">' && lo_bundle->get_thumbnail( ) && '</td>' ).
     ri_html->add( '<td><span class="title">' && lo_bundle->get_title( ) && '</span><br>'
       && lo_bundle->get_description( ) && '</td>' ).
-
     ri_html->add( '</tr></table>' ).
 
+    ri_html->add( '<div class="tools">' ).
+    ri_html->add( '<ul>' ).
     LOOP AT lt_tools INTO ls_tool.
+      ri_html->add( '<li>' ).
       ri_html->add( render_tool( ls_tool-name ) ).
+      ri_html->add( '</li>' ).
     ENDLOOP.
+    IF sy-subrc <> 0.
+      lv_link = /mbtools/cl_html=>a( iv_txt = 'here'
+                                     iv_act = /mbtools/if_definitions=>c_home && /mbtools/if_definitions=>c_www_portfolio
+                                     iv_typ = /mbtools/if_html=>c_action_type-url ).
+      ri_html->add( '<li>' ).
+      ri_html->add( |No tools for this bundle installed. Click { lv_link } to see what tools are available.| ).
+      ri_html->add( '</li>' ).
+    ENDIF.
+    ri_html->add( '</ul>' ).
+    ri_html->add( '</div>' ).
 
   ENDMETHOD.
 
@@ -226,9 +275,15 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
     ri_html = /mbtools/cl_html=>create( ).
 
+    ri_html->add( '<div class="bundles">' ).
+    ri_html->add( '<ul>' ).
     LOOP AT lt_bundles INTO ls_bundle.
+      ri_html->add( '<li>' ).
       ri_html->add( render_bundle( ls_bundle-name ) ).
+      ri_html->add( '</li>' ).
     ENDLOOP.
+    ri_html->add( '</ul>' ).
+    ri_html->add( '</div>' ).
 
   ENDMETHOD.
 
@@ -242,11 +297,14 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
     ri_html = /mbtools/cl_html=>create( ).
 
-    ri_html->add( '<table class="tool"><tr>' ).
+    ri_html->add( '<table><tr>' ).
 
-    ri_html->add( '<td width="400px">' && lo_tool->get_thumbnail( ) && '</td>' ).
+    ri_html->add( '<td class="thumbnail">' && lo_tool->get_thumbnail( ) && '</td>' ).
     ri_html->add( '<td><span class="title">' && lo_tool->get_title( ) && '</span><br>'
       && lo_tool->get_description( ) && '</td>' ).
+    ri_html->add( '<td class="actions">' ).
+    ri_html->add( render_actions( lo_tool ) ).
+    ri_html->add( '</td>' ).
 
     ri_html->add( '</tr></table>' ).
 
