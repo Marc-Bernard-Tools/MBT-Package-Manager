@@ -109,6 +109,8 @@ INTERFACE /mbtools/if_definitions
       direction       TYPE string VALUE 'direction',
       tools_check     TYPE string VALUE 'tools_check',
       tools_update    TYPE string VALUE 'tools_update',
+      tool_docs       TYPE string VALUE 'tool_docs',
+      tool_info       TYPE string VALUE 'tool_info',
       tool_launch     TYPE string VALUE 'tool_launch',
       tool_activate   TYPE string VALUE 'tool_activate',
       tool_deactivate TYPE string VALUE 'tool_deactivate',

@@ -37,7 +37,7 @@
     font-style: normal;
     font-weight: 900;
     font-display: block;
-    src: url("../fonts/fa-solid-900.woff2") format("woff2"); 
+    src: url("../fonts/fa-solid-900.eot?#iefix") format("embedded-opentype"), url("../fonts/fa-solid-900.woff2") format("woff2"); 
 }
 .fa, .fas {
     font-family: "Font Awesome 5 Free";
@@ -350,8 +350,6 @@ LAYOUT
     padding-top: 20px;
     padding-bottom: 20px;
 }
-.main .wrapper {
-}
 
 /* TABLES */
 
@@ -617,6 +615,7 @@ div.log .icon {
 .nav-container ul li:hover > ul { 
     display: block;
     background-color: #fff;
+    border: 1px solid #ddd;
 }
 .nav-container ul li:hover { 
     background-color: #999;
@@ -1095,7 +1094,7 @@ div.debug_container p {
 .tools ul {
     list-style: none;
     margin: 0;
-    padding-left: 50px;
+    padding-left: 70px;
 }
 .bundles tr:hover,
 .tools tr:hover {
@@ -1103,15 +1102,24 @@ div.debug_container p {
 }
 .bundles .thumbnail,
 .tools .thumbnail {
-    width: 350px;
+    width: 160px;
+}
+.bundles .thumbnail,
+.tools .thumbnail {
+    width: 90px;
+}
+.bundles .thumbnail img,
+.tools .thumbnail img {
+    width: 64px;
+    height: 64px;
 }
 .bundles td.actions,
 .tools td.actions {
-    width: 150px;
     text-align: right;
 }
 .bundles .actions a,
 .tools .actions a {
-    padding-left: 10px;
+    padding-right: 7px;
+    padding-left: 7px;
 }
 

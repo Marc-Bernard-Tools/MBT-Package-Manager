@@ -1,8 +1,8 @@
-class /MBTOOLS/CL_GUI_PAGE_MAIN definition
-  public
-  inheriting from /MBTOOLS/CL_GUI_COMPONENT
-  final
-  create public .
+CLASS /mbtools/cl_gui_page_main DEFINITION
+  PUBLIC
+  INHERITING FROM /mbtools/cl_gui_component
+  FINAL
+  CREATE PUBLIC .
 
 ************************************************************************
 * MBT GUI Page Main
@@ -12,52 +12,60 @@ class /MBTOOLS/CL_GUI_PAGE_MAIN definition
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-public section.
+  PUBLIC SECTION.
 
-  interfaces /MBTOOLS/IF_GUI_EVENT_HANDLER .
-  interfaces /MBTOOLS/IF_GUI_RENDERABLE .
-  interfaces /MBTOOLS/IF_GUI_HOTKEYS .
+    INTERFACES /mbtools/if_gui_event_handler .
+    INTERFACES /mbtools/if_gui_renderable .
+    INTERFACES /mbtools/if_gui_hotkeys .
 
-  methods CONSTRUCTOR
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  class-methods CREATE
-    returning
-      value(RI_PAGE) type ref to /MBTOOLS/IF_GUI_RENDERABLE
-    raising
-      /MBTOOLS/CX_EXCEPTION .
+    METHODS constructor
+      RAISING
+        /mbtools/cx_exception .
+    CLASS-METHODS create
+      RETURNING
+        VALUE(ri_page) TYPE REF TO /mbtools/if_gui_renderable
+      RAISING
+        /mbtools/cx_exception .
   PROTECTED SECTION.
-PRIVATE SECTION.
+  PRIVATE SECTION.
+    DATA mo_asset_manager TYPE REF TO /mbtools/cl_gui_asset_manager.
 
-  CLASS-METHODS build_menu
-    RETURNING
-      VALUE(ro_menu) TYPE REF TO /mbtools/cl_html_toolbar .
-  METHODS render_actions
-    IMPORTING
-      !io_tool       TYPE REF TO /mbtools/cl_tools
-    RETURNING
-      VALUE(ri_html) TYPE REF TO /mbtools/if_html
-    RAISING
-      /mbtools/cx_exception .
-  METHODS render_bundle
-    IMPORTING
-      !iv_title      TYPE csequence
-    RETURNING
-      VALUE(ri_html) TYPE REF TO /mbtools/if_html
-    RAISING
-      /mbtools/cx_exception .
-  METHODS render_bundles
-    RETURNING
-      VALUE(ri_html) TYPE REF TO /mbtools/if_html
-    RAISING
-      /mbtools/cx_exception .
-  METHODS render_tool
-    IMPORTING
-      !iv_title      TYPE csequence
-    RETURNING
-      VALUE(ri_html) TYPE REF TO /mbtools/if_html
-    RAISING
-      /mbtools/cx_exception .
+    CLASS-METHODS build_menu
+      RETURNING
+        VALUE(ro_menu) TYPE REF TO /mbtools/cl_html_toolbar .
+    METHODS register_thumbnail
+      IMPORTING
+        !io_tool         TYPE REF TO /mbtools/cl_tools
+      RETURNING
+        VALUE(rv_result) TYPE string
+      RAISING
+        /mbtools/cx_exception .
+    METHODS render_actions
+      IMPORTING
+        !io_tool       TYPE REF TO /mbtools/cl_tools
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
+      RAISING
+        /mbtools/cx_exception .
+    METHODS render_bundle
+      IMPORTING
+        !iv_title      TYPE string
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
+      RAISING
+        /mbtools/cx_exception .
+    METHODS render_bundles
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
+      RAISING
+        /mbtools/cx_exception .
+    METHODS render_tool
+      IMPORTING
+        !iv_title      TYPE string
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
+      RAISING
+        /mbtools/cx_exception .
 ENDCLASS.
 
 
@@ -106,12 +114,27 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
   METHOD /mbtools/if_gui_renderable~render.
 
+    DATA lt_assets TYPE /mbtools/if_gui_asset_manager=>ty_web_assets.
+
+    FIELD-SYMBOLS <ls_asset> LIKE LINE OF lt_assets.
+
     gui_services( )->register_event_handler( me ).
     gui_services( )->get_hotkeys_ctl( )->register_hotkeys( me ).
 
     ri_html = /mbtools/cl_html=>create( ).
 
     ri_html->add( render_bundles( ) ).
+
+    IF mo_asset_manager IS BOUND.
+      lt_assets = mo_asset_manager->/mbtools/if_gui_asset_manager~get_all_assets( ).
+      LOOP AT lt_assets ASSIGNING <ls_asset> WHERE is_cacheable = abap_true.
+        gui_services( )->cache_asset(
+          iv_xdata   = <ls_asset>-content
+          iv_url     = <ls_asset>-url
+          iv_type    = <ls_asset>-type
+          iv_subtype = <ls_asset>-subtype ).
+      ENDLOOP.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -173,6 +196,8 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
   METHOD constructor.
     super->constructor( ).
+
+    CREATE OBJECT mo_asset_manager.
   ENDMETHOD.
 
 
@@ -192,31 +217,59 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD register_thumbnail.
+
+    rv_result = 'img/' && io_tool->get_name( ) && '.jpg'.
+
+    mo_asset_manager->register_asset(
+      iv_url       = rv_result
+      iv_type      = 'image/jpg'
+      iv_mime_name = io_tool->get_thumbnail( ) ).
+
+  ENDMETHOD.
+
+
   METHOD render_actions.
 
     ri_html = /mbtools/cl_html=>create( ).
 
-    ri_html->add_a(
-      iv_act = |{ /mbtools/if_definitions=>c_action-tool_launch }?name={ io_tool->get_name( ) }|
-      iv_txt = /mbtools/cl_html=>icon( iv_name  = 'rocket/black'
-                                       iv_hint  = 'Launch tool' ) ).
+    IF io_tool->has_launch( ) = abap_true.
+      ri_html->add_a(
+        iv_act = |{ /mbtools/if_definitions=>c_action-tool_launch }?name={ io_tool->get_name( ) }|
+        iv_txt = /mbtools/cl_html=>icon( iv_name  = 'rocket/black'
+                                         iv_hint  = 'Launch tool' ) ).
+    ENDIF.
 
-    IF /mbtools/cl_switches=>is_active( io_tool->get_title( ) ) = abap_false.
+    IF io_tool->is_bundle( ) = abap_false.
       ri_html->add_a(
-        iv_act = |{ /mbtools/if_definitions=>c_action-tool_activate }?name={ io_tool->get_name( ) }|
-        iv_txt = /mbtools/cl_html=>icon( iv_name  = 'fire-alt/black'
-                                         iv_hint  = 'Activate tool' ) ).
-    ELSE.
-      ri_html->add_a(
-        iv_act = |{ /mbtools/if_definitions=>c_action-tool_deactivate }?name={ io_tool->get_name( ) }|
-        iv_txt = /mbtools/cl_html=>icon( iv_name  = 'snowflake/black'
-                                         iv_hint  = 'Deactivate tool' ) ).
+        iv_act = |{ /mbtools/if_definitions=>c_action-tool_docs }?name={ io_tool->get_name( ) }|
+        iv_txt = /mbtools/cl_html=>icon( iv_name  = 'question/black'
+                                         iv_hint  = 'Display tool documentation' ) ).
     ENDIF.
 
     ri_html->add_a(
-      iv_act = |{ /mbtools/if_definitions=>c_action-tool_uninstall }?name={ io_tool->get_name( ) }|
-      iv_txt = /mbtools/cl_html=>icon( iv_name  = 'trash-alt/black'
-                                       iv_hint  = 'Uninstall tool' ) ).
+      iv_act = |{ /mbtools/if_definitions=>c_action-tool_info }?name={ io_tool->get_name( ) }|
+      iv_txt = /mbtools/cl_html=>icon( iv_name  = 'info/black'
+                                       iv_hint  = 'Show more information about tool' ) ).
+
+    IF io_tool->is_bundle( ) = abap_false.
+      IF /mbtools/cl_switches=>is_active( io_tool->get_title( ) ) = abap_false.
+        ri_html->add_a(
+          iv_act = |{ /mbtools/if_definitions=>c_action-tool_activate }?name={ io_tool->get_name( ) }|
+          iv_txt = /mbtools/cl_html=>icon( iv_name  = 'fire-alt/black'
+                                           iv_hint  = 'Activate tool' ) ).
+      ELSE.
+        ri_html->add_a(
+          iv_act = |{ /mbtools/if_definitions=>c_action-tool_deactivate }?name={ io_tool->get_name( ) }|
+          iv_txt = /mbtools/cl_html=>icon( iv_name  = 'snowflake/black'
+                                           iv_hint  = 'Deactivate tool' ) ).
+      ENDIF.
+
+      ri_html->add_a(
+        iv_act = |{ /mbtools/if_definitions=>c_action-tool_uninstall }?name={ io_tool->get_name( ) }|
+        iv_txt = /mbtools/cl_html=>icon( iv_name  = 'trash-alt/black'
+                                         iv_hint  = 'Uninstall tool' ) ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -226,8 +279,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
     DATA:
       lo_bundle TYPE REF TO /mbtools/cl_tools,
       ls_tool   TYPE /mbtools/tool_with_text,
-      lt_tools  TYPE TABLE OF /mbtools/tool_with_text,
-      lv_link   TYPE string.
+      lt_tools  TYPE TABLE OF /mbtools/tool_with_text.
 
     lo_bundle = /mbtools/cl_tools=>factory( iv_title ).
 
@@ -235,29 +287,21 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
                                              iv_get_bundles = abap_false
                                              iv_get_tools   = abap_true ).
 
+    IF lt_tools IS INITIAL.
+      RETURN.
+    ENDIF.
+
     ri_html = /mbtools/cl_html=>create( ).
 
-    ri_html->add( '<table><tr>' ).
-    ri_html->add( '<td class="thumbnail">' && lo_bundle->get_thumbnail( ) && '</td>' ).
-    ri_html->add( '<td><span class="title">' && lo_bundle->get_title( ) && '</span><br>'
-      && lo_bundle->get_description( ) && '</td>' ).
-    ri_html->add( '</tr></table>' ).
+    ri_html->add( render_tool( |{ iv_title }| ) ).
 
     ri_html->add( '<div class="tools">' ).
     ri_html->add( '<ul>' ).
     LOOP AT lt_tools INTO ls_tool.
       ri_html->add( '<li>' ).
-      ri_html->add( render_tool( ls_tool-name ) ).
+      ri_html->add( render_tool( |{ ls_tool-name }| ) ).
       ri_html->add( '</li>' ).
     ENDLOOP.
-    IF sy-subrc <> 0.
-      lv_link = /mbtools/cl_html=>a( iv_txt = 'here'
-                                     iv_act = /mbtools/if_definitions=>c_home && /mbtools/if_definitions=>c_www_portfolio
-                                     iv_typ = /mbtools/if_html=>c_action_type-url ).
-      ri_html->add( '<li>' ).
-      ri_html->add( |No tools for this bundle installed. Click { lv_link } to see what tools are available.| ).
-      ri_html->add( '</li>' ).
-    ENDIF.
     ri_html->add( '</ul>' ).
     ri_html->add( '</div>' ).
 
@@ -279,7 +323,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
     ri_html->add( '<ul>' ).
     LOOP AT lt_bundles INTO ls_bundle.
       ri_html->add( '<li>' ).
-      ri_html->add( render_bundle( ls_bundle-name ) ).
+      ri_html->add( render_bundle( |{ ls_bundle-name }| ) ).
       ri_html->add( '</li>' ).
     ENDLOOP.
     ri_html->add( '</ul>' ).
@@ -291,17 +335,27 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
   METHOD render_tool.
 
     DATA:
-      lo_tool TYPE REF TO /mbtools/cl_tools.
+      lo_tool  TYPE REF TO /mbtools/cl_tools,
+      lv_state TYPE string,
+      lv_img   TYPE string.
 
     lo_tool = /mbtools/cl_tools=>factory( iv_title ).
 
+    IF lo_tool->is_bundle( ) = abap_false AND /mbtools/cl_switches=>is_active( iv_title ) = abap_false.
+      lv_state = | class="inactive"|.
+    ENDIF.
+
+    lv_img = |<img src="{ register_thumbnail( lo_tool ) }" alt="{ lo_tool->get_title( ) }">|.
+
     ri_html = /mbtools/cl_html=>create( ).
 
-    ri_html->add( '<table><tr>' ).
+    ri_html->add( |<table><tr{ lv_state }>| ).
 
-    ri_html->add( '<td class="thumbnail">' && lo_tool->get_thumbnail( ) && '</td>' ).
+    ri_html->add( '<td class="thumbnail">' && lv_img && '</td>' ).
+
     ri_html->add( '<td><span class="title">' && lo_tool->get_title( ) && '</span><br>'
       && lo_tool->get_description( ) && '</td>' ).
+
     ri_html->add( '<td class="actions">' ).
     ri_html->add( render_actions( lo_tool ) ).
     ri_html->add( '</td>' ).

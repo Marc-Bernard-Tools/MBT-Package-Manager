@@ -18,7 +18,7 @@ CLASS /mbtools/cl_gui_asset_manager DEFINITION
     TYPES:
       BEGIN OF ty_asset_entry.
         INCLUDE TYPE /mbtools/if_gui_asset_manager~ty_web_asset.
-    TYPES: mime_name TYPE wwwdatatab-objid,
+        TYPES: mime_name TYPE wwwdatatab-objid,
       END OF ty_asset_entry .
     TYPES:
       ty_asset_register TYPE STANDARD TABLE OF ty_asset_entry WITH KEY url .
@@ -28,7 +28,7 @@ CLASS /mbtools/cl_gui_asset_manager DEFINITION
         !iv_url       TYPE string
         !iv_type      TYPE string
         !iv_cachable  TYPE abap_bool DEFAULT abap_true
-        !iv_mime_name TYPE wwwdatatab-objid OPTIONAL
+        !iv_mime_name TYPE csequence OPTIONAL
         !iv_base64    TYPE string OPTIONAL
         !iv_inline    TYPE string OPTIONAL .
   PROTECTED SECTION.
@@ -166,6 +166,12 @@ CLASS /MBTOOLS/CL_GUI_ASSET_MANAGER IMPLEMENTATION.
   METHOD register_asset.
 
     DATA ls_asset LIKE LINE OF mt_asset_register.
+
+    READ TABLE mt_asset_register TRANSPORTING NO FIELDS
+      WITH TABLE KEY url = iv_url.
+    IF sy-subrc = 0.
+      RETURN.
+    ENDIF.
 
     SPLIT iv_type AT '/' INTO ls_asset-type ls_asset-subtype.
     ls_asset-url          = iv_url.

@@ -1,7 +1,7 @@
-CLASS /mbtools/cl_gui DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class /MBTOOLS/CL_GUI definition
+  public
+  final
+  create public .
 
 ************************************************************************
 * MBT GUI
@@ -11,12 +11,15 @@ CLASS /mbtools/cl_gui DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-  PUBLIC SECTION.
+public section.
 
-    INTERFACES /mbtools/if_gui_services .
+  interfaces /MBTOOLS/IF_GUI_SERVICES .
 
-    CONSTANTS:
-      BEGIN OF c_event_state,
+  aliases CACHE_ASSET
+    for /MBTOOLS/IF_GUI_SERVICES~CACHE_ASSET .
+
+  constants:
+    BEGIN OF c_event_state,
         not_handled         TYPE i VALUE 0,
         re_render           TYPE i VALUE 1,
         new_page            TYPE i VALUE 2,
@@ -26,53 +29,53 @@ CLASS /mbtools/cl_gui DEFINITION
         go_back_to_bookmark TYPE i VALUE 6,
         new_page_replacing  TYPE i VALUE 7,
       END OF c_event_state .
-    CONSTANTS:
-      BEGIN OF c_action,
+  constants:
+    BEGIN OF c_action,
         go_home TYPE string VALUE 'go_home',
       END OF c_action .
 
-    METHODS go_home
-      RAISING
-        /mbtools/cx_exception .
-    METHODS go_page
-      IMPORTING
-        !ii_page        TYPE REF TO /mbtools/if_gui_renderable
-        !iv_clear_stack TYPE abap_bool DEFAULT abap_true
-      RAISING
-        /mbtools/cx_exception .
-    METHODS back
-      IMPORTING
-        !iv_to_bookmark TYPE abap_bool DEFAULT abap_false
-      RETURNING
-        VALUE(rv_exit)  TYPE abap_bool
-      RAISING
-        /mbtools/cx_exception .
-    METHODS on_event
-        FOR EVENT sapevent OF cl_gui_html_viewer
-      IMPORTING
-        !action
-        !frame
-        !getdata
-        !postdata
-        !query_table .
-    METHODS constructor
-      IMPORTING
-        !io_component         TYPE REF TO object OPTIONAL
-        !ii_asset_man         TYPE REF TO /mbtools/if_gui_asset_manager OPTIONAL
-        !ii_hotkey_ctl        TYPE REF TO /mbtools/if_gui_hotkey_ctl OPTIONAL
-        !ii_html_processor    TYPE REF TO /mbtools/if_gui_html_processor OPTIONAL
-        !iv_rollback_on_error TYPE abap_bool DEFAULT abap_true
-      RAISING
-        /mbtools/cx_exception .
-    METHODS free .
-    METHODS parse_data
-      IMPORTING
-        !iv_getdata          TYPE c
-        !it_postdata         TYPE cnht_post_data_tab
-      RETURNING
-        VALUE(ro_parameters) TYPE REF TO /mbtools/cl_string_map
-      RAISING
-        /mbtools/cx_exception .
+  methods GO_HOME
+    raising
+      /MBTOOLS/CX_EXCEPTION .
+  methods GO_PAGE
+    importing
+      !II_PAGE type ref to /MBTOOLS/IF_GUI_RENDERABLE
+      !IV_CLEAR_STACK type ABAP_BOOL default ABAP_TRUE
+    raising
+      /MBTOOLS/CX_EXCEPTION .
+  methods BACK
+    importing
+      !IV_TO_BOOKMARK type ABAP_BOOL default ABAP_FALSE
+    returning
+      value(RV_EXIT) type ABAP_BOOL
+    raising
+      /MBTOOLS/CX_EXCEPTION .
+  methods ON_EVENT
+    for event SAPEVENT of CL_GUI_HTML_VIEWER
+    importing
+      !ACTION
+      !FRAME
+      !GETDATA
+      !POSTDATA
+      !QUERY_TABLE .
+  methods CONSTRUCTOR
+    importing
+      !IO_COMPONENT type ref to OBJECT optional
+      !II_ASSET_MAN type ref to /MBTOOLS/IF_GUI_ASSET_MANAGER optional
+      !II_HOTKEY_CTL type ref to /MBTOOLS/IF_GUI_HOTKEY_CTL optional
+      !II_HTML_PROCESSOR type ref to /MBTOOLS/IF_GUI_HTML_PROCESSOR optional
+      !IV_ROLLBACK_ON_ERROR type ABAP_BOOL default ABAP_TRUE
+    raising
+      /MBTOOLS/CX_EXCEPTION .
+  methods FREE .
+  methods PARSE_DATA
+    importing
+      !IV_GETDATA type C
+      !IT_POSTDATA type CNHT_POST_DATA_TAB
+    returning
+      value(RO_PARAMETERS) type ref to /MBTOOLS/CL_STRING_MAP
+    raising
+      /MBTOOLS/CX_EXCEPTION .
   PROTECTED SECTION.
   PRIVATE SECTION.
 

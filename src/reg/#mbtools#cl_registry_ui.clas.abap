@@ -344,7 +344,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
     DATA: lr_reg_entry TYPE REF TO /mbtools/cl_registry.
     DATA: ls_tab TYPE ty_tab.
     DATA: lx_exc TYPE REF TO /mbtools/cx_exception.
-    DATA: lt_sub_entries TYPE /mbtools/cl_registry=>ty_keyobjs.
+    DATA: lt_sub_entries TYPE TABLE OF /mbtools/cl_registry=>ty_keyobj.  "<<<CHG
     DATA: ls_sub_entry TYPE /mbtools/cl_registry=>ty_keyobj.
 
     sender->get_outtab_line(
@@ -367,6 +367,8 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
         MESSAGE lx_exc->get_text( ) TYPE 'I'.
         RETURN.
     ENDTRY.
+
+    SORT lt_sub_entries BY key AS TEXT. "<<<INS
 
     LOOP AT lt_sub_entries INTO ls_sub_entry.
 

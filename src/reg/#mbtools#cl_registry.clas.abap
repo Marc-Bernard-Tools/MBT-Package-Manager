@@ -538,13 +538,13 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     DATA: lv_subkey TYPE string.
 
     lt_subkeys = get_subentry_keys( ).
-*>>>INS
-    SORT lt_subkeys.
-*<<<INS
+
+    SORT lt_subkeys. "<<<INS
+
     LOOP AT lt_subkeys INTO lv_subkey.
       ls_ko-key = lv_subkey.
       ls_ko-value = get_subentry( lv_subkey ).
-      INSERT ls_ko INTO TABLE rt_sub_entries.
+      INSERT ls_ko INTO TABLE rt_sub_entries. "sorted table
     ENDLOOP.
 
   ENDMETHOD.                    "get_subentries

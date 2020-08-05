@@ -153,6 +153,11 @@ CLASS /MBTOOLS/CL_GUI_FACTORY IMPLEMENTATION.
       iv_mime_name = '/MBTOOLS/MBT_FONT_AWESOME' ).
 
     ro_asset_man->register_asset(
+      iv_url       = 'fonts/fa-solid-900.eot?#iefix'
+      iv_type      = 'application/vnd.ms-fontobject'
+      iv_mime_name = '/MBTOOLS/MBT_FONT_AWESOME_EOT' ). "for IE6-8
+
+    ro_asset_man->register_asset(
       iv_url       = 'fonts/opensans.woff2'
       iv_type      = 'application/x-font-woff'
       iv_mime_name = '/MBTOOLS/MBT_FONT_OPEN_SANS' ).

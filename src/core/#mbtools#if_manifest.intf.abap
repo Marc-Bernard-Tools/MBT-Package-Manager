@@ -63,6 +63,7 @@ INTERFACE /mbtools/if_manifest
       components      TYPE ty_components,
       parameters      TYPE ty_parameters,
       certificates    TYPE ty_certificates,
+      has_launch      TYPE abap_bool,
     END OF ty_descriptor .
 
   CONSTANTS co_file_name TYPE string VALUE '.mbt-manifest.xml' ##NO_TEXT.

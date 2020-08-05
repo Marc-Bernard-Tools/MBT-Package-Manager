@@ -68,10 +68,12 @@ INTERFACE /mbtools/if_objects
     c_abap_program     TYPE lvc_fname VALUE 'PROG',
     c_abap_class       TYPE lvc_fname VALUE 'CLAS',
     c_abap_interface   TYPE lvc_fname VALUE 'INTF',
-    c_data_element     TYPE lvc_fname VALUE 'DELM',
-    c_table            TYPE lvc_fname VALUE 'TABL',
-    c_number_range     TYPE lvc_fname VALUE 'NBRO',
+    c_data_element     TYPE lvc_fname VALUE rs_c_obj_dtel,
+    c_table            TYPE lvc_fname VALUE rs_c_obj_tabl,
+    c_number_range     TYPE lvc_fname VALUE rs_c_obj_nrob,
     c_enhancement      TYPE lvc_fname VALUE 'SMOD',
-    c_enhancement_proj TYPE lvc_fname VALUE 'CMOD'.
+    c_enhancement_proj TYPE lvc_fname VALUE 'CMOD',
+    c_datasource       TYPE lvc_fname VALUE 'OSOA',
+    c_appl_comp_hier   TYPE lvc_fname VALUE 'DSAA'.
 
 ENDINTERFACE.

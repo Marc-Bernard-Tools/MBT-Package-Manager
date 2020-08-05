@@ -10,8 +10,8 @@ CLASS /mbtools/cl_tools DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    " Global Constant
     CONSTANTS:
+      " Global Constant
       BEGIN OF c_reg,
         " Registry General
         general            TYPE string VALUE '.General' ##NO_TEXT,
@@ -116,6 +116,9 @@ CLASS /mbtools/cl_tools DEFINITION
     METHODS is_bundle
       RETURNING
         VALUE(rv_result) TYPE abap_bool .
+    METHODS has_launch
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool .
     " Tool License
     METHODS is_licensed
       RETURNING
@@ -186,6 +189,7 @@ CLASS /mbtools/cl_tools DEFINITION
     DATA mv_name TYPE /mbtools/if_manifest=>ty_descriptor-name .
     DATA mv_version TYPE /mbtools/if_manifest=>ty_descriptor-version .
     DATA mv_description TYPE /mbtools/if_manifest=>ty_descriptor-description .
+    DATA mv_has_launch TYPE /mbtools/if_manifest=>ty_descriptor-has_launch .
 
     CLASS-METHODS get_implementations
       IMPORTING
@@ -251,6 +255,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     rs_manifest-version     = mv_version.
     rs_manifest-title       = mv_title.
     rs_manifest-description = mv_description.
+    rs_manifest-has_launch  = mv_has_launch.
 
     IF mv_is_bundle IS INITIAL.
       rs_manifest-namespace   = /mbtools/if_definitions=>c_namespace.
@@ -289,7 +294,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       <lv_is_bundle>   TYPE /mbtools/if_manifest=>ty_descriptor-is_bundle,
       <lv_title>       TYPE /mbtools/if_manifest=>ty_descriptor-title,
       <lv_version>     TYPE /mbtools/if_manifest=>ty_descriptor-version,
-      <lv_description> TYPE /mbtools/if_manifest=>ty_descriptor-description.
+      <lv_description> TYPE /mbtools/if_manifest=>ty_descriptor-description,
+      <lv_has_launch>  TYPE /mbtools/if_manifest=>ty_descriptor-has_launch.
 
     mo_tool = io_tool.
 
@@ -320,8 +326,13 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       mv_is_bundle = <lv_is_bundle>.
     ENDIF.
 
+    ASSIGN mo_tool->('C_TOOL-HAS_LAUNCH') TO <lv_has_launch>.
+    IF sy-subrc = 0. " constant is optional
+      mv_has_launch = <lv_has_launch>.
+    ENDIF.
+
     " Build the full manifest based on these constants
-    mbt_manifest   = build_manifest( ).
+    mbt_manifest = build_manifest( ).
 
   ENDMETHOD.
 
@@ -410,7 +421,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     LOOP AT lt_implementations INTO lv_implementation.
 
       TRY.
-         " Get instance of tool
+          " Get instance of tool
           CREATE OBJECT lo_tool TYPE (lv_implementation).
           IF lo_tool IS BOUND.
             lo_manifest ?= lo_tool.
@@ -645,7 +656,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   ENDMETHOD.
 
 
-METHOD get_tools.
+  METHOD get_tools.
 
     DATA:
       lv_implementation  TYPE seoclsname,
@@ -730,6 +741,13 @@ METHOD get_tools.
   METHOD get_version.
 
     rv_version = mv_version.
+
+  ENDMETHOD.
+
+
+  METHOD has_launch.
+
+    rv_result = boolc( mbt_manifest-has_launch = abap_true ).
 
   ENDMETHOD.
 
