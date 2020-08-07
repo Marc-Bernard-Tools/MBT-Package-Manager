@@ -128,7 +128,7 @@ CLASS /MBTOOLS/CL_HTML_TOOLBAR IMPLEMENTATION.
 
     DATA: lv_class TYPE string.
 
-    CREATE OBJECT ri_html TYPE /mbtools/cl_html.
+    ri_html = /mbtools/cl_html=>create( ).
 
     lv_class = 'nav-container' ##NO_TEXT.
     IF iv_right = abap_true.
@@ -146,7 +146,7 @@ CLASS /MBTOOLS/CL_HTML_TOOLBAR IMPLEMENTATION.
 
     DATA: lv_class TYPE string.
 
-    CREATE OBJECT ri_html TYPE /mbtools/cl_html.
+    ri_html = /mbtools/cl_html=>create( ).
 
     lv_class = 'nav-container' ##NO_TEXT.
     IF iv_right = abap_true.
@@ -180,7 +180,7 @@ CLASS /MBTOOLS/CL_HTML_TOOLBAR IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_item> LIKE LINE OF mt_items.
 
-    CREATE OBJECT ri_html TYPE /mbtools/cl_html.
+    ri_html = /mbtools/cl_html=>create( ).
 
     IF iv_sort = abap_true.
       SORT mt_items BY txt ASCENDING AS TEXT.

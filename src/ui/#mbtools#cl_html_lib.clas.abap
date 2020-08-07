@@ -55,23 +55,6 @@ CLASS /mbtools/cl_html_lib DEFINITION
         !ix_error      TYPE REF TO /mbtools/cx_exception
       RETURNING
         VALUE(ro_html) TYPE REF TO /mbtools/cl_html .
-    CLASS-METHODS parse_change_order_by
-      IMPORTING
-        !iv_query_str      TYPE clike
-      RETURNING
-        VALUE(rv_order_by) TYPE string .
-    CLASS-METHODS parse_direction
-      IMPORTING
-        !iv_query_str              TYPE clike
-      RETURNING
-        VALUE(rv_order_descending) TYPE abap_bool .
-    CLASS-METHODS render_order_by_header_cells
-      IMPORTING
-        !it_col_spec         TYPE ty_col_specs
-        !iv_order_by         TYPE string
-        !iv_order_descending TYPE abap_bool
-      RETURNING
-        VALUE(ro_html)       TYPE REF TO /mbtools/cl_html .
     CLASS-METHODS render_warning_banner
       IMPORTING
         !iv_text       TYPE string
@@ -146,30 +129,6 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
     rv_normalized_program_name = substring_before(
                                      val   = iv_program_name
                                      regex = `(=+CP)?$` ).
-
-  ENDMETHOD.
-
-
-  METHOD parse_change_order_by.
-
-    FIND FIRST OCCURRENCE OF REGEX `orderBy=(.*)`
-         IN iv_query_str
-         SUBMATCHES rv_order_by.
-
-    rv_order_by = condense( rv_order_by ).
-
-  ENDMETHOD.
-
-
-  METHOD parse_direction.
-
-    DATA: lv_direction TYPE string.
-
-    FIND FIRST OCCURRENCE OF REGEX `direction=(.*)`
-         IN iv_query_str
-         SUBMATCHES lv_direction.
-
-    rv_order_descending = boolc( condense( lv_direction ) = 'DESCENDING' ).
 
   ENDMETHOD.
 
@@ -254,7 +213,7 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
       ro_html->add_a(
           iv_txt   = lv_text
           iv_typ   = /mbtools/if_html=>c_action_type-sapevent
-          iv_act   = /mbtools/if_definitions=>c_action-goto_message
+          iv_act   = /mbtools/if_actions=>goto_message
           iv_title = lv_title
           iv_id    = `a_goto_message` ).
 
@@ -266,14 +225,14 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
 
     ro_html->add_a(
         iv_txt   = `Goto source`
-        iv_act   = /mbtools/if_definitions=>c_action-goto_source
+        iv_act   = /mbtools/if_actions=>goto_source
         iv_typ   = /mbtools/if_html=>c_action_type-sapevent
         iv_title = lv_title
         iv_id    = `a_goto_source` ).
 
     ro_html->add_a(
         iv_txt = `Callstack`
-        iv_act = /mbtools/if_definitions=>c_action-show_callstack
+        iv_act = /mbtools/if_actions=>show_callstack
         iv_typ = /mbtools/if_html=>c_action_type-sapevent
         iv_id  = `a_callstack` ).
 
@@ -391,65 +350,6 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
       iv_hint    = lv_hint
       iv_hide    = boolc( io_news->has_unseen( ) = abap_false )
       io_content = ro_html ).
-
-  ENDMETHOD.
-
-
-  METHOD render_order_by_header_cells.
-
-    DATA:
-      lt_colspec   TYPE ty_col_specs,
-      lv_tmp       TYPE string,
-      lv_disp_name TYPE string.
-
-    FIELD-SYMBOLS <ls_col> LIKE LINE OF lt_colspec.
-
-    CREATE OBJECT ro_html.
-
-    LOOP AT it_col_spec ASSIGNING <ls_col>.
-      " e.g. <th class="ro-detail">Created at [{ gv_time_zone }]</th>
-      lv_tmp = '<th'.
-      IF <ls_col>-css_class IS NOT INITIAL.
-        lv_tmp = lv_tmp && | class="{ <ls_col>-css_class }"|.
-      ENDIF.
-      lv_tmp = lv_tmp && '>'.
-
-      IF <ls_col>-display_name IS NOT INITIAL.
-        lv_disp_name = <ls_col>-display_name.
-        IF <ls_col>-add_tz = abap_true.
-          lv_disp_name = lv_disp_name && | [{ gv_time_zone }]|.
-        ENDIF.
-        IF <ls_col>-tech_name = iv_order_by.
-          IF iv_order_descending = abap_true.
-            lv_tmp = lv_tmp && /mbtools/cl_html=>a(
-              iv_txt   = lv_disp_name
-              iv_act   = |{ /mbtools/if_definitions=>c_action-direction }?direction=ASCENDING|
-              iv_title = <ls_col>-title ).
-          ELSE.
-            lv_tmp = lv_tmp && /mbtools/cl_html=>a(
-              iv_txt   = lv_disp_name
-              iv_act   = |{ /mbtools/if_definitions=>c_action-direction }?direction=DESCENDING|
-              iv_title = <ls_col>-title ).
-          ENDIF.
-        ELSE.
-          lv_tmp = lv_tmp && /mbtools/cl_html=>a(
-            iv_txt   = lv_disp_name
-            iv_act   = |{ /mbtools/if_definitions=>c_action-change_order_by }?orderBy={ <ls_col>-tech_name }|
-            iv_title = <ls_col>-title ).
-        ENDIF.
-      ENDIF.
-      IF <ls_col>-tech_name = iv_order_by
-      AND iv_order_by IS NOT INITIAL.
-        IF iv_order_descending = abap_true.
-          lv_tmp = lv_tmp && | &#x25B4;|. " arrow up
-        ELSE.
-          lv_tmp = lv_tmp && | &#x25BE;|. " arrow down
-        ENDIF.
-      ENDIF.
-
-      lv_tmp = lv_tmp && '</th>'.
-      ro_html->add( lv_tmp ).
-    ENDLOOP.
 
   ENDMETHOD.
 

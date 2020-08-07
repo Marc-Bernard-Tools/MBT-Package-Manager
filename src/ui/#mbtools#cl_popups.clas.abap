@@ -2,7 +2,9 @@ CLASS /mbtools/cl_popups DEFINITION
   PUBLIC
   FINAL
   CREATE PRIVATE
+
   GLOBAL FRIENDS /mbtools/cl_gui_factory .
+
 ************************************************************************
 * MBT Popups
 *
@@ -11,11 +13,12 @@ CLASS /mbtools/cl_popups DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-
   PUBLIC SECTION.
 
     INTERFACES /mbtools/if_popups .
 
+    ALIASES popup_search_help
+      FOR /mbtools/if_popups~popup_search_help .
     ALIASES popup_to_confirm
       FOR /mbtools/if_popups~popup_to_confirm .
     ALIASES popup_to_inform

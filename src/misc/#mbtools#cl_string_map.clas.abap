@@ -13,7 +13,10 @@ CLASS /mbtools/cl_string_map DEFINITION
 *
 * Last update: 2020-08-01
 ************************************************************************
+
   PUBLIC SECTION.
+
+    CONSTANTS version TYPE string VALUE 'v1.0.2'.
 
     TYPES:
       BEGIN OF ty_entry,
@@ -25,9 +28,17 @@ CLASS /mbtools/cl_string_map DEFINITION
     TYPES:
       tts_entries TYPE SORTED TABLE OF ty_entry WITH UNIQUE KEY k .
 
+    DATA mt_entries TYPE tts_entries READ-ONLY.
+
     CLASS-METHODS create
+      IMPORTING
+        !iv_from           TYPE any OPTIONAL
       RETURNING
         VALUE(ro_instance) TYPE REF TO /mbtools/cl_string_map .
+    METHODS constructor
+      IMPORTING
+        !iv_from TYPE any OPTIONAL.
+
     METHODS get
       IMPORTING
         !iv_key       TYPE string
@@ -41,11 +52,9 @@ CLASS /mbtools/cl_string_map DEFINITION
     METHODS set
       IMPORTING
         !iv_key       TYPE string
-        !iv_val       TYPE string OPTIONAL
+        !iv_val       TYPE string
       RETURNING
-        VALUE(ro_map) TYPE REF TO /mbtools/cl_string_map
-      RAISING
-        /mbtools/cx_exception .
+        VALUE(ro_map) TYPE REF TO /mbtools/cl_string_map.
     METHODS size
       RETURNING
         VALUE(rv_size) TYPE i .
@@ -54,23 +63,34 @@ CLASS /mbtools/cl_string_map DEFINITION
         VALUE(rv_yes) TYPE abap_bool .
     METHODS delete
       IMPORTING
-        !iv_key TYPE string
-      RAISING
-        /mbtools/cx_exception .
-    METHODS clear
-      RAISING
-        /mbtools/cx_exception .
-    METHODS to_abap
+        !iv_key TYPE string .
+    METHODS keys
+      RETURNING
+        VALUE(rt_keys) TYPE string_table .
+    METHODS values
+      RETURNING
+        VALUE(rt_values) TYPE string_table .
+    METHODS clear.
+    METHODS to_struc
       CHANGING
-        !cs_container TYPE any
-      RAISING
-        /mbtools/cx_exception .
-    METHODS freeze .
+        !cs_container TYPE any.
+    METHODS from_struc
+      IMPORTING
+        !is_container TYPE any.
+    METHODS from_entries
+      IMPORTING
+        !it_entries TYPE ANY TABLE.
+    METHODS strict
+      IMPORTING
+        !iv_strict         TYPE abap_bool DEFAULT abap_true
+      RETURNING
+        VALUE(ro_instance) TYPE REF TO /mbtools/cl_string_map .
+    METHODS freeze.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
-    DATA mt_entries TYPE tts_entries.
+    DATA mv_is_strict TYPE abap_bool.
     DATA mv_read_only TYPE abap_bool.
-
 ENDCLASS.
 
 
@@ -79,22 +99,56 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
 
 
   METHOD clear.
+
     IF mv_read_only = abap_true.
-      /mbtools/cx_exception=>raise( 'Cannot clear. This string map is immutable' ).
+      lcx_error=>raise( 'String map is read only' ).
     ENDIF.
+
     CLEAR mt_entries.
+
+  ENDMETHOD.
+
+
+  METHOD constructor.
+    mv_is_strict = abap_true.
+
+    IF iv_from IS NOT INITIAL.
+      DATA lo_type TYPE REF TO cl_abap_typedescr.
+      lo_type = cl_abap_typedescr=>describe_by_data( iv_from ).
+
+      CASE lo_type->type_kind.
+        WHEN cl_abap_typedescr=>typekind_struct1 OR cl_abap_typedescr=>typekind_struct2.
+          me->from_struc( iv_from ).
+
+        WHEN cl_abap_typedescr=>typekind_oref.
+          DATA lo_from TYPE REF TO /mbtools/cl_string_map.
+          TRY.
+              lo_from ?= iv_from.
+            CATCH cx_sy_move_cast_error.
+              lcx_error=>raise( 'Incorrect string map instance to copy from' ).
+          ENDTRY.
+          me->mt_entries = lo_from->mt_entries.
+
+        WHEN cl_abap_typedescr=>typekind_table.
+          me->from_entries( iv_from ).
+
+        WHEN OTHERS.
+          lcx_error=>raise( |Incorrect input for string_map=>create, typekind { lo_type->type_kind }| ).
+      ENDCASE.
+    ENDIF.
+
   ENDMETHOD.
 
 
   METHOD create.
-    CREATE OBJECT ro_instance.
+    CREATE OBJECT ro_instance EXPORTING iv_from = iv_from.
   ENDMETHOD.
 
 
   METHOD delete.
 
     IF mv_read_only = abap_true.
-      /mbtools/cx_exception=>raise( 'Cannot delete. This string map is immutable' ).
+      lcx_error=>raise( 'String map is read only' ).
     ENDIF.
 
     DELETE mt_entries WHERE k = iv_key.
@@ -107,12 +161,61 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD from_entries.
+
+    FIELD-SYMBOLS <i> TYPE ty_entry.
+
+    IF mv_read_only = abap_true.
+      lcx_error=>raise( 'String map is read only' ).
+    ENDIF.
+
+    LOOP AT it_entries ASSIGNING <i> CASTING.
+      set(
+        iv_key = <i>-k
+        iv_val = <i>-v ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD from_struc.
+
+    DATA lo_type TYPE REF TO cl_abap_typedescr.
+    DATA lo_struc TYPE REF TO cl_abap_structdescr.
+    FIELD-SYMBOLS <c> LIKE LINE OF lo_struc->components.
+    FIELD-SYMBOLS <val> TYPE any.
+
+    IF mv_read_only = abap_true.
+      lcx_error=>raise( 'String map is read only' ).
+    ENDIF.
+
+    CLEAR mt_entries.
+
+    lo_type = cl_abap_typedescr=>describe_by_data( is_container ).
+    IF lo_type->type_kind <> cl_abap_typedescr=>typekind_struct1
+      AND lo_type->type_kind <> cl_abap_typedescr=>typekind_struct2.
+      lcx_error=>raise( 'Only structures supported' ).
+    ENDIF.
+
+    lo_struc ?= lo_type.
+    LOOP AT lo_struc->components ASSIGNING <c>.
+      CHECK <c>-type_kind CO 'bsI8PaeFCNgXyDT'. " values
+      ASSIGN COMPONENT <c>-name OF STRUCTURE is_container TO <val>.
+      ASSERT sy-subrc = 0.
+      set(
+        iv_key = |{ <c>-name }|
+        iv_val = |{ <val> }| ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD get.
 
-    FIELD-SYMBOLS <ls_entry> LIKE LINE OF mt_entries.
-    READ TABLE mt_entries ASSIGNING <ls_entry> WITH KEY k = iv_key.
-    IF sy-subrc IS INITIAL.
-      rv_val = <ls_entry>-v.
+    FIELD-SYMBOLS <entry> LIKE LINE OF mt_entries.
+    READ TABLE mt_entries ASSIGNING <entry> WITH KEY k = iv_key.
+    IF sy-subrc = 0.
+      rv_val = <entry>-v.
     ENDIF.
 
   ENDMETHOD.
@@ -121,7 +224,7 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
   METHOD has.
 
     READ TABLE mt_entries TRANSPORTING NO FIELDS WITH KEY k = iv_key.
-    rv_has = boolc( sy-subrc IS INITIAL ).
+    rv_has = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
@@ -131,18 +234,28 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD keys.
+
+    FIELD-SYMBOLS <entry> LIKE LINE OF mt_entries.
+    LOOP AT mt_entries ASSIGNING <entry>.
+      APPEND <entry>-k TO rt_keys.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD set.
 
     DATA ls_entry LIKE LINE OF mt_entries.
-    FIELD-SYMBOLS <ls_entry> LIKE LINE OF mt_entries.
+    FIELD-SYMBOLS <entry> LIKE LINE OF mt_entries.
 
     IF mv_read_only = abap_true.
-      /mbtools/cx_exception=>raise( 'Cannot set. This string map is immutable' ).
+      lcx_error=>raise( 'String map is read only' ).
     ENDIF.
 
-    READ TABLE mt_entries ASSIGNING <ls_entry> WITH KEY k = iv_key.
-    IF sy-subrc IS INITIAL.
-      <ls_entry>-v = iv_val.
+    READ TABLE mt_entries ASSIGNING <entry> WITH KEY k = iv_key.
+    IF sy-subrc = 0.
+      <entry>-v = iv_val.
     ELSE.
       ls_entry-k = iv_key.
       ls_entry-v = iv_val.
@@ -161,30 +274,48 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD to_abap.
+  METHOD strict.
+    mv_is_strict = iv_strict.
+    ro_instance = me.
+  ENDMETHOD.
+
+
+  METHOD to_struc.
 
     DATA lo_type TYPE REF TO cl_abap_typedescr.
     DATA lo_struc TYPE REF TO cl_abap_structdescr.
     DATA lv_field TYPE string.
-    FIELD-SYMBOLS <ls_entry> LIKE LINE OF mt_entries.
-    FIELD-SYMBOLS <lv_val> TYPE any.
+    FIELD-SYMBOLS <entry> LIKE LINE OF mt_entries.
+    FIELD-SYMBOLS <val> TYPE any.
 
     lo_type = cl_abap_typedescr=>describe_by_data( cs_container ).
     IF lo_type->type_kind <> cl_abap_typedescr=>typekind_struct1
       AND lo_type->type_kind <> cl_abap_typedescr=>typekind_struct2.
-      /mbtools/cx_exception=>raise( 'Only structures supported' ).
+      lcx_error=>raise( 'Only structures supported' ).
     ENDIF.
 
     lo_struc ?= lo_type.
-    LOOP AT mt_entries ASSIGNING <ls_entry>.
-      lv_field = to_upper( <ls_entry>-k ).
-      ASSIGN COMPONENT lv_field OF STRUCTURE cs_container TO <lv_val>.
+    LOOP AT mt_entries ASSIGNING <entry>.
+      lv_field = to_upper( <entry>-k ).
+      ASSIGN COMPONENT lv_field OF STRUCTURE cs_container TO <val>.
       IF sy-subrc = 0.
         " TODO check target type ?
-        <lv_val> = <ls_entry>-v.
+        <val> = <entry>-v.
+      ELSEIF mv_is_strict = abap_false.
+        CONTINUE.
       ELSE.
-        /mbtools/cx_exception=>raise( |Component { lv_field } not found in target| ).
+        lcx_error=>raise( |Component { lv_field } not found in target| ).
       ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD values.
+
+    FIELD-SYMBOLS <entry> LIKE LINE OF mt_entries.
+    LOOP AT mt_entries ASSIGNING <entry>.
+      APPEND <entry>-v TO rt_values.
     ENDLOOP.
 
   ENDMETHOD.

@@ -28,14 +28,18 @@ CLASS ltcl_login_manager IMPLEMENTATION.
 
     DATA: lv_auth TYPE string.
 
-    lv_auth = /mbtools/cl_login_manager=>set(
-      iv_uri      = 'https://github.com/larshp/abapGit.git'
-      iv_username = c_username
-      iv_password = c_password ).
+    TRY.
+        lv_auth = /mbtools/cl_login_manager=>set(
+          iv_uri      = 'https://github.com/larshp/abapGit.git'
+          iv_username = c_username
+          iv_password = c_password ).
 
-    cl_abap_unit_assert=>assert_equals(
-      act = lv_auth
-      exp = 'Basic QWxhZGRpbjpPcGVuU2VzYW1l' ).
+        cl_abap_unit_assert=>assert_equals(
+          act = lv_auth
+          exp = 'Basic QWxhZGRpbjpPcGVuU2VzYW1l' ).
+      CATCH /mbtools/cx_exception.
+        cl_abap_unit_assert=>fail( ).
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -47,17 +51,21 @@ CLASS ltcl_login_manager IMPLEMENTATION.
     DATA: lv_auth1 TYPE string,
           lv_auth2 TYPE string.
 
-    /mbtools/cl_login_manager=>set(
-      iv_uri      = lc_github1
-      iv_username = c_username
-      iv_password = c_password ).
+    TRY.
+        /mbtools/cl_login_manager=>set(
+          iv_uri      = lc_github1
+          iv_username = c_username
+          iv_password = c_password ).
 
-    lv_auth1 = /mbtools/cl_login_manager=>load( lc_github1 ).
-    lv_auth2 = /mbtools/cl_login_manager=>load( lc_github2 ).
+        lv_auth1 = /mbtools/cl_login_manager=>load( lc_github1 ).
+        lv_auth2 = /mbtools/cl_login_manager=>load( lc_github2 ).
 
-    cl_abap_unit_assert=>assert_equals(
-      act = lv_auth1
-      exp = lv_auth2 ).
+        cl_abap_unit_assert=>assert_equals(
+          act = lv_auth1
+          exp = lv_auth2 ).
+      CATCH /mbtools/cx_exception.
+        cl_abap_unit_assert=>fail( ).
+    ENDTRY.
 
   ENDMETHOD.
 

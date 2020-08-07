@@ -1,19 +1,19 @@
-CLASS /mbtools/cl_tools DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class /MBTOOLS/CL_TOOLS definition
+  public
+  final
+  create public .
 
 ************************************************************************
 * MBT Tool Manager
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-  PUBLIC SECTION.
+public section.
 
-    CONSTANTS:
+  constants:
       " Global Constant
-      BEGIN OF c_reg,
-        " Registry General
+    BEGIN OF c_reg,
+        " Registry General (read-only in Registry Browser)
         general            TYPE string VALUE '.General' ##NO_TEXT,
         key_name           TYPE string VALUE 'Name' ##NO_TEXT,
         key_class          TYPE string VALUE 'Class' ##NO_TEXT,
@@ -22,7 +22,7 @@ CLASS /mbtools/cl_tools DEFINITION
         key_version        TYPE string VALUE 'Version' ##NO_TEXT,
         key_namespace      TYPE string VALUE 'Namespace' ##NO_TEXT,
         key_package        TYPE string VALUE 'Package' ##NO_TEXT,
-        " Registry Properties
+        " Registry Properties (read-only in Registry Browser)
         properties         TYPE string VALUE '.Properties' ##NO_TEXT,
         key_install_time   TYPE string VALUE 'InstallTimestamp' ##NO_TEXT,
         key_install_user   TYPE string VALUE 'InstallUser' ##NO_TEXT,
@@ -35,7 +35,7 @@ CLASS /mbtools/cl_tools DEFINITION
         key_active         TYPE string VALUE 'Active' ##NO_TEXT,
         key_debug          TYPE string VALUE 'Debug' ##NO_TEXT,
         key_trace          TYPE string VALUE 'Trace' ##NO_TEXT,
-        " Registry License
+        " Registry License (read-only in Registry Browser)
         license            TYPE string VALUE '.License' ##NO_TEXT,
         key_lic_id         TYPE string VALUE 'ID' ##NO_TEXT,
         key_lic_bundle     TYPE string VALUE 'BundleID' ##NO_TEXT,
@@ -46,134 +46,161 @@ CLASS /mbtools/cl_tools DEFINITION
         settings           TYPE string VALUE 'Settings' ##NO_TEXT,
       END OF c_reg .
     " Evaluation
-    CONSTANTS c_eval_days TYPE i VALUE 60 ##NO_TEXT.
-    CONSTANTS c_eval_users TYPE i VALUE 10 ##NO_TEXT.
-    CONSTANTS:
+  constants C_EVAL_DAYS type I value 60 ##NO_TEXT.
+  constants C_EVAL_USERS type I value 10 ##NO_TEXT.
+  constants:
       " Actions
-      BEGIN OF c_action,
+    BEGIN OF c_action,
         register   TYPE string VALUE 'register' ##NO_TEXT,
         unregister TYPE string VALUE 'unregister' ##NO_TEXT,
         activate   TYPE string VALUE 'activate' ##NO_TEXT,
         deactivate TYPE string VALUE 'deactivate' ##NO_TEXT,
       END OF c_action .
-    DATA mbt_manifest TYPE /mbtools/if_manifest=>ty_descriptor READ-ONLY .
+  data MBT_MANIFEST type /MBTOOLS/IF_MANIFEST=>TY_DESCRIPTOR read-only .
 
     " Constructor
-    CLASS-METHODS class_constructor .
-    METHODS constructor
-      IMPORTING
-        !io_tool TYPE REF TO object .
+  class-methods CLASS_CONSTRUCTOR .
+  methods CONSTRUCTOR
+    importing
+      !IO_TOOL type ref to OBJECT .
     " Class Get
-    CLASS-METHODS factory
-      IMPORTING
-        VALUE(iv_title) TYPE csequence
-      RETURNING
-        VALUE(ro_tool)  TYPE REF TO /mbtools/cl_tools .
-    CLASS-METHODS get_tools
-      IMPORTING
-        VALUE(iv_pattern)     TYPE csequence OPTIONAL
-        VALUE(iv_bundle_id)   TYPE i DEFAULT -1
-        VALUE(iv_get_bundles) TYPE abap_bool DEFAULT abap_false
-        VALUE(iv_get_tools)   TYPE abap_bool DEFAULT abap_true
-      RETURNING
-        VALUE(rt_tools)       TYPE /mbtools/tools_with_text .
-    CLASS-METHODS f4_tools
-      IMPORTING
-        VALUE(iv_pattern)     TYPE csequence OPTIONAL
-        VALUE(iv_bundle_id)   TYPE i DEFAULT -1
-        VALUE(iv_get_bundles) TYPE abap_bool DEFAULT abap_false
-        VALUE(iv_get_tools)   TYPE abap_bool DEFAULT abap_true
-      RETURNING
-        VALUE(rv_title)       TYPE string .
+  class-methods FACTORY
+    importing
+      value(IV_TITLE) type CSEQUENCE default /MBTOOLS/CL_TOOL_BC=>C_TOOL-TITLE
+    returning
+      value(RO_TOOL) type ref to /MBTOOLS/CL_TOOLS .
+  class-methods GET_TOOLS
+    importing
+      value(IV_PATTERN) type CSEQUENCE optional
+      value(IV_BUNDLE_ID) type I default -1
+      value(IV_GET_BUNDLES) type ABAP_BOOL default ABAP_FALSE
+      value(IV_GET_TOOLS) type ABAP_BOOL default ABAP_TRUE
+      value(IV_ADMIN) type ABAP_BOOL default ABAP_FALSE
+    returning
+      value(RT_TOOLS) type /MBTOOLS/TOOLS_WITH_TEXT .
+  class-methods F4_TOOLS
+    importing
+      value(IV_PATTERN) type CSEQUENCE optional
+      value(IV_BUNDLE_ID) type I default -1
+      value(IV_GET_BUNDLES) type ABAP_BOOL default ABAP_FALSE
+      value(IV_GET_TOOLS) type ABAP_BOOL default ABAP_TRUE
+      value(IV_ADMIN) type ABAP_BOOL default ABAP_FALSE
+    returning
+      value(RV_TITLE) type STRING .
     " Class Actions
-    CLASS-METHODS run_action
-      IMPORTING
-        VALUE(iv_action) TYPE string
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+  class-methods RUN_ACTION
+    importing
+      value(IV_ACTION) type STRING
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
     " Class Manifests
-    CLASS-METHODS get_manifests
-      RETURNING
-        VALUE(rt_manifests) TYPE /mbtools/manifests .
+  class-methods GET_MANIFESTS
+    returning
+      value(RT_MANIFESTS) type /MBTOOLS/MANIFESTS .
     " Tool Manifest
-    METHODS build_manifest
-      RETURNING
-        VALUE(rs_manifest) TYPE /mbtools/if_manifest=>ty_descriptor .
+  methods BUILD_MANIFEST
+    returning
+      value(RS_MANIFEST) type /MBTOOLS/IF_MANIFEST=>TY_DESCRIPTOR .
     " Tool Register/Unregister
-    METHODS register
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool .
-    METHODS unregister
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+  methods REGISTER
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
+  methods UNREGISTER
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
+  methods UNINSTALL
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
     " Tool Activate/Deactivate
-    METHODS activate
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool .
-    METHODS deactivate
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool .
-    METHODS is_bundle
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool .
-    METHODS has_launch
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+  methods ACTIVATE
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
+  methods DEACTIVATE
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
+  methods IS_ACTIVE
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
+  methods IS_DEBUG
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
+  methods IS_TRACE
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
+  methods IS_BASE
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
+  methods IS_BUNDLE
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
+  methods IS_LAST_TOOL
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
+  methods HAS_LAUNCH
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
+  methods LAUNCH .
     " Tool License
-    METHODS is_licensed
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool .
-    METHODS license_add
-      IMPORTING
-        VALUE(iv_license) TYPE string
-      RETURNING
-        VALUE(rv_result)  TYPE abap_bool .
-    METHODS license_remove
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+  methods IS_LICENSED
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
+  methods LICENSE_ADD
+    importing
+      value(IV_LICENSE) type STRING
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
+  methods LICENSE_REMOVE
+    returning
+      value(RV_RESULT) type ABAP_BOOL .
     " Tool Get
-    METHODS get_id
-      RETURNING
-        VALUE(rv_id) TYPE string .
-    METHODS get_slug
-      RETURNING
-        VALUE(rv_slug) TYPE string .
-    METHODS get_name
-      RETURNING
-        VALUE(rv_name) TYPE string .
-    METHODS get_title
-      RETURNING
-        VALUE(rv_title) TYPE string .
-    METHODS get_version
-      RETURNING
-        VALUE(rv_version) TYPE string .
-    METHODS get_bundle_id
-      RETURNING
-        VALUE(rv_result) TYPE string .
-    METHODS get_description
-      RETURNING
-        VALUE(rv_description) TYPE string .
-    METHODS get_class
-      RETURNING
-        VALUE(rv_class) TYPE string .
-    METHODS get_package
-      RETURNING
-        VALUE(rv_package) TYPE devclass .
-    METHODS get_url_repo
-      RETURNING
-        VALUE(rv_url) TYPE string .
-    METHODS get_url_tool
-      RETURNING
-        VALUE(rv_url) TYPE string .
-    METHODS get_url_docs
-      RETURNING
-        VALUE(rv_url) TYPE string .
-    METHODS get_settings
-      RETURNING
-        VALUE(ro_reg) TYPE REF TO /mbtools/cl_registry .
-    METHODS get_thumbnail
-      RETURNING
-        VALUE(rv_thumbnail) TYPE string .
+  methods GET_ID
+    returning
+      value(RV_ID) type STRING .
+  methods GET_SLUG
+    returning
+      value(RV_SLUG) type STRING .
+  methods GET_NAME
+    returning
+      value(RV_NAME) type STRING .
+  methods GET_TITLE
+    returning
+      value(RV_TITLE) type STRING .
+  methods GET_VERSION
+    returning
+      value(RV_VERSION) type STRING .
+  methods GET_BUNDLE_ID
+    returning
+      value(RV_RESULT) type I .
+  methods GET_DOWNLOAD_ID
+    returning
+      value(RV_RESULT) type I .
+  methods GET_DESCRIPTION
+    returning
+      value(RV_DESCRIPTION) type STRING .
+  methods GET_CLASS
+    returning
+      value(RV_CLASS) type STRING .
+  methods GET_PACKAGE
+    returning
+      value(RV_PACKAGE) type DEVCLASS .
+  methods GET_URL_REPO
+    returning
+      value(RV_URL) type STRING .
+  methods GET_URL_TOOL
+    returning
+      value(RV_URL) type STRING .
+  methods GET_URL_DOCS
+    returning
+      value(RV_URL) type STRING .
+  methods GET_SETTINGS
+    returning
+      value(RO_REG) type ref to /MBTOOLS/CL_REGISTRY .
+  methods GET_THUMBNAIL
+    returning
+      value(RV_THUMBNAIL) type STRING .
+  methods GET_LAST_UPDATE
+    returning
+      value(RV_RESULT) type STRING .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -191,6 +218,11 @@ CLASS /mbtools/cl_tools DEFINITION
     DATA mv_description TYPE /mbtools/if_manifest=>ty_descriptor-description .
     DATA mv_has_launch TYPE /mbtools/if_manifest=>ty_descriptor-has_launch .
 
+    CLASS-METHODS clean_title
+      IMPORTING
+        !iv_title        TYPE csequence
+      RETURNING
+        VALUE(rv_result) TYPE string .
     CLASS-METHODS get_implementations
       IMPORTING
         VALUE(iv_quiet)   TYPE abap_bool DEFAULT abap_true
@@ -282,6 +314,17 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         " MBT Base is not installed properly. Contact Marc Bernard Tools
         ASSERT 0 = 1.
     ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD clean_title.
+
+    " Input could be title or name of tool
+    rv_result = iv_title.
+    IF iv_title CA '_'.
+      REPLACE ALL OCCURRENCES OF '_' IN rv_result WITH ` `.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -380,7 +423,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     lt_tools = get_tools( iv_pattern     = iv_pattern
                           iv_bundle_id   = iv_bundle_id
                           iv_get_bundles = iv_get_bundles
-                          iv_get_tools   = iv_get_tools ).
+                          iv_get_tools   = iv_get_tools
+                          iv_admin       = iv_admin ).
 
     " Show F4-Popup
     CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
@@ -429,7 +473,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
             CONTINUE. "ignore
           ENDIF.
 
-          IF lo_manifest->descriptor-title = iv_title.
+          IF lo_manifest->descriptor-title = clean_title( iv_title ).
             CREATE OBJECT ro_tool EXPORTING io_tool = lo_tool.
             RETURN.
           ENDIF.
@@ -470,6 +514,13 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_download_id.
+
+    rv_result = mv_id.
+
+  ENDMETHOD.
+
+
   METHOD get_id.
 
     " Upper case, Underscore, Namespaced
@@ -491,6 +542,39 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       MESSAGE s002(/mbtools/bc).
       RETURN.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD get_last_update.
+
+    DATA:
+      lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
+      lo_reg_entry TYPE REF TO /mbtools/cl_registry,
+      lv_update    TYPE timestamp.
+
+    CHECK mv_is_bundle IS INITIAL.
+
+    TRY.
+        " Is tool already registered?
+        lo_reg_tool = get_reg_tool( mv_name ).
+        IF NOT lo_reg_tool IS BOUND.
+          RETURN.
+        ENDIF.
+
+        " Properties
+        lo_reg_entry = lo_reg_tool->get_subentry( c_reg-properties ).
+        IF lo_reg_entry IS BOUND.
+          lv_update = lo_reg_entry->get_value( c_reg-key_update_time ).
+          IF lv_update IS INITIAL.
+            lv_update = lo_reg_entry->get_value( c_reg-key_install_time ).
+          ENDIF.
+          rv_result = /mbtools/cl_datetime=>human_time_diff( lv_update ).
+        ENDIF.
+
+      CATCH cx_root.
+        rv_result = ''.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -661,12 +745,10 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     DATA:
       lv_implementation  TYPE seoclsname,
       lt_implementations TYPE ty_classes,
-      lo_tool            TYPE REF TO object,
+      lo_object          TYPE REF TO object,
       lo_manifest        TYPE REF TO /mbtools/if_manifest,
+      lo_tool            TYPE REF TO /mbtools/cl_tools,
       ls_tool_with_text  TYPE /mbtools/tool_with_text.
-
-    FIELD-SYMBOLS:
-      <ls_tool> TYPE /mbtools/tool_with_text.
 
     lt_implementations = get_implementations( ).
 
@@ -674,34 +756,53 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
       TRY.
           " Get instance of tool
-          CREATE OBJECT lo_tool TYPE (lv_implementation).
-          IF lo_tool IS BOUND.
-            lo_manifest ?= lo_tool.
+          CREATE OBJECT lo_object TYPE (lv_implementation).
+          IF lo_object IS BOUND.
+            lo_manifest ?= lo_object.
+            lo_tool = /mbtools/cl_tools=>factory( lo_manifest->descriptor-title ).
           ELSE.
             CONTINUE. "ignore
           ENDIF.
 
-          IF iv_bundle_id >= 0 AND lo_manifest->descriptor-bundle_id <> iv_bundle_id.
-            CONTINUE.
+          " Filter by bundle
+          IF iv_bundle_id >= 0.
+            IF lo_tool->get_bundle_id( ) <> iv_bundle_id.
+              CONTINUE.
+            ENDIF.
           ENDIF.
 
-          IF lo_manifest->descriptor-is_bundle = abap_true.
+          " Filter by bundle/tool type
+          IF lo_tool->is_bundle( ) = abap_true.
             IF iv_get_bundles = abap_false.
               CONTINUE.
             ENDIF.
-          ELSE. "tool
+          ELSE.
             IF iv_get_tools = abap_false.
               CONTINUE.
             ENDIF.
+            " Filter by admin
+            IF iv_admin = abap_false.
+              " No inactive
+              IF lo_tool->is_active( ) = abap_false.
+                CONTINUE.
+              ENDIF.
+              " No MBT Base
+              IF lo_tool->is_base( ) = abap_true.
+                CONTINUE.
+              ENDIF.
+            ENDIF.
           ENDIF.
 
-          IF iv_pattern IS INITIAL OR lo_manifest->descriptor-title CP iv_pattern.
-            CLEAR ls_tool_with_text.
-            ls_tool_with_text-name        = lo_manifest->descriptor-title.
-            ls_tool_with_text-version     = lo_manifest->descriptor-version.
-            ls_tool_with_text-description = lo_manifest->descriptor-description.
-            INSERT ls_tool_with_text INTO TABLE rt_tools.
+          " Filter by pattern
+          IF NOT iv_pattern IS INITIAL AND NOT lo_tool->get_title( ) CP iv_pattern.
+            CONTINUE.
           ENDIF.
+
+          CLEAR ls_tool_with_text.
+          ls_tool_with_text-name        = lo_tool->get_title( ).
+          ls_tool_with_text-version     = lo_tool->get_version( ).
+          ls_tool_with_text-description = lo_tool->get_description( ).
+          INSERT ls_tool_with_text INTO TABLE rt_tools.
 
         CATCH cx_root.
           CONTINUE. "ignore
@@ -717,7 +818,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD get_url_docs.
 
     " Link to documentation page on marcbernardtools.com
-    rv_url = /mbtools/if_definitions=>c_home && 'docs/' && get_slug( ) && '/'.
+    rv_url = /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_tool_docs &&
+             get_slug( ) && '/'.
 
   ENDMETHOD.
 
@@ -733,7 +835,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD get_url_tool.
 
     " Link to tool page on marcbernardtools.com
-    rv_url = /mbtools/if_definitions=>c_home && 'downloads/' && get_slug( ) && '/'.
+    rv_url = /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_tool_download &&
+             get_slug( ) && '/'.
 
   ENDMETHOD.
 
@@ -747,14 +850,55 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
   METHOD has_launch.
 
-    rv_result = boolc( mbt_manifest-has_launch = abap_true ).
+    rv_result = boolc( mv_has_launch = abap_true ).
+
+  ENDMETHOD.
+
+
+  METHOD is_active.
+
+    rv_result = /mbtools/cl_switches=>is_active( mv_title ).
+
+  ENDMETHOD.
+
+
+  METHOD is_base.
+
+    " Is this MBT Base?
+    IF mv_title = /mbtools/cl_tool_bc=>c_tool-title.
+      rv_result = abap_true.
+    ENDIF.
 
   ENDMETHOD.
 
 
   METHOD is_bundle.
 
-    rv_result = boolc( mbt_manifest-is_bundle = abap_true ).
+    rv_result = boolc( mv_is_bundle = abap_true ).
+
+  ENDMETHOD.
+
+
+  METHOD is_debug.
+
+    rv_result = /mbtools/cl_switches=>is_debug( mv_title ).
+
+  ENDMETHOD.
+
+
+  METHOD is_last_tool.
+
+    DATA:
+      ls_tools TYPE /mbtools/tool_with_text,
+      lt_tools TYPE TABLE OF /mbtools/tool_with_text.
+
+    " Get all installed and active tools
+    lt_tools = get_tools( ).
+
+    IF lt_tools IS INITIAL.
+      " This means there's on MBT Base left as the last tool
+      rv_result = abap_true.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -812,6 +956,23 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       CATCH cx_root.
         rv_result = abap_false.
     ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD is_trace.
+
+    rv_result = /mbtools/cl_switches=>is_trace( mv_title ).
+
+  ENDMETHOD.
+
+
+  METHOD launch.
+
+    IF has_launch( ) = abap_true.
+      " Dynamic call since some tools don't have this method
+      CALL METHOD mo_tool->('LAUNCH').
+    ENDIF.
 
   ENDMETHOD.
 
@@ -1041,14 +1202,16 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     LOOP AT lt_tools INTO ls_tool.
 
       CASE iv_action.
-        WHEN c_action-register.
+        WHEN /mbtools/if_actions=>tool_register.
           lv_result = factory( ls_tool-name )->register( ).
-        WHEN c_action-unregister.
+        WHEN /mbtools/if_actions=>tool_unregister.
           lv_result = factory( ls_tool-name )->unregister( ).
-        WHEN c_action-activate.
+        WHEN /mbtools/if_actions=>tool_activate.
           lv_result = factory( ls_tool-name )->activate( ).
-        WHEN c_action-deactivate.
+        WHEN /mbtools/if_actions=>tool_deactivate.
           lv_result = factory( ls_tool-name )->deactivate( ).
+        WHEN /mbtools/if_actions=>tool_uninstall.
+          lv_result = factory( ls_tool-name )->uninstall( ).
         WHEN OTHERS.
           " unknow action
           ASSERT 0 = 1.
@@ -1059,6 +1222,11 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       ENDIF.
 
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD uninstall  ##TODO.
 
   ENDMETHOD.
 

@@ -137,7 +137,7 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
 
   METHOD class_constructor.
 
-    mo_settings = /mbtools/cl_tools=>factory( /mbtools/cl_tool_bc=>c_tool-title )->get_settings( ).
+    mo_settings = /mbtools/cl_tools=>factory( )->get_settings( ).
 
   ENDMETHOD.
 

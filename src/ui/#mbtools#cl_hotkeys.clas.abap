@@ -150,7 +150,7 @@ CLASS /MBTOOLS/CL_HOTKEYS IMPLEMENTATION.
 
     /mbtools/if_gui_hotkey_ctl~register_hotkeys( me ).
 
-    CREATE OBJECT ri_html TYPE /mbtools/cl_html.
+    ri_html = /mbtools/cl_html=>create( ).
 
     lt_registered_hotkeys = /mbtools/if_gui_hotkey_ctl~get_registered_hotkeys( ).
     SORT lt_registered_hotkeys BY ui_component description.
@@ -321,7 +321,8 @@ CLASS /MBTOOLS/CL_HOTKEYS IMPLEMENTATION.
 
     lv_json = lv_json && `}`.
 
-    CREATE OBJECT ri_html TYPE /mbtools/cl_html.
+    ri_html = /mbtools/cl_html=>create( ).
+
     ri_html->set_title( cl_abap_typedescr=>describe_by_object_ref( me )->get_relative_name( ) ).
     ri_html->add( |setKeyBindings({ lv_json });| ).
 

@@ -1,8 +1,8 @@
-class /MBTOOLS/CL_GUI_PAGE definition
-  public
-  inheriting from /MBTOOLS/CL_GUI_COMPONENT
-  final
-  create public .
+CLASS /mbtools/cl_gui_page DEFINITION
+  PUBLIC
+  INHERITING FROM /mbtools/cl_gui_component
+  FINAL
+  CREATE PUBLIC .
 
 ************************************************************************
 * MBT GUI Page
@@ -12,24 +12,26 @@ class /MBTOOLS/CL_GUI_PAGE definition
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-public section.
+  PUBLIC SECTION.
 
-  interfaces /MBTOOLS/IF_GUI_RENDERABLE .
-  interfaces /MBTOOLS/IF_GUI_EVENT_HANDLER .
-  interfaces /MBTOOLS/IF_GUI_ERROR_HANDLER .
+    INTERFACES /mbtools/if_gui_renderable .
+    INTERFACES /mbtools/if_gui_event_handler .
+    INTERFACES /mbtools/if_gui_error_handler .
 
-  methods CONSTRUCTOR
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  class-methods CREATE
-    importing
-      !II_CHILD_COMPONENT type ref to /MBTOOLS/IF_GUI_RENDERABLE
-      !IV_PAGE_TITLE type STRING
-      !IV_HAS_LOGO type ABAP_BOOL default ABAP_TRUE
-      !IV_HAS_BANNER type ABAP_BOOL default ABAP_FALSE
-      !IO_PAGE_MENU type ref to /MBTOOLS/CL_HTML_TOOLBAR optional
-    returning
-      value(RI_PAGE_WRAP) type ref to /MBTOOLS/IF_GUI_RENDERABLE .
+    METHODS constructor
+      RAISING
+        /mbtools/cx_exception .
+    CLASS-METHODS create
+      IMPORTING
+        !ii_child_component TYPE REF TO /mbtools/if_gui_renderable
+        !iv_page_title      TYPE string OPTIONAL
+        !iv_has_logo        TYPE abap_bool DEFAULT abap_true
+        !iv_has_banner      TYPE abap_bool DEFAULT abap_false
+        !io_page_menu       TYPE REF TO /mbtools/cl_html_toolbar OPTIONAL
+      RETURNING
+        VALUE(ri_page_wrap) TYPE REF TO /mbtools/if_gui_renderable
+      RAISING
+        /mbtools/cx_exception .
   PROTECTED SECTION.
 
     TYPES:
@@ -41,18 +43,17 @@ public section.
       END OF  ty_control .
 
     DATA ms_control TYPE ty_control .
-
-    METHODS render_content
-      RETURNING
-        VALUE(ri_html) TYPE REF TO /mbtools/if_html
-      RAISING
-        /mbtools/cx_exception .
   PRIVATE SECTION.
 
     DATA mx_error TYPE REF TO /mbtools/cx_exception .
     DATA mo_exception_viewer TYPE REF TO /mbtools/cl_exception_viewer .
     DATA mi_child TYPE REF TO /mbtools/if_gui_renderable .
 
+    METHODS render_content
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
+      RAISING
+        /mbtools/cx_exception .
     METHODS render_deferred_parts
       IMPORTING
         !ii_html          TYPE REF TO /mbtools/if_html
@@ -111,21 +112,21 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
   METHOD /mbtools/if_gui_event_handler~on_event.
 
     CASE iv_action.
-      WHEN /mbtools/if_definitions=>c_action-goto_source.
+      WHEN /mbtools/if_actions=>goto_source.
 
         IF mo_exception_viewer IS BOUND.
           mo_exception_viewer->goto_source( ).
         ENDIF.
         ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
-      WHEN /mbtools/if_definitions=>c_action-show_callstack.
+      WHEN /mbtools/if_actions=>show_callstack.
 
         IF mo_exception_viewer IS BOUND.
           mo_exception_viewer->show_callstack( ).
         ENDIF.
         ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
-      WHEN /mbtools/if_definitions=>c_action-goto_message.
+      WHEN /mbtools/if_actions=>goto_message.
 
         IF mo_exception_viewer IS BOUND.
           mo_exception_viewer->goto_message( ).
@@ -143,8 +144,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
 
     gui_services( )->register_event_handler( me ).
 
-    " Real page
-    CREATE OBJECT ri_html TYPE /mbtools/cl_html.
+    ri_html = /mbtools/cl_html=>create( ).
 
     ri_html->add( '<!DOCTYPE html>' ).                      "#EC NOTEXT
     ri_html->add( '<html lang="en">' ).                     "#EC NOTEXT
@@ -208,7 +208,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
 
   METHOD footer.
 
-    CREATE OBJECT ri_html TYPE /mbtools/cl_html.
+    ri_html = /mbtools/cl_html=>create( ).
 
     ri_html->add( '<div id="footer" class="footer">' ).
     ri_html->add( '<div class="wrapper">' ).
@@ -220,7 +220,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
     ri_html->add( '<td class="center">' ).
     ri_html->add( '<div class="logo">' ).
     ri_html->add_a( iv_txt = '<img src="img/logo.png" alt="MBT Logo">'
-                    iv_act = /mbtools/if_definitions=>c_home
+                    iv_act = /mbtools/if_definitions=>c_www_home
                     iv_typ = /mbtools/if_html=>c_action_type-url ).
     ri_html->add( '</div>' ).
     ri_html->add( |<div class="version">{ /mbtools/cl_tool_bc=>c_tool-version }</div>| ).
@@ -238,28 +238,31 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
 
   METHOD header.
 
-    CREATE OBJECT ri_html TYPE /mbtools/cl_html.
+    ri_html = /mbtools/cl_html=>create( ).
 
     ri_html->add( '<div id="header" class="header">' ).
     ri_html->add( '<div class="wrapper">' ).
     ri_html->add( '<div class="box">' ).
 
+    " Logo
     ri_html->add( '<div class="logo">' ).
     IF ms_control-has_logo = abap_true.
-      ri_html->add( '<img src="img/logo.png" alt="MBT Logo">' ).
+      ri_html->add( '<img src="img/logo_header.png" alt="MBT Logo">' ).
     ELSEIF ms_control-has_banner = abap_true.
-      ri_html->add( '<img src="img/banner.png" alt="MBT Banner" width="66%" height="66%">' ).
+      ri_html->add( '<img src="img/banner_header.png" alt="MBT Banner">' ).
     ENDIF.
     ri_html->add( '</div>' ).
 
+    " Title
     ri_html->add( '<div class="title">' ).
     IF ms_control-page_title IS INITIAL.
       ri_html->add( '&nbsp;' ).
     ELSE.
-      ri_html->add( |<!--span class="spacer">&#x25BA;</span-->{ ms_control-page_title }| ).
+      ri_html->add( |{ ms_control-page_title }| ).
     ENDIF.
     ri_html->add( '</div>' ).
 
+    " Menu
     IF ms_control-page_menu IS BOUND.
       ri_html->add( ms_control-page_menu->render( iv_right = abap_true ) ).
     ENDIF.
@@ -273,7 +276,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
 
   METHOD html_head.
 
-    CREATE OBJECT ri_html TYPE /mbtools/cl_html.
+    ri_html = /mbtools/cl_html=>create( ).
 
     ri_html->add( '<head>' ).                               "#EC NOTEXT
 
@@ -303,7 +306,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
 
   METHOD render_content.
 
-    CREATE OBJECT ri_html TYPE /mbtools/cl_html.
+    ri_html = /mbtools/cl_html=>create( ).
 
     ri_html->add( '<div id="main" class="main">' ).
     ri_html->add( '<div class="wrapper">' ).
@@ -371,7 +374,9 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD render_link_hints ##TODO.
+  METHOD render_link_hints.
+
+* Not implemented
 
   ENDMETHOD.
 

@@ -27,11 +27,12 @@ SELECTION-SCREEN:
   END OF BLOCK b210,
   BEGIN OF BLOCK b220 WITH FRAME.
 PARAMETERS:
-  p_show  RADIOBUTTON GROUP g1 DEFAULT 'X',
-  p_reg   RADIOBUTTON GROUP g1,
-  p_unreg RADIOBUTTON GROUP g1,
-  p_act   RADIOBUTTON GROUP g1,
-  p_deact RADIOBUTTON GROUP g1.
+  p_show   RADIOBUTTON GROUP g1 DEFAULT 'X',
+  p_reg    RADIOBUTTON GROUP g1,
+  p_unreg  RADIOBUTTON GROUP g1,
+  p_act    RADIOBUTTON GROUP g1,
+  p_deact  RADIOBUTTON GROUP g1,
+  p_uninst RADIOBUTTON GROUP g1.
 SELECTION-SCREEN:
     END OF BLOCK b220,
   END OF SCREEN 200.
@@ -208,23 +209,28 @@ START-OF-SELECTION.
     CASE abap_true.
       WHEN p_reg.
 
-        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/cl_tools=>c_action-register ).
+        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_register ).
         gv_action = 'registered'.
 
       WHEN p_unreg.
 
-        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/cl_tools=>c_action-unregister ).
+        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_unregister ).
         gv_action = 'unregistered'.
 
       WHEN p_act.
 
-        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/cl_tools=>c_action-activate ).
+        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_activate ).
         gv_action = 'activated'.
 
       WHEN p_deact.
 
-        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/cl_tools=>c_action-deactivate ).
+        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_deactivate ).
         gv_action = 'deactivated'.
+
+      WHEN p_uninst.
+
+        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_uninstall ).
+        gv_action = 'uninstalled'.
 
     ENDCASE.
 
@@ -253,6 +259,11 @@ START-OF-SELECTION.
 
         gv_flag   = go_tool->deactivate( ).
         gv_action = 'deactivated'.
+
+      WHEN p_uninst.
+
+        gv_flag   = go_tool->uninstall( ).
+        gv_action = 'uninstalled'.
 
     ENDCASE.
 

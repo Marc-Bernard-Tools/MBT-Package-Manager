@@ -16,20 +16,20 @@ CLASS /mbtools/cl_edd DEFINITION
     CONSTANTS c_version TYPE string VALUE '1.0.0' ##NO_TEXT.
     CONSTANTS c_edd_host TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.
     CONSTANTS:
-      BEGIN OF c_action,
+      BEGIN OF c_edd_action,
         activate   TYPE string VALUE 'activate_license' ##NO_TEXT,
         deactivate TYPE string VALUE 'deactivate_license' ##NO_TEXT,
         check      TYPE string VALUE 'check_license' ##NO_TEXT,
         version    TYPE string VALUE 'get_version' ##NO_TEXT,
-      END OF c_action .
+      END OF c_edd_action .
     CONSTANTS:
-      BEGIN OF c_param,
+      BEGIN OF c_edd_param,
         action TYPE string VALUE '$action$' ##NO_TEXT,
         id     TYPE string VALUE '$id$' ##NO_TEXT,
         key    TYPE string VALUE '$key$' ##NO_TEXT,
         url    TYPE string VALUE '$url$' ##NO_TEXT,
         system TYPE string VALUE '$system$' ##NO_TEXT,
-      END OF c_param .
+      END OF c_edd_param .
 
     CLASS-METHODS activate_license
       IMPORTING
@@ -101,7 +101,7 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
-    lv_endpoint = get_endpoint( iv_action  = c_action-activate
+    lv_endpoint = get_endpoint( iv_action  = c_edd_action-activate
                                 iv_id      = iv_id
                                 iv_license = iv_license ).
 
@@ -120,7 +120,7 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
-    lv_endpoint = get_endpoint( iv_action  = c_action-check
+    lv_endpoint = get_endpoint( iv_action  = c_edd_action-check
                                 iv_id      = iv_id
                                 iv_license = iv_license ).
 
@@ -139,7 +139,7 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
-    lv_endpoint = get_endpoint( iv_action  = c_action-deactivate
+    lv_endpoint = get_endpoint( iv_action  = c_edd_action-deactivate
                                 iv_id      = iv_id
                                 iv_license = iv_license ).
 
@@ -179,12 +179,12 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     " http://yoursite.com/?edd_action={request type}&item_id={id}&license={key}
     " &url={url of the site being licensed}/{system number}
-    rv_endpoint = c_edd_host && '?edd_action=' && c_param-action && '&item_id=' && c_param-id.
-    rv_endpoint = rv_endpoint && '&license=' && c_param-key && '&url=' && c_param-url && '/' && c_param-system.
+    rv_endpoint = c_edd_host && '?edd_action=' && c_edd_param-action && '&item_id=' && c_edd_param-id.
+    rv_endpoint = rv_endpoint && '&license=' && c_edd_param-key && '&url=' && c_edd_param-url && '/' && c_edd_param-system.
 
-    REPLACE c_param-action WITH iv_action  INTO rv_endpoint.
-    REPLACE c_param-id     WITH iv_id      INTO rv_endpoint.
-    REPLACE c_param-key    WITH iv_license INTO rv_endpoint.
+    REPLACE c_edd_param-action WITH iv_action  INTO rv_endpoint.
+    REPLACE c_edd_param-id     WITH iv_id      INTO rv_endpoint.
+    REPLACE c_edd_param-key    WITH iv_license INTO rv_endpoint.
 
     CALL FUNCTION 'SPFL_PARAMETER_GET_VALUE'
       EXPORTING
@@ -196,7 +196,7 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
       /mbtools/cx_exception=>raise( 'Error getting system host (SAPDBHOST)' ) ##NO_TEXT.
     ENDIF.
 
-    REPLACE c_param-url WITH lv_system_host INTO rv_endpoint.
+    REPLACE c_edd_param-url WITH lv_system_host INTO rv_endpoint.
 
     CALL FUNCTION 'SLIC_GET_SYSTEM_ID'
       IMPORTING
@@ -206,7 +206,7 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
       /mbtools/cx_exception=>raise( 'Initial system number (transaction SLICENSE)' ) ##NO_TEXT.
     ENDIF.
 
-    REPLACE c_param-system WITH lv_system_id INTO rv_endpoint.
+    REPLACE c_edd_param-system WITH lv_system_id INTO rv_endpoint.
     CONDENSE rv_endpoint NO-GAPS.
 
   ENDMETHOD.
@@ -220,7 +220,7 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
-    lv_endpoint = get_endpoint( iv_action  = c_action-version
+    lv_endpoint = get_endpoint( iv_action  = c_edd_action-version
                                 iv_id      = iv_id
                                 iv_license = iv_license ).
 

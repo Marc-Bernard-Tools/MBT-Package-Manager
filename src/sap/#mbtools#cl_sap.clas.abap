@@ -510,7 +510,7 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
         EXPORTING
           report           = ls_trdir_entry-name
           rdir             = ls_trdir_entry
-          ret_via_leave    = abap_true
+          ret_via_leave    = abap_false
         EXCEPTIONS
           just_via_variant = 1
           no_submit_auth   = 2

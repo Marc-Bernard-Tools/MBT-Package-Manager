@@ -1,5 +1,6 @@
 INTERFACE /mbtools/if_popups
   PUBLIC .
+
 ************************************************************************
 * MBT Popups
 *
@@ -15,7 +16,7 @@ INTERFACE /mbtools/if_popups
     RETURNING
       VALUE(rv_value) TYPE ddshretval-fieldval
     RAISING
-      zcx_abapgit_exception .
+      /mbtools/cx_exception .
 
   METHODS popup_to_confirm
     IMPORTING
@@ -30,14 +31,14 @@ INTERFACE /mbtools/if_popups
     RETURNING
       VALUE(rv_answer)          TYPE char1
     RAISING
-      zcx_abapgit_exception .
+      /mbtools/cx_exception .
 
   METHODS popup_to_inform
     IMPORTING
       !iv_titlebar     TYPE clike
       !iv_text_message TYPE clike
     RAISING
-      zcx_abapgit_exception .
+      /mbtools/cx_exception .
 
   METHODS popup_to_select_transports
     RETURNING
@@ -60,7 +61,7 @@ INTERFACE /mbtools/if_popups
     EXPORTING
       VALUE(et_list)         TYPE STANDARD TABLE
     RAISING
-      zcx_abapgit_exception .
+      /mbtools/cx_exception .
 
   METHODS popup_transport_request
     IMPORTING
@@ -68,5 +69,5 @@ INTERFACE /mbtools/if_popups
     RETURNING
       VALUE(rv_transport) TYPE trkorr
     RAISING
-      zcx_abapgit_exception .
+      /mbtools/cx_exception .
 ENDINTERFACE.

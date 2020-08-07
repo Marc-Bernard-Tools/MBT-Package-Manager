@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>/MBTOOLS/CL_DATETIME</CLSNAME>
+    <LANGU>E</LANGU>
+    <DESCRIPT>MBT Date Time</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+    <WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>
+   </VSEOCLASS>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_DATETIME</CLSNAME>
+     <CMPNAME>HUMAN_DATE_DIFF</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Human readable difference between dates</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_DATETIME</CLSNAME>
+     <CMPNAME>HUMAN_TIME_DIFF</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Human readable difference between timestamps</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_DATETIME</CLSNAME>
+     <CMPNAME>PRINT</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Singluar vs plural</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

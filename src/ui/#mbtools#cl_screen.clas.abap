@@ -1,12 +1,12 @@
 CLASS /mbtools/cl_screen DEFINITION
   PUBLIC
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT Screen
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-
   PUBLIC SECTION.
     TYPE-POOLS cndp .
 
@@ -24,10 +24,10 @@ CLASS /mbtools/cl_screen DEFINITION
     CLASS-METHODS class_constructor .
     METHODS constructor
       IMPORTING
-        !iv_title TYPE string .
+        !iv_title TYPE csequence .
     CLASS-METHODS factory
       IMPORTING
-        !iv_title        TYPE string
+        !iv_title        TYPE csequence OPTIONAL
       RETURNING
         VALUE(ro_screen) TYPE REF TO /mbtools/cl_screen .
     METHODS init
@@ -388,7 +388,7 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
         /mbtools/cl_utilities=>call_browser( mo_tool->get_url_tool( ) ).
 
       WHEN 'HOME'.
-        /mbtools/cl_utilities=>call_browser( /mbtools/if_definitions=>c_home ).
+        /mbtools/cl_utilities=>call_browser( /mbtools/if_definitions=>c_www_home ).
 
     ENDCASE.
 

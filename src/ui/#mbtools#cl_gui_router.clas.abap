@@ -36,7 +36,7 @@ private section.
       !EV_STATE type I
     raising
       /MBTOOLS/CX_EXCEPTION .
-  methods HELP_ACTIONS
+  methods ACTIONS_INTERNET
     importing
       !IS_EVENT_DATA type TY_EVENT_DATA
     exporting
@@ -44,7 +44,7 @@ private section.
       !EV_STATE type I
     raising
       /MBTOOLS/CX_EXCEPTION .
-  methods SAP_GUI_ACTIONS
+  methods ACTIONS_OBJECTS
     importing
       !IS_EVENT_DATA type TY_EVENT_DATA
     exporting
@@ -75,14 +75,14 @@ CLASS /MBTOOLS/CL_GUI_ROUTER IMPLEMENTATION.
         ei_page       = ei_page
         ev_state      = ev_state ).
 
-    sap_gui_actions(
+    actions_objects(
       EXPORTING
         is_event_data = ls_event_data
       IMPORTING
         ei_page       = ei_page
         ev_state      = ev_state ).
 
-    help_actions(
+    actions_internet(
       EXPORTING
         is_event_data = ls_event_data
       IMPORTING
@@ -96,54 +96,75 @@ CLASS /MBTOOLS/CL_GUI_ROUTER IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD general_page_routing ##TODO.
+  METHOD actions_internet.
 
     CASE is_event_data-action.
 
-      WHEN /mbtools/cl_gui=>c_action-go_home.
-        ei_page  = /mbtools/cl_gui_page_main=>create( ).
+      WHEN /mbtools/if_actions=>url.
+        " General URL
+        /mbtools/cl_utilities=>call_browser( is_event_data-getdata ).
+
+      WHEN /mbtools/if_actions=>mbt_website.
+        " Homepage
+        /mbtools/cl_utilities=>call_browser( /mbtools/if_definitions=>c_www_home ).
+        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
+
+      WHEN /mbtools/if_actions=>mbt_portfolio.
+        " Portfolio
+        /mbtools/cl_utilities=>call_browser(
+          /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_portfolio ).
+        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
+
+      WHEN /mbtools/if_actions=>mbt_docs.
+        " Documentation
+        /mbtools/cl_utilities=>call_browser(
+          /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_docs ).
+        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
+
+      WHEN /mbtools/if_actions=>mbt_support.
+        " Support Ticket
+        /mbtools/cl_utilities=>call_browser(
+          /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_support ).
+        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
+
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD actions_objects.
+
+    CASE is_event_data-action.
+
+      WHEN /mbtools/if_actions=>show_object.
+        /mbtools/cl_sap=>show_object( iv_object   = is_event_data-params->get( 'object' )
+                                      iv_obj_name = is_event_data-params->get( 'object_name' ) ).
+        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
+
+      WHEN /mbtools/if_actions=>run_program.
+        /mbtools/cl_sap=>run_program( is_event_data-params->get( 'program' ) ).
+        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
+
+      WHEN /mbtools/if_actions=>run_transaction.
+        /mbtools/cl_sap=>run_transaction( is_event_data-params->get( 'transaction' ) ).
+        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
+
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD general_page_routing.
+
+    CASE is_event_data-action.
+
+      WHEN /mbtools/if_actions=>go_home.
+        ei_page  = /mbtools/cl_gui_page_main=>create( abap_false ).
         ev_state = /mbtools/cl_gui=>c_event_state-new_page.
 
-      WHEN /mbtools/if_definitions=>c_action-go_settings.
-*        CREATE OBJECT ei_page TYPE /mbtools/cl_gui_page_settings.
-*        ev_state = /mbtools/cl_gui=>c_event_state-new_page.
-
-    ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD help_actions ##TODO.
-
-    CASE is_event_data-action.
-
-      WHEN /mbtools/if_definitions=>c_action-mbt_docs.
-        /mbtools/cl_utilities=>call_browser( /mbtools/if_definitions=>c_home && /mbtools/if_definitions=>c_www_docs ).
-        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
-
-      WHEN /mbtools/if_definitions=>c_action-mbt_support.
-        /mbtools/cl_utilities=>call_browser( /mbtools/if_definitions=>c_home && /mbtools/if_definitions=>c_www_support ).
-        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
-
-      WHEN /mbtools/if_definitions=>c_action-mbt_website.
-        /mbtools/cl_utilities=>call_browser( /mbtools/if_definitions=>c_home ).
-        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
-
-    ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD sap_gui_actions ##TODO.
-
-    CASE is_event_data-action.
-
-      WHEN /mbtools/if_definitions=>c_action-jump.
-        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
-
-      WHEN /mbtools/if_definitions=>c_action-url.
-        /mbtools/cl_utilities=>call_browser( is_event_data-getdata ).
-        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
+      WHEN /mbtools/if_actions=>go_admin.
+        ei_page  = /mbtools/cl_gui_page_main=>create( abap_true ).
+        ev_state = /mbtools/cl_gui=>c_event_state-new_page.
 
     ENDCASE.
 

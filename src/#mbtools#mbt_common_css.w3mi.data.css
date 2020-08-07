@@ -289,7 +289,6 @@ LAYOUT
 .outer {
     width: 100%;
 }
-
 .wrapper {
     max-width: 1200px;
     margin: 0 auto;
@@ -302,28 +301,18 @@ LAYOUT
     height: 60px;
     border-bottom: 1px solid #999;
 }
-
-.header .wrapper .box {
-    position: relative;
+.header .box { 
 }
-
-.header .box .logo {
-    float: left;
-}
-
-.header .box .title {
-    font-size: 28px;
-    margin-left: 15px;
-}
-
 .header .box > div { 
     display: inline-block;
 }
-
-.header .box span.spacer {
-    display: inline-block;
-    padding-right: 0.25em;
-    padding-left: 0.25em;
+.header .logo {
+    vertical-align: middle;
+    padding: 5px 5px;
+}
+.header .title {
+    vertical-align: middle;
+    font-size: 28px;
 }
 
 /* FOOTER */
@@ -564,6 +553,7 @@ div.log .icon {
     margin-top: 15px;
     margin-right: 10px;
     transition: all .4s;
+    font-size: 18px;
 }
 .nav-container ul {
     list-style: none;
@@ -605,6 +595,7 @@ div.log .icon {
 .nav-container.float-right ul ul { 
     left: auto; 
     right: 0; 
+    font-size: 16px;
 }
 .nav-container ul li.current-menu-item { 
     font-weight: 700; 
@@ -1082,10 +1073,6 @@ div.debug_container p {
 
 /* BUNDLES & TOOLS */
 
-.bundles .inactive,
-.tools .inactive {
-    color: #999;
-}
 .bundles ul {
     list-style: none;
     margin: 0;
@@ -1096,30 +1083,30 @@ div.debug_container p {
     margin: 0;
     padding-left: 70px;
 }
-.bundles tr:hover,
-.tools tr:hover {
-    background: #999 !important;
+
+.tool-inactive {
+    color: #999;
 }
-.bundles .thumbnail,
-.tools .thumbnail {
-    width: 160px;
+.tool-row:hover td {
+    background: #ddd !important;
 }
-.bundles .thumbnail,
-.tools .thumbnail {
+.tool-thumbnail {
     width: 90px;
 }
-.bundles .thumbnail img,
-.tools .thumbnail img {
+.tool-thumbnail img {
     width: 64px;
     height: 64px;
 }
-.bundles td.actions,
-.tools td.actions {
+.tool-details {
+    font-size: 10pt;
+}
+td.tool-actions {
     text-align: right;
 }
-.bundles .actions a,
-.tools .actions a {
+.tool-actions a {
     padding-right: 7px;
     padding-left: 7px;
 }
-
+.tool-actions a:hover .has-mbt-black-color {
+    color: #04c;
+}

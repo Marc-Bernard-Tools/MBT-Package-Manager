@@ -768,6 +768,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     EXPORT values = mt_values sub_entries = mt_sub_entries
       parent = mv_parent_key entry_id = mv_entry_id
       TO DATABASE /mbtools/regs(zr) FROM ls_regs ID mv_internal_key.
+    COMMIT WORK AND WAIT.
     set_optimistic_lock( ).
   ENDMETHOD.                    "save
 
