@@ -18,83 +18,90 @@ CLASS /mbtools/cl_gui_page_main DEFINITION
     INTERFACES /mbtools/if_gui_renderable .
     INTERFACES /mbtools/if_gui_hotkeys .
 
+    CONSTANTS:
+      BEGIN OF c_mode,
+        user    TYPE c VALUE 'U',
+        admin   TYPE c VALUE 'A',
+        license TYPE c VALUE 'L',
+      END OF c_mode.
+
     METHODS constructor
       IMPORTING
-        iv_admin TYPE abap_bool OPTIONAL
+        iv_mode TYPE abap_bool OPTIONAL
       RAISING
         /mbtools/cx_exception .
     CLASS-METHODS create
       IMPORTING
-        iv_admin       TYPE abap_bool OPTIONAL
+        iv_mode        TYPE c OPTIONAL
       RETURNING
         VALUE(ri_page) TYPE REF TO /mbtools/if_gui_renderable
       RAISING
         /mbtools/cx_exception .
   PROTECTED SECTION.
-private section.
+  PRIVATE SECTION.
 
-  data MV_ADMIN type ABAP_BOOL .
-  data MO_ASSET_MANAGER type ref to /MBTOOLS/CL_GUI_ASSET_MANAGER .
+    DATA mv_mode TYPE c .
+    DATA mo_asset_manager TYPE REF TO /mbtools/cl_gui_asset_manager .
 
-  methods GET_TOOL_FROM_PARAM
-    importing
-      !IV_NAME type STRING
-    returning
-      value(RO_TOOL) type ref to /MBTOOLS/CL_TOOLS
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  methods VALIDATE_TOOL
-    importing
-      !IV_ACTION type CLIKE
-      !IO_TOOL type ref to /MBTOOLS/CL_TOOLS
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  class-methods BUILD_MENU
-    importing
-      !IV_ADMIN type ABAP_BOOL optional
-    returning
-      value(RO_MENU) type ref to /MBTOOLS/CL_HTML_TOOLBAR .
-  methods REGISTER_HEADER
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  methods REGISTER_THUMBNAIL
-    importing
-      !IO_TOOL type ref to /MBTOOLS/CL_TOOLS
-    returning
-      value(RV_RESULT) type STRING
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  methods RENDER_ACTIONS
-    importing
-      !IO_TOOL type ref to /MBTOOLS/CL_TOOLS
-    returning
-      value(RI_HTML) type ref to /MBTOOLS/IF_HTML
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  methods RENDER_BUNDLE
-    importing
-      !IV_TITLE type STRING
-    returning
-      value(RI_HTML) type ref to /MBTOOLS/IF_HTML
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  methods RENDER_BUNDLES
-    returning
-      value(RI_HTML) type ref to /MBTOOLS/IF_HTML
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  methods RENDER_TOOLS
-    returning
-      value(RI_HTML) type ref to /MBTOOLS/IF_HTML
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  methods RENDER_TOOL
-    importing
-      !IV_TITLE type STRING
-    returning
-      value(RI_HTML) type ref to /MBTOOLS/IF_HTML
-    raising
-      /MBTOOLS/CX_EXCEPTION .
+    METHODS get_tool_from_param
+      IMPORTING
+        !iv_name       TYPE string
+      RETURNING
+        VALUE(ro_tool) TYPE REF TO /mbtools/cl_tools
+      RAISING
+        /mbtools/cx_exception .
+    METHODS validate_tool
+      IMPORTING
+        !iv_action TYPE clike
+        !io_tool   TYPE REF TO /mbtools/cl_tools
+      RAISING
+        /mbtools/cx_exception .
+    CLASS-METHODS build_menu
+      IMPORTING
+        !iv_mode       TYPE c OPTIONAL
+      RETURNING
+        VALUE(ro_menu) TYPE REF TO /mbtools/cl_html_toolbar .
+    METHODS register_header
+      RAISING
+        /mbtools/cx_exception .
+    METHODS register_thumbnail
+      IMPORTING
+        !io_tool         TYPE REF TO /mbtools/cl_tools
+      RETURNING
+        VALUE(rv_result) TYPE string
+      RAISING
+        /mbtools/cx_exception .
+    METHODS render_actions
+      IMPORTING
+        !io_tool       TYPE REF TO /mbtools/cl_tools
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
+      RAISING
+        /mbtools/cx_exception .
+    METHODS render_bundle
+      IMPORTING
+        !iv_title      TYPE string
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
+      RAISING
+        /mbtools/cx_exception .
+    METHODS render_bundles
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
+      RAISING
+        /mbtools/cx_exception .
+    METHODS render_tools
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
+      RAISING
+        /mbtools/cx_exception .
+    METHODS render_tool
+      IMPORTING
+        !iv_title      TYPE string
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
+      RAISING
+        /mbtools/cx_exception .
 ENDCLASS.
 
 
@@ -120,9 +127,6 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
       WHEN /mbtools/if_actions=>tools_update ##TODO.
         ev_state = /mbtools/cl_gui=>c_event_state-re_render.
 
-      WHEN /mbtools/if_actions=>tools_license ##TODO.
-        ev_state = /mbtools/cl_gui=>c_event_state-re_render.
-
       WHEN /mbtools/if_actions=>tool_docs.
         /mbtools/cl_utilities=>call_browser( lo_tool->get_url_docs( ) ).
         ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
@@ -131,8 +135,9 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
         /mbtools/cl_utilities=>call_browser( lo_tool->get_url_tool( ) ).
         ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
-      WHEN /mbtools/if_actions=>tool_changelog ##TODO.
-        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
+      WHEN /mbtools/if_actions=>tool_launch.
+        lo_tool->launch( ).
+        ev_state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_activate.
         lo_tool->activate( ).
@@ -142,16 +147,21 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
         lo_tool->deactivate( ).
         ev_state = /mbtools/cl_gui=>c_event_state-re_render.
 
-      WHEN /mbtools/if_actions=>tool_install.
+      WHEN /mbtools/if_actions=>tool_install ##TODO.
         lo_tool->register( ).
         ev_state = /mbtools/cl_gui=>c_event_state-re_render.
 
-      WHEN /mbtools/if_actions=>tool_uninstall.
+      WHEN /mbtools/if_actions=>tool_uninstall ##TODO.
         lo_tool->unregister( ).
         ev_state = /mbtools/cl_gui=>c_event_state-re_render.
 
-      WHEN /mbtools/if_actions=>tool_launch.
-        lo_tool->launch( ).
+      WHEN /mbtools/if_actions=>tool_changelog ##TODO.
+        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
+
+      WHEN /mbtools/if_actions=>license_save ##TODO.
+        ev_state = /mbtools/cl_gui=>c_event_state-re_render.
+
+      WHEN /mbtools/if_actions=>license_delete ##TODO.
         ev_state = /mbtools/cl_gui=>c_event_state-re_render.
 
     ENDCASE.
@@ -165,9 +175,9 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
     ls_hotkey_action-ui_component = 'Main'.
 
-    ls_hotkey_action-description = |Add Tool|.
+    ls_hotkey_action-description = |Add New Tool|.
     ls_hotkey_action-action      = /mbtools/if_actions=>tool_install.
-    ls_hotkey_action-hotkey      = |a|.
+    ls_hotkey_action-hotkey      = |n|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
     ls_hotkey_action-description = |Check for Updates|.
@@ -175,19 +185,24 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
     ls_hotkey_action-hotkey      = |c|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
-    ls_hotkey_action-description = |Maintain License Keys|.
-    ls_hotkey_action-action      = /mbtools/if_actions=>tools_license.
+    ls_hotkey_action-description = |Update All Tools|.
+    ls_hotkey_action-action      = /mbtools/if_actions=>tools_update.
+    ls_hotkey_action-hotkey      = |u|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
+    ls_hotkey_action-description = |Go to Administration|.
+    ls_hotkey_action-action      = /mbtools/if_actions=>go_admin.
+    ls_hotkey_action-hotkey      = |a|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
+    ls_hotkey_action-description = |Go to License Keys|.
+    ls_hotkey_action-action      = /mbtools/if_actions=>go_license.
     ls_hotkey_action-hotkey      = |l|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
     ls_hotkey_action-description = |Quit|.
     ls_hotkey_action-action      = /mbtools/if_actions=>quit.
     ls_hotkey_action-hotkey      = |q|.
-    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
-
-    ls_hotkey_action-description = |Update All Tools|.
-    ls_hotkey_action-action      = /mbtools/if_actions=>tools_update.
-    ls_hotkey_action-hotkey      = |u|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
     ls_hotkey_action-description = |Exit Admin|.
@@ -211,11 +226,14 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
     ri_html = /mbtools/cl_html=>create( ).
 
-    IF mv_admin = abap_true.
-      ri_html->add( render_bundles( ) ).
-    ELSE.
-      ri_html->add( render_tools( ) ).
-    ENDIF.
+    CASE mv_mode.
+      WHEN c_mode-user.
+        ri_html->add( render_tools( ) ).
+      WHEN c_mode-admin.
+        ri_html->add( render_bundles( ) ).
+      WHEN c_mode-license.
+        ri_html->add( render_bundles( ) ).
+    ENDCASE.
 
     IF mo_asset_manager IS BOUND.
       lt_assets = mo_asset_manager->/mbtools/if_gui_asset_manager~get_all_assets( ).
@@ -236,24 +254,9 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
     DATA:
       lo_tools_menu   TYPE REF TO /mbtools/cl_html_toolbar,
       lo_support_menu TYPE REF TO /mbtools/cl_html_toolbar,
-      lo_help_menu    TYPE REF TO /mbtools/cl_html_toolbar.
+      lo_bar_menu     TYPE REF TO /mbtools/cl_html_toolbar.
 
     CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
-
-    CREATE OBJECT lo_tools_menu.
-
-    lo_tools_menu->add(
-      iv_txt = 'Add Tool'
-      iv_act = /mbtools/if_actions=>tool_install
-    )->add(
-      iv_txt = 'Check for Updates'
-      iv_act = /mbtools/if_actions=>tools_check
-    )->add(
-      iv_txt = 'Update All Tools'
-      iv_act = /mbtools/if_actions=>tools_update
-    )->add(
-      iv_txt = 'Maintain License Keys'
-      iv_act = /mbtools/if_actions=>tools_license ) ##NO_TEXT.
 
     CREATE OBJECT lo_support_menu.
 
@@ -265,40 +268,64 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
       iv_act = /mbtools/if_actions=>mbt_docs
     )->add(
       iv_txt = 'Ticket'
-      iv_act = /mbtools/if_actions=>mbt_support ) ##NO_TEXT.
+      iv_act = /mbtools/if_actions=>mbt_support ).
 
-    CREATE OBJECT lo_help_menu.
+    CREATE OBJECT lo_bar_menu.
 
-    IF iv_admin = abap_false.
-      lo_help_menu->add(
-        iv_txt = 'Admin'
-        iv_act = /mbtools/if_actions=>go_admin ).
-    ELSE.
-      lo_help_menu->add(
-        iv_txt = 'Exit Admin'
-        iv_act = /mbtools/if_actions=>go_home ).
-    ENDIF.
+    CASE iv_mode.
 
-    lo_help_menu->add(
+      WHEN c_mode-user.
+
+        lo_bar_menu->add(
+          iv_txt = 'Admin'
+          iv_act = /mbtools/if_actions=>go_admin
+        )->add(
+          iv_txt = 'License Keys'
+          iv_act = /mbtools/if_actions=>go_license ).
+
+      WHEN c_mode-admin.
+
+        CREATE OBJECT lo_tools_menu.
+
+        lo_tools_menu->add(
+          iv_txt = 'Add Tool'
+          iv_act = /mbtools/if_actions=>tool_install
+        )->add(
+          iv_txt = 'Check for Updates'
+          iv_act = /mbtools/if_actions=>tools_check
+        )->add(
+          iv_txt = 'Update All Tools'
+          iv_act = /mbtools/if_actions=>tools_update ).
+
+        ro_menu->add(
+          iv_txt = 'Tools'
+          io_sub = lo_tools_menu ).
+
+        lo_bar_menu->add(
+          iv_txt = 'Exit Admin'
+          iv_act = /mbtools/if_actions=>go_home ).
+
+      WHEN c_mode-license.
+
+        lo_bar_menu->add(
+          iv_txt = 'Exit License Keys'
+          iv_act = /mbtools/if_actions=>go_home ).
+
+    ENDCASE.
+
+    lo_bar_menu->add(
       iv_txt = 'Website'
       iv_act = /mbtools/if_actions=>mbt_website
     )->add(
       iv_txt = 'About'
-      iv_act = /mbtools/if_actions=>go_about ) ##NO_TEXT.
-
-    IF iv_admin = abap_true.
-      ro_menu->add(
-        iv_txt = 'Tools'
-        io_sub = lo_tools_menu
-      ).
-    ENDIF.
+      iv_act = /mbtools/if_actions=>go_about ).
 
     ro_menu->add(
       iv_txt = 'Support'
       io_sub = lo_support_menu
     )->add(
-      iv_txt = 'MBT'
-      io_sub = lo_help_menu ) ##NO_TEXT.
+      iv_txt = /mbtools/cl_html=>icon( iv_name  = 'bars/grey' )
+      io_sub = lo_bar_menu ).
 
   ENDMETHOD.
 
@@ -308,7 +335,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
     CREATE OBJECT mo_asset_manager.
 
-    mv_admin = iv_admin.
+    mv_mode = iv_mode.
   ENDMETHOD.
 
 
@@ -316,27 +343,38 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
     DATA lo_component TYPE REF TO /mbtools/cl_gui_page_main.
 
-    CREATE OBJECT lo_component EXPORTING iv_admin = iv_admin.
+    CREATE OBJECT lo_component EXPORTING iv_mode = iv_mode.
 
-    IF iv_admin = abap_true.
+    CASE iv_mode.
 
-      ri_page = /mbtools/cl_gui_page=>create(
-        iv_has_logo        = abap_true
-        iv_has_banner      = abap_false
-        iv_page_title      = 'Administration'
-        io_page_menu       = build_menu( iv_admin )
-        ii_child_component = lo_component ).
+      WHEN c_mode-user.
 
-    ELSE.
+        ri_page = /mbtools/cl_gui_page=>create(
+          iv_has_logo        = abap_false
+          iv_has_banner      = abap_true
+          iv_page_title      = ''
+          io_page_menu       = build_menu( c_mode-user )
+          ii_child_component = lo_component ).
 
-      ri_page = /mbtools/cl_gui_page=>create(
-        iv_has_logo        = abap_false
-        iv_has_banner      = abap_true
-        iv_page_title      = ''
-        io_page_menu       = build_menu( iv_admin )
-        ii_child_component = lo_component ).
+      WHEN c_mode-admin.
 
-    ENDIF.
+        ri_page = /mbtools/cl_gui_page=>create(
+          iv_has_logo        = abap_true
+          iv_has_banner      = abap_false
+          iv_page_title      = 'Administration'
+          io_page_menu       = build_menu( c_mode-admin )
+          ii_child_component = lo_component ).
+
+      WHEN c_mode-license.
+
+        ri_page = /mbtools/cl_gui_page=>create(
+          iv_has_logo        = abap_true
+          iv_has_banner      = abap_false
+          iv_page_title      = 'License Keys'
+          io_page_menu       = build_menu( c_mode-license )
+          ii_child_component = lo_component ).
+
+    ENDCASE.
 
   ENDMETHOD.
 
@@ -388,49 +426,88 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
   METHOD render_actions.
 
+    DATA:
+      lo_form   TYPE REF TO /mbtools/cl_html_form,
+      lo_values TYPE REF TO /mbtools/cl_string_map.
+
     ri_html = /mbtools/cl_html=>create( ).
 
-    IF mv_admin = abap_false.
-      " User
-      IF io_tool->has_launch( ) = abap_true.
-        ri_html->add_a(
-          iv_act = |{ /mbtools/if_actions=>tool_launch }?name={ io_tool->get_name( ) }|
-          iv_txt = /mbtools/cl_html=>icon( iv_name  = 'rocket/black'
-                                           iv_hint  = 'Launch tool' ) ).
-      ENDIF.
+    CASE mv_mode.
+      WHEN c_mode-user.
 
-      IF io_tool->is_bundle( ) = abap_false.
-        ri_html->add_a(
-          iv_act = |{ /mbtools/if_actions=>tool_docs }?name={ io_tool->get_name( ) }|
-          iv_txt = /mbtools/cl_html=>icon( iv_name  = 'question/black'
-                                           iv_hint  = 'Display tool documentation' ) ).
-      ENDIF.
-    ELSE.
-      " Admin
-      IF io_tool->is_bundle( ) = abap_false.
-        IF io_tool->is_active( ) = abap_false.
+        IF io_tool->has_launch( ) = abap_true.
           ri_html->add_a(
-            iv_act = |{ /mbtools/if_actions=>tool_activate }?name={ io_tool->get_name( ) }|
-            iv_txt = /mbtools/cl_html=>icon( iv_name  = 'fire-alt/black'
-                                             iv_hint  = 'Activate tool' ) ).
-          ri_html->add_a(
-            iv_act = |{ /mbtools/if_actions=>tool_uninstall }?name={ io_tool->get_name( ) }|
-            iv_txt = /mbtools/cl_html=>icon( iv_name  = 'trash-alt/black'
-                                             iv_hint  = 'Uninstall tool' ) ).
-        ELSE.
-          ri_html->add_a(
-            iv_act = |{ /mbtools/if_actions=>tool_deactivate }?name={ io_tool->get_name( ) }|
-            iv_txt = /mbtools/cl_html=>icon( iv_name  = 'snowflake/black'
-                                             iv_hint  = 'Deactivate tool' ) ).
+            iv_act = |{ /mbtools/if_actions=>tool_launch }?name={ io_tool->get_name( ) }|
+            iv_txt = /mbtools/cl_html=>icon( iv_name  = 'rocket/black'
+                                             iv_hint  = 'Launch tool' ) ).
         ENDIF.
 
-      ENDIF.
+        IF io_tool->is_bundle( ) = abap_false.
+          ri_html->add_a(
+            iv_act = |{ /mbtools/if_actions=>tool_docs }?name={ io_tool->get_name( ) }|
+            iv_txt = /mbtools/cl_html=>icon( iv_name  = 'question/black'
+                                             iv_hint  = 'Display tool documentation' ) ).
+        ENDIF.
 
-      ri_html->add_a(
-        iv_act = |{ /mbtools/if_actions=>tool_info }?name={ io_tool->get_name( ) }|
-        iv_txt = /mbtools/cl_html=>icon( iv_name  = 'globe/black'
-                                         iv_hint  = 'Show more information about tool' ) ).
-    ENDIF.
+      WHEN c_mode-admin.
+
+        IF io_tool->is_bundle( ) = abap_false.
+          IF io_tool->is_active( ) = abap_false.
+            ri_html->add_a(
+              iv_act = |{ /mbtools/if_actions=>tool_activate }?name={ io_tool->get_name( ) }|
+              iv_txt = /mbtools/cl_html=>icon( iv_name  = 'fire-alt/black'
+                                               iv_hint  = 'Activate tool' ) ).
+            ri_html->add_a(
+              iv_act = |{ /mbtools/if_actions=>tool_uninstall }?name={ io_tool->get_name( ) }|
+              iv_txt = /mbtools/cl_html=>icon( iv_name  = 'trash-alt/black'
+                                               iv_hint  = 'Uninstall tool' ) ).
+          ELSE.
+            ri_html->add_a(
+              iv_act = |{ /mbtools/if_actions=>tool_deactivate }?name={ io_tool->get_name( ) }|
+              iv_txt = /mbtools/cl_html=>icon( iv_name  = 'snowflake/black'
+                                               iv_hint  = 'Deactivate tool' ) ).
+          ENDIF.
+
+        ENDIF.
+
+        ri_html->add_a(
+          iv_act = |{ /mbtools/if_actions=>tool_info }?name={ io_tool->get_name( ) }|
+          iv_txt = /mbtools/cl_html=>icon( iv_name  = 'globe/black'
+                                           iv_hint  = 'Show more information about tool' ) ).
+
+      WHEN c_mode-license.
+
+        lo_form = /mbtools/cl_html_form=>create( |license-{ io_tool->get_name( ) }| ).
+
+        CREATE OBJECT lo_values.
+
+*        lo_values->set( iv_key = 'license'
+*                        iv_val = lo_tool->get_license_key( ) ) ##TODO.
+
+        lo_form->text(
+          iv_name        = 'license'
+          iv_size        = 32
+          iv_required    = abap_false
+          iv_label       = ''
+          iv_hint        = 'You can find the license key in your account area on the MBT website'
+          iv_placeholder = 'License Key' ).
+
+        lo_form->command(
+          iv_as_a   = abap_true
+          iv_action = /mbtools/if_actions=>license_save
+          iv_label  = /mbtools/cl_html=>icon( iv_name  = 'save/black'
+                                              iv_hint  = 'Save and activate license key' ) ).
+
+        lo_form->command(
+          iv_as_a   = abap_true
+          iv_action = /mbtools/if_actions=>license_delete
+          iv_label  = /mbtools/cl_html=>icon( iv_name  = 'trash-alt/black'
+                                              iv_hint  = 'Deactivate and remove license key' ) ).
+
+        ri_html->add( lo_form->render( iv_form_class = 'tool-license'
+                                       io_values     = lo_values ) ).
+
+    ENDCASE.
 
   ENDMETHOD.
 
@@ -449,7 +526,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
     lt_tools = /mbtools/cl_tools=>get_tools( iv_bundle_id   = lo_bundle->get_bundle_id( )
                                              iv_get_bundles = abap_false
                                              iv_get_tools   = abap_true
-                                             iv_admin       = mv_admin ).
+                                             iv_admin       = abap_true ).
 
     IF lt_tools IS INITIAL.
       RETURN.
@@ -478,9 +555,20 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
     lt_bundles = /mbtools/cl_tools=>get_tools( iv_get_bundles = abap_true
                                                iv_get_tools   = abap_false
-                                               iv_admin       = mv_admin ).
+                                               iv_admin       = abap_true ).
 
     ri_html = /mbtools/cl_html=>create( ).
+
+    ri_html->add( '<div class="intro">' ).
+    CASE mv_mode.
+      WHEN c_mode-admin.
+        ri_html->add( 'You can activate, deactivate, or uninstall any of the installed tools below.' &&
+                      ' Use the "Tools" menu to add a new tool or update any of your exsting tools.' ).
+      WHEN c_mode-license.
+        ri_html->add( 'Enter your license keys to receive updates for purchased tools.' &&
+                      ' If your license key has expired, please renew your license.' ).
+    ENDCASE.
+    ri_html->add( '</div>' ).
 
     ri_html->add( '<div class="bundles">' ).
     ri_html->add( '<ul>' ).
@@ -522,7 +610,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
     ri_html->add( '<td>' ).
     ri_html->add( |<span class="title">{ lo_tool->get_title( ) }</span><br>| &&
       |<span class="description">{ lo_tool->get_description( ) }</span>| ).
-    IF mv_admin = abap_true AND lo_tool->is_bundle( ) = abap_false.
+    IF mv_mode = c_mode-admin AND lo_tool->is_bundle( ) = abap_false.
       ri_html->add( |<br><span class="tool-details">Version: { lo_tool->get_version( ) } \| Last update: {
         lo_tool->get_last_update( ) } ago</span>| ).
     ENDIF.

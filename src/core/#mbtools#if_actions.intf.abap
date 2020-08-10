@@ -12,6 +12,7 @@ INTERFACE /mbtools/if_actions
   CONSTANTS go_back TYPE string VALUE 'go_back' ##NO_TEXT.
   " Pages
   CONSTANTS go_admin TYPE string VALUE 'go_admin' ##NO_TEXT.
+  CONSTANTS go_license TYPE string VALUE 'go_license' ##NO_TEXT.
   CONSTANTS go_faq TYPE string VALUE 'go_faq' ##NO_TEXT.
   CONSTANTS go_about TYPE string VALUE 'go_about' ##NO_TEXT.
   " Internet
@@ -31,7 +32,6 @@ INTERFACE /mbtools/if_actions
   " GUI Main
   CONSTANTS tools_check TYPE string VALUE 'tools_check' ##NO_TEXT.
   CONSTANTS tools_update TYPE string VALUE 'tools_update' ##NO_TEXT.
-  CONSTANTS tools_license TYPE string VALUE 'tools_license' ##NO_TEXT.
   CONSTANTS tool_docs TYPE string VALUE 'tool_docs' ##NO_TEXT.
   CONSTANTS tool_info TYPE string VALUE 'tool_info' ##NO_TEXT.
   CONSTANTS tool_changelog TYPE string VALUE 'tool_changelog' ##NO_TEXT.
@@ -42,4 +42,6 @@ INTERFACE /mbtools/if_actions
   CONSTANTS tool_unregister TYPE string VALUE 'tool_unregister' ##NO_TEXT.
   CONSTANTS tool_install TYPE string VALUE 'tool_install' ##NO_TEXT.
   CONSTANTS tool_uninstall TYPE string VALUE 'tool_uninstall' ##NO_TEXT.
+  CONSTANTS license_save TYPE string VALUE 'license_save'.
+  CONSTANTS license_delete TYPE string VALUE 'license_delete'.
 ENDINTERFACE.

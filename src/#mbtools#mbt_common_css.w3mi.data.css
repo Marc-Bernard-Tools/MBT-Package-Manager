@@ -340,6 +340,11 @@ LAYOUT
     padding-bottom: 20px;
 }
 
+.intro {
+    padding-bottom: 20px;
+    font-size: 12px;
+}
+
 /* TABLES */
 
 table {
@@ -437,9 +442,9 @@ button[type=submit] {
     position: relative;
     display: inline-block;
     margin: 5px 0 !important;
-    padding: 12px 15px !important;
+    padding: 5px !important;
     cursor: pointer;
-    font-size: 16px !important;
+    font-size: 12px !important;
 }
 
 input[type=text],
@@ -462,6 +467,26 @@ select {
     border: 2px solid #999 !important;
     background: #fff !important;
     color: #000 !important;
+}
+
+input[type=text]:focus,
+input[type=password]:focus,
+input[type=input]:focus,
+input[type=tel]:focus,
+input[type=url]:focus,
+input[type=email]:focus,
+input[type=number]:focus,
+input[type=range]:focus,
+input[type=search]:focus,
+input[type=color]:focus,
+input[type=time]:focus,
+input[type=week]:focus,
+input[type=month]:focus,
+input[type=date]:focus,
+input[type=datetime]:focus,
+textarea,
+select {
+    border: 2px solid #04c !important;
 }
 
 input[type=checkbox],
@@ -498,6 +523,11 @@ button[type=submit]:focus {
     background: #07c !important;
     opacity: 0.9 !important;
     color: #f70 !important;
+}
+
+input::placeholder,
+input:-ms-input-placeholder { 
+    color: #ccc 
 }
 
 .required {
@@ -617,6 +647,9 @@ div.log .icon {
 }
 .nav-container ul li a:hover { 
     color: #04c;
+}
+.nav-container ul :last-child a i {
+    padding-top: 5px;
 }
 
 .nav-container .has-submenu:before {
@@ -1099,6 +1132,7 @@ div.debug_container p {
 }
 .tool-details {
     font-size: 10pt;
+    color: #666;
 }
 td.tool-actions {
     text-align: right;

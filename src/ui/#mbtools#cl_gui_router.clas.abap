@@ -17,10 +17,10 @@ CLASS /mbtools/cl_gui_router DEFINITION
     INTERFACES /mbtools/if_gui_event_handler .
 
   PROTECTED SECTION.
-private section.
+  PRIVATE SECTION.
 
-  types:
-    BEGIN OF ty_event_data,
+    TYPES:
+      BEGIN OF ty_event_data,
         action    TYPE string,
         prev_page TYPE string,
         getdata   TYPE string,
@@ -28,30 +28,30 @@ private section.
         params    TYPE REF TO /mbtools/cl_string_map,
       END OF ty_event_data .
 
-  methods GENERAL_PAGE_ROUTING
-    importing
-      !IS_EVENT_DATA type TY_EVENT_DATA
-    exporting
-      !EI_PAGE type ref to /MBTOOLS/IF_GUI_RENDERABLE
-      !EV_STATE type I
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  methods ACTIONS_INTERNET
-    importing
-      !IS_EVENT_DATA type TY_EVENT_DATA
-    exporting
-      !EI_PAGE type ref to /MBTOOLS/IF_GUI_RENDERABLE
-      !EV_STATE type I
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  methods ACTIONS_OBJECTS
-    importing
-      !IS_EVENT_DATA type TY_EVENT_DATA
-    exporting
-      !EI_PAGE type ref to /MBTOOLS/IF_GUI_RENDERABLE
-      !EV_STATE type I
-    raising
-      /MBTOOLS/CX_EXCEPTION .
+    METHODS general_page_routing
+      IMPORTING
+        !is_event_data TYPE ty_event_data
+      EXPORTING
+        !ei_page       TYPE REF TO /mbtools/if_gui_renderable
+        !ev_state      TYPE i
+      RAISING
+        /mbtools/cx_exception .
+    METHODS actions_internet
+      IMPORTING
+        !is_event_data TYPE ty_event_data
+      EXPORTING
+        !ei_page       TYPE REF TO /mbtools/if_gui_renderable
+        !ev_state      TYPE i
+      RAISING
+        /mbtools/cx_exception .
+    METHODS actions_objects
+      IMPORTING
+        !is_event_data TYPE ty_event_data
+      EXPORTING
+        !ei_page       TYPE REF TO /mbtools/if_gui_renderable
+        !ev_state      TYPE i
+      RAISING
+        /mbtools/cx_exception .
 ENDCLASS.
 
 
@@ -159,11 +159,15 @@ CLASS /MBTOOLS/CL_GUI_ROUTER IMPLEMENTATION.
     CASE is_event_data-action.
 
       WHEN /mbtools/if_actions=>go_home.
-        ei_page  = /mbtools/cl_gui_page_main=>create( abap_false ).
+        ei_page  = /mbtools/cl_gui_page_main=>create( /mbtools/cl_gui_page_main=>c_mode-user ).
         ev_state = /mbtools/cl_gui=>c_event_state-new_page.
 
       WHEN /mbtools/if_actions=>go_admin.
-        ei_page  = /mbtools/cl_gui_page_main=>create( abap_true ).
+        ei_page  = /mbtools/cl_gui_page_main=>create( /mbtools/cl_gui_page_main=>c_mode-admin ).
+        ev_state = /mbtools/cl_gui=>c_event_state-new_page.
+
+      WHEN /mbtools/if_actions=>go_license.
+        ei_page  = /mbtools/cl_gui_page_main=>create( /mbtools/cl_gui_page_main=>c_mode-license ).
         ev_state = /mbtools/cl_gui=>c_event_state-new_page.
 
     ENDCASE.

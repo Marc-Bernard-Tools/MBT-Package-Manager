@@ -35,6 +35,7 @@ CLASS /mbtools/cl_html_form DEFINITION
       IMPORTING
         !iv_label       TYPE string
         !iv_name        TYPE string
+        !iv_size        TYPE i OPTIONAL
         !iv_hint        TYPE string OPTIONAL
         !iv_required    TYPE abap_bool DEFAULT abap_false
         !iv_placeholder TYPE string OPTIONAL
@@ -59,6 +60,7 @@ CLASS /mbtools/cl_html_form DEFINITION
         !iv_label TYPE string
         !iv_name  TYPE string
         !iv_hint  TYPE string OPTIONAL .
+    METHODS init.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -83,6 +85,7 @@ CLASS /mbtools/cl_html_form DEFINITION
         error         TYPE string,
         default_value TYPE string,
         side_action   TYPE string,
+        size          TYPE i,
         subitems      TYPE ty_subitems,
 *        onclick ???
       END OF ty_field.
@@ -172,6 +175,11 @@ CLASS /MBTOOLS/CL_HTML_FORM IMPLEMENTATION.
       ro_form->mv_form_id = |form_{ lv_ts }|.
     ENDIF.
 
+  ENDMETHOD.
+
+
+  METHOD init.
+    CLEAR mt_fields.
   ENDMETHOD.
 
 
@@ -300,6 +308,7 @@ CLASS /MBTOOLS/CL_HTML_FORM IMPLEMENTATION.
     DATA lv_opt_id TYPE string.
     DATA lv_error TYPE string.
     DATA lv_value TYPE string.
+    DATA lv_size TYPE string.
     DATA lv_checked TYPE string.
     DATA lv_item_class TYPE string.
     FIELD-SYMBOLS <ls_opt> LIKE LINE OF is_field-subitems.
@@ -319,6 +328,11 @@ CLASS /MBTOOLS/CL_HTML_FORM IMPLEMENTATION.
       lv_item_class = | class="{ lv_item_class }"|.
     ENDIF.
 
+    " Size
+    IF is_field-size > 0.
+      lv_size = | size="{ is_field-size }"|.
+    ENDIF.
+
     " Render field
     ii_html->add( |<li{ lv_item_class }>| ).
 
@@ -336,7 +350,8 @@ CLASS /MBTOOLS/CL_HTML_FORM IMPLEMENTATION.
         ENDIF.
 
         ii_html->add( |<input type="text" name="{ is_field-name }" id="{
-          is_field-name }"{ is_field-placeholder } value="{ lv_value }"{ is_field-dblclick }>| ).
+          is_field-name }"{ is_field-placeholder } value="{ lv_value }"{
+          is_field-dblclick }{ lv_size }>| ).
 
         IF is_field-side_action IS NOT INITIAL.
           ii_html->add( '</div>' ).
@@ -411,6 +426,7 @@ CLASS /MBTOOLS/CL_HTML_FORM IMPLEMENTATION.
     ls_field-type  = c_field_type-text.
     ls_field-name  = iv_name.
     ls_field-label = iv_label.
+    ls_field-size = iv_size.
 
     IF iv_hint IS NOT INITIAL.
       ls_field-hint    = | title="{ iv_hint }"|.
