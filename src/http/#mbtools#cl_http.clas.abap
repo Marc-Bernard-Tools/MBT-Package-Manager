@@ -1,6 +1,7 @@
 CLASS /mbtools/cl_http DEFINITION
   PUBLIC
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT HTTP
 *
@@ -9,7 +10,6 @@ CLASS /mbtools/cl_http DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-
   PUBLIC SECTION.
 
     CONSTANTS:
@@ -30,6 +30,12 @@ CLASS /mbtools/cl_http DEFINITION
         VALUE(ro_client) TYPE REF TO /mbtools/cl_http_client
       RAISING
         /mbtools/cx_exception .
+    CLASS-METHODS ping
+      IMPORTING
+        !iv_url          TYPE string
+        !iv_regex        TYPE string OPTIONAL
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool .
   PROTECTED SECTION.
 
     CLASS-METHODS check_auth_requested
@@ -213,12 +219,14 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
       ii_client = li_client ).
 
     ro_client->send_receive( ).
+
     IF check_auth_requested( li_client ) = abap_true.
       lv_scheme = acquire_login_details( ii_client = li_client
                                          io_client = ro_client
                                          iv_url    = iv_url ).
       ro_client->send_receive( ).
     ENDIF.
+
     ro_client->check_http_200( ).
 
     IF lv_scheme <> c_scheme-digest.
@@ -262,6 +270,33 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
 
     READ TABLE lt_list WITH KEY hostname = lv_host TRANSPORTING NO FIELDS ##WARN_OK.
     rv_bool = boolc( sy-subrc = 0 ).
+
+  ENDMETHOD.
+
+
+  METHOD ping.
+
+    DATA:
+      lo_client    TYPE REF TO /mbtools/cl_http_client,
+      lx_exception TYPE REF TO /mbtools/cx_exception.
+
+    TRY.
+        lo_client = /mbtools/cl_http=>create_by_url( iv_url = iv_url ).
+
+        IF iv_regex IS SUPPLIED.
+          lo_client->check_smart_response(
+              iv_expected_content_type = 'text/html*'
+              iv_content_regex         = iv_regex ).
+        ENDIF.
+
+        lo_client->close( ).
+
+        rv_result = abap_true.
+      CATCH /mbtools/cx_exception INTO lx_exception.
+        IF lo_client IS BOUND.
+          lo_client->close( ).
+        ENDIF.
+    ENDTRY.
 
   ENDMETHOD.
 ENDCLASS.

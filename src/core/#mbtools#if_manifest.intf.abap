@@ -46,27 +46,28 @@ INTERFACE /mbtools/if_manifest
   TYPES:
     " In case of changes, also adjust structure /mbtools/manifest
     BEGIN OF ty_descriptor,
-      id              TYPE i,
-      bundle_id       TYPE i,
-      is_bundle       TYPE abap_bool,
-      name            TYPE string,
-      version         TYPE string,
-      title           TYPE string,
-      description     TYPE string,
-      namespace       TYPE namespace,
-      package         TYPE devclass,
-      class           TYPE seoclsname,
-      group_id        TYPE string,
-      artifact_id     TYPE string,
-      git_url         TYPE string,
-      dependencies    TYPE ty_dependencies,
-      components      TYPE ty_components,
-      parameters      TYPE ty_parameters,
-      certificates    TYPE ty_certificates,
-      has_launch      TYPE abap_bool,
+      id           TYPE i,
+      bundle_id    TYPE i,
+      is_bundle    TYPE abap_bool,
+      name         TYPE string,
+      version      TYPE string,
+      title        TYPE string,
+      description  TYPE string,
+      namespace    TYPE namespace,
+      package      TYPE devclass,
+      class        TYPE seoclsname,
+      group_id     TYPE string,
+      artifact_id  TYPE string,
+      git_url      TYPE string,
+      dependencies TYPE ty_dependencies,
+      components   TYPE ty_components,
+      parameters   TYPE ty_parameters,
+      certificates TYPE ty_certificates,
+      has_launch   TYPE abap_bool,
     END OF ty_descriptor .
 
   CONSTANTS co_file_name TYPE string VALUE '.mbt-manifest.xml' ##NO_TEXT.
   CONSTANTS co_interface_version TYPE i VALUE 1 ##NO_TEXT.
+
   DATA descriptor TYPE ty_descriptor READ-ONLY .
 ENDINTERFACE.

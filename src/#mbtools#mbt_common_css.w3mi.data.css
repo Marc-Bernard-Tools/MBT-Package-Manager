@@ -406,10 +406,6 @@ tr td, tr th, thead th, tr th, thead th {
 
 /* FORMS */
 
-.button,
-.button:link,
-.button:visited,
-.tp-caption,
 input[type=text],
 input[type=password],
 input[type=input],
@@ -500,11 +496,7 @@ input[type=radio] {
   margin: 10px !important;
 }
 
-.button,
-.button:link,
-.button:visited,
-input[type=submit],
-button[type=submit] {
+input[type=submit] {
     border: 2px solid #04c !important;
     background: #07c !important;
     color: #fff !important;
@@ -512,17 +504,30 @@ button[type=submit] {
     -webkit-appearance: none;
 }
 
-.button:hover,
-.button:focus,
 input[type=submit]:hover,
-input[type=submit]:focus,
-button[type=submit]:hover,
-button[type=submit]:focus {
+input[type=submit]:focus {
     text-decoration: none !important;
     border: 2px solid #04c !important;
     background: #07c !important;
     opacity: 0.9 !important;
     color: #f70 !important;
+}
+
+button[type=submit] {
+    font-size: 16px !important;
+    border: none !important;
+    background: none !important;
+    color: #000 !important;
+    width: auto;
+    -webkit-appearance: none;
+}
+
+button[type=submit]:hover,
+button[type=submit]:focus {
+    text-decoration: none !important;
+    border: none !important;
+    background: none !important;
+    color: #04c !important;
 }
 
 input::placeholder,
@@ -757,7 +762,7 @@ div.log .icon {
 
 /* INFO PANEL */
 
-div.info-panel {
+.info-panel {
     position: absolute;
     z-index: 99;
     top: 36px;
@@ -768,64 +773,64 @@ div.info-panel {
     border: 1px solid;
     border-radius: 3px;
 }
-div.info-panel-fixed {
+.info-panel-fixed {
     position: fixed;
     top: 15%;
 }
-div.info-panel div.info-hint {
+.info-panel .info-hint {
     font-size: small;
     padding: 8px 6px 0px;
     text-align: center;
 }
-div.info-panel div.info-title {
-    font-size: small;
+.info-panel .info-title {
+    font-size: medium;
     padding: 6px;
     text-align: center;
 }
-div.info-panel div.info-title a.close-btn {
+.info-panel .info-title a.close-btn {
     padding-left: 12px;
     padding-right: 2px;
     position: relative;
     bottom: 1px;
 }
-div.info-panel div.info-list {
+.info-panel .info-list {
     padding: 0.8em 0.7em 1em;
 }
-div.info-panel li {
+.info-panel li {
     padding-left: 10px;
     list-style-type: none;
 }
-div.info-panel h1:first-child {
+.info-panel h1:first-child {
     margin: auto; 
 }
-div.info-panel h1 {
+.info-panel h1 {
     font-size: inherit;
     padding: 6px 4px;
     margin: 4px auto auto;
     text-decoration: underline;
     font-weight: normal;
 }
-div.info-panel .version-marker {
+.info-panel .version-marker {
     display: inline-block;
     margin-left: 20px;
     border-radius: 3px;
     padding: 0px 6px;
     border:  1px solid;
 }
-div.info-panel .update { 
+.info-panel .update { 
     border:  1px solid; 
 }
-div.info-panel div.info-list td { 
+.info-panel .info-list td { 
     padding-right: 1em 
 }
 
 /* MESSAGE PANEL */
 
-div.message-panel {
+.message-panel {
     z-index: 99;
     box-shadow: 1px 1px 3px 0px hsla(0, 0%, 0%, .1);
     padding: 12px;
-    margin-left: -48%;
+    margin-left: -48%; 
     position: fixed;
     bottom: 12px;
     width: 94%;
@@ -849,7 +854,7 @@ div.message-panel {
     padding-left: 0;
     border-left: none;
 }
-div.message-panel:hover .message-panel-commands {
+.message-panel:hover .message-panel-commands {
     display: block;
 }
 

@@ -158,10 +158,17 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
       WHEN /mbtools/if_actions=>tool_changelog ##TODO.
         ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
-      WHEN /mbtools/if_actions=>license_save ##TODO.
-        ev_state = /mbtools/cl_gui=>c_event_state-re_render.
-
-      WHEN /mbtools/if_actions=>license_delete ##TODO.
+      WHEN /mbtools/if_actions=>tool_license.
+        IF io_parameters->get( 'action' ) = /mbtools/if_actions=>license_add AND NOT
+           io_parameters->get( 'license' ) IS INITIAL.
+          IF lo_tool->license_add( io_parameters->get( 'license' ) ) = abap_true.
+            MESSAGE 'License saved and activated successfully' TYPE 'S'.
+          ENDIF.
+        ELSE.
+          IF lo_tool->license_remove( ) = abap_true.
+            MESSAGE 'License deactivated and removed successfully' TYPE 'S'.
+          ENDIF.
+        ENDIF.
         ev_state = /mbtools/cl_gui=>c_event_state-re_render.
 
     ENDCASE.
@@ -190,14 +197,14 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
     ls_hotkey_action-hotkey      = |u|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
-    ls_hotkey_action-description = |Go to Administration|.
-    ls_hotkey_action-action      = /mbtools/if_actions=>go_admin.
-    ls_hotkey_action-hotkey      = |a|.
-    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
-
-    ls_hotkey_action-description = |Go to License Keys|.
+    ls_hotkey_action-description = |Edit License Keys|.
     ls_hotkey_action-action      = /mbtools/if_actions=>go_license.
     ls_hotkey_action-hotkey      = |l|.
+    INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
+
+    ls_hotkey_action-description = |Administration|.
+    ls_hotkey_action-action      = /mbtools/if_actions=>go_admin.
+    ls_hotkey_action-hotkey      = |a|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
     ls_hotkey_action-description = |Quit|.
@@ -278,10 +285,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
         lo_bar_menu->add(
           iv_txt = 'Admin'
-          iv_act = /mbtools/if_actions=>go_admin
-        )->add(
-          iv_txt = 'License Keys'
-          iv_act = /mbtools/if_actions=>go_license ).
+          iv_act = /mbtools/if_actions=>go_admin ).
 
       WHEN c_mode-admin.
 
@@ -295,7 +299,10 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
           iv_act = /mbtools/if_actions=>tools_check
         )->add(
           iv_txt = 'Update All Tools'
-          iv_act = /mbtools/if_actions=>tools_update ).
+          iv_act = /mbtools/if_actions=>tools_update
+        )->add(
+          iv_txt = 'Edit License Keys'
+          iv_act = /mbtools/if_actions=>go_license ).
 
         ro_menu->add(
           iv_txt = 'Tools'
@@ -309,7 +316,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
         lo_bar_menu->add(
           iv_txt = 'Exit License Keys'
-          iv_act = /mbtools/if_actions=>go_home ).
+          iv_act = /mbtools/if_actions=>go_admin ).
 
     ENDCASE.
 
@@ -433,6 +440,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
     ri_html = /mbtools/cl_html=>create( ).
 
     CASE mv_mode.
+
       WHEN c_mode-user.
 
         IF io_tool->has_launch( ) = abap_true.
@@ -477,12 +485,18 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
       WHEN c_mode-license.
 
-        lo_form = /mbtools/cl_html_form=>create( |license-{ io_tool->get_name( ) }| ).
+        lo_form = /mbtools/cl_html_form=>create( iv_form_id     = |license-{ io_tool->get_name( ) }|
+                                                 iv_form_action = /mbtools/if_actions=>tool_license ).
 
         CREATE OBJECT lo_values.
 
-*        lo_values->set( iv_key = 'license'
-*                        iv_val = lo_tool->get_license_key( ) ) ##TODO.
+        lo_values->set( iv_key = 'name'
+                        iv_val = io_tool->get_name( ) ).
+        lo_values->set( iv_key = 'license'
+                        iv_val = io_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_key ) ).
+
+        lo_form->hidden(
+          iv_name = 'name' ).
 
         lo_form->text(
           iv_name        = 'license'
@@ -493,15 +507,15 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
           iv_placeholder = 'License Key' ).
 
         lo_form->command(
-          iv_as_a   = abap_true
-          iv_action = /mbtools/if_actions=>license_save
-          iv_label  = /mbtools/cl_html=>icon( iv_name  = 'save/black'
+          iv_cmd_type = /mbtools/cl_html_form=>c_cmd_type-button
+          iv_action   = /mbtools/if_actions=>license_add
+          iv_label    = /mbtools/cl_html=>icon( iv_name  = 'save/black'
                                               iv_hint  = 'Save and activate license key' ) ).
 
         lo_form->command(
-          iv_as_a   = abap_true
-          iv_action = /mbtools/if_actions=>license_delete
-          iv_label  = /mbtools/cl_html=>icon( iv_name  = 'trash-alt/black'
+          iv_cmd_type = /mbtools/cl_html_form=>c_cmd_type-button
+          iv_action   = /mbtools/if_actions=>license_remove
+          iv_label    = /mbtools/cl_html=>icon( iv_name  = 'trash-alt/black'
                                               iv_hint  = 'Deactivate and remove license key' ) ).
 
         ri_html->add( lo_form->render( iv_form_class = 'tool-license'
@@ -566,7 +580,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
                       ' Use the "Tools" menu to add a new tool or update any of your exsting tools.' ).
       WHEN c_mode-license.
         ri_html->add( 'Enter your license keys to receive updates for purchased tools.' &&
-                      ' If your license key has expired, please renew your license.' ).
+                      ' If your license key has expired, please renew your license.' ) ##TODO.
     ENDCASE.
     ri_html->add( '</div>' ).
 
@@ -588,9 +602,11 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
   METHOD render_tool.
 
     DATA:
-      lo_tool  TYPE REF TO /mbtools/cl_tools,
-      lv_class TYPE string,
-      lv_img   TYPE string.
+      lo_tool   TYPE REF TO /mbtools/cl_tools,
+      lv_expire TYPE d,
+      lv_details TYPE string,
+      lv_class  TYPE string,
+      lv_img    TYPE string.
 
     lo_tool = /mbtools/cl_tools=>factory( iv_title ).
 
@@ -608,12 +624,28 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
     ri_html->add( |<td class="tool-thumbnail">{ lv_img }</td>| ).
 
     ri_html->add( '<td>' ).
-    ri_html->add( |<span class="title">{ lo_tool->get_title( ) }</span><br>| &&
-      |<span class="description">{ lo_tool->get_description( ) }</span>| ).
-    IF mv_mode = c_mode-admin AND lo_tool->is_bundle( ) = abap_false.
-      ri_html->add( |<br><span class="tool-details">Version: { lo_tool->get_version( ) } \| Last update: {
-        lo_tool->get_last_update( ) } ago</span>| ).
-    ENDIF.
+    ri_html->add( |<span class="title">{ lo_tool->get_title( ) }</span>| ).
+
+    CASE mv_mode.
+      WHEN c_mode-user.
+        lv_details = lo_tool->get_description( ).
+
+      WHEN c_mode-admin.
+        IF lo_tool->is_bundle( ) = abap_false.
+          lv_details = |Version: { lo_tool->get_version( ) } \| Last update: {
+            lo_tool->get_last_update( ) } ago|.
+        ENDIF.
+
+      WHEN c_mode-license.
+        IF lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_valid ) = abap_true.
+          lv_expire = lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_expire ).
+          lv_details = |Your license key expires { /mbtools/cl_datetime=>get_long_date( lv_expire ) }|.
+        ELSE.
+          lv_details = 'To receive updates, please enter your valid license key'.
+        ENDIF.
+    ENDCASE.
+
+    ri_html->add( |<br><span class="description">{ lv_details }</span>| ).
     ri_html->add( '</td>' ).
 
     ri_html->add( '<td class="tool-actions">' ).

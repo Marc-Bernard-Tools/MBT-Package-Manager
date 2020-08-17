@@ -85,6 +85,7 @@ INTERFACE /mbtools/if_definitions
 
   CONSTANTS c_github TYPE string VALUE 'github.com/mbtools' ##NO_TEXT.
   CONSTANTS c_www_home TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.
+  CONSTANTS c_www_ping TYPE string VALUE 'info/index.html' ##NO_TEXT.
   CONSTANTS c_www_terms TYPE string VALUE 'company/terms-software/' ##NO_TEXT.
   CONSTANTS c_www_tool_docs TYPE string VALUE 'docs/' ##NO_TEXT.
   CONSTANTS c_www_tool_download TYPE string VALUE 'downloads/' ##NO_TEXT.

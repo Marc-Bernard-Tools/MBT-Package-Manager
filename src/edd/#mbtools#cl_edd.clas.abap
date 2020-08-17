@@ -28,7 +28,8 @@ CLASS /mbtools/cl_edd DEFINITION
         id     TYPE string VALUE '$id$' ##NO_TEXT,
         key    TYPE string VALUE '$key$' ##NO_TEXT,
         url    TYPE string VALUE '$url$' ##NO_TEXT,
-        system TYPE string VALUE '$system$' ##NO_TEXT,
+        sysid  TYPE string VALUE '$sysid$' ##NO_TEXT,
+        sysno  TYPE string VALUE '$sysno$' ##NO_TEXT,
       END OF c_edd_param .
 
     CLASS-METHODS activate_license
@@ -86,6 +87,13 @@ CLASS /mbtools/cl_edd DEFINITION
         VALUE(rv_endpoint) TYPE string
       RAISING
         /mbtools/cx_exception .
+    CLASS-METHODS get_json
+      IMPORTING
+        !iv_data       TYPE string
+      RETURNING
+        VALUE(ro_json) TYPE REF TO /mbtools/if_ajson_reader
+      RAISING
+        /mbtools/cx_exception .
 ENDCLASS.
 
 
@@ -95,9 +103,26 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
   METHOD activate_license.
 
+*{
+*    "success": true,
+*    "license": "valid",
+*    "item_id": false (or Item ID if passed)
+*    "item_name": "EDD Product Name",
+*    "license_limit": 0,
+*    "site_count": 2,
+*    "expires": "2020-06-30 23:59:59",
+*    "activations_left": "unlimited",
+*    "checksum": "<MD$ Checksum>",
+*    "payment_id": 12345,
+*    "customer_name": "John Doe",
+*    "customer_email": "john@sample.org",
+*    "price_id": "2"
+*}
+
     DATA:
       lv_endpoint TYPE string,
-      lv_data     TYPE string.
+      lv_data     TYPE string,
+      lo_json     TYPE REF TO /mbtools/if_ajson_reader.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
@@ -107,16 +132,65 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     lv_data = get_data( lv_endpoint ).
 
-    ##TODO.
+    lo_json = get_json( lv_data ).
+
+    IF lo_json->get_boolean( '/success' ) <> abap_true.
+      CASE lo_json->get_string( '/error' ).
+        WHEN 'missing'.
+          /mbtools/cx_exception=>raise( 'License doesn''t exist' ).
+        WHEN 'missing_url'.
+          /mbtools/cx_exception=>raise( 'URL not provided' ).
+        WHEN 'license_not_activable'.
+          /mbtools/cx_exception=>raise( 'Attempting to activate a bundle''s parent license' ).
+        WHEN 'disabled'.
+          /mbtools/cx_exception=>raise( 'License key revoked' ).
+        WHEN 'no_activations_left'.
+          /mbtools/cx_exception=>raise( 'No activations left' ).
+        WHEN 'expired'.
+          /mbtools/cx_exception=>raise( 'License has expired' ).
+        WHEN 'key_mismatch'.
+          /mbtools/cx_exception=>raise( 'License is not valid for this product' ).
+        WHEN 'invalid_item_id'.
+          /mbtools/cx_exception=>raise( 'Invalid Item ID' ).
+        WHEN 'item_name_mismatch'.
+          /mbtools/cx_exception=>raise( 'License is not valid for this product' ).
+        WHEN OTHERS.
+          /mbtools/cx_exception=>raise( 'License is not valid for this product' ).
+      ENDCASE.
+    ENDIF.
+
+    IF lo_json->get_string( '/license' ) = 'valid'.
+      ev_valid = abap_true.
+    ENDIF.
+
+    ev_expire = lo_json->get_date( 'expires' ).
 
   ENDMETHOD.
 
 
   METHOD check_license.
 
+*{
+*    "success": true,
+*    "license": "valid",
+*    "item_id": false (or Item ID if passed)
+*    "item_name": "EDD Product Name",
+*    "license_limit": 0,
+*    "site_count": 2,
+*    "expires": "2020-06-30 23:59:59",
+*    "activations_left": "unlimited",
+*    "checksum": "<MD$ Checksum>",
+*    "payment_id": 12345,
+*    "customer_name": "John Doe",
+*    "customer_email": "john@sample.org",
+*    "price_id": "2"
+*}
+
     DATA:
       lv_endpoint TYPE string,
-      lv_data     TYPE string.
+      lv_data     TYPE string,
+      lv_expire   TYPE string,
+      lo_json     TYPE REF TO /mbtools/if_ajson_reader.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
@@ -126,7 +200,38 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     lv_data = get_data( lv_endpoint ).
 
-    ##TODO.
+    lo_json = get_json( lv_data ).
+
+    IF lo_json->get_boolean( '/success' ) <> abap_true.
+      CASE lo_json->get_string( '/error' ).
+        WHEN 'missing'.
+          /mbtools/cx_exception=>raise( 'License doesn''t exist' ).
+        WHEN 'missing_url'.
+          /mbtools/cx_exception=>raise( 'URL not provided' ).
+        WHEN 'license_not_activable'.
+          /mbtools/cx_exception=>raise( 'Attempting to activate a bundle''s parent license' ).
+        WHEN 'disabled'.
+          /mbtools/cx_exception=>raise( 'License key revoked' ).
+        WHEN 'no_activations_left'.
+          /mbtools/cx_exception=>raise( 'No activations left' ).
+        WHEN 'expired'.
+          /mbtools/cx_exception=>raise( 'License has expired' ).
+        WHEN 'key_mismatch'.
+          /mbtools/cx_exception=>raise( 'License is not valid for this product' ).
+        WHEN 'invalid_item_id'.
+          /mbtools/cx_exception=>raise( 'Invalid Item ID' ).
+        WHEN 'item_name_mismatch'.
+          /mbtools/cx_exception=>raise( 'License is not valid for this product' ).
+        WHEN OTHERS.
+          /mbtools/cx_exception=>raise( 'License is not valid for this product' ).
+      ENDCASE.
+    ENDIF.
+
+    IF lo_json->get_string( '/license' ) = 'valid'.
+      ev_valid = abap_true.
+    ENDIF.
+
+    ev_expire = lo_json->get_date( 'expires' ).
 
   ENDMETHOD.
 
@@ -153,19 +258,29 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
   METHOD get_data.
 
     DATA:
-      lo_client TYPE REF TO /mbtools/cl_http_client.
+      lo_client    TYPE REF TO /mbtools/cl_http_client,
+      lx_exception TYPE REF TO /mbtools/cx_exception,
+      lv_data      TYPE string.
 
-    lo_client = /mbtools/cl_http=>create_by_url( iv_url     = iv_url
-                                                 iv_request = 'POST'
-                                                 iv_content = 'application/x-www-form-urlencoded' ).
+    TRY.
+        lo_client = /mbtools/cl_http=>create_by_url( iv_url     = iv_url
+                                                     iv_request = 'GET'
+                                                     iv_content = 'application/x-www-form-urlencoded' ).
 
-    lo_client->check_smart_response(
-        iv_expected_content_type = 'application/json'
-        iv_content_regex         = '"success"' ).
+        lo_client->check_smart_response(
+            iv_expected_content_type = 'application/json'
+            iv_content_regex         = '"success"' ).
 
-    rv_data = lo_client->get_cdata( ).
+        rv_data = lo_client->get_cdata( ).
 
-    lo_client->close( ).
+        lo_client->close( ).
+      CATCH /mbtools/cx_exception INTO lx_exception.
+        IF lo_client IS BOUND.
+          lo_client->close( ).
+        ENDIF.
+        /mbtools/cx_exception=>raise( lx_exception->get_text( ) ).
+    ENDTRY.
+
 
   ENDMETHOD.
 
@@ -175,39 +290,45 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
     DATA:
       lv_subrc       TYPE sy-subrc,
       lv_system_host TYPE string,
-      lv_system_id   TYPE slic_sysid.
+      lv_system_no   TYPE slic_sysid.
 
     " http://yoursite.com/?edd_action={request type}&item_id={id}&license={key}
-    " &url={url of the site being licensed}/{system number}
+    " &url=SystemID_{system_id}_SystemNumber_{system_number}
     rv_endpoint = c_edd_host && '?edd_action=' && c_edd_param-action && '&item_id=' && c_edd_param-id.
-    rv_endpoint = rv_endpoint && '&license=' && c_edd_param-key && '&url=' && c_edd_param-url && '/' && c_edd_param-system.
+    rv_endpoint = rv_endpoint && '&license=' && c_edd_param-key.
+    rv_endpoint = rv_endpoint && '&url=SystemID_' && c_edd_param-sysid && '_SystemNumber_' && c_edd_param-sysno.
 
-    REPLACE c_edd_param-action WITH iv_action  INTO rv_endpoint.
-    REPLACE c_edd_param-id     WITH iv_id      INTO rv_endpoint.
-    REPLACE c_edd_param-key    WITH iv_license INTO rv_endpoint.
-
-    CALL FUNCTION 'SPFL_PARAMETER_GET_VALUE'
-      EXPORTING
-        name  = 'SAPDBHOST'
-      IMPORTING
-        value = lv_system_host
-        rc    = lv_subrc.
-    IF lv_subrc <> 0 OR lv_system_host IS INITIAL.
-      /mbtools/cx_exception=>raise( 'Error getting system host (SAPDBHOST)' ) ##NO_TEXT.
-    ENDIF.
-
-    REPLACE c_edd_param-url WITH lv_system_host INTO rv_endpoint.
-
+    " Get system number
     CALL FUNCTION 'SLIC_GET_SYSTEM_ID'
       IMPORTING
-        systemid = lv_system_id.
+        systemid = lv_system_no.
 
-    IF lv_system_id CS'INITIAL' OR lv_system_id NA '0123456789'.
+    SHIFT lv_system_no LEFT DELETING LEADING '0'.
+
+    IF lv_system_no CS'INITIAL' OR lv_system_no NA '0123456789'.
       /mbtools/cx_exception=>raise( 'Initial system number (transaction SLICENSE)' ) ##NO_TEXT.
     ENDIF.
 
-    REPLACE c_edd_param-system WITH lv_system_id INTO rv_endpoint.
+    REPLACE c_edd_param-action WITH iv_action    INTO rv_endpoint.
+    REPLACE c_edd_param-id     WITH iv_id        INTO rv_endpoint.
+    REPLACE c_edd_param-key    WITH iv_license   INTO rv_endpoint.
+    REPLACE c_edd_param-sysid  WITH sy-sysid     INTO rv_endpoint.
+    REPLACE c_edd_param-sysno  WITH lv_system_no INTO rv_endpoint.
+
     CONDENSE rv_endpoint NO-GAPS.
+
+  ENDMETHOD.
+
+
+  METHOD get_json.
+
+    DATA lx_exception TYPE REF TO /mbtools/cx_ajson_error.
+
+    TRY.
+        ro_json = /mbtools/cl_ajson=>parse( iv_data ).
+      CATCH /mbtools/cx_ajson_error INTO lx_exception.
+        /mbtools/cx_exception=>raise( 'Error parsing response from MBT website:' && lx_exception->get_text( ) ).
+    ENDTRY.
 
   ENDMETHOD.
 

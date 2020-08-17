@@ -121,11 +121,17 @@ CLASS /MBTOOLS/CL_URL IMPLEMENTATION.
 
   METHOD regex.
 
-    FIND REGEX '(https?://[^/]*)(.*/)([^\.]*)?(.*)' IN iv_url
-      SUBMATCHES ev_host ev_path ev_name ev_query.
-    IF sy-subrc <> 0.
-      /mbtools/cx_exception=>raise( 'Malformed URL' ) ##NO_TEXT.
-    ENDIF.
+    DATA: lx_exception TYPE REF TO cx_root.
+
+    TRY.
+        FIND REGEX '(https?://[^/]*)(.*/)(.*)\?(.*)' IN iv_url
+          SUBMATCHES ev_host ev_path ev_name ev_query.
+        IF sy-subrc <> 0.
+          /mbtools/cx_exception=>raise( 'Malformed URL' ) ##NO_TEXT.
+        ENDIF.
+      CATCH cx_root INTO lx_exception.
+        /mbtools/cx_exception=>raise( 'Error checking URL:' && lx_exception->get_text( ) ).
+    ENDTRY.
 
   ENDMETHOD.
 

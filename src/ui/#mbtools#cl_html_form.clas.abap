@@ -13,11 +13,19 @@ CLASS /mbtools/cl_html_form DEFINITION
 
   PUBLIC SECTION.
 
+    CONSTANTS:
+      BEGIN OF c_cmd_type,
+        input  TYPE i VALUE 1,
+        link   TYPE i VALUE 2,
+        button TYPE i VALUE 3,
+      END OF c_cmd_type.
+
     CLASS-METHODS create
       IMPORTING
-        !iv_form_id    TYPE string OPTIONAL
+        !iv_form_id     TYPE string OPTIONAL
+        !iv_form_action TYPE string OPTIONAL
       RETURNING
-        VALUE(ro_form) TYPE REF TO /mbtools/cl_html_form .
+        VALUE(ro_form)  TYPE REF TO /mbtools/cl_html_form .
     METHODS render
       IMPORTING
         !iv_form_class     TYPE string
@@ -27,10 +35,10 @@ CLASS /mbtools/cl_html_form DEFINITION
         VALUE(ri_html)     TYPE REF TO /mbtools/if_html .
     METHODS command
       IMPORTING
-        !iv_label   TYPE string
-        !iv_action  TYPE string
-        !iv_is_main TYPE abap_bool DEFAULT abap_false
-        !iv_as_a    TYPE abap_bool DEFAULT abap_false .
+        !iv_label    TYPE string
+        !iv_action   TYPE string
+        !iv_is_main  TYPE abap_bool DEFAULT abap_false
+        !iv_cmd_type TYPE i DEFAULT 1.
     METHODS text
       IMPORTING
         !iv_label       TYPE string
@@ -61,7 +69,12 @@ CLASS /mbtools/cl_html_form DEFINITION
         !iv_name  TYPE string
         !iv_hint  TYPE string OPTIONAL .
     METHODS init.
+    METHODS hidden
+      IMPORTING
+        !iv_name TYPE string.
+
   PROTECTED SECTION.
+
   PRIVATE SECTION.
 
     TYPES:
@@ -92,10 +105,10 @@ CLASS /mbtools/cl_html_form DEFINITION
 
     TYPES:
       BEGIN OF ty_command,
-        label   TYPE string,
-        action  TYPE string,
-        is_main TYPE abap_bool,
-        as_a    TYPE abap_bool,
+        label    TYPE string,
+        action   TYPE string,
+        is_main  TYPE abap_bool,
+        cmd_type TYPE i,
 *        onclick ???
       END OF ty_command.
 
@@ -105,11 +118,13 @@ CLASS /mbtools/cl_html_form DEFINITION
         radio       TYPE i VALUE 2,
         checkbox    TYPE i VALUE 3,
         field_group TYPE i VALUE 4,
+        hidden      TYPE i VALUE 5,
       END OF c_field_type.
 
     DATA mt_fields TYPE STANDARD TABLE OF ty_field.
     DATA mt_commands TYPE STANDARD TABLE OF ty_command.
     DATA mv_form_id TYPE string.
+    DATA mv_form_action TYPE string.
 
     CLASS-METHODS render_field
       IMPORTING
@@ -151,12 +166,12 @@ CLASS /MBTOOLS/CL_HTML_FORM IMPLEMENTATION.
 
     DATA ls_cmd LIKE LINE OF mt_commands.
 
-    ASSERT iv_as_a IS INITIAL OR iv_is_main IS INITIAL.
+    ASSERT iv_cmd_type IS INITIAL OR iv_is_main IS INITIAL.
 
     ls_cmd-label = iv_label.
     ls_cmd-action = iv_action.
     ls_cmd-is_main = iv_is_main.
-    ls_cmd-as_a = iv_as_a.
+    ls_cmd-cmd_type = iv_cmd_type.
 
     APPEND ls_cmd TO mt_commands.
 
@@ -169,11 +184,23 @@ CLASS /MBTOOLS/CL_HTML_FORM IMPLEMENTATION.
 
     CREATE OBJECT ro_form.
     ro_form->mv_form_id = iv_form_id.
+    ro_form->mv_form_action = iv_form_action.
 
     IF ro_form->mv_form_id IS INITIAL.
       GET TIME STAMP FIELD lv_ts.
       ro_form->mv_form_id = |form_{ lv_ts }|.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD hidden.
+
+    DATA ls_field LIKE LINE OF mt_fields.
+
+    ls_field-type  = c_field_type-hidden.
+    ls_field-name  = iv_name.
+    APPEND ls_field TO mt_fields.
 
   ENDMETHOD.
 
@@ -226,17 +253,20 @@ CLASS /MBTOOLS/CL_HTML_FORM IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_field> LIKE LINE OF mt_fields.
     FIELD-SYMBOLS <ls_cmd> LIKE LINE OF mt_commands.
-    DATA ls_form_id TYPE string.
+    DATA lv_form_att TYPE string.
     DATA lv_cur_group TYPE string.
 
     IF mv_form_id IS NOT INITIAL.
-      ls_form_id = | id="{ mv_form_id }"|.
+      lv_form_att = | id="{ mv_form_id }"|.
+    ENDIF.
+    IF mv_form_action IS NOT INITIAL.
+      lv_form_att = | action="sapevent:{ mv_form_action }"|.
     ENDIF.
 
     ri_html = /mbtools/cl_html=>create( ).
 
     ri_html->add( |<div class="{ iv_form_class }">| ).
-    ri_html->add( |<form method="post"{ ls_form_id }>| ).
+    ri_html->add( |<form method="post"{ lv_form_att }>| ).
     ri_html->add( |<ul>| ).
 
     LOOP AT mt_fields ASSIGNING <ls_field>.
@@ -285,20 +315,33 @@ CLASS /MBTOOLS/CL_HTML_FORM IMPLEMENTATION.
 
     DATA lv_main_submit TYPE string.
 
-    IF is_cmd-as_a = abap_true.
-      ii_html->add_a(
-        iv_txt = is_cmd-label
-        iv_act = is_cmd-action
-        iv_class = 'dialog-commands' ).
-    ELSE.
-      IF is_cmd-is_main = abap_true.
-        lv_main_submit = ' class="main"'.
-      ELSE.
-        CLEAR lv_main_submit.
-      ENDIF.
-      ii_html->add( |<input type="submit" value="{
-        is_cmd-label }"{ lv_main_submit } formaction="sapevent:{ is_cmd-action }">| ).
-    ENDIF.
+    CASE is_cmd-cmd_type.
+      WHEN c_cmd_type-link.
+
+        ii_html->add_a(
+          iv_txt   = is_cmd-label
+          iv_act   = is_cmd-action
+          iv_class = 'dialog-commands' ).
+
+      WHEN c_cmd_type-button.
+
+        ii_html->add( |<button type="submit" name="action" value="{
+          is_cmd-action }" class="action-commands">{ is_cmd-label }</button>| ).
+
+      WHEN c_cmd_type-input.
+
+        IF is_cmd-is_main = abap_true.
+          lv_main_submit = ' class="main"'.
+        ELSE.
+          CLEAR lv_main_submit.
+        ENDIF.
+        ii_html->add( |<input type="submit" value="{
+          is_cmd-label }"{ lv_main_submit } formaction="sapevent:{ is_cmd-action }">| ).
+
+      WHEN OTHERS.
+        ASSERT 0 = 1.
+
+    ENDCASE.
 
   ENDMETHOD.
 
@@ -392,6 +435,11 @@ CLASS /MBTOOLS/CL_HTML_FORM IMPLEMENTATION.
         ENDLOOP.
 
         ii_html->add( '</div>' ).
+
+      WHEN c_field_type-hidden.
+
+        ii_html->add( |<input type="hidden" name="{ is_field-name }" id="{
+          is_field-name }" value="{ lv_value }">| ).
 
       WHEN OTHERS.
         ASSERT 1 = 0.

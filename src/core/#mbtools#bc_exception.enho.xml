@@ -18,18 +18,40 @@
      <ENHMODE>D</ENHMODE>
      <FULL_NAME>\TY:/MBTOOLS/CX_EXCEPTION\ME:CONSTRUCTOR\SE:END\EI</FULL_NAME>
      <SOURCE>
-      <item>save_callstack( ).</item>
+      <item>  save_callstack( ).</item>
      </SOURCE>
     </ENH_HOOK_IMPL>
    </ENHANCEMENTS>
-   <SPACES>
+   <SOTR>
     <item>
-     <FULL_NAME>\TY:/MBTOOLS/CX_EXCEPTION\ME:CONSTRUCTOR\SE:END\EI</FULL_NAME>
-     <SPACES>
-      <item>2</item>
-     </SPACES>
+     <HEADER>
+      <CONCEPT>000D3A8FA0651EEA96FBB77CF7924829</CONCEPT>
+      <CREA_LAN>E</CREA_LAN>
+      <TRALA_TYPE>1</TRALA_TYPE>
+      <OBJID_VEC>AAI=</OBJID_VEC>
+     </HEADER>
+     <ENTRIES>
+      <SOTR_TEXT>
+       <CONCEPT>000D3A8FA0651EEA96FBB77CF7924829</CONCEPT>
+       <LANGU>E</LANGU>
+       <LFD_NUM>0001</LFD_NUM>
+       <FLAG_CNTXT>X</FLAG_CNTXT>
+       <STATUS>R</STATUS>
+       <LENGTH>023</LENGTH>
+       <TEXT>MBT Exception</TEXT>
+      </SOTR_TEXT>
+     </ENTRIES>
     </item>
-   </SPACES>
+   </SOTR>
+   <SOTR_USE>
+    <SOTR_USE>
+     <PGMID>R3TR</PGMID>
+     <OBJECT>ENHO</OBJECT>
+     <OBJ_NAME>/MBTOOLS/BC_EXCEPTION</OBJ_NAME>
+     <CONCEPT>000D3A8FA0651EEA96FBB77CF7924829</CONCEPT>
+     <LFD_NUM>0001</LFD_NUM>
+    </SOTR_USE>
+   </SOTR_USE>
   </asx:values>
  </asx:abap>
 </abapGit>

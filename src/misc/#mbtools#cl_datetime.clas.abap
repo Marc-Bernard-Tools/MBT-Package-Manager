@@ -32,6 +32,11 @@ CLASS /mbtools/cl_datetime DEFINITION
         !iv_to           TYPE timestamp OPTIONAL
       RETURNING
         VALUE(rv_result) TYPE string .
+    CLASS-METHODS get_long_date
+      IMPORTING
+        !iv_date         TYPE d
+      RETURNING
+        VALUE(rv_result) TYPE string .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -47,6 +52,28 @@ ENDCLASS.
 
 
 CLASS /MBTOOLS/CL_DATETIME IMPLEMENTATION.
+
+
+  METHOD get_long_date.
+
+    DATA:
+      ls_month_name  TYPE t247,
+      lt_month_names TYPE TABLE OF t247.
+
+    CALL FUNCTION 'MONTH_NAMES_GET'
+      EXPORTING
+        language    = sy-langu
+      TABLES
+        month_names = lt_month_names.
+
+    READ TABLE lt_month_names INTO ls_month_name INDEX ( iv_date+4(2) ).
+    CHECK sy-subrc = 0.
+
+    CONCATENATE ls_month_name-ltx iv_date+6(2) INTO rv_result SEPARATED BY space.
+    CONCATENATE rv_result ',' INTO rv_result.
+    CONCATENATE rv_result iv_date(4) INTO rv_result SEPARATED BY space.
+
+  ENDMETHOD.
 
 
   METHOD human_date_diff.

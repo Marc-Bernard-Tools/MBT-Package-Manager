@@ -97,6 +97,9 @@ CLASS /MBTOOLS/CL_HTTP_CLIENT IMPLEMENTATION.
 
     IF iv_expected_content_type IS NOT INITIAL.
       lv_content_type = mi_client->response->get_content_type( ).
+      IF lv_content_type CS ';'.
+        SPLIT lv_content_type AT ';' INTO lv_content_type lv_data.
+      ENDIF.
       IF lv_content_type <> iv_expected_content_type.
         /mbtools/cx_exception=>raise( 'Wrong content-type sent by server' ) ##NO_TEXT.
       ENDIF.

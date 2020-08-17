@@ -1,7 +1,7 @@
-class /MBTOOLS/CL_GUI definition
-  public
-  final
-  create public .
+CLASS /mbtools/cl_gui DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
 ************************************************************************
 * MBT GUI
@@ -11,15 +11,15 @@ class /MBTOOLS/CL_GUI definition
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-public section.
+  PUBLIC SECTION.
 
-  interfaces /MBTOOLS/IF_GUI_SERVICES .
+    INTERFACES /mbtools/if_gui_services .
 
-  aliases CACHE_ASSET
-    for /MBTOOLS/IF_GUI_SERVICES~CACHE_ASSET .
+    ALIASES cache_asset
+      FOR /mbtools/if_gui_services~cache_asset .
 
-  constants:
-    BEGIN OF c_event_state,
+    CONSTANTS:
+      BEGIN OF c_event_state,
         not_handled         TYPE i VALUE 0,
         re_render           TYPE i VALUE 1,
         new_page            TYPE i VALUE 2,
@@ -29,101 +29,103 @@ public section.
         go_back_to_bookmark TYPE i VALUE 6,
         new_page_replacing  TYPE i VALUE 7,
       END OF c_event_state .
-  constants:
-    BEGIN OF c_action,
+    CONSTANTS:
+      BEGIN OF c_action,
         go_home TYPE string VALUE 'go_home',
       END OF c_action .
 
-  methods GO_HOME
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  methods GO_PAGE
-    importing
-      !II_PAGE type ref to /MBTOOLS/IF_GUI_RENDERABLE
-      !IV_CLEAR_STACK type ABAP_BOOL default ABAP_TRUE
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  methods BACK
-    importing
-      !IV_TO_BOOKMARK type ABAP_BOOL default ABAP_FALSE
-    returning
-      value(RV_EXIT) type ABAP_BOOL
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  methods ON_EVENT
-    for event SAPEVENT of CL_GUI_HTML_VIEWER
-    importing
-      !ACTION
-      !FRAME
-      !GETDATA
-      !POSTDATA
-      !QUERY_TABLE .
-  methods CONSTRUCTOR
-    importing
-      !IO_COMPONENT type ref to OBJECT optional
-      !II_ASSET_MAN type ref to /MBTOOLS/IF_GUI_ASSET_MANAGER optional
-      !II_HOTKEY_CTL type ref to /MBTOOLS/IF_GUI_HOTKEY_CTL optional
-      !II_HTML_PROCESSOR type ref to /MBTOOLS/IF_GUI_HTML_PROCESSOR optional
-      !IV_ROLLBACK_ON_ERROR type ABAP_BOOL default ABAP_TRUE
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  methods FREE .
-  methods PARSE_DATA
-    importing
-      !IV_GETDATA type C
-      !IT_POSTDATA type CNHT_POST_DATA_TAB
-    returning
-      value(RO_PARAMETERS) type ref to /MBTOOLS/CL_STRING_MAP
-    raising
-      /MBTOOLS/CX_EXCEPTION .
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-
-    TYPES:
-      BEGIN OF ty_page_stack,
-        page     TYPE REF TO /mbtools/if_gui_renderable,
-        bookmark TYPE abap_bool,
-      END OF ty_page_stack .
-
-    DATA mv_rollback_on_error TYPE abap_bool .
-    DATA mi_cur_page TYPE REF TO /mbtools/if_gui_renderable .
-    DATA:
-      mt_stack             TYPE STANDARD TABLE OF ty_page_stack .
-    DATA:
-      mt_event_handlers    TYPE STANDARD TABLE OF REF TO /mbtools/if_gui_event_handler .
-    DATA mi_router TYPE REF TO /mbtools/if_gui_event_handler .
-    DATA mi_asset_man TYPE REF TO /mbtools/if_gui_asset_manager .
-    DATA mi_hotkey_ctl TYPE REF TO /mbtools/if_gui_hotkey_ctl .
-    DATA mi_html_processor TYPE REF TO /mbtools/if_gui_html_processor .
-    DATA mo_html_viewer TYPE REF TO cl_gui_html_viewer .
-    DATA mo_html_parts TYPE REF TO /mbtools/cl_html_parts .
-
-    METHODS startup
+    METHODS go_home
       RAISING
         /mbtools/cx_exception .
-    METHODS cache_html
+    METHODS go_page
       IMPORTING
-        !iv_text      TYPE string
+        !ii_page        TYPE REF TO /mbtools/if_gui_renderable
+        !iv_clear_stack TYPE abap_bool DEFAULT abap_true
+      RAISING
+        /mbtools/cx_exception .
+    METHODS back
+      IMPORTING
+        !iv_to_bookmark TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(rv_url) TYPE w3url .
-    METHODS render
+        VALUE(rv_exit)  TYPE abap_bool
       RAISING
         /mbtools/cx_exception .
-    METHODS call_page
+    METHODS on_event
+        FOR EVENT sapevent OF cl_gui_html_viewer
       IMPORTING
-        !ii_page          TYPE REF TO /mbtools/if_gui_renderable
-        !iv_with_bookmark TYPE abap_bool DEFAULT abap_false
-        !iv_replacing     TYPE abap_bool DEFAULT abap_false
+        !action
+        !frame
+        !getdata
+        !postdata
+        !query_table .
+    METHODS constructor
+      IMPORTING
+        !io_component         TYPE REF TO object OPTIONAL
+        !ii_asset_man         TYPE REF TO /mbtools/if_gui_asset_manager OPTIONAL
+        !ii_hotkey_ctl        TYPE REF TO /mbtools/if_gui_hotkey_ctl OPTIONAL
+        !ii_html_processor    TYPE REF TO /mbtools/if_gui_html_processor OPTIONAL
+        !iv_rollback_on_error TYPE abap_bool DEFAULT abap_true
       RAISING
         /mbtools/cx_exception .
-    METHODS handle_action
+    METHODS free .
+    METHODS parse_data
       IMPORTING
-        !iv_action   TYPE c
-        !iv_getdata  TYPE c OPTIONAL
-        !it_postdata TYPE cnht_post_data_tab OPTIONAL .
-    METHODS handle_error
-      IMPORTING
-        !ix_exception TYPE REF TO /mbtools/cx_exception .
+        !iv_getdata          TYPE c
+        !it_postdata         TYPE cnht_post_data_tab
+      RETURNING
+        VALUE(ro_parameters) TYPE REF TO /mbtools/cl_string_map
+      RAISING
+        /mbtools/cx_exception .
+  PROTECTED SECTION.
+PRIVATE SECTION.
+
+  TYPES:
+    BEGIN OF ty_page_stack,
+      page     TYPE REF TO /mbtools/if_gui_renderable,
+      bookmark TYPE abap_bool,
+    END OF ty_page_stack .
+
+  DATA mv_rollback_on_error TYPE abap_bool .
+  DATA mi_cur_page TYPE REF TO /mbtools/if_gui_renderable .
+  DATA:
+    mt_stack             TYPE STANDARD TABLE OF ty_page_stack .
+  DATA:
+    mt_event_handlers    TYPE STANDARD TABLE OF REF TO /mbtools/if_gui_event_handler .
+  DATA mi_router TYPE REF TO /mbtools/if_gui_event_handler .
+  DATA mi_asset_man TYPE REF TO /mbtools/if_gui_asset_manager .
+  DATA mi_hotkey_ctl TYPE REF TO /mbtools/if_gui_hotkey_ctl .
+  DATA mi_html_processor TYPE REF TO /mbtools/if_gui_html_processor .
+  DATA mo_html_viewer TYPE REF TO cl_gui_html_viewer .
+  DATA mo_html_parts TYPE REF TO /mbtools/cl_html_parts .
+  DATA mv_online TYPE abap_bool .
+
+  METHODS startup
+    RAISING
+      /mbtools/cx_exception .
+  METHODS cache_html
+    IMPORTING
+      !iv_text      TYPE string
+    RETURNING
+      VALUE(rv_url) TYPE w3url .
+  METHODS render
+    RAISING
+      /mbtools/cx_exception .
+  METHODS call_page
+    IMPORTING
+      !ii_page          TYPE REF TO /mbtools/if_gui_renderable
+      !iv_with_bookmark TYPE abap_bool DEFAULT abap_false
+      !iv_replacing     TYPE abap_bool DEFAULT abap_false
+    RAISING
+      /mbtools/cx_exception .
+  METHODS handle_action
+    IMPORTING
+      !iv_action   TYPE c
+      !iv_getdata  TYPE c OPTIONAL
+      !it_postdata TYPE cnht_post_data_tab OPTIONAL .
+  METHODS handle_error
+    IMPORTING
+      !ix_exception TYPE REF TO /mbtools/cx_exception .
+  METHODS ping .
 ENDCLASS.
 
 
@@ -292,6 +294,8 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
     mi_hotkey_ctl     = ii_hotkey_ctl.
     mi_html_processor = ii_html_processor. " Maybe improve to middlewares stack ??
 
+    ping( ).
+
     startup( ).
 
   ENDMETHOD.
@@ -417,7 +421,7 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
           MESSAGE ix_exception TYPE 'S' DISPLAY LIKE 'E'.
         ENDIF.
 
-      CATCH /mbtools/cx_exception cx_sy_move_cast_error INTO lx_exception.
+      CATCH cx_root INTO lx_exception.
         " In case of fire we just fallback to plain old message
         MESSAGE lx_exception TYPE 'S' DISPLAY LIKE 'E'.
     ENDTRY.
@@ -495,6 +499,15 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
                             iv_val = ls_entry-v ).
       ENDIF.
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD ping.
+
+    mv_online = /mbtools/cl_http=>ping( iv_url   = /mbtools/if_definitions=>c_www_home
+                                                && /mbtools/if_definitions=>c_www_ping
+                                        iv_regex = 'Marc Bernard Tools' ).
 
   ENDMETHOD.
 
