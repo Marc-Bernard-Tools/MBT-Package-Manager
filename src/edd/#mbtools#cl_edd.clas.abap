@@ -46,8 +46,7 @@ CLASS /mbtools/cl_edd DEFINITION
         !iv_id      TYPE string
         !iv_license TYPE string
       EXPORTING
-        !ev_valid   TYPE abap_bool
-        !ev_expire  TYPE d
+        !ev_result  TYPE abap_bool
       RAISING
         /mbtools/cx_exception .
     CLASS-METHODS check_license
@@ -61,11 +60,12 @@ CLASS /mbtools/cl_edd DEFINITION
         /mbtools/cx_exception .
     CLASS-METHODS get_version
       IMPORTING
-        !iv_id      TYPE string
-        !iv_license TYPE string
+        !iv_id        TYPE string
+        !iv_license   TYPE string
       EXPORTING
-        !ev_valid   TYPE abap_bool
-        !ev_expire  TYPE d
+        !ev_version   TYPE string
+        !ev_changelog TYPE string
+        !ev_download  TYPE string
       RAISING
         /mbtools/cx_exception .
   PROTECTED SECTION.
@@ -151,7 +151,7 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
         WHEN 'key_mismatch'.
           /mbtools/cx_exception=>raise( 'License is not valid for this product' ).
         WHEN 'invalid_item_id'.
-          /mbtools/cx_exception=>raise( 'Invalid Item ID' ).
+          /mbtools/cx_exception=>raise( 'Invalid item ID' ).
         WHEN 'item_name_mismatch'.
           /mbtools/cx_exception=>raise( 'License is not valid for this product' ).
         WHEN OTHERS.
@@ -204,22 +204,14 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     IF lo_json->get_boolean( '/success' ) <> abap_true.
       CASE lo_json->get_string( '/error' ).
-        WHEN 'missing'.
-          /mbtools/cx_exception=>raise( 'License doesn''t exist' ).
-        WHEN 'missing_url'.
-          /mbtools/cx_exception=>raise( 'URL not provided' ).
-        WHEN 'license_not_activable'.
-          /mbtools/cx_exception=>raise( 'Attempting to activate a bundle''s parent license' ).
         WHEN 'disabled'.
           /mbtools/cx_exception=>raise( 'License key revoked' ).
-        WHEN 'no_activations_left'.
-          /mbtools/cx_exception=>raise( 'No activations left' ).
         WHEN 'expired'.
           /mbtools/cx_exception=>raise( 'License has expired' ).
         WHEN 'key_mismatch'.
           /mbtools/cx_exception=>raise( 'License is not valid for this product' ).
         WHEN 'invalid_item_id'.
-          /mbtools/cx_exception=>raise( 'Invalid Item ID' ).
+          /mbtools/cx_exception=>raise( 'Invalid item ID' ).
         WHEN 'item_name_mismatch'.
           /mbtools/cx_exception=>raise( 'License is not valid for this product' ).
         WHEN OTHERS.
@@ -240,7 +232,8 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     DATA:
       lv_endpoint TYPE string,
-      lv_data     TYPE string.
+      lv_data     TYPE string,
+      lo_json     TYPE REF TO /mbtools/if_ajson_reader.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
@@ -250,7 +243,13 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     lv_data = get_data( lv_endpoint ).
 
-    ##TODO.
+    lo_json = get_json( lv_data ).
+
+    IF lo_json->get_boolean( '/success' ) <> abap_true.
+      /mbtools/cx_exception=>raise( lo_json->get_string( '/error' ) ).
+    ENDIF.
+
+    ev_result = abap_true.
 
   ENDMETHOD.
 
@@ -335,9 +334,24 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
   METHOD get_version.
 
+*{
+*  "new_version": "2.0",
+*  "stable_version": "2.0",
+*  "name": "Restrict Content Pro",
+*  "slug": "restrict-content-pro",
+*  "url": "https://edd.com/downloads/restrict-content-pro/?changelog=1",
+*  "last_updated": "2017-01-03 11:59:46",
+*  "homepage": "https://edd.com/downloads/restrict-content-pro/",
+*  "package": "",
+*  "download_link": "",
+*  "sections": "...",
+*  "banners": "..."
+*}
+
     DATA:
       lv_endpoint TYPE string,
-      lv_data     TYPE string.
+      lv_data     TYPE string,
+      lo_json     TYPE REF TO /mbtools/if_ajson_reader.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
@@ -347,7 +361,13 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     lv_data = get_data( lv_endpoint ).
 
-    ##TODO.
+    lo_json = get_json( lv_data ).
+
+    ev_version = lo_json->get_string( '/new_version' ).
+
+    ev_changelog = lo_json->get_date( 'url' ).
+
+    ev_download = lo_json->get_date( 'download_link' ).
 
   ENDMETHOD.
 ENDCLASS.

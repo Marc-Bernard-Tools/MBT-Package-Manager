@@ -1048,8 +1048,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     lv_license = escape( val    = to_lower( iv_license )
                          format = cl_abap_format=>e_url_full ).
 
-    " Is license valid?
-    /mbtools/cl_edd=>check_license(
+    " Activate license via call to EDD API on MBT
+    /mbtools/cl_edd=>activate_license(
       EXPORTING
         iv_id      = lv_id
         iv_license = lv_license
@@ -1077,7 +1077,9 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     DATA:
       lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
-      lo_reg_entry TYPE REF TO /mbtools/cl_registry.
+      lo_reg_entry TYPE REF TO /mbtools/cl_registry,
+      lv_license   TYPE string,
+      lv_id        TYPE string.
 
     " Is tool installed?
     lo_reg_tool = get_reg_tool( mv_name ).
@@ -1087,6 +1089,18 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     lo_reg_entry = lo_reg_tool->get_subentry( c_reg-license ).
     CHECK lo_reg_entry IS BOUND.
 
+    lv_id = lo_reg_entry->get_value( c_reg-key_lic_id ).
+
+    lv_license = lo_reg_entry->get_value( c_reg-key_lic_key ).
+
+    " Deactivate license via call to EDD API on MBT
+    /mbtools/cl_edd=>deactivate_license(
+      EXPORTING
+        iv_id      = lv_id
+        iv_license = lv_license
+      IMPORTING
+        ev_result  = rv_result ).
+
     " Remove license key
     lo_reg_entry->set_value( c_reg-key_lic_key ).
     lo_reg_entry->set_value( c_reg-key_lic_valid ).
@@ -1094,8 +1108,6 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
                              iv_value = '99991231' ).
 
     lo_reg_entry->save( ).
-
-    rv_result = abap_true.
 
   ENDMETHOD.
 
@@ -1242,21 +1254,24 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     LOOP AT lt_tools INTO ls_tool.
 
-      CASE iv_action.
-        WHEN /mbtools/if_actions=>tool_register.
-          lv_result = factory( ls_tool-name )->register( ).
-        WHEN /mbtools/if_actions=>tool_unregister.
-          lv_result = factory( ls_tool-name )->unregister( ).
-        WHEN /mbtools/if_actions=>tool_activate.
-          lv_result = factory( ls_tool-name )->activate( ).
-        WHEN /mbtools/if_actions=>tool_deactivate.
-          lv_result = factory( ls_tool-name )->deactivate( ).
-        WHEN /mbtools/if_actions=>tool_uninstall.
-          lv_result = factory( ls_tool-name )->uninstall( ).
-        WHEN OTHERS.
-          " unknow action
-          ASSERT 0 = 1.
-      ENDCASE.
+      TRY.
+          CASE iv_action.
+            WHEN /mbtools/if_actions=>tool_register.
+              lv_result = factory( ls_tool-name )->register( ).
+            WHEN /mbtools/if_actions=>tool_unregister.
+              lv_result = factory( ls_tool-name )->unregister( ).
+            WHEN /mbtools/if_actions=>tool_activate.
+              lv_result = factory( ls_tool-name )->activate( ).
+            WHEN /mbtools/if_actions=>tool_deactivate.
+              lv_result = factory( ls_tool-name )->deactivate( ).
+            WHEN /mbtools/if_actions=>tool_uninstall.
+              lv_result = factory( ls_tool-name )->uninstall( ).
+            WHEN OTHERS.
+              " unknow action
+              ASSERT 0 = 1.
+          ENDCASE.
+        CATCH /mbtools/cx_exception.
+      ENDTRY.
 
       IF lv_result = abap_false.
         rv_result = abap_false.

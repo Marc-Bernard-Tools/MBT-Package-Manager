@@ -184,7 +184,7 @@ CLASS /MBTOOLS/CL_AJSON IMPLEMENTATION.
     lv_item = get_item( iv_path ).
 
     IF lv_item IS NOT INITIAL AND lv_item->type = 'str'.
-      FIND FIRST OCCURRENCE OF REGEX '^(\d{4})-(\d{2})-(\d{2})(T|$)'
+      FIND FIRST OCCURRENCE OF REGEX '^(\d{4})-(\d{2})-(\d{2})'
         IN lv_item->value
         SUBMATCHES lv_y lv_m lv_d.
       CONCATENATE lv_y lv_m lv_d INTO rv_value.
