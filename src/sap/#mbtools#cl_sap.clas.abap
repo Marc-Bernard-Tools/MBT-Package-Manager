@@ -2,12 +2,12 @@ CLASS /mbtools/cl_sap DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT SAP
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-
   PUBLIC SECTION.
 
     TYPES:
@@ -75,6 +75,11 @@ CLASS /mbtools/cl_sap DEFINITION
         !iv_input        TYPE csequence
       RETURNING
         VALUE(rv_result) TYPE string .
+    CLASS-METHODS show_icon
+      IMPORTING
+        !iv_icon       TYPE csequence
+      RETURNING
+        VALUE(rv_exit) TYPE abap_bool .
     CLASS-METHODS show_object
       IMPORTING
         !iv_pgmid        TYPE csequence DEFAULT 'R3TR'
@@ -556,6 +561,27 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
       ENDCASE.
     ELSE.
       MESSAGE i010(01) WITH iv_tcode.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD show_icon.
+
+    CONSTANTS: c_icon_browser TYPE progname VALUE '/MBTOOLS/ICON_BROWSER'.
+
+    DATA: ls_trdir_entry TYPE trdir.
+
+    " Check if executable program exists
+    SELECT SINGLE * FROM trdir INTO ls_trdir_entry
+      WHERE name = c_icon_browser AND subc = '1'.
+    IF sy-subrc = 0.
+      SUBMIT (c_icon_browser)
+        WITH p_disp_i = abap_false
+        WITH p_disp_n = abap_false
+        WITH p_disp_p = abap_true
+        WITH s_icon   = iv_icon
+        AND RETURN.
     ENDIF.
 
   ENDMETHOD.

@@ -500,6 +500,9 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
     CASE ls_typtab-fieldname.
 
+      WHEN /mbtools/if_objects=>c_icon.
+        /mbtools/cl_sap=>show_icon( lv_value ).
+
       WHEN /mbtools/if_objects=>c_sel_object.
         lv_compuid = lv_value.
         CALL FUNCTION 'RSPLW_SOB_MAINTAIN'

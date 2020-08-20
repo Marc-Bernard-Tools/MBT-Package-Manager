@@ -2,6 +2,7 @@ CLASS /mbtools/cl_version DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT Version
 *
@@ -10,7 +11,6 @@ CLASS /mbtools/cl_version DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-
   PUBLIC SECTION.
 
     CLASS-METHODS normalize
@@ -18,6 +18,18 @@ CLASS /mbtools/cl_version DEFINITION
         !iv_version       TYPE string
       RETURNING
         VALUE(rv_version) TYPE string .
+
+    CLASS-METHODS compare
+      IMPORTING
+        !iv_a            TYPE string
+        !iv_b            TYPE string
+      RETURNING
+        VALUE(rv_result) TYPE i .
+
+  PROTECTED SECTION.
+
+  PRIVATE SECTION.
+
     CLASS-METHODS conv_str_to_version
       IMPORTING
         !iv_version       TYPE csequence
@@ -25,14 +37,13 @@ CLASS /mbtools/cl_version DEFINITION
         VALUE(rs_version) TYPE /mbtools/if_definitions=>ty_version
       RAISING
         /mbtools/cx_exception .
+
     CLASS-METHODS check_dependant_version
       IMPORTING
         !is_current   TYPE /mbtools/if_definitions=>ty_version
         !is_dependant TYPE /mbtools/if_definitions=>ty_version
       RAISING
         /mbtools/cx_exception .
-  PROTECTED SECTION.
-  PRIVATE SECTION.
 ENDCLASS.
 
 
@@ -86,6 +97,35 @@ CLASS /MBTOOLS/CL_VERSION IMPLEMENTATION.
 
     IF is_dependant-prerelase = is_current-prerelase AND is_dependant-prerelase_patch > is_current-prerelase_patch.
       /mbtools/cx_exception=>raise( lc_message ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD compare.
+
+    DATA: ls_version_a TYPE zif_abapgit_definitions=>ty_version,
+          ls_version_b TYPE zif_abapgit_definitions=>ty_version.
+
+    TRY.
+        ls_version_a = conv_str_to_version( iv_a ).
+        ls_version_b = conv_str_to_version( iv_b ).
+      CATCH /mbtools/cx_exception.
+        rv_result = 0.
+        RETURN.
+    ENDTRY.
+
+    IF ls_version_a = ls_version_b.
+      rv_result = 0.
+    ELSE.
+      TRY.
+          check_dependant_version( is_current   = ls_version_a
+                                   is_dependant = ls_version_b ).
+          rv_result = 1.
+        CATCH /mbtools/cx_exception.
+          rv_result = -1.
+          RETURN.
+      ENDTRY.
     ENDIF.
 
   ENDMETHOD.

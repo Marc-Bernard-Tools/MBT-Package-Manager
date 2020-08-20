@@ -1,6 +1,6 @@
-/**********************************************************
- * ABAPGIT JS function library
- **********************************************************/
+/*
+ * MBT COMMON JS
+ */
 
 /**********************************************************
   Global variables used from outside
@@ -618,9 +618,7 @@ function setKeyBindings(oKeyMap){
   setTimeout(function(){ toggleDisplay("hotkeys-hint") }, 5000);
 }
 
-/**********************************************************
- * Ctrl + P - command palette
- **********************************************************/
+/* CTRL+P - COMMAND PALETTE */
 
 // fuzzy match helper
 // return non empty marked string in case it fits the filter
@@ -923,24 +921,28 @@ function enumerateJumpAllFiles() {
       };});
 }
 
-function saveScrollPosition(){
-  if (!window.sessionStorage) { return }
-  window.sessionStorage.setItem("scrollTop", document.querySelector("html").scrollTop);
+/* SCROLL POSITION */
+
+function saveScrollPosition() {
+	if (!window.sessionStorage) { return }
+	window.sessionStorage.setItem("scrollTop", document.querySelector("html").scrollTop);
 }
 
-function restoreScrollPosition(){
-  if (!window.sessionStorage) { return }
+function restoreScrollPosition() {
+	if (!window.sessionStorage) { return }
 
-  var scrollTop = window.sessionStorage.getItem("scrollTop");
-  if (scrollTop) {
-    document.querySelector("html").scrollTop = scrollTop;
-  }
-  window.sessionStorage.setItem("scrollTop", 0);
+	var scrollTop = window.sessionStorage.getItem("scrollTop");
+	if (scrollTop) {
+		document.querySelector("html").scrollTop = scrollTop;
+	}
+	// window.sessionStorage.setItem("scrollTop", 0);
+	window.sessionStorage.removeItem('scrollTop');
 }
 
-function memoizeScrollPosition(fn){
-  return function(){
-    saveScrollPosition();
-    return fn.call(this, fn.args);
-  }.bind(this);
-}
+document.addEventListener("DOMContentLoaded", function (event) {
+	restoreScrollPosition();
+});
+
+window.addEventListener("beforeunload", function (e) {
+	saveScrollPosition();
+});

@@ -44,6 +44,11 @@ CLASS /mbtools/cl_tools DEFINITION
         key_lic_expire     TYPE string VALUE 'LicenseExpiration' ##NO_TEXT,
         " Settings
         settings           TYPE string VALUE 'Settings' ##NO_TEXT,
+        " Update
+        update             TYPE string VALUE '.Update' ##NO_TEXT,
+        key_new_version    TYPE string VALUE 'NewVersion' ##NO_TEXT,
+        key_changelog      TYPE string VALUE 'Changelog' ##NO_TEXT,
+        key_download       TYPE string VALUE 'DownloadURL' ##NO_TEXT,
       END OF c_reg .
     " Evaluation
     CONSTANTS c_eval_days TYPE i VALUE 60 ##NO_TEXT.
@@ -108,11 +113,6 @@ CLASS /mbtools/cl_tools DEFINITION
     METHODS unregister
       RETURNING
         VALUE(rv_result) TYPE abap_bool .
-    METHODS uninstall
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool
-      RAISING
-        /mbtools/cx_exception .
     " Tool Activate/Deactivate
     METHODS activate
       RETURNING
@@ -218,6 +218,11 @@ CLASS /mbtools/cl_tools DEFINITION
     METHODS get_last_update
       RETURNING
         VALUE(rv_result) TYPE string .
+    METHODS check_version
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool
+      RAISING
+        /mbtools/cx_exception .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -309,6 +314,66 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       rs_manifest-group_id    = /mbtools/if_definitions=>c_github.
       rs_manifest-artifact_id = mv_name.
       rs_manifest-git_url     = get_url_repo( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD check_version.
+
+    DATA:
+      lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
+      lo_reg_entry TYPE REF TO /mbtools/cl_registry,
+      lv_license   TYPE string,
+      lv_id        TYPE string,
+      lv_version   TYPE string,
+      lv_changelog TYPE string,
+      lv_download  TYPE string.
+
+    " Is tool or bundle registered?
+    IF is_bundle( ) IS INITIAL.
+      lo_reg_tool = get_reg_tool( mv_name ).
+    ELSE.
+      lo_reg_tool = go_reg_root->get_subentry( mv_name ).
+    ENDIF.
+    CHECK lo_reg_tool IS BOUND.
+
+    " Get license
+    lo_reg_entry = lo_reg_tool->get_subentry( c_reg-license ).
+    CHECK lo_reg_entry IS BOUND.
+
+    lv_id = lo_reg_entry->get_value( c_reg-key_lic_id ).
+
+    lv_license = lo_reg_entry->get_value( c_reg-key_lic_key ).
+
+    " Get version info via call to EDD API on MBT
+    /mbtools/cl_edd=>get_version(
+      EXPORTING
+        iv_id        = lv_id
+        iv_license   = lv_license
+      IMPORTING
+        ev_version   = lv_version
+        ev_changelog = lv_changelog
+        ev_download  = lv_download ).
+
+    " If newer version is available, save info
+    IF /mbtools/cl_version=>compare( iv_a = lv_version
+                                     iv_b = get_version( ) ) > 0.
+
+      lo_reg_entry = lo_reg_tool->get_subentry( c_reg-update ).
+      CHECK lo_reg_entry IS BOUND.
+
+      lo_reg_entry->set_value( iv_key   = c_reg-key_new_version
+                               iv_value = lv_version ).
+      lo_reg_entry->set_value( iv_key   = c_reg-key_changelog
+                               iv_value = lv_changelog ).
+      lo_reg_entry->set_value( iv_key   = c_reg-key_download
+                               iv_value = lv_download ).
+
+      lo_reg_entry->save( ).
+
+      rv_result = abap_true.
+
     ENDIF.
 
   ENDMETHOD.
@@ -1031,7 +1096,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lv_valid     TYPE abap_bool,
       lv_expire    TYPE d.
 
-    " Is tool already registered?
+    " Is tool or bundle registered?
     IF is_bundle( ) IS INITIAL.
       lo_reg_tool = get_reg_tool( mv_name ).
     ELSE.
@@ -1081,11 +1146,15 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lv_license   TYPE string,
       lv_id        TYPE string.
 
-    " Is tool installed?
-    lo_reg_tool = get_reg_tool( mv_name ).
+    " Is tool or bundle registered?
+    IF is_bundle( ) IS INITIAL.
+      lo_reg_tool = get_reg_tool( mv_name ).
+    ELSE.
+      lo_reg_tool = go_reg_root->get_subentry( mv_name ).
+    ENDIF.
     CHECK lo_reg_tool IS BOUND.
 
-    " License
+    " Get license
     lo_reg_entry = lo_reg_tool->get_subentry( c_reg-license ).
     CHECK lo_reg_entry IS BOUND.
 
@@ -1227,6 +1296,15 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           IF mv_is_bundle IS INITIAL.
             lo_reg_entry = lo_reg_tool->add_subentry( c_reg-settings ).
           ENDIF.
+
+         " Update
+          lo_reg_entry = lo_reg_tool->add_subentry( c_reg-update ).
+          IF lo_reg_entry IS BOUND.
+            lo_reg_entry->set_value( c_reg-key_new_version ).
+            lo_reg_entry->set_value( c_reg-key_changelog ).
+            lo_reg_entry->set_value( c_reg-key_download ).
+            lo_reg_entry->save( ).
+          ENDIF.
         ENDIF.
 
         " Save
@@ -1265,7 +1343,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
             WHEN /mbtools/if_actions=>tool_deactivate.
               lv_result = factory( ls_tool-name )->deactivate( ).
             WHEN /mbtools/if_actions=>tool_uninstall.
-              lv_result = factory( ls_tool-name )->uninstall( ).
+*              lv_result = factory( ls_tool-name )->uninstall( ).
             WHEN OTHERS.
               " unknow action
               ASSERT 0 = 1.
@@ -1278,11 +1356,6 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       ENDIF.
 
     ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD uninstall  ##TODO.
 
   ENDMETHOD.
 

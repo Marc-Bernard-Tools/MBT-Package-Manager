@@ -602,17 +602,19 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
   METHOD render_tool.
 
     DATA:
-      lo_tool   TYPE REF TO /mbtools/cl_tools,
-      lv_expire TYPE d,
+      lo_tool    TYPE REF TO /mbtools/cl_tools,
+      lv_expire  TYPE d,
       lv_details TYPE string,
-      lv_class  TYPE string,
-      lv_img    TYPE string.
+      lv_class   TYPE string,
+      lv_img     TYPE string.
 
     lo_tool = /mbtools/cl_tools=>factory( iv_title ).
 
     lv_class = 'tool-row'.
     IF lo_tool->is_bundle( ) = abap_false AND lo_tool->is_active( ) = abap_false.
-      lv_class = lv_class && | tool-inactive|.
+      lv_class = lv_class && | inactive|.
+    ELSE.
+      lv_class = lv_class && | active|.
     ENDIF.
 
     lv_img = |<img src="{ register_thumbnail( lo_tool ) }" alt="{ lo_tool->get_title( ) }">|.
@@ -639,7 +641,12 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
       WHEN c_mode-license.
         IF lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_valid ) = abap_true.
           lv_expire = lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_expire ).
-          lv_details = |Your license key expires { /mbtools/cl_datetime=>get_long_date( lv_expire ) }|.
+          lv_details = /mbtools/cl_datetime=>get_long_date( lv_expire ).
+          lv_details = |<span class="has-mbt-green-color">{ lv_details }</span>|.
+          lv_details = |Your license key expires { lv_details }|.
+        ELSEIF NOT lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_key ) IS INITIAL.
+          lv_details = |<span class="has-mbt-red-color">expired</span>|.
+          lv_details = |Your license key has { lv_details }. Please enter a valid key.|.
         ELSE.
           lv_details = 'To receive updates, please enter your valid license key'.
         ENDIF.

@@ -64,6 +64,7 @@ INTERFACE /mbtools/if_objects
   CONSTANTS:
     c_user_id          TYPE lvc_fname VALUE rs_c_tlogo-user,
     c_role             TYPE lvc_fname VALUE rs_c_tlogo-activity_group,
+    c_icon             TYPE lvc_fname VALUE 'ICON',
     c_abap_function    TYPE lvc_fname VALUE 'FUNC',
     c_abap_program     TYPE lvc_fname VALUE 'PROG',
     c_abap_class       TYPE lvc_fname VALUE 'CLAS',

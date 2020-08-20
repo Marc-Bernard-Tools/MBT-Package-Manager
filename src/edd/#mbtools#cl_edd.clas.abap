@@ -69,31 +69,31 @@ CLASS /mbtools/cl_edd DEFINITION
       RAISING
         /mbtools/cx_exception .
   PROTECTED SECTION.
-  PRIVATE SECTION.
+PRIVATE SECTION.
 
-    CLASS-METHODS get_data
-      IMPORTING
-        !iv_url        TYPE string
-      RETURNING
-        VALUE(rv_data) TYPE string
-      RAISING
-        /mbtools/cx_exception .
-    CLASS-METHODS get_endpoint
-      IMPORTING
-        !iv_action         TYPE string
-        !iv_id             TYPE string
-        !iv_license        TYPE string
-      RETURNING
-        VALUE(rv_endpoint) TYPE string
-      RAISING
-        /mbtools/cx_exception .
-    CLASS-METHODS get_json
-      IMPORTING
-        !iv_data       TYPE string
-      RETURNING
-        VALUE(ro_json) TYPE REF TO /mbtools/if_ajson_reader
-      RAISING
-        /mbtools/cx_exception .
+  CLASS-METHODS get_data
+    IMPORTING
+      !iv_url        TYPE string
+    RETURNING
+      VALUE(rv_data) TYPE string
+    RAISING
+      /mbtools/cx_exception .
+  CLASS-METHODS get_endpoint
+    IMPORTING
+      !iv_action         TYPE string
+      !iv_id             TYPE string
+      !iv_license        TYPE string
+    RETURNING
+      VALUE(rv_endpoint) TYPE string
+    RAISING
+      /mbtools/cx_exception .
+  CLASS-METHODS get_json
+    IMPORTING
+      !iv_data       TYPE string
+    RETURNING
+      VALUE(ro_json) TYPE REF TO /mbtools/if_ajson_reader
+    RAISING
+      /mbtools/cx_exception .
 ENDCLASS.
 
 
@@ -246,7 +246,8 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
     lo_json = get_json( lv_data ).
 
     IF lo_json->get_boolean( '/success' ) <> abap_true.
-      /mbtools/cx_exception=>raise( lo_json->get_string( '/error' ) ).
+      " Probably wasn't a valid license in the first place. Ignore errors.
+      ev_result = abap_true.
     ENDIF.
 
     ev_result = abap_true.

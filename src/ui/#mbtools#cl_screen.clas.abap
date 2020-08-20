@@ -13,13 +13,14 @@ CLASS /mbtools/cl_screen DEFINITION
     TYPES:
       ty_screen_field TYPE c LENGTH 83 .
 
-    CLASS-DATA gv_copyright TYPE string .
-    CLASS-DATA gv_about TYPE string .
-    CLASS-DATA gv_documentation TYPE string .
-    CLASS-DATA gv_tool_page TYPE string .
-    CLASS-DATA gv_website TYPE string .
-    CLASS-DATA gv_terms TYPE string .
-    CLASS-DATA gv_version TYPE string .
+    CLASS-DATA gv_copyright TYPE string READ-ONLY .
+    CLASS-DATA gv_about TYPE string READ-ONLY .
+    CLASS-DATA gv_documentation TYPE string READ-ONLY .
+    CLASS-DATA gv_tool_page TYPE string READ-ONLY .
+    CLASS-DATA gv_website_name TYPE string READ-ONLY .
+    CLASS-DATA gv_website_domain TYPE string READ-ONLY .
+    CLASS-DATA gv_terms TYPE string READ-ONLY .
+    CLASS-DATA gv_version TYPE string READ-ONLY .
 
     CLASS-METHODS class_constructor .
     METHODS constructor
@@ -62,7 +63,8 @@ CLASS /mbtools/cl_screen DEFINITION
       IMPORTING
         VALUE(iv_show) TYPE abap_bool DEFAULT abap_true
         VALUE(iv_top)  TYPE i DEFAULT 4
-        VALUE(iv_left) TYPE i DEFAULT 20 .
+        VALUE(iv_left) TYPE i DEFAULT 20
+          PREFERRED PARAMETER iv_show .
     METHODS ucomm
       IMPORTING
         VALUE(iv_ok_code) TYPE sy-ucomm .
@@ -167,7 +169,8 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
     gv_documentation  = 'Documentation'(002).
     gv_terms          = 'Terms'(003).
     gv_tool_page      = 'Tool Page'(004).
-    gv_website        = 'MBT Website'(005).
+    gv_website_name   = 'MBT Website'(005).
+    gv_website_domain = 'MarcBernardTools.com' ##NO_TEXT.
     gv_version        = 'Version'(006).
   ENDMETHOD.
 
@@ -234,8 +237,8 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
 
     ev_home = icon(
       iv_icon  = icon_url
-      iv_text  = /mbtools/cl_tool_bc=>c_tool-title
-      iv_quick = gv_website ).
+      iv_text  = gv_website_domain
+      iv_quick = gv_website_name ).
 
   ENDMETHOD.
 

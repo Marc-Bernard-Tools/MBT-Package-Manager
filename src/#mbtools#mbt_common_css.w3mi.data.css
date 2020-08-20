@@ -523,7 +523,9 @@ button[type=submit] {
 }
 
 button[type=submit]:hover,
-button[type=submit]:focus {
+button[type=submit]:focus,
+button[type=submit] i:hover,
+button[type=submit] i:focus {
     text-decoration: none !important;
     border: none !important;
     background: none !important;
@@ -532,7 +534,7 @@ button[type=submit]:focus {
 
 input::placeholder,
 input:-ms-input-placeholder { 
-    color: #ccc 
+    color: #ccc;
 }
 
 .required {
@@ -1122,11 +1124,17 @@ div.debug_container p {
     padding-left: 70px;
 }
 
-.tool-inactive {
-    color: #999;
+.tool-row.active .tool-thumbnail {
+    border-left: 3px #04c !important;
 }
 .tool-row:hover td {
     background: #ddd !important;
+}
+.tool-row.inactive {
+    color: #999;
+}
+.tool-row.inactive .tool-thumbnail {
+    border-left: 1px #999 !important;
 }
 .tool-thumbnail {
     width: 90px;
