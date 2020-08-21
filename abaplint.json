@@ -146,7 +146,7 @@
       ]
     },
     "description_empty": true,
-    "double_space": true,
+    "double_space": false,
     "downport": false,
     "empty_line_in_statement": {
       "allowChained": true
@@ -229,7 +229,7 @@
     "local_testclass_location": true,
     "local_variable_names": {
       "exclude": [
-        "#mbtools#"    
+        "#mbtools#cl_logger.*"    
       ],
       "expectedData": "^L._.*$",
       "expectedConstant": "^LC_.*$",
@@ -369,7 +369,11 @@
       ]
     },
     "unreachable_code": true,
-    "unused_variables": true,
+    "unused_variables": {
+      "exclude": [
+        "#mbtools#"
+      ]
+    },
     "use_new": true,
     "when_others_last": true,
     "whitespace_end": true,
