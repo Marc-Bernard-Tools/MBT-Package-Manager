@@ -14,7 +14,7 @@
   ],
   "syntax": {
     "version": "v702",
-    "errorNamespace": "^(/MBTOOLS/|LT?CL_|LIF_|Y|Z)",
+    "errorNamespace": "^(/MBTOOLS/|LCL_|LIF_|LT|Y|Z)",
     "globalConstants": [
       "apack_manifest",
       "cndp_lifetime_transaction",
@@ -97,15 +97,16 @@
       "statics": true
     },
     "begin_end_names": true,
-    "check_comments": false,
+    "begin_single_include": true,
+    "chain_mainly_declarations": true,
     "check_abstract": true,
+    "check_comments": false,
     "check_ddic": true,
     "check_include": {
       "exclude": [
         "#mbtools#"
       ]
     },
-    "chain_mainly_declarations": true,
     "check_no_handler_pragma": true,
     "check_syntax": true,
     "check_text_elements": true,
@@ -145,7 +146,7 @@
       ]
     },
     "description_empty": true,
-    "double_space": false,
+    "double_space": true,
     "downport": false,
     "empty_line_in_statement": {
       "allowChained": true
@@ -166,7 +167,6 @@
     "forbidden_void_type": {
       "check": ["^sydatum$", "^syindex$", "^sytabix$", "^syuzeit$", "^syucomm$", "^sylisel$", "^sysaprl$"]
     },
-    "form_no_dash": true,
     "form_tables_obsolete": true,
     "fully_type_constants": true,
     "functional_writing":  {
@@ -222,9 +222,9 @@
       "ignoreExceptions": true
     },
     "local_class_naming": {
-      "exception": "^LCL_.*$",
+      "exception": "^LCX_.*$",
       "local": "^LCL_.*$",
-      "test": "^LTCL_.*$"
+      "test": "^LT.*$"
     },
     "local_testclass_location": true,
     "local_variable_names": {
@@ -265,6 +265,7 @@
     },
     "mix_returning": true,
     "msag_consistency": true,
+    "names_no_dash": true,
     "nesting": {
       "exclude": [
         "#mbtools#"
@@ -307,7 +308,9 @@
       "setExtended": true,
       "occurs": true
     },
-    "parser_error": {},
+    "parser_error": true,
+    "parser_missing_spaces": true,
+    "prefer_inline": false,
     "prefer_returning_to_exporting": true,
     "preferred_compare_operator": {
       "exclude": [
@@ -326,9 +329,10 @@
     "prefix_is_current_class": {
       "omitMeInstanceCalls": true
     },
+    "reduce_string_templates": true,
     "release_idoc": true,
     "remove_descriptions": false,
-    "rfc_error_handling": false,
+    "rfc_error_handling": true,
     "selection_screen_naming": true,
     "sequential_blank": {
       "lines": 4
@@ -357,7 +361,6 @@
     "superclass_final": true,
     "tabl_enhancement_category": true,
     "try_without_catch": true,
-    "type_begin_single_include": true,
     "type_form_parameters": true,
     "types_naming": true,
     "unknown_types": {
@@ -366,7 +369,7 @@
       ]
     },
     "unreachable_code": true,
-    "unused_variables": false,
+    "unused_variables": true,
     "use_new": true,
     "when_others_last": true,
     "whitespace_end": true,
