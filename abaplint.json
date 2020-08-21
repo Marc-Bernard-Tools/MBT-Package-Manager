@@ -7,7 +7,7 @@
   },
   "dependencies": [
     {
-      "url": false,
+      "url": "",
       "folder": "/deps",
       "files": "/**/*.*"
     }
@@ -134,6 +134,7 @@
     "cloud_types": true,
     "colon_missing_space": true,
     "commented_code": {
+      "allowIncludeInFugr": false,
       "exclude": [
         "#mbtools#"
       ]
@@ -159,7 +160,8 @@
       "case": true,
       "select": true,
       "do": true,
-      "at": true
+      "at": true,
+      "try": true
     },
     "exit_or_check": false,
     "exporting": true,
@@ -200,6 +202,7 @@
       "style": "upper",
       "ignoreExceptions": true,
       "ignoreLowerClassImplmentationStatement": true,
+      "ignoreGlobalClassBoundaries": false,
       "ignoreGlobalClassDefinition": false,
       "ignoreGlobalInterface": false,
       "ignoreFunctionModuleName": false,
@@ -229,7 +232,9 @@
     "local_testclass_location": true,
     "local_variable_names": {
       "exclude": [
-        "#mbtools#cl_logger.*"    
+        "#mbtools#cl_ajson.*",
+        "#mbtools#cl_logger.*",
+        "#mbtools#cl_string_map.*"
       ],
       "expectedData": "^L._.*$",
       "expectedConstant": "^LC_.*$",
@@ -289,6 +294,7 @@
       "auth": "^/MBTOOLS/",
       "pinf": "^/MBTOOLS/",
       "idoc": "^/MBTOOLS/",
+      "shlp": "^/MBTOOLS/",
       "ssfo": "^/MBTOOLS/",
       "ssst": "^/MBTOOLS/",
       "xslt": "^/MBTOOLS/"
@@ -306,10 +312,10 @@
       "divide": true,
       "requested": true,
       "setExtended": true,
-      "occurs": true
+      "occurs": true,
+      "withHeaderLine": true
     },
     "parser_error": true,
-    "parser_missing_spaces": true,
     "prefer_inline": false,
     "prefer_returning_to_exporting": true,
     "preferred_compare_operator": {
@@ -370,8 +376,9 @@
     },
     "unreachable_code": true,
     "unused_variables": {
+      "skipNames": [],
       "exclude": [
-        "#mbtools#"
+        "#mbtools#cl_logger.*"
       ]
     },
     "use_new": true,
