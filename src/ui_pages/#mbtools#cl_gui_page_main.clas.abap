@@ -121,10 +121,10 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
     CASE iv_action.
 
-      WHEN /mbtools/if_actions=>tools_check ##TODO.
+      WHEN /mbtools/if_actions=>tool_check ##TODO.
         ev_state = /mbtools/cl_gui=>c_event_state-re_render.
 
-      WHEN /mbtools/if_actions=>tools_update ##TODO.
+      WHEN /mbtools/if_actions=>tool_update ##TODO.
         ev_state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_docs.
@@ -164,10 +164,8 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
           IF lo_tool->license_add( io_parameters->get( 'license' ) ) = abap_true.
             MESSAGE 'License saved and activated successfully' TYPE 'S'.
           ENDIF.
-        ELSE.
-          IF lo_tool->license_remove( ) = abap_true.
-            MESSAGE 'License deactivated and removed successfully' TYPE 'S'.
-          ENDIF.
+        ELSEIF lo_tool->license_remove( ) = abap_true.
+          MESSAGE 'License deactivated and removed successfully' TYPE 'S'.
         ENDIF.
         ev_state = /mbtools/cl_gui=>c_event_state-re_render.
 
@@ -188,12 +186,12 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
     ls_hotkey_action-description = |Check for Updates|.
-    ls_hotkey_action-action      = /mbtools/if_actions=>tools_check.
+    ls_hotkey_action-action      = /mbtools/if_actions=>tool_check.
     ls_hotkey_action-hotkey      = |c|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
     ls_hotkey_action-description = |Update All Tools|.
-    ls_hotkey_action-action      = /mbtools/if_actions=>tools_update.
+    ls_hotkey_action-action      = /mbtools/if_actions=>tool_update.
     ls_hotkey_action-hotkey      = |u|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
@@ -296,10 +294,10 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
           iv_act = /mbtools/if_actions=>tool_install
         )->add(
           iv_txt = 'Check for Updates'
-          iv_act = /mbtools/if_actions=>tools_check
+          iv_act = /mbtools/if_actions=>tool_check
         )->add(
           iv_txt = 'Update All Tools'
-          iv_act = /mbtools/if_actions=>tools_update
+          iv_act = /mbtools/if_actions=>tool_update
         )->add(
           iv_txt = 'Edit License Keys'
           iv_act = /mbtools/if_actions=>go_license ).
@@ -446,15 +444,15 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
         IF io_tool->has_launch( ) = abap_true.
           ri_html->add_a(
             iv_act = |{ /mbtools/if_actions=>tool_launch }?name={ io_tool->get_name( ) }|
-            iv_txt = /mbtools/cl_html=>icon( iv_name  = 'rocket/black'
-                                             iv_hint  = 'Launch tool' ) ).
+            iv_txt = ri_html->icon( iv_name  = 'rocket/black'
+                                    iv_hint  = 'Launch tool' ) ).
         ENDIF.
 
         IF io_tool->is_bundle( ) = abap_false.
           ri_html->add_a(
             iv_act = |{ /mbtools/if_actions=>tool_docs }?name={ io_tool->get_name( ) }|
-            iv_txt = /mbtools/cl_html=>icon( iv_name  = 'question/black'
-                                             iv_hint  = 'Display tool documentation' ) ).
+            iv_txt = ri_html->icon( iv_name  = 'question/black'
+                                    iv_hint  = 'Display tool documentation' ) ).
         ENDIF.
 
       WHEN c_mode-admin.
@@ -463,25 +461,25 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
           IF io_tool->is_active( ) = abap_false.
             ri_html->add_a(
               iv_act = |{ /mbtools/if_actions=>tool_activate }?name={ io_tool->get_name( ) }|
-              iv_txt = /mbtools/cl_html=>icon( iv_name  = 'fire-alt/black'
-                                               iv_hint  = 'Activate tool' ) ).
+              iv_txt = ri_html->icon( iv_name  = 'fire-alt/black'
+                                      iv_hint  = 'Activate tool' ) ).
             ri_html->add_a(
               iv_act = |{ /mbtools/if_actions=>tool_uninstall }?name={ io_tool->get_name( ) }|
-              iv_txt = /mbtools/cl_html=>icon( iv_name  = 'trash-alt/black'
-                                               iv_hint  = 'Uninstall tool' ) ).
+              iv_txt = ri_html->icon( iv_name  = 'trash-alt/black'
+                                      iv_hint  = 'Uninstall tool' ) ).
           ELSE.
             ri_html->add_a(
               iv_act = |{ /mbtools/if_actions=>tool_deactivate }?name={ io_tool->get_name( ) }|
-              iv_txt = /mbtools/cl_html=>icon( iv_name  = 'snowflake/black'
-                                               iv_hint  = 'Deactivate tool' ) ).
+              iv_txt = ri_html->icon( iv_name  = 'snowflake/black'
+                                      iv_hint  = 'Deactivate tool' ) ).
           ENDIF.
 
         ENDIF.
 
         ri_html->add_a(
           iv_act = |{ /mbtools/if_actions=>tool_info }?name={ io_tool->get_name( ) }|
-          iv_txt = /mbtools/cl_html=>icon( iv_name  = 'globe/black'
-                                           iv_hint  = 'Show more information about tool' ) ).
+          iv_txt = ri_html->icon( iv_name  = 'globe/black'
+                                  iv_hint  = 'Show more information about tool' ) ).
 
       WHEN c_mode-license.
 
@@ -495,8 +493,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
         lo_values->set( iv_key = 'license'
                         iv_val = io_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_key ) ).
 
-        lo_form->hidden(
-          iv_name = 'name' ).
+        lo_form->hidden( iv_name = 'name' ).
 
         lo_form->text(
           iv_name        = 'license'
@@ -509,14 +506,14 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
         lo_form->command(
           iv_cmd_type = /mbtools/cl_html_form=>c_cmd_type-button
           iv_action   = /mbtools/if_actions=>license_add
-          iv_label    = /mbtools/cl_html=>icon( iv_name  = 'save/black'
-                                              iv_hint  = 'Save and activate license key' ) ).
+          iv_label    = ri_html->icon( iv_name  = 'save/black'
+                                       iv_hint  = 'Save and activate license key' ) ).
 
         lo_form->command(
           iv_cmd_type = /mbtools/cl_html_form=>c_cmd_type-button
           iv_action   = /mbtools/if_actions=>license_remove
-          iv_label    = /mbtools/cl_html=>icon( iv_name  = 'trash-alt/black'
-                                              iv_hint  = 'Deactivate and remove license key' ) ).
+          iv_label    = ri_html->icon( iv_name  = 'trash-alt/black'
+                                       iv_hint  = 'Deactivate and remove license key' ) ).
 
         ri_html->add( lo_form->render( iv_form_class = 'tool-license'
                                        io_values     = lo_values ) ).
@@ -602,11 +599,13 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
   METHOD render_tool.
 
     DATA:
-      lo_tool    TYPE REF TO /mbtools/cl_tools,
-      lv_expire  TYPE d,
-      lv_details TYPE string,
-      lv_class   TYPE string,
-      lv_img     TYPE string.
+      lo_tool      TYPE REF TO /mbtools/cl_tools,
+      lv_expire    TYPE d,
+      lv_details   TYPE string,
+      lv_changelog TYPE string,
+      lv_update    TYPE string,
+      lv_class     TYPE string,
+      lv_img       TYPE string.
 
     lo_tool = /mbtools/cl_tools=>factory( iv_title ).
 
@@ -625,7 +624,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
     ri_html->add( |<td class="tool-thumbnail">{ lv_img }</td>| ).
 
-    ri_html->add( '<td>' ).
+    ri_html->add( '<td class="tool-details">' ).
     ri_html->add( |<span class="title">{ lo_tool->get_title( ) }</span>| ).
 
     CASE mv_mode.
@@ -636,6 +635,22 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
         IF lo_tool->is_bundle( ) = abap_false.
           lv_details = |Version: { lo_tool->get_version( ) } \| Last update: {
             lo_tool->get_last_update( ) } ago|.
+
+          IF NOT lo_tool->get_new_version( ) IS INITIAL.
+            lv_changelog = ri_html->a(
+*              iv_act = |{ /mbtools/if_actions=>tool_changelog }?name={ lo_tool->get_name( ) }|
+              iv_act = lo_tool->get_url_changelog( )
+              iv_typ = /mbtools/if_html=>c_action_type-url
+              iv_txt = |View version { lo_tool->get_new_version( ) } details| ).
+
+            lv_update = ri_html->a(
+              iv_act = |{ /mbtools/if_actions=>tool_update }?name={ lo_tool->get_name( ) }|
+              iv_txt = |update now| ).
+
+            lv_update = ri_html->icon( iv_name  = 'recycle/orange'
+                                       iv_hint  = 'Update tool' ) &&
+                        |There is a new version available. { lv_changelog } or { lv_update }.|.
+          ENDIF.
         ENDIF.
 
       WHEN c_mode-license.
@@ -652,7 +667,12 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
         ENDIF.
     ENDCASE.
 
-    ri_html->add( |<br><span class="description">{ lv_details }</span>| ).
+    IF NOT lv_details IS INITIAL.
+      ri_html->add( |<br><span class="description">{ lv_details }</span>| ).
+    ENDIF.
+    IF NOT lv_update IS INITIAL.
+      ri_html->add( |<br><br><span class="update">{ lv_update }</span>| ).
+    ENDIF.
     ri_html->add( '</td>' ).
 
     ri_html->add( '<td class="tool-actions">' ).

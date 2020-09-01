@@ -45,9 +45,10 @@ CLASS /MBTOOLS/CL_BASE IMPLEMENTATION.
       IF screen-name = 'P_TITLE' AND
         ( mv_all_tools = abap_true OR mv_all_bundles = abap_true ).
         lv_show = abap_false.
-      ELSEIF screen-name = 'P_ACT' AND mv_all_bundles = abap_true.
-        lv_show = abap_false.
-      ELSEIF screen-name = 'P_DEACT' AND mv_all_bundles = abap_true.
+      ELSEIF mv_all_bundles = abap_true AND
+        ( screen-name = 'P_ACT' OR screen-name = 'P_DEACT' OR
+          screen-name = 'P_CHECK' OR screen-name = 'P_UPDATE' OR
+          screen-name = 'P_UNINST' ).
         lv_show = abap_false.
       ENDIF.
 

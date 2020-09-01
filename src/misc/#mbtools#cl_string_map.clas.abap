@@ -24,11 +24,11 @@ CLASS /mbtools/cl_string_map DEFINITION
         v TYPE string,
       END OF ty_entry .
     TYPES:
-      tty_entries TYPE STANDARD TABLE OF ty_entry WITH KEY k .
+      ty_entries TYPE STANDARD TABLE OF ty_entry WITH KEY k .
     TYPES:
-      tts_entries TYPE SORTED TABLE OF ty_entry WITH UNIQUE KEY k .
+      ty_entries_ts TYPE SORTED TABLE OF ty_entry WITH UNIQUE KEY k .
 
-    DATA mt_entries TYPE tts_entries READ-ONLY.
+    DATA mt_entries TYPE ty_entries_ts READ-ONLY.
 
     CLASS-METHODS create
       IMPORTING
@@ -118,7 +118,7 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
 
       CASE lo_type->type_kind.
         WHEN cl_abap_typedescr=>typekind_struct1 OR cl_abap_typedescr=>typekind_struct2.
-          me->from_struc( iv_from ).
+          from_struc( iv_from ).
 
         WHEN cl_abap_typedescr=>typekind_oref.
           DATA lo_from TYPE REF TO /mbtools/cl_string_map.
@@ -127,10 +127,10 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
             CATCH cx_sy_move_cast_error.
               lcx_error=>raise( 'Incorrect string map instance to copy from' ).
           ENDTRY.
-          me->mt_entries = lo_from->mt_entries.
+          mt_entries = lo_from->mt_entries.
 
         WHEN cl_abap_typedescr=>typekind_table.
-          me->from_entries( iv_from ).
+          from_entries( iv_from ).
 
         WHEN OTHERS.
           lcx_error=>raise( |Incorrect input for string_map=>create, typekind { lo_type->type_kind }| ).

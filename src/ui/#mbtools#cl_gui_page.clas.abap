@@ -43,57 +43,57 @@ CLASS /mbtools/cl_gui_page DEFINITION
       END OF  ty_control .
 
     DATA ms_control TYPE ty_control .
-  PRIVATE SECTION.
+PRIVATE SECTION.
 
-    DATA mx_error TYPE REF TO /mbtools/cx_exception .
-    DATA mo_exception_viewer TYPE REF TO /mbtools/cl_exception_viewer .
-    DATA mi_child TYPE REF TO /mbtools/if_gui_renderable .
+  DATA mx_error TYPE REF TO /mbtools/cx_exception .
+  DATA mo_exception_viewer TYPE REF TO /mbtools/cl_exception_viewer .
+  DATA mi_child TYPE REF TO /mbtools/if_gui_renderable .
 
-    METHODS render_content
-      RETURNING
-        VALUE(ri_html) TYPE REF TO /mbtools/if_html
-      RAISING
-        /mbtools/cx_exception .
-    METHODS render_deferred_parts
-      IMPORTING
-        !ii_html          TYPE REF TO /mbtools/if_html
-        !iv_part_category TYPE string
-      RAISING
-        /mbtools/cx_exception .
-    METHODS html_head
-      RETURNING
-        VALUE(ri_html) TYPE REF TO /mbtools/if_html .
-    METHODS header
-      RETURNING
-        VALUE(ri_html) TYPE REF TO /mbtools/if_html .
-    METHODS footer
-      RETURNING
-        VALUE(ri_html) TYPE REF TO /mbtools/if_html .
-    METHODS render_link_hints
-      IMPORTING
-        !ii_html TYPE REF TO /mbtools/if_html
-      RAISING
-        /mbtools/cx_exception .
-    METHODS render_command_palettes
-      IMPORTING
-        !ii_html TYPE REF TO /mbtools/if_html
-      RAISING
-        /mbtools/cx_exception .
-    METHODS render_hotkey_overview
-      RETURNING
-        VALUE(ro_html) TYPE REF TO /mbtools/if_html
-      RAISING
-        /mbtools/cx_exception .
-    METHODS render_error_message_box
-      RETURNING
-        VALUE(ro_html) TYPE REF TO /mbtools/cl_html
-      RAISING
-        /mbtools/cx_exception .
-    METHODS scripts
-      RETURNING
-        VALUE(ro_html) TYPE REF TO /mbtools/cl_html
-      RAISING
-        /mbtools/cx_exception .
+  METHODS render_content
+    RETURNING
+      VALUE(ri_html) TYPE REF TO /mbtools/if_html
+    RAISING
+      /mbtools/cx_exception .
+  METHODS render_deferred_parts
+    IMPORTING
+      !ii_html          TYPE REF TO /mbtools/if_html
+      !iv_part_category TYPE string
+    RAISING
+      /mbtools/cx_exception .
+  METHODS html_head
+    RETURNING
+      VALUE(ri_html) TYPE REF TO /mbtools/if_html .
+  METHODS header
+    RETURNING
+      VALUE(ri_html) TYPE REF TO /mbtools/if_html .
+  METHODS footer
+    RETURNING
+      VALUE(ri_html) TYPE REF TO /mbtools/if_html .
+  METHODS render_link_hints
+    IMPORTING
+      !ii_html TYPE REF TO /mbtools/if_html
+    RAISING
+      /mbtools/cx_exception .
+  METHODS render_command_palettes
+    IMPORTING
+      !ii_html TYPE REF TO /mbtools/if_html
+    RAISING
+      /mbtools/cx_exception .
+  METHODS render_hotkey_overview
+    RETURNING
+      VALUE(ri_html) TYPE REF TO /mbtools/if_html
+    RAISING
+      /mbtools/cx_exception .
+  METHODS render_error_message_box
+    RETURNING
+      VALUE(ri_html) TYPE REF TO /mbtools/if_html
+    RAISING
+      /mbtools/cx_exception .
+  METHODS scripts
+    RETURNING
+      VALUE(ri_html) TYPE REF TO /mbtools/cl_html
+    RAISING
+      /mbtools/cx_exception .
 ENDCLASS.
 
 
@@ -340,7 +340,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
     " You should remember that the we have to instantiate ro_html even
     " it's overwritten further down. Because ADD checks whether it's
     " bound.
-    CREATE OBJECT ro_html.
+    ri_html = /mbtools/cl_html=>create( ).
 
     " You should remember that we render the message panel only
     " if we have an error.
@@ -348,7 +348,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    ro_html = /mbtools/cl_html_lib=>render_error_message_box( mx_error ).
+    ri_html->add( /mbtools/cl_html_lib=>render_error_message_box( mx_error ) ).
 
     " You should remember that the exception viewer dispatches the events of
     " error message panel
@@ -369,7 +369,8 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
     DATA lo_hotkeys_component TYPE REF TO /mbtools/if_gui_renderable.
 
     lo_hotkeys_component ?= gui_services( )->get_hotkeys_ctl( ). " Mmmm ...
-    ro_html = lo_hotkeys_component->render( ).
+
+    ri_html = lo_hotkeys_component->render( ).
 
   ENDMETHOD.
 
@@ -383,14 +384,14 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
 
   METHOD scripts.
 
-    CREATE OBJECT ro_html.
+    ri_html = /mbtools/cl_html=>create( ).
 
     render_deferred_parts(
-      ii_html          = ro_html
+      ii_html          = ri_html
       iv_part_category = c_html_parts-scripts ).
 
-    render_link_hints( ro_html ).
-    render_command_palettes( ro_html ).
+    render_link_hints( ri_html ).
+    render_command_palettes( ri_html ).
 
   ENDMETHOD.
 ENDCLASS.

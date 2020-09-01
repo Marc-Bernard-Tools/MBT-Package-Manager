@@ -216,7 +216,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * ADD_SUBENTRY - add a child entry with new key and save
 *--------------------------------------------------------------------*
     DATA: ls_kv TYPE ty_keyval.
-    DATA: lt_empty_vals TYPE ty_keyvals.
+    DATA: lt_empty_vals TYPE ty_keyvals ##NEEDED.
     DATA: lv_srtfd TYPE indx_srtfd.
     DATA: ls_regs TYPE /mbtools/if_definitions=>ty_regs.
 
@@ -502,7 +502,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * If the root doesn't exist yet, create it
     DATA: lt_values TYPE ty_keyvals.
     DATA: lt_sub_entries TYPE ty_keyvals.
-    DATA: lv_parent_key TYPE indx_srtfd VALUE space.
+    DATA: lv_parent_key TYPE indx_srtfd VALUE space ##NEEDED.
     DATA: lv_entry_id TYPE string.
     DATA: ls_regs TYPE /mbtools/if_definitions=>ty_regs.
 

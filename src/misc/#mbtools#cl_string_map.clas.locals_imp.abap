@@ -11,7 +11,7 @@ CLASS lcx_error DEFINITION FINAL INHERITING FROM cx_no_check.
         attr3 TYPE scx_attrname VALUE '',
         attr4 TYPE scx_attrname VALUE '',
       END OF c_error_signature.
-    DATA msg TYPE string READ-ONLY.
+    DATA: msg TYPE string.
 
     CLASS-METHODS raise
       IMPORTING

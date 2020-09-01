@@ -2,6 +2,7 @@ CLASS /mbtools/cl_edd DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT Easy Digital Downloads API
 *
@@ -9,7 +10,6 @@ CLASS /mbtools/cl_edd DEFINITION
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-
   PUBLIC SECTION.
 
     CONSTANTS c_name TYPE string VALUE 'MBT_EDD_API' ##NO_TEXT.
@@ -43,10 +43,10 @@ CLASS /mbtools/cl_edd DEFINITION
         /mbtools/cx_exception .
     CLASS-METHODS deactivate_license
       IMPORTING
-        !iv_id      TYPE string
-        !iv_license TYPE string
-      EXPORTING
-        !ev_result  TYPE abap_bool
+        !iv_id           TYPE string
+        !iv_license      TYPE string
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool
       RAISING
         /mbtools/cx_exception .
     CLASS-METHODS check_license
@@ -69,31 +69,33 @@ CLASS /mbtools/cl_edd DEFINITION
       RAISING
         /mbtools/cx_exception .
   PROTECTED SECTION.
-PRIVATE SECTION.
 
-  CLASS-METHODS get_data
-    IMPORTING
-      !iv_url        TYPE string
-    RETURNING
-      VALUE(rv_data) TYPE string
-    RAISING
-      /mbtools/cx_exception .
-  CLASS-METHODS get_endpoint
-    IMPORTING
-      !iv_action         TYPE string
-      !iv_id             TYPE string
-      !iv_license        TYPE string
-    RETURNING
-      VALUE(rv_endpoint) TYPE string
-    RAISING
-      /mbtools/cx_exception .
-  CLASS-METHODS get_json
-    IMPORTING
-      !iv_data       TYPE string
-    RETURNING
-      VALUE(ro_json) TYPE REF TO /mbtools/if_ajson_reader
-    RAISING
-      /mbtools/cx_exception .
+  PRIVATE SECTION.
+
+    CLASS-METHODS get_data
+      IMPORTING
+        !iv_url        TYPE string
+        !iv_check      TYPE string DEFAULT '"success"'
+      RETURNING
+        VALUE(rv_data) TYPE string
+      RAISING
+        /mbtools/cx_exception .
+    CLASS-METHODS get_endpoint
+      IMPORTING
+        !iv_action         TYPE string
+        !iv_id             TYPE string
+        !iv_license        TYPE string
+      RETURNING
+        VALUE(rv_endpoint) TYPE string
+      RAISING
+        /mbtools/cx_exception .
+    CLASS-METHODS get_json
+      IMPORTING
+        !iv_data       TYPE string
+      RETURNING
+        VALUE(ro_json) TYPE REF TO /mbtools/if_ajson_reader
+      RAISING
+        /mbtools/cx_exception .
 ENDCLASS.
 
 
@@ -163,7 +165,7 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
       ev_valid = abap_true.
     ENDIF.
 
-    ev_expire = lo_json->get_date( 'expires' ).
+    ev_expire = lo_json->get_date( '/expires' ).
 
   ENDMETHOD.
 
@@ -189,7 +191,6 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
     DATA:
       lv_endpoint TYPE string,
       lv_data     TYPE string,
-      lv_expire   TYPE string,
       lo_json     TYPE REF TO /mbtools/if_ajson_reader.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
@@ -247,10 +248,10 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     IF lo_json->get_boolean( '/success' ) <> abap_true.
       " Probably wasn't a valid license in the first place. Ignore errors.
-      ev_result = abap_true.
+      rv_result = abap_true.
     ENDIF.
 
-    ev_result = abap_true.
+    rv_result = abap_true.
 
   ENDMETHOD.
 
@@ -259,8 +260,7 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     DATA:
       lo_client    TYPE REF TO /mbtools/cl_http_client,
-      lx_exception TYPE REF TO /mbtools/cx_exception,
-      lv_data      TYPE string.
+      lx_exception TYPE REF TO /mbtools/cx_exception.
 
     TRY.
         lo_client = /mbtools/cl_http=>create_by_url( iv_url     = iv_url
@@ -268,8 +268,8 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
                                                      iv_content = 'application/x-www-form-urlencoded' ).
 
         lo_client->check_smart_response(
-            iv_expected_content_type = 'application/json'
-            iv_content_regex         = '"success"' ).
+          iv_expected_content_type = 'application/json'
+          iv_content_regex         = iv_check ).
 
         rv_data = lo_client->get_cdata( ).
 
@@ -287,10 +287,7 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
   METHOD get_endpoint.
 
-    DATA:
-      lv_subrc       TYPE sy-subrc,
-      lv_system_host TYPE string,
-      lv_system_no   TYPE slic_sysid.
+    DATA: lv_system_no TYPE slic_sysid.
 
     " http://yoursite.com/?edd_action={request type}&item_id={id}&license={key}
     " &url=SystemID_{system_id}_SystemNumber_{system_number}
@@ -360,15 +357,16 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
                                 iv_id      = iv_id
                                 iv_license = iv_license ).
 
-    lv_data = get_data( lv_endpoint ).
+    lv_data = get_data( iv_url   = lv_endpoint
+                        iv_check = '"new_version"' ).
 
     lo_json = get_json( lv_data ).
 
     ev_version = lo_json->get_string( '/new_version' ).
 
-    ev_changelog = lo_json->get_date( 'url' ).
+    ev_changelog = lo_json->get_string( '/url' ).
 
-    ev_download = lo_json->get_date( 'download_link' ).
+    ev_download = lo_json->get_string( '/download_link' ).
 
   ENDMETHOD.
 ENDCLASS.

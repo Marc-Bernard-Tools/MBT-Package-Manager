@@ -47,7 +47,7 @@ CLASS /mbtools/cl_tools DEFINITION
         " Update
         update             TYPE string VALUE '.Update' ##NO_TEXT,
         key_new_version    TYPE string VALUE 'NewVersion' ##NO_TEXT,
-        key_changelog      TYPE string VALUE 'Changelog' ##NO_TEXT,
+        key_changelog      TYPE string VALUE 'ChangelogURL' ##NO_TEXT,
         key_download       TYPE string VALUE 'DownloadURL' ##NO_TEXT,
       END OF c_reg .
     " Evaluation
@@ -209,9 +209,18 @@ CLASS /mbtools/cl_tools DEFINITION
     METHODS get_url_docs
       RETURNING
         VALUE(rv_url) TYPE string .
+    METHODS get_url_download
+      RETURNING
+        VALUE(rv_result) TYPE string .
+    METHODS get_url_changelog
+      RETURNING
+        VALUE(rv_result) TYPE string .
     METHODS get_settings
       RETURNING
         VALUE(ro_reg) TYPE REF TO /mbtools/cl_registry .
+    METHODS get_new_version
+      RETURNING
+        VALUE(rv_result) TYPE string .
     METHODS get_thumbnail
       RETURNING
         VALUE(rv_thumbnail) TYPE string .
@@ -728,6 +737,42 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_new_version.
+
+    DATA:
+      lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
+      lo_reg_entry TYPE REF TO /mbtools/cl_registry.
+
+    CHECK mv_is_bundle IS INITIAL.
+
+    TRY.
+        " Is tool installed?
+        lo_reg_tool = get_reg_tool( mv_name ).
+        CHECK lo_reg_tool IS BOUND.
+
+        " Update
+        lo_reg_entry = lo_reg_tool->get_subentry( c_reg-update ).
+        CHECK lo_reg_entry IS BOUND.
+
+        rv_result = lo_reg_entry->get_value( c_reg-key_new_version ).
+
+        " Check if version is indeed newer
+        IF /mbtools/cl_version=>compare( iv_a = rv_result
+                                         iv_b = get_version( ) ) <= 0.
+          CLEAR rv_result.
+          lo_reg_entry->set_value( iv_key   = c_reg-key_new_version
+                                   iv_value = rv_result ).
+
+          lo_reg_entry->save( ).
+        ENDIF.
+
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
   METHOD get_package.
 
     DATA:
@@ -859,16 +904,14 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           CREATE OBJECT lo_object TYPE (lv_implementation).
           IF lo_object IS BOUND.
             lo_manifest ?= lo_object.
-            lo_tool = /mbtools/cl_tools=>factory( lo_manifest->descriptor-title ).
+            lo_tool = factory( lo_manifest->descriptor-title ).
           ELSE.
             CONTINUE. "ignore
           ENDIF.
 
           " Filter by bundle
-          IF iv_bundle_id >= 0.
-            IF lo_tool->get_bundle_id( ) <> iv_bundle_id.
-              CONTINUE.
-            ENDIF.
+          IF iv_bundle_id >= 0 AND lo_tool->get_bundle_id( ) <> iv_bundle_id.
+            CONTINUE.
           ENDIF.
 
           " Filter by bundle/tool type
@@ -915,11 +958,63 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD GET_URL_CHANGELOG.
+
+    DATA:
+      lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
+      lo_reg_entry TYPE REF TO /mbtools/cl_registry.
+
+    CHECK mv_is_bundle IS INITIAL.
+
+    TRY.
+        " Is tool installed?
+        lo_reg_tool = get_reg_tool( mv_name ).
+        CHECK lo_reg_tool IS BOUND.
+
+        " Update
+        lo_reg_entry = lo_reg_tool->get_subentry( c_reg-update ).
+        CHECK lo_reg_entry IS BOUND.
+
+        rv_result = lo_reg_entry->get_value( c_reg-key_changelog ).
+
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
   METHOD get_url_docs.
 
     " Link to documentation page on marcbernardtools.com
     rv_url = /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_tool_docs &&
              get_slug( ) && '/'.
+
+  ENDMETHOD.
+
+
+  METHOD GET_URL_DOWNLOAD.
+
+    DATA:
+      lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
+      lo_reg_entry TYPE REF TO /mbtools/cl_registry.
+
+    CHECK mv_is_bundle IS INITIAL.
+
+    TRY.
+        " Is tool installed?
+        lo_reg_tool = get_reg_tool( mv_name ).
+        CHECK lo_reg_tool IS BOUND.
+
+        " Update
+        lo_reg_entry = lo_reg_tool->get_subentry( c_reg-update ).
+        CHECK lo_reg_entry IS BOUND.
+
+        rv_result = lo_reg_entry->get_value( c_reg-key_download ).
+
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -988,9 +1083,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
   METHOD is_last_tool.
 
-    DATA:
-      ls_tools TYPE /mbtools/tool_with_text,
-      lt_tools TYPE TABLE OF /mbtools/tool_with_text.
+    DATA: lt_tools TYPE TABLE OF /mbtools/tool_with_text.
 
     " Get all installed and active tools
     lt_tools = get_tools( ).
@@ -1090,7 +1183,6 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     DATA:
       lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
       lo_reg_entry TYPE REF TO /mbtools/cl_registry,
-      lx_exception TYPE REF TO /mbtools/cx_exception,
       lv_license   TYPE string,
       lv_id        TYPE string,
       lv_valid     TYPE abap_bool,
@@ -1163,14 +1255,11 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     lv_license = lo_reg_entry->get_value( c_reg-key_lic_key ).
 
     " Deactivate license via call to EDD API on MBT
-    /mbtools/cl_edd=>deactivate_license(
-      EXPORTING
-        iv_id      = lv_id
-        iv_license = lv_license
-      IMPORTING
-        ev_result  = rv_result ).
+    rv_result = /mbtools/cl_edd=>deactivate_license(
+      iv_id      = lv_id
+      iv_license = lv_license ).
 
-    " Remove license key
+    " Remove license key (back to defaults, same as REGISTER)
     lo_reg_entry->set_value( c_reg-key_lic_key ).
     lo_reg_entry->set_value( c_reg-key_lic_valid ).
     lo_reg_entry->set_value( iv_key   = c_reg-key_lic_expire
@@ -1326,7 +1415,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lt_tools  TYPE TABLE OF /mbtools/tool_with_text,
       lv_result TYPE abap_bool.
 
-    lt_tools = get_tools( ).
+    lt_tools = get_tools( iv_admin = abap_true ).
 
     rv_result = abap_true.
 
@@ -1342,7 +1431,11 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
               lv_result = factory( ls_tool-name )->activate( ).
             WHEN /mbtools/if_actions=>tool_deactivate.
               lv_result = factory( ls_tool-name )->deactivate( ).
-            WHEN /mbtools/if_actions=>tool_uninstall.
+            WHEN /mbtools/if_actions=>tool_check.
+              lv_result = factory( ls_tool-name )->check_version( ).
+            WHEN /mbtools/if_actions=>tool_update ##TODO.
+*              lv_result = factory( ls_tool-name )->update( ).
+            WHEN /mbtools/if_actions=>tool_uninstall ##TODO.
 *              lv_result = factory( ls_tool-name )->uninstall( ).
             WHEN OTHERS.
               " unknow action

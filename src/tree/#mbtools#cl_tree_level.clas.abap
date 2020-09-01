@@ -10,9 +10,9 @@ CLASS /mbtools/cl_tree_level DEFINITION
   PUBLIC SECTION.
 
     DATA level TYPE i READ-ONLY .
-    DATA icon TYPE icon_d .
-    DATA value TYPE /mbtools/tree_control-value .
-    DATA text TYPE /mbtools/tree_control-text .
+    DATA icon TYPE icon_d ##NEEDED.
+    DATA value TYPE /mbtools/tree_control-value ##NEEDED.
+    DATA text TYPE /mbtools/tree_control-text ##NEEDED.
 
     METHODS constructor
       IMPORTING
@@ -20,11 +20,15 @@ CLASS /mbtools/cl_tree_level DEFINITION
         !iv_level TYPE i.
     METHODS next .
     METHODS back .
+
   PROTECTED SECTION.
+
   PRIVATE SECTION.
+
     DATA:
       mo_tree TYPE REF TO /mbtools/cl_tree,
       mv_root TYPE lvc_nkey.
+
 ENDCLASS.
 
 

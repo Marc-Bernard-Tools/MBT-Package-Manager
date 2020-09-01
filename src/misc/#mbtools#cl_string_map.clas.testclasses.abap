@@ -138,7 +138,7 @@ CLASS ltcl_string_map IMPLEMENTATION.
           act = lx->get_text( ) ).
     ENDTRY.
 
-    DATA lt_entries TYPE /mbtools/cl_string_map=>tty_entries.
+    DATA lt_entries TYPE /mbtools/cl_string_map=>ty_entries.
     TRY.
         lo_cut->from_entries( lt_entries ).
         cl_abap_unit_assert=>fail( ).
@@ -447,12 +447,12 @@ CLASS ltcl_string_map IMPLEMENTATION.
   METHOD from_entries.
 
     TYPES:
-      BEGIN OF lty_pair,
+      BEGIN OF ty_pair,
         key TYPE string,
         val TYPE string,
-      END OF lty_pair.
+      END OF ty_pair.
 
-    DATA lt_entries TYPE TABLE OF lty_pair.
+    DATA lt_entries TYPE TABLE OF ty_pair.
     DATA ls_entry LIKE LINE OF lt_entries.
     DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
     lo_cut = /mbtools/cl_string_map=>create( ).

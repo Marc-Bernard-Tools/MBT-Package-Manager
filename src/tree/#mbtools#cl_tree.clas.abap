@@ -117,7 +117,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
     DATA:
       ls_typtab TYPE lvc_s_chit,
-      l_type    TYPE c.
+      lv_type    TYPE c.
 
     " Node types
     ls_typtab-nodekey   = mv_node_key.
@@ -131,15 +131,15 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     CLEAR ms_outtab.
     ms_outtab-object = iv_title.
 
-    DESCRIBE FIELD iv_text TYPE l_type.
-    IF l_type CA 'bspdfDT'.
+    DESCRIBE FIELD iv_text TYPE lv_type.
+    IF lv_type CA 'bspdfDT'.
       WRITE iv_text TO ms_outtab-text LEFT-JUSTIFIED.
     ELSE.
       ms_outtab-text = iv_text.
     ENDIF.
 
-    DESCRIBE FIELD iv_value TYPE l_type.
-    IF l_type CA 'bspdf'.
+    DESCRIBE FIELD iv_value TYPE lv_type.
+    IF lv_type CA 'bspdf'.
       ms_outtab-value = iv_value.
       SHIFT ms_outtab-value LEFT DELETING LEADING space.
     ELSE.
@@ -284,10 +284,10 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
     add( iv_icon   = iv_icon
          iv_title  = iv_title
-         iv_text   = ''
+         iv_text   = iv_text
          iv_value  = iv_value
          iv_color  = 2
-         iv_level  = 0
+         iv_level  = 1
          iv_sign   = space
          iv_hidden = space
          iv_type   = iv_type ).

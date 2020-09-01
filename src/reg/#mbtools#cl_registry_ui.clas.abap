@@ -19,6 +19,8 @@ CLASS /mbtools/cl_registry_ui DEFINITION
   PUBLIC SECTION.
     TYPE-POOLS icon .
 
+    CONSTANTS: c_root TYPE lvc_nkey VALUE '          1'.
+
     TYPES:
       " Table for registry entries on tree
       BEGIN OF ty_tab,
@@ -29,7 +31,6 @@ CLASS /mbtools/cl_registry_ui DEFINITION
     " For tree control:
     CLASS-DATA gr_tree TYPE REF TO cl_gui_alv_tree .
     CLASS-DATA gr_tree_toolbar TYPE REF TO cl_gui_toolbar .
-    CLASS-DATA gs_node_layout TYPE lvc_s_layn .   "Layout for new nodes
     CLASS-DATA:
       " Container for ALV tree data:
       gt_tab TYPE TABLE OF ty_tab .
@@ -58,8 +59,7 @@ CLASS /mbtools/cl_registry_ui DEFINITION
     CLASS-METHODS handle_node_expand
         FOR EVENT expand_nc OF cl_gui_alv_tree
       IMPORTING
-        !node_key
-        !sender .
+        !node_key.
     CLASS-METHODS handle_table_toolbar
         FOR EVENT toolbar OF cl_gui_alv_grid
       IMPORTING
@@ -209,13 +209,15 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
     DATA: lt_event TYPE cntl_simple_events,
           ls_event TYPE cntl_simple_event.
     DATA: lx_exc TYPE REF TO /mbtools/cx_exception.
+    DATA: lv_msg TYPE string.
 
     gr_splitter = ir_splitter.
 
     TRY.
         gr_reg_root = /mbtools/cl_registry=>get_root( ).
       CATCH /mbtools/cx_exception INTO lx_exc.
-        MESSAGE lx_exc->get_text( ) TYPE 'I'.
+        lv_msg = lx_exc->get_text( ).
+        MESSAGE lv_msg TYPE 'I'.
         RETURN.
     ENDTRY.
 
@@ -315,13 +317,11 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
 
 *>>>INS
     " Expand root node
-    handle_node_expand(
-        node_key = '          1'
-        sender   = gr_tree  ).
+    handle_node_expand( node_key = c_root ).
 
     gr_tree->expand_node(
       EXPORTING
-        i_node_key          = '          1'
+        i_node_key          = c_root
       EXCEPTIONS
         failed              = 1
         illegal_level_count = 2
@@ -346,8 +346,9 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
     DATA: lx_exc TYPE REF TO /mbtools/cx_exception.
     DATA: lt_sub_entries TYPE TABLE OF /mbtools/cl_registry=>ty_keyobj.  "<<<CHG
     DATA: ls_sub_entry TYPE /mbtools/cl_registry=>ty_keyobj.
+    DATA: lv_msg TYPE string.
 
-    sender->get_outtab_line(
+    gr_tree->get_outtab_line(
       EXPORTING
         i_node_key     = node_key
       IMPORTING
@@ -364,7 +365,8 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
     TRY.
         lt_sub_entries = ls_tab-reg_entry->get_subentries( ).
       CATCH /mbtools/cx_exception INTO lx_exc.
-        MESSAGE lx_exc->get_text( ) TYPE 'I'.
+        lv_msg = lx_exc->get_text( ).
+        MESSAGE lv_msg TYPE 'I'.
         RETURN.
     ENDTRY.
 
@@ -514,6 +516,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
     DATA: lv_rc TYPE char1.
     DATA: lx_exc TYPE REF TO /mbtools/cx_exception.
     DATA: lr_parent TYPE REF TO /mbtools/cl_registry.
+    DATA: lv_msg TYPE string.
 
     IF gr_sel_reg_entry IS NOT BOUND.
       MESSAGE 'Select a node from the tree first'(003) TYPE 'I'. "<<<CHG
@@ -540,7 +543,8 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
               refresh_subnodes( gv_sel_node_key ).
 
             CATCH /mbtools/cx_exception INTO lx_exc.
-              MESSAGE lx_exc->get_text( ) TYPE 'I'.
+              lv_msg = lx_exc->get_text( ).
+              MESSAGE lv_msg TYPE 'I'.
               RETURN.
           ENDTRY.
         ENDIF.
@@ -574,7 +578,8 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
               refresh_subnodes( lv_node_key ).
 
             CATCH /mbtools/cx_exception INTO lx_exc.
-              MESSAGE lx_exc->get_text( ) TYPE 'I'.
+              lv_msg = lx_exc->get_text( ).
+              MESSAGE lv_msg TYPE 'I'.
               RETURN.
           ENDTRY.
         ENDIF.
@@ -612,7 +617,8 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
 
             lr_reg_entry->remove_subentry( gr_sel_reg_entry->mv_entry_id ).
           CATCH /mbtools/cx_exception INTO lx_exc.
-            MESSAGE lx_exc->get_text( ) TYPE 'I'.
+            lv_msg = lx_exc->get_text( ).
+            MESSAGE lv_msg TYPE 'I'.
             RETURN.
         ENDTRY.
 
@@ -631,24 +637,25 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
         "   Export registry branch to file
 
         CONSTANTS:
-          c_registry_title TYPE string VALUE 'MBT Registry 1.0' ##NO_TEXT.
+          lc_registry_title TYPE string VALUE 'MBT Registry 1.0' ##NO_TEXT.
 
         DATA:
-          l_file     TYPE string,
-          l_path     TYPE string,
-          l_fullpath TYPE string,
-          l_action   TYPE i,
+          lv_file     TYPE string,
+          lv_path     TYPE string,
+          lv_fullpath TYPE string,
+          lv_action   TYPE i,
           lt_file    TYPE string_table.
 
         CLEAR lt_file.
 
-        APPEND c_registry_title TO lt_file.
+        APPEND lc_registry_title TO lt_file.
         APPEND '' TO lt_file.
 
         TRY.
             gr_sel_reg_entry->export( CHANGING ct_file = lt_file ).
           CATCH /mbtools/cx_exception INTO lx_exc.
-            MESSAGE lx_exc->get_text( ) TYPE 'I'.
+            lv_msg = lx_exc->get_text( ).
+            MESSAGE lv_msg TYPE 'I'.
             RETURN.
         ENDTRY.
 
@@ -658,23 +665,23 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
             default_extension         = 'reg'
             default_file_name         = 'mbt_registry'
           CHANGING
-            filename                  = l_file
-            path                      = l_path
-            fullpath                  = l_fullpath
-            user_action               = l_action
+            filename                  = lv_file
+            path                      = lv_path
+            fullpath                  = lv_fullpath
+            user_action               = lv_action
           EXCEPTIONS
             cntl_error                = 1
             error_no_gui              = 2
             not_supported_by_gui      = 3
             invalid_default_file_name = 4
             OTHERS                    = 5 ).
-        IF sy-subrc <> 0 OR l_action = cl_gui_frontend_services=>action_cancel.
+        IF sy-subrc <> 0 OR lv_action = cl_gui_frontend_services=>action_cancel.
           RETURN.
         ENDIF.
 
         cl_gui_frontend_services=>gui_download(
           EXPORTING
-            filename                = l_fullpath
+            filename                = lv_fullpath
           CHANGING
             data_tab                = lt_file
           EXCEPTIONS
@@ -728,6 +735,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
     DATA: lt_children TYPE lvc_t_nkey.
     DATA: lv_nkey TYPE lvc_nkey.
     DATA: lx_exc TYPE REF TO /mbtools/cx_exception.
+    DATA: lv_msg TYPE string.
 
     " Delete subnodes of node. This means: getting all children and deleting
     " them individually!
@@ -779,7 +787,8 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
       TRY.
           lr_reg_entry = ls_tab-reg_entry->get_subentry( ls_subentry-key ).
         CATCH /mbtools/cx_exception INTO lx_exc.
-          MESSAGE lx_exc->get_text( ) TYPE 'I'.
+          lv_msg = lx_exc->get_text( ).
+          MESSAGE lv_msg TYPE 'I'.
           RETURN.
       ENDTRY.
       add_node( iv_nkey     = iv_nkey
@@ -812,6 +821,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
     DATA: lt_value TYPE /mbtools/cl_registry=>ty_keyvals.
     DATA: ls_value TYPE /mbtools/cl_registry=>ty_keyval.
     DATA: lx_exc TYPE REF TO /mbtools/cx_exception.
+    DATA: lv_msg TYPE string.
 
     " Save current values in table to currently selected reg. node
     IF gr_table IS BOUND AND gr_sel_reg_entry IS BOUND.
@@ -831,7 +841,8 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
           TRY.
               gr_sel_reg_entry->reload( ).
             CATCH /mbtools/cx_exception INTO lx_exc.
-              MESSAGE lx_exc->get_text( ) TYPE 'I'.
+              lv_msg = lx_exc->get_text( ).
+              MESSAGE lv_msg TYPE 'I'.
               RETURN.
           ENDTRY.
           gt_value = gr_sel_reg_entry->get_values( ).

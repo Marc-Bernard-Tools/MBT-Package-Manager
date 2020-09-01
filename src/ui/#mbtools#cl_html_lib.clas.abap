@@ -2,6 +2,7 @@ CLASS /mbtools/cl_html_lib DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT HTML Library
 *
@@ -10,7 +11,6 @@ CLASS /mbtools/cl_html_lib DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-
   PUBLIC SECTION.
 
     TYPES:
@@ -28,7 +28,7 @@ CLASS /mbtools/cl_html_lib DEFINITION
       END OF ty_col_spec .
     TYPES:
       ty_col_specs TYPE STANDARD TABLE OF ty_col_spec
-                                  WITH NON-UNIQUE KEY tech_name .
+                                    WITH NON-UNIQUE KEY tech_name .
 
     CLASS-METHODS class_constructor .
     CLASS-METHODS render_error
@@ -37,29 +37,29 @@ CLASS /mbtools/cl_html_lib DEFINITION
         !iv_error       TYPE string OPTIONAL
         !iv_extra_style TYPE string OPTIONAL
       RETURNING
-        VALUE(ro_html)  TYPE REF TO /mbtools/cl_html .
+        VALUE(ri_html)  TYPE REF TO /mbtools/if_html .
     CLASS-METHODS render_js_error_banner
       RETURNING
-        VALUE(ro_html) TYPE REF TO /mbtools/cl_html
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
       RAISING
         /mbtools/cx_exception .
     CLASS-METHODS render_news
       IMPORTING
         !io_news       TYPE REF TO /mbtools/cl_news
       RETURNING
-        VALUE(ro_html) TYPE REF TO /mbtools/cl_html
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
       RAISING
         /mbtools/cx_exception .
     CLASS-METHODS render_error_message_box
       IMPORTING
         !ix_error      TYPE REF TO /mbtools/cx_exception
       RETURNING
-        VALUE(ro_html) TYPE REF TO /mbtools/cl_html .
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html .
     CLASS-METHODS render_warning_banner
       IMPORTING
         !iv_text       TYPE string
       RETURNING
-        VALUE(ro_html) TYPE REF TO /mbtools/cl_html .
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html .
     CLASS-METHODS render_infopanel
       IMPORTING
         !iv_div_id     TYPE string
@@ -69,14 +69,14 @@ CLASS /mbtools/cl_html_lib DEFINITION
         !iv_scrollable TYPE abap_bool DEFAULT abap_true
         !io_content    TYPE REF TO /mbtools/if_html
       RETURNING
-        VALUE(ro_html) TYPE REF TO /mbtools/cl_html
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
       RAISING
         /mbtools/cx_exception .
     CLASS-METHODS render_event_as_form
       IMPORTING
         !is_event      TYPE ty_event_signature
       RETURNING
-        VALUE(ro_html) TYPE REF TO /mbtools/cl_html .
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html .
   PROTECTED SECTION.
   PRIVATE SECTION.
     CLASS-DATA gv_time_zone TYPE timezone.
@@ -142,7 +142,7 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
       lv_class = lv_class && ` ` && iv_extra_style.
     ENDIF.
 
-    CREATE OBJECT ro_html.
+    ri_html = /mbtools/cl_html=>create( ).
 
     IF ix_error IS BOUND.
       lv_error = ix_error->get_text( ).
@@ -150,9 +150,9 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
       lv_error = iv_error.
     ENDIF.
 
-    ro_html->add( |<div class="{ lv_class }">| ).
-    ro_html->add( |{ /mbtools/cl_html=>icon( 'exclamation-circle/red' ) } Error: { lv_error }| ).
-    ro_html->add( '</div>' ).
+    ri_html->add( |<div class="{ lv_class }">| ).
+    ri_html->add( |{ ri_html->icon( 'exclamation-circle/red' ) } Error: { lv_error }| ).
+    ri_html->add( '</div>' ).
 
   ENDMETHOD.
 
@@ -166,8 +166,7 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
       lv_title        TYPE string,
       lv_text         TYPE string.
 
-
-    CREATE OBJECT ro_html.
+    ri_html = /mbtools/cl_html=>create( ).
 
     lv_error_text = ix_error->get_text( ).
     lv_longtext = ix_error->get_longtext( abap_true ).
@@ -188,19 +187,19 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
             IN lv_longtext
             WITH |<h3>$1</h3>|.
 
-    ro_html->add( |<div id="message" class="message-panel">| ).
-    ro_html->add( |{ lv_error_text }| ).
-    ro_html->add( |<div class="float-right">| ).
+    ri_html->add( |<div id="message" class="message-panel">| ).
+    ri_html->add( |{ lv_error_text }| ).
+    ri_html->add( |<div class="float-right">| ).
 
-    ro_html->add_a(
+    ri_html->add_a(
         iv_txt   = `&#x274c;`
         iv_act   = `toggleDisplay('message')`
         iv_class = `close-btn`
         iv_typ   = /mbtools/if_html=>c_action_type-onclick ).
 
-    ro_html->add( |</div>| ).
+    ri_html->add( |</div>| ).
 
-    ro_html->add( |<div class="float-right message-panel-commands">| ).
+    ri_html->add( |<div class="float-right message-panel-commands">| ).
 
     IF ix_error->if_t100_message~t100key-msgid IS NOT INITIAL.
 
@@ -210,7 +209,7 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
 
       lv_text = |Message ({ ix_error->if_t100_message~t100key-msgid }/{ ix_error->if_t100_message~t100key-msgno })|.
 
-      ro_html->add_a(
+      ri_html->add_a(
           iv_txt   = lv_text
           iv_typ   = /mbtools/if_html=>c_action_type-sapevent
           iv_act   = /mbtools/if_actions=>goto_message
@@ -223,32 +222,33 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
 
     lv_title = normalize_program_name( lv_program_name ).
 
-    ro_html->add_a(
+    ri_html->add_a(
         iv_txt   = `Goto source`
         iv_act   = /mbtools/if_actions=>goto_source
         iv_typ   = /mbtools/if_html=>c_action_type-sapevent
         iv_title = lv_title
         iv_id    = `a_goto_source` ).
 
-    ro_html->add_a(
+    ri_html->add_a(
         iv_txt = `Callstack`
         iv_act = /mbtools/if_actions=>show_callstack
         iv_typ = /mbtools/if_html=>c_action_type-sapevent
         iv_id  = `a_callstack` ).
 
-    ro_html->add( |</div>| ).
-    ro_html->add( |<div class="message-panel-commands">| ).
-    ro_html->add( |{ lv_longtext }| ).
-    ro_html->add( |</div>| ).
-    ro_html->add( |</div>| ).
+    ri_html->add( |</div>| ).
+    ri_html->add( |<div class="message-panel-commands">| ).
+    ri_html->add( |{ lv_longtext }| ).
+    ri_html->add( |</div>| ).
+    ri_html->add( |</div>| ).
 
   ENDMETHOD.
 
 
   METHOD render_event_as_form.
 
-    CREATE OBJECT ro_html.
-    ro_html->add(
+    ri_html = /mbtools/cl_html=>create( ).
+
+    ri_html->add(
       |<form id='form_{ is_event-name }' method={ is_event-method } action='sapevent:{ is_event-name }'></form>| ).
 
   ENDMETHOD.
@@ -259,7 +259,7 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
     DATA lv_display TYPE string.
     DATA lv_class TYPE string.
 
-    CREATE OBJECT ro_html.
+    ri_html = /mbtools/cl_html=>create( ).
 
     IF iv_hide = abap_true. " Initially hide
       lv_display = 'display:none'.
@@ -270,11 +270,11 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
       lv_class = lv_class && ' info-panel-fixed'.
     ENDIF.
 
-    ro_html->add( |<div id="{ iv_div_id }" class="{ lv_class }" style="{ lv_display }">| ).
+    ri_html->add( |<div id="{ iv_div_id }" class="{ lv_class }" style="{ lv_display }">| ).
 
-    ro_html->add( |<div class="info-title">{ iv_title }|
+    ri_html->add( |<div class="info-title">{ iv_title }|
                && '<div class="float-right">'
-               && /mbtools/cl_html=>a(
+               && ri_html->a(
                     iv_txt   = '&#x274c;'
                     iv_typ   = /mbtools/if_html=>c_action_type-onclick
                     iv_act   = |toggleDisplay('{ iv_div_id }')|
@@ -282,28 +282,31 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
                && '</div></div>' ).
 
     IF iv_hint IS NOT INITIAL.
-      ro_html->add( '<div class="info-hint">'
-        && /mbtools/cl_html=>icon( iv_name = 'exclamation-triangle'
-                                   iv_class = 'pad-right' )
+      ri_html->add( '<div class="info-hint">'
+        && ri_html->icon( iv_name = 'exclamation-triangle'
+                          iv_class = 'pad-right' )
         && iv_hint
         && '</div>' ).
     ENDIF.
 
-    ro_html->add( |<div class="info-list">| ).
-    ro_html->add( io_content ).
-    ro_html->add( '</div>' ).
-    ro_html->add( '</div>' ).
+    ri_html->add( |<div class="info-list">| ).
+    ri_html->add( io_content ).
+    ri_html->add( '</div>' ).
+    ri_html->add( '</div>' ).
 
   ENDMETHOD.
 
 
   METHOD render_js_error_banner.
-    CREATE OBJECT ro_html.
-    ro_html->add( '<div id="js-error-banner" class="dummydiv error">' ).
-    ro_html->add( |{ /mbtools/cl_html=>icon( 'exclamation-triangle/red' ) }| &&
+
+    ri_html = /mbtools/cl_html=>create( ).
+
+    ri_html->add( '<div id="js-error-banner" class="dummydiv error">' ).
+    ri_html->add( |{ ri_html->icon( 'exclamation-triangle/red' ) }| &&
                   ' If this does not disappear soon,' &&
                   ' then there is a JS init error, please log an issue' ).
-    ro_html->add( '</div>' ).
+    ri_html->add( '</div>' ).
+
   ENDMETHOD.
 
 
@@ -315,7 +318,7 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
 
     FIELD-SYMBOLS: <ls_line> LIKE LINE OF lt_log.
 
-    CREATE OBJECT ro_html.
+    ri_html = /mbtools/cl_html=>create( ).
 
     IF io_news IS NOT BOUND OR io_news->has_news( ) = abap_false.
       RETURN.
@@ -333,9 +336,9 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
         ELSE. " < 0
           lv_text = <ls_line>-text.
         ENDIF.
-        ro_html->add( |<h1>{ lv_text }</h1>| ).
+        ri_html->add( |<h1>{ lv_text }</h1>| ).
       ELSE.
-        ro_html->add( |<li>{ <ls_line>-text }</li>| ).
+        ri_html->add( |<li>{ <ls_line>-text }</li>| ).
       ENDIF.
     ENDLOOP.
 
@@ -344,22 +347,23 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
       lv_hint = 'Please note changes marked with "!"'.
     ENDIF.
 
-    ro_html = render_infopanel(
+    ri_html = render_infopanel(
       iv_div_id  = 'news'
       iv_title   = 'Announcement of Latest Changes'
       iv_hint    = lv_hint
       iv_hide    = boolc( io_news->has_unseen( ) = abap_false )
-      io_content = ro_html ).
+      io_content = ri_html ).
 
   ENDMETHOD.
 
 
   METHOD render_warning_banner.
 
-    CREATE OBJECT ro_html.
-    ro_html->add( '<div class="dummydiv warning">' ).
-    ro_html->add( |{ /mbtools/cl_html=>icon( 'exclamation-triangle/yellow' ) }| && | { iv_text }| ).
-    ro_html->add( '</div>' ).
+    ri_html = /mbtools/cl_html=>create( ).
+
+    ri_html->add( '<div class="dummydiv warning">' ).
+    ri_html->add( |{ ri_html->icon( 'exclamation-triangle/yellow' ) }| && | { iv_text }| ).
+    ri_html->add( '</div>' ).
 
   ENDMETHOD.
 ENDCLASS.

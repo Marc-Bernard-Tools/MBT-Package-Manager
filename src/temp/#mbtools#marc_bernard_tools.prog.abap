@@ -6,7 +6,7 @@ REPORT /mbtools/marc_bernard_tools.
 ************************************************************************
 
 TABLES:
-  sscrfields, icon, icont.
+  sscrfields.
 
 *-----------------------------------------------------------------------
 
@@ -32,6 +32,8 @@ PARAMETERS:
   p_unreg  RADIOBUTTON GROUP g1,
   p_act    RADIOBUTTON GROUP g1,
   p_deact  RADIOBUTTON GROUP g1,
+  p_check  RADIOBUTTON GROUP g1,
+  p_update RADIOBUTTON GROUP g1,
   p_uninst RADIOBUTTON GROUP g1.
 SELECTION-SCREEN:
     END OF BLOCK b220,
@@ -78,14 +80,14 @@ CONSTANTS:
   c_title TYPE string VALUE /mbtools/cl_tool_bc=>c_tool-title.
 
 DATA:
-  gv_ok_code TYPE sy-ucomm,
-  go_tool    TYPE REF TO /mbtools/cl_tools,
-  go_screen  TYPE REF TO /mbtools/cl_screen,
-  go_app     TYPE REF TO /mbtools/cl_base,
-  gv_tool    TYPE string,
-  gv_action  TYPE string,
-  gv_msg     TYPE string,
-  gv_flag    TYPE abap_bool.
+  go_tool   TYPE REF TO /mbtools/cl_tools,
+  go_screen TYPE REF TO /mbtools/cl_screen,
+  go_app    TYPE REF TO /mbtools/cl_base,
+  gx_exc    TYPE REF TO /mbtools/cx_exception,
+  gv_tool   TYPE string,
+  gv_action TYPE string,
+  gv_msg    TYPE string,
+  gv_flag   TYPE abap_bool.
 
 *-----------------------------------------------------------------------
 
@@ -154,6 +156,7 @@ AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_title.
       iv_pattern     = p_title
       iv_get_bundles = abap_true
       iv_get_tools   = abap_true
+      iv_admin       = abap_true
     RECEIVING
       rv_title       = p_title ).
 
@@ -165,114 +168,146 @@ START-OF-SELECTION.
 
   go_screen->banner( iv_show = abap_false ).
 
-  IF p_show = abap_true.
+  CLEAR: gv_msg, gv_action, gv_flag.
 
-    SUBMIT /mbtools/registry VIA SELECTION-SCREEN AND RETURN.
+  CASE abap_true.
 
-    RETURN.
+    WHEN p_show.
 
-  ELSEIF p_bund = abap_true.
+      SUBMIT /mbtools/registry VIA SELECTION-SCREEN AND RETURN.
 
-    gv_tool = 'Bundles were'.
+      RETURN.
 
-    DO 3 TIMES.
-      CASE sy-index.
-        WHEN 1.
-          go_tool = /mbtools/cl_tools=>factory( /mbtools/cl_bundle_free=>c_tool-title ).
-        WHEN 2.
-          go_tool = /mbtools/cl_tools=>factory( /mbtools/cl_bundle_prem_basis=>c_tool-title ).
-        WHEN 3.
-          go_tool = /mbtools/cl_tools=>factory( /mbtools/cl_bundle_prem_bw=>c_tool-title ).
-      ENDCASE.
+    WHEN p_bund.
+
+      gv_tool = 'Bundles were'.
+
+      DO 3 TIMES.
+        CASE sy-index.
+          WHEN 1.
+            go_tool = /mbtools/cl_tools=>factory( /mbtools/cl_bundle_free=>c_tool-title ).
+          WHEN 2.
+            go_tool = /mbtools/cl_tools=>factory( /mbtools/cl_bundle_prem_basis=>c_tool-title ).
+          WHEN 3.
+            go_tool = /mbtools/cl_tools=>factory( /mbtools/cl_bundle_prem_bw=>c_tool-title ).
+        ENDCASE.
+
+        CASE abap_true.
+          WHEN p_reg.
+
+            gv_flag   = go_tool->register( ).
+            gv_action = 'registered'.
+
+          WHEN p_unreg.
+
+            gv_flag   = go_tool->unregister( ).
+            gv_action = 'unregistered'.
+        ENDCASE.
+
+        IF gv_flag = abap_false.
+          EXIT.
+        ENDIF.
+      ENDDO.
+
+    WHEN p_all.
+
+      gv_tool = 'Tools were'.
 
       CASE abap_true.
         WHEN p_reg.
 
-          gv_flag   = go_tool->register( ).
+          gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_register ).
           gv_action = 'registered'.
 
         WHEN p_unreg.
 
-          gv_flag   = go_tool->unregister( ).
+          gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_unregister ).
           gv_action = 'unregistered'.
+
+        WHEN p_act.
+
+          gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_activate ).
+          gv_action = 'activated'.
+
+        WHEN p_deact.
+
+          gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_deactivate ).
+          gv_action = 'deactivated'.
+
+        WHEN p_check.
+
+          gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_check ).
+          gv_action = 'version checked'.
+
+        WHEN p_uninst.
+
+          gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_update ).
+          gv_action = 'updated ##TODO'.
+
+        WHEN p_uninst.
+
+          gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_uninstall ).
+          gv_action = 'uninstalled ##TODO'.
+
       ENDCASE.
 
-      IF gv_flag = abap_false.
-        EXIT.
-      ENDIF.
-    ENDDO.
+    WHEN p_sel.
 
-  ELSEIF p_all = abap_true.
+      TRY.
+          go_tool = /mbtools/cl_tools=>factory( p_title ).
+          gv_tool = 'Tool was'.
 
-    gv_tool = 'Tools were'.
+          CASE abap_true.
+            WHEN p_reg.
 
-    CASE abap_true.
-      WHEN p_reg.
+              gv_flag   = go_tool->register( ).
+              gv_action = 'registered'.
 
-        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_register ).
-        gv_action = 'registered'.
+            WHEN p_unreg.
 
-      WHEN p_unreg.
+              gv_flag   = go_tool->unregister( ).
+              gv_action = 'unregistered'.
 
-        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_unregister ).
-        gv_action = 'unregistered'.
+            WHEN p_act.
 
-      WHEN p_act.
+              gv_flag   = go_tool->activate( ).
+              gv_action = 'activated'.
 
-        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_activate ).
-        gv_action = 'activated'.
+            WHEN p_deact.
 
-      WHEN p_deact.
+              gv_flag   = go_tool->deactivate( ).
+              gv_action = 'deactivated'.
 
-        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_deactivate ).
-        gv_action = 'deactivated'.
+            WHEN p_check.
 
-      WHEN p_uninst.
+              gv_flag   = go_tool->check_version( ).
+              gv_action = 'version checked'.
 
-        gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_uninstall ).
-        gv_action = 'uninstalled'.
+            WHEN p_update ##TODO.
 
-    ENDCASE.
+              " gv_flag   = go_tool->update( ).
+              gv_action = 'uninstalled ##TODO'.
 
-  ELSE.
+            WHEN p_uninst ##TODO.
 
-    go_tool = /mbtools/cl_tools=>factory( p_title ).
-    gv_tool = 'Tool was'.
+              " gv_flag   = go_tool->uninstall( ).
+              gv_action = 'uninstalled ##TODO'.
 
-    CASE abap_true.
-      WHEN p_reg.
+          ENDCASE.
 
-        gv_flag   = go_tool->register( ).
-        gv_action = 'registered'.
+        CATCH /mbtools/cx_exception INTO gx_exc.
+          gv_flag = abap_false.
+          gv_msg = gx_exc->get_text( ).
+      ENDTRY.
 
-      WHEN p_unreg.
-
-        gv_flag   = go_tool->unregister( ).
-        gv_action = 'unregistered'.
-
-      WHEN p_act.
-
-        gv_flag   = go_tool->activate( ).
-        gv_action = 'activated'.
-
-      WHEN p_deact.
-
-        gv_flag   = go_tool->deactivate( ).
-        gv_action = 'deactivated'.
-
-      WHEN p_uninst.
-
-        gv_flag   = go_tool->uninstall( ).
-        gv_action = 'uninstalled'.
-
-    ENDCASE.
-
-  ENDIF.
+    WHEN OTHERS.
+      ASSERT 1 = 2.
+  ENDCASE.
 
   IF gv_flag = abap_true.
     gv_msg = |{ gv_tool } { gv_action } successfully|.
     MESSAGE gv_msg TYPE 'S'.
   ELSE.
-    gv_msg = |Error: { gv_tool } not { gv_action } properly|.
+    gv_msg = |Error: { gv_tool } not { gv_action } properly. { gv_msg }|.
     MESSAGE gv_msg TYPE 'E' DISPLAY LIKE 'I'.
   ENDIF.

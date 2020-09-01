@@ -60,6 +60,11 @@ CLASS /mbtools/cl_sap DEFINITION
         !iv_obj_name     TYPE csequence
       RETURNING
         VALUE(rv_result) TYPE abap_bool .
+    CLASS-METHODS is_prog_deleted
+      IMPORTING
+        !iv_obj_name     TYPE csequence
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool .
     CLASS-METHODS is_sap_note
       IMPORTING
         !iv_input        TYPE csequence
@@ -420,6 +425,19 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD is_prog_deleted.
+
+    DATA: lv_program TYPE progname.
+
+    SELECT SINGLE name FROM trdir INTO lv_program
+      WHERE name = iv_obj_name.
+    IF sy-subrc <> 0.
+      rv_result = abap_true.
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD is_sap_note.
 
     " Interpret any number between 1 and 4999999 as an SAP Note
@@ -568,20 +586,22 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
 
   METHOD show_icon.
 
-    CONSTANTS: c_icon_browser TYPE progname VALUE '/MBTOOLS/ICON_BROWSER'.
+    CONSTANTS: lc_icon_browser TYPE progname VALUE '/MBTOOLS/ICON_BROWSER'.
 
     DATA: ls_trdir_entry TYPE trdir.
 
     " Check if executable program exists
     SELECT SINGLE * FROM trdir INTO ls_trdir_entry
-      WHERE name = c_icon_browser AND subc = '1'.
+      WHERE name = lc_icon_browser AND subc = '1'.
     IF sy-subrc = 0.
-      SUBMIT (c_icon_browser)
+      SUBMIT (lc_icon_browser)
         WITH p_disp_i = abap_false
         WITH p_disp_n = abap_false
         WITH p_disp_p = abap_true
         WITH s_icon   = iv_icon
         AND RETURN.
+
+      rv_exit = abap_true.
     ENDIF.
 
   ENDMETHOD.

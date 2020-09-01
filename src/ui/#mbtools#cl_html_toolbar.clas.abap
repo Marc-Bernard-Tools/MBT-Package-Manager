@@ -1,6 +1,6 @@
-class /MBTOOLS/CL_HTML_TOOLBAR definition
-  public
-  create public .
+CLASS /mbtools/cl_html_toolbar DEFINITION
+  PUBLIC
+  CREATE PUBLIC .
 
 ************************************************************************
 * MBT HTML Toolbar
@@ -10,44 +10,44 @@ class /MBTOOLS/CL_HTML_TOOLBAR definition
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-public section.
+  PUBLIC SECTION.
 
-  methods CONSTRUCTOR
-    importing
-      !IV_ID type STRING optional .
-  methods ADD
-    importing
-      !IV_TXT type STRING
-      !IO_SUB type ref to /MBTOOLS/CL_HTML_TOOLBAR optional
-      !IV_TYP type C default /MBTOOLS/IF_HTML=>C_ACTION_TYPE-SAPEVENT
-      !IV_ACT type STRING optional
-      !IV_ICO type STRING optional
-      !IV_CUR type ABAP_BOOL optional
-      !IV_OPT type C optional
-      !IV_CHK type ABAP_BOOL default ABAP_UNDEFINED
-      !IV_AUX type STRING optional
-      !IV_ID type STRING optional
-      !IV_TITLE type STRING optional
-    returning
-      value(RO_SELF) type ref to /MBTOOLS/CL_HTML_TOOLBAR .
-  methods COUNT
-    returning
-      value(RV_COUNT) type I .
-  methods RENDER
-    importing
-      !IV_RIGHT type ABAP_BOOL optional
-      !IV_SORT type ABAP_BOOL optional
-    returning
-      value(RI_HTML) type ref to /MBTOOLS/IF_HTML .
-  methods RENDER_AS_DROPLIST
-    importing
-      !IV_LABEL type STRING
-      !IV_RIGHT type ABAP_BOOL optional
-      !IV_SORT type ABAP_BOOL optional
-      !IV_CORNER type ABAP_BOOL optional
-      !IV_ACTION type STRING optional
-    returning
-      value(RI_HTML) type ref to /MBTOOLS/IF_HTML .
+    METHODS constructor
+      IMPORTING
+        !iv_id TYPE string OPTIONAL .
+    METHODS add
+      IMPORTING
+        !iv_txt        TYPE string
+        !io_sub        TYPE REF TO /mbtools/cl_html_toolbar OPTIONAL
+        !iv_typ        TYPE c DEFAULT /mbtools/if_html=>c_action_type-sapevent
+        !iv_act        TYPE string OPTIONAL
+        !iv_ico        TYPE string OPTIONAL
+        !iv_cur        TYPE abap_bool OPTIONAL
+        !iv_opt        TYPE c OPTIONAL
+        !iv_chk        TYPE abap_bool DEFAULT abap_undefined
+        !iv_aux        TYPE string OPTIONAL
+        !iv_id         TYPE string OPTIONAL
+        !iv_title      TYPE string OPTIONAL
+      RETURNING
+        VALUE(ro_self) TYPE REF TO /mbtools/cl_html_toolbar .
+    METHODS count
+      RETURNING
+        VALUE(rv_count) TYPE i .
+    METHODS render
+      IMPORTING
+        !iv_right      TYPE abap_bool OPTIONAL
+        !iv_sort       TYPE abap_bool OPTIONAL
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html .
+    METHODS render_as_droplist
+      IMPORTING
+        !iv_label      TYPE string
+        !iv_right      TYPE abap_bool OPTIONAL
+        !iv_sort       TYPE abap_bool OPTIONAL
+        !iv_corner     TYPE abap_bool OPTIONAL
+        !iv_action     TYPE string OPTIONAL
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html .
   PROTECTED SECTION.
   PRIVATE SECTION.
     TYPES:
@@ -210,13 +210,13 @@ CLASS /MBTOOLS/CL_HTML_TOOLBAR IMPLEMENTATION.
 
       IF lv_has_icons = abap_true.
         IF <ls_item>-chk = abap_true.
-          lv_icon  = /mbtools/cl_html=>icon( 'check/blue' ).
+          lv_icon  = ri_html->icon( 'check/blue' ).
           lv_check = ' data-check="X"'.
         ELSEIF <ls_item>-chk = abap_false.
-          lv_icon = /mbtools/cl_html=>icon( 'check/grey' ).
+          lv_icon = ri_html->icon( 'check/grey' ).
           lv_check = ' data-check=""'.
         ELSE. " abap_undefined -> not a check box
-          lv_icon = /mbtools/cl_html=>icon( <ls_item>-ico ).
+          lv_icon = ri_html->icon( <ls_item>-ico ).
         ENDIF.
       ENDIF.
 

@@ -19,6 +19,31 @@ CLASS /mbtools/cl_ajson DEFINITION
     INTERFACES /mbtools/if_ajson_reader .
     INTERFACES /mbtools/if_ajson_writer .
 
+    ALIASES:
+      exists FOR /mbtools/if_ajson_reader~exists,
+      members FOR /mbtools/if_ajson_reader~members,
+      get FOR /mbtools/if_ajson_reader~get,
+      get_boolean FOR /mbtools/if_ajson_reader~get_boolean,
+      get_integer FOR /mbtools/if_ajson_reader~get_integer,
+      get_number FOR /mbtools/if_ajson_reader~get_number,
+      get_date FOR /mbtools/if_ajson_reader~get_date,
+      get_string FOR /mbtools/if_ajson_reader~get_string,
+      slice FOR /mbtools/if_ajson_reader~slice,
+      to_abap FOR /mbtools/if_ajson_reader~to_abap,
+      array_to_string_table FOR /mbtools/if_ajson_reader~array_to_string_table.
+
+    ALIASES:
+      clear FOR /mbtools/if_ajson_writer~clear,
+      set FOR /mbtools/if_ajson_writer~set,
+      set_boolean FOR /mbtools/if_ajson_writer~set_boolean,
+      set_string FOR /mbtools/if_ajson_writer~set_string,
+      set_integer FOR /mbtools/if_ajson_writer~set_integer,
+      set_date FOR /mbtools/if_ajson_writer~set_date,
+      set_null FOR /mbtools/if_ajson_writer~set_null,
+      delete FOR /mbtools/if_ajson_writer~delete,
+      touch_array FOR /mbtools/if_ajson_writer~touch_array,
+      push FOR /mbtools/if_ajson_writer~push.
+
     TYPES:
       BEGIN OF ty_node,
         path     TYPE string,
@@ -68,7 +93,7 @@ CLASS /mbtools/cl_ajson DEFINITION
   PRIVATE SECTION.
 
     TYPES:
-      tty_node_stack TYPE STANDARD TABLE OF REF TO ty_node WITH DEFAULT KEY.
+      ty_node_stack_tt TYPE STANDARD TABLE OF REF TO ty_node WITH DEFAULT KEY.
 
     DATA mt_json_tree TYPE ty_nodes_ts.
     DATA mv_read_only TYPE abap_bool.
@@ -82,7 +107,7 @@ CLASS /mbtools/cl_ajson DEFINITION
       IMPORTING
         iv_path              TYPE string
       RETURNING
-        VALUE(rt_node_stack) TYPE tty_node_stack
+        VALUE(rt_node_stack) TYPE ty_node_stack_tt
       RAISING
         /mbtools/cx_ajson_error.
     METHODS delete_subtree
@@ -130,7 +155,8 @@ CLASS /MBTOOLS/CL_AJSON IMPLEMENTATION.
           ENDIF.
           APPEND lv_tmp TO rt_string_table.
         WHEN OTHERS.
-          /mbtools/cx_ajson_error=>raise( |Cannot convert [{ <item>-type }] to string at [{ <item>-path }{ <item>-name }]| ).
+          /mbtools/cx_ajson_error=>raise( |Cannot convert [{ <item>-type
+            }] to string at [{ <item>-path }{ <item>-name }]| ).
       ENDCASE.
     ENDLOOP.
 
@@ -256,8 +282,10 @@ CLASS /MBTOOLS/CL_AJSON IMPLEMENTATION.
     LOOP AT mt_json_tree INTO ls_item.
       " TODO potentially improve performance due to sorted tree (all path started from same prefix go in a row)
       IF strlen( ls_item-path ) >= lv_path_len
-          AND substring( val = ls_item-path len = lv_path_len ) = lv_normalized_path.
-        ls_item-path = substring( val = ls_item-path off = lv_path_len - 1 ). " less closing '/'
+          AND substring( val = ls_item-path
+                         len = lv_path_len ) = lv_normalized_path.
+        ls_item-path = substring( val = ls_item-path
+                                  off = lv_path_len - 1 ). " less closing '/'
         INSERT ls_item INTO TABLE lo_section->mt_json_tree.
       ELSEIF ls_item-path = ls_path_parts-path AND ls_item-name = ls_path_parts-name.
         CLEAR: ls_item-path, ls_item-name. " this becomes a new root
@@ -304,9 +332,8 @@ CLASS /MBTOOLS/CL_AJSON IMPLEMENTATION.
     DATA ls_split_path TYPE ty_path_name.
     ls_split_path = lcl_utils=>split_path( iv_path ).
 
-    delete_subtree(
-      iv_path = ls_split_path-path
-      iv_name = ls_split_path-name ).
+    delete_subtree( iv_path = ls_split_path-path
+                    iv_name = ls_split_path-name ).
 
   ENDMETHOD.
 
@@ -487,9 +514,8 @@ CLASS /MBTOOLS/CL_AJSON IMPLEMENTATION.
     ENDIF.
 
     IF iv_clear = abap_true.
-      delete_subtree(
-        iv_path = ls_split_path-path
-        iv_name = ls_split_path-name ).
+      delete_subtree( iv_path = ls_split_path-path
+                      iv_name = ls_split_path-name ).
     ELSE.
       node_ref = get_item( iv_path ).
     ENDIF.
@@ -536,7 +562,8 @@ CLASS /MBTOOLS/CL_AJSON IMPLEMENTATION.
         lv_parent_path_len = strlen( lv_parent_path ).
         LOOP AT mt_json_tree ASSIGNING <node>.
           IF strlen( <node>-path ) >= lv_parent_path_len
-            AND substring( val = <node>-path len = lv_parent_path_len ) = lv_parent_path.
+            AND substring( val = <node>-path
+                           len = lv_parent_path_len ) = lv_parent_path.
             DELETE mt_json_tree INDEX sy-tabix.
           ENDIF.
         ENDLOOP.

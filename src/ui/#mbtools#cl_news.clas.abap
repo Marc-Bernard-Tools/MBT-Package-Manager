@@ -101,29 +101,8 @@ CLASS /MBTOOLS/CL_NEWS IMPLEMENTATION.
 
   METHOD compare_versions.
 
-    DATA: ls_version_a TYPE /mbtools/if_definitions=>ty_version,
-          ls_version_b TYPE /mbtools/if_definitions=>ty_version.
-
-    TRY.
-        ls_version_a = /mbtools/cl_version=>conv_str_to_version( iv_a ).
-        ls_version_b = /mbtools/cl_version=>conv_str_to_version( iv_b ).
-      CATCH /mbtools/cx_exception.
-        rv_result = 0.
-        RETURN.
-    ENDTRY.
-
-    IF ls_version_a = ls_version_b.
-      rv_result = 0.
-    ELSE.
-      TRY.
-          /mbtools/cl_version=>check_dependant_version( is_current   = ls_version_a
-                                                        is_dependant = ls_version_b ).
-          rv_result = 1.
-        CATCH /mbtools/cx_exception.
-          rv_result = -1.
-          RETURN.
-      ENDTRY.
-    ENDIF.
+    rv_result = /mbtools/cl_version=>compare( iv_a = iv_a
+                                              iv_b = iv_b ).
 
   ENDMETHOD.
 

@@ -510,17 +510,20 @@ CLASS ltcl_utils_test IMPLEMENTATION.
   METHOD validate_array_index.
 
     cl_abap_unit_assert=>assert_equals(
-      act = lcl_utils=>validate_array_index( iv_path = 'x' iv_index = '123' )
+      act = lcl_utils=>validate_array_index( iv_path = 'x'
+                                             iv_index = '123' )
       exp = 123 ).
 
-    TRY .
-        lcl_utils=>validate_array_index( iv_path = 'x' iv_index = 'a' ).
+    TRY.
+        lcl_utils=>validate_array_index( iv_path = 'x'
+                                         iv_index = 'a' ).
         cl_abap_unit_assert=>fail( ).
       CATCH /mbtools/cx_ajson_error.
     ENDTRY.
 
-    TRY .
-        lcl_utils=>validate_array_index( iv_path = 'x' iv_index = '0' ).
+    TRY.
+        lcl_utils=>validate_array_index( iv_path = 'x'
+                                         iv_index = '0' ).
         cl_abap_unit_assert=>fail( ).
       CATCH /mbtools/cx_ajson_error.
     ENDTRY.
@@ -1025,14 +1028,14 @@ CLASS ltcl_json_to_abap DEFINITION
         a TYPE string,
         b TYPE i,
       END OF ty_struc,
-      tty_struc TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
+      ty_strucs TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
       BEGIN OF ty_complex,
         str   TYPE string,
         int   TYPE i,
         float TYPE f,
         bool  TYPE abap_bool,
         obj   TYPE ty_struc,
-        tab   TYPE tty_struc,
+        tab   TYPE ty_strucs,
         oref  TYPE REF TO object,
         date1 TYPE d,
         date2 TYPE d,
@@ -1112,7 +1115,8 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
       act = <val>
       exp = 'World' ).
 
-    ref = lo_cut->find_loc( iv_path = '/obj' iv_name = 'a' ).
+    ref = lo_cut->find_loc( iv_path = '/obj'
+                            iv_name = 'a' ).
     ASSIGN ref->* TO <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
@@ -1179,7 +1183,8 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
           exp = 'Index not found in table' ).
     ENDTRY.
 
-    ref = lo_cut->find_loc( iv_path = '/tab/3/a' iv_append_tables = abap_true ).
+    ref = lo_cut->find_loc( iv_path = '/tab/3/a'
+                            iv_append_tables = abap_true ).
     ASSIGN ref->* TO <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
@@ -2136,8 +2141,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
     li_writer->set(
       iv_path = '/a'
       iv_val  = 'abc' ).
-    li_writer->touch_array(
-      iv_path = '/b' ).
+    li_writer->touch_array( iv_path = '/b' ).
     li_writer->push(
       iv_path = '/b'
       iv_val  = 'abc' ).
@@ -2153,8 +2157,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        li_writer->touch_array(
-          iv_path = '/d' ).
+        li_writer->touch_array( iv_path = '/d' ).
         cl_abap_unit_assert=>fail( ).
       CATCH /mbtools/cx_ajson_error.
     ENDTRY.
@@ -2168,8 +2171,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        li_writer->delete(
-          iv_path = '/a' ).
+        li_writer->delete( iv_path = '/a' ).
         cl_abap_unit_assert=>fail( ).
       CATCH /mbtools/cx_ajson_error.
     ENDTRY.
@@ -2208,7 +2210,7 @@ CLASS ltcl_integrated DEFINITION
         start    TYPE ty_loc,
         end      TYPE ty_loc,
       END OF ty_issue,
-      tt_issues TYPE STANDARD TABLE OF ty_issue WITH DEFAULT KEY,
+      ty_issues TYPE STANDARD TABLE OF ty_issue WITH DEFAULT KEY,
       BEGIN OF ty_target,
         string  TYPE string,
         number  TYPE i,
@@ -2217,7 +2219,7 @@ CLASS ltcl_integrated DEFINITION
         false   TYPE abap_bool,
         null    TYPE string,
         date    TYPE string, " ??? TODO
-        issues  TYPE tt_issues,
+        issues  TYPE ty_issues,
       END OF ty_target.
 
     METHODS reader FOR TESTING RAISING /mbtools/cx_ajson_error.
@@ -2354,8 +2356,7 @@ CLASS ltcl_integrated IMPLEMENTATION.
     li_writer->set(
       iv_path = '/c'
       iv_val  = abap_true ).
-    li_writer->set_null(
-      iv_path = '/d' ).
+    li_writer->set_null( iv_path = '/d' ).
 
     " simple test
     lv_exp = '{"a":1,"b":"B","c":true,"d":null}'.
@@ -2363,10 +2364,8 @@ CLASS ltcl_integrated IMPLEMENTATION.
       act = lo_cut->stringify( )
       exp = lv_exp ).
 
-    li_writer->touch_array(
-      iv_path = '/e' ).
-    li_writer->touch_array(
-      iv_path = '/f' ).
+    li_writer->touch_array( iv_path = '/e' ).
+    li_writer->touch_array( iv_path = '/f' ).
     li_writer->push(
       iv_path = '/f'
       iv_val  = 5 ).
@@ -2432,13 +2431,13 @@ CLASS ltcl_abap_to_json DEFINITION
         c TYPE abap_bool,
         d TYPE xfeld,
       END OF ty_struc,
-      tt_struc TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
+      ty_strucs TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
       BEGIN OF ty_struc_complex.
         INCLUDE TYPE ty_struc.
-      TYPES:
+    TYPES:
         el    TYPE string,
         struc TYPE ty_struc,
-        tab   TYPE tt_struc,
+        tab   TYPE ty_strucs,
         stab  TYPE string_table,
       END OF ty_struc_complex.
 

@@ -1125,7 +1125,7 @@ div.debug_container p {
 }
 
 .tool-row.active .tool-thumbnail {
-    border-left: 3px #04c !important;
+    border-left: 5px solid #04c;
 }
 .tool-row:hover td {
     background: #ddd !important;
@@ -1143,9 +1143,14 @@ div.debug_container p {
     width: 64px;
     height: 64px;
 }
-.tool-details {
-    font-size: 10pt;
-    color: #666;
+.tool-details .update {
+    border: 1px solid #666;
+    border-left: 5px solid #f70;
+    background-color: #ffd;
+    padding: 5px;
+}
+.tool-details .update i {
+    margin: 5px 5px 10px;
 }
 td.tool-actions {
     text-align: right;

@@ -1,7 +1,6 @@
 CLASS /mbtools/cl_logger DEFINITION
   PUBLIC
   CREATE PRIVATE
-
   GLOBAL FRIENDS /mbtools/cl_logger_factory .
 
 ************************************************************************
@@ -82,17 +81,17 @@ CLASS /mbtools/cl_logger DEFINITION
 
     TYPES:
 * Local type for hrpad_message as it is not available in an ABAP Development System
-      BEGIN OF hrpad_message_field_list_alike,
+      BEGIN OF ty_hrpad_message_field_list,
         scrrprfd TYPE scrrprfd.
-    TYPES: END OF hrpad_message_field_list_alike .
+    TYPES: END OF ty_hrpad_message_field_list.
     TYPES:
-      BEGIN OF hrpad_message_alike,
+      BEGIN OF ty_hrpad_message_alike,
         cause(32)    TYPE c,                          "original: hrpad_message_cause
         detail_level TYPE ballevel.
         INCLUDE TYPE symsg .
-        TYPES: field_list   TYPE STANDARD TABLE OF hrpad_message_field_list_alike
-              WITH NON-UNIQUE KEY scrrprfd.
-    TYPES: END OF hrpad_message_alike .
+    TYPES: field_list TYPE STANDARD TABLE OF ty_hrpad_message_field_list
+                           WITH NON-UNIQUE KEY scrrprfd.
+    TYPES: END OF ty_hrpad_message_alike .
 
     DATA mv_sec_connection TYPE abap_bool .
     DATA mv_sec_connect_commit TYPE abap_bool .
@@ -105,7 +104,7 @@ CLASS /mbtools/cl_logger DEFINITION
         !iv_type                       TYPE symsgty OPTIONAL
         !iv_importance                 TYPE balprobcl OPTIONAL
       RETURNING
-        VALUE(rt_exception_data_table) TYPE tty_exception_data .
+        VALUE(rt_exception_data_table) TYPE ty_exception_data .
     METHODS get_message_handles
       IMPORTING
         !iv_msgtype               TYPE symsgty OPTIONAL
@@ -142,29 +141,31 @@ CLASS /MBTOOLS/CL_LOGGER IMPLEMENTATION.
 
   METHOD add.
 
-    DATA: detailed_msg         TYPE bal_s_msg,
-          exception_data_table TYPE tty_exception_data,
-          free_text_msg        TYPE char200,
-          ctx_type             TYPE REF TO cl_abap_typedescr,
-          ctx_ddic_header      TYPE x030l,
-          msg_type             TYPE REF TO cl_abap_typedescr,
-          msg_table_type       TYPE REF TO cl_abap_tabledescr,
-          log_numbers          TYPE bal_t_lgnm,
-          log_handles          TYPE bal_t_logh,
-          log_number           TYPE bal_s_lgnm,
-          formatted_context    TYPE bal_s_cont,
-          formatted_params     TYPE bal_s_parm.
+    DATA:
+      detailed_msg         TYPE bal_s_msg,
+      exception_data_table TYPE ty_exception_data,
+      free_text_msg        TYPE char200,
+      ctx_type             TYPE REF TO cl_abap_typedescr,
+      ctx_ddic_header      TYPE x030l,
+      msg_type             TYPE REF TO cl_abap_typedescr,
+      msg_table_type       TYPE REF TO cl_abap_tabledescr,
+      log_numbers          TYPE bal_t_lgnm,
+      log_handles          TYPE bal_t_logh,
+      log_number           TYPE bal_s_lgnm,
+      formatted_context    TYPE bal_s_cont,
+      formatted_params     TYPE bal_s_parm.
 
-    FIELD-SYMBOLS: <table_of_messages> TYPE ANY TABLE,
-                   <message_line>      TYPE any,
-                   <bapiret1_msg>      TYPE bapiret1,
-                   <bapi_msg>          TYPE bapiret2,
-                   <bapi_coru_msg>     TYPE bapi_coru_return,
-                   "<bapi_order_msg>    TYPE bapi_order_return,
-                   <bdc_msg>           TYPE bdcmsgcoll,
-                   <hrpad_msg>         TYPE hrpad_message_alike,
-                   "<rcomp_msg>         TYPE rcomp,
-                   <iv_context_val>    TYPE any.
+    FIELD-SYMBOLS:
+      <table_of_messages> TYPE ANY TABLE,
+      <message_line>      TYPE any,
+      <bapiret1_msg>      TYPE bapiret1,
+      <bapi_msg>          TYPE bapiret2,
+      <bapi_coru_msg>     TYPE bapi_coru_return,
+      "<bapi_order_msg>    TYPE bapi_order_return,
+      <bdc_msg>           TYPE bdcmsgcoll,
+      <hrpad_msg>         TYPE ty_hrpad_message_alike,
+      "<rcomp_msg>         TYPE rcomp,
+      <iv_context_val>    TYPE any.
 
     IF iv_context IS NOT INITIAL.
       ASSIGN iv_context TO <iv_context_val>.
@@ -270,15 +271,12 @@ CLASS /MBTOOLS/CL_LOGGER IMPLEMENTATION.
       exception_data_table = drill_down_into_exception(
           io_exception   = iv_obj_to_log
           iv_type        = iv_type
-          iv_importance  = iv_importance
-          ).
+          iv_importance  = iv_importance ).
     ELSEIF msg_type->type_kind = cl_abap_typedescr=>typekind_table.
       ASSIGN iv_obj_to_log TO <table_of_messages>.
       LOOP AT <table_of_messages> ASSIGNING <message_line>.
-        add(
-          EXPORTING
-           iv_obj_to_log = <message_line>
-           iv_context    = iv_context ).
+        add( iv_obj_to_log = <message_line>
+             iv_context    = iv_context ).
       ENDLOOP.
     ELSEIF msg_type->type_kind = cl_abap_typedescr=>typekind_struct1   "flat structure
         OR msg_type->type_kind = cl_abap_typedescr=>typekind_struct2.  "deep structure (already when string is used)
@@ -327,6 +325,7 @@ CLASS /MBTOOLS/CL_LOGGER IMPLEMENTATION.
           structure_descriptor TYPE REF TO cl_abap_structdescr,
           components           TYPE cl_abap_structdescr=>component_table,
           component            LIKE LINE OF components.
+
     FIELD-SYMBOLS: <component> TYPE any.
 
     msg_struct_type ?= cl_abap_typedescr=>describe_by_data( is_structure_to_log ).
@@ -353,9 +352,11 @@ CLASS /MBTOOLS/CL_LOGGER IMPLEMENTATION.
   METHOD drill_down_into_exception.
     DATA: i                  TYPE i VALUE 2,
           previous_exception TYPE REF TO cx_root,
-          exceptions         TYPE tty_exception.
+          exceptions         TYPE ty_exceptions.
 
-    FIELD-SYMBOLS <ex> LIKE LINE OF exceptions.
+    FIELD-SYMBOLS: <ex> LIKE LINE OF exceptions,
+                   <ret> LIKE LINE OF rt_exception_data_table.
+
     APPEND INITIAL LINE TO exceptions ASSIGNING <ex>.
     <ex>-level = 1.
     <ex>-exception = io_exception.
@@ -375,7 +376,6 @@ CLASS /MBTOOLS/CL_LOGGER IMPLEMENTATION.
       i = i + 1.
     ENDWHILE.
 
-    FIELD-SYMBOLS <ret> LIKE LINE OF rt_exception_data_table.
     SORT exceptions BY level DESCENDING. "Display the deepest exception first
     LOOP AT exceptions ASSIGNING <ex>.
       APPEND INITIAL LINE TO rt_exception_data_table ASSIGNING <ret>.
@@ -496,6 +496,7 @@ CLASS /MBTOOLS/CL_LOGGER IMPLEMENTATION.
     LOOP AT structure_components INTO structure_component.
       IF structure_component-as_include = 'X' OR structure_component-type->kind = cl_abap_typedescr=>kind_struct.
         substructure ?= structure_component-type.
+
         get_structure_fields(
           EXPORTING
             iv_prefix           = structure_component-name

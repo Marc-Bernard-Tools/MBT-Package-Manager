@@ -281,7 +281,7 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
       lx_exception TYPE REF TO /mbtools/cx_exception.
 
     TRY.
-        lo_client = /mbtools/cl_http=>create_by_url( iv_url = iv_url ).
+        lo_client = create_by_url( iv_url = iv_url ).
 
         IF iv_regex IS SUPPLIED.
           lo_client->check_smart_response(
