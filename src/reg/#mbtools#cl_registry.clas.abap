@@ -1,6 +1,7 @@
 CLASS /mbtools/cl_registry DEFINITION
   PUBLIC
   CREATE PROTECTED .
+
 ************************************************************************
 * MBT Registry
 *
@@ -17,7 +18,6 @@ CLASS /mbtools/cl_registry DEFINITION
 *
 * Ported to namespace and enhanced by Marc Bernard Tools
 ************************************************************************
-
   PUBLIC SECTION.
 
     TYPES:
@@ -161,8 +161,11 @@ CLASS /mbtools/cl_registry DEFINITION
         /mbtools/cx_exception .
     CLASS-METHODS truncate .
     METHODS export
+      IMPORTING
+        !iv_internal_keys TYPE abap_bool DEFAULT abap_false
+        !iv_table         TYPE abap_bool DEFAULT abap_false
       CHANGING
-        !ct_file TYPE string_table
+        !ct_file          TYPE string_table
       RAISING
         /mbtools/cx_exception .
     METHODS get_subentry_by_path
@@ -202,8 +205,8 @@ CLASS /mbtools/cl_registry DEFINITION
 
   PRIVATE SECTION.
 
+    " If this is changed, you also have to adjust all IMPORT/EXPORT statements
     CONSTANTS: c_relid TYPE indx_relid VALUE 'ZR'.
-
 ENDCLASS.
 
 
@@ -423,11 +426,15 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
   METHOD export.
 *>>>INS
+    CONSTANTS:
+      lc_tab TYPE c VALUE cl_abap_char_utilities=>horizontal_tab.
+
     DATA:
       lo_reg_entry TYPE REF TO /mbtools/cl_registry,
       ls_kv        TYPE ty_keyval,
       lv_id        TYPE string,
-      lv_file_line TYPE string.
+      lv_file_line TYPE string,
+      lv_head_line TYPE string.
 
 *   Export key header
     lo_reg_entry = me.
@@ -444,21 +451,59 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
         lo_reg_entry = lo_reg_entry->get_parent( ).
       ENDIF.
     ENDDO.
-    CONCATENATE '[' lv_file_line ']' INTO lv_file_line.
-    APPEND lv_file_line TO ct_file.
+
+    IF iv_table IS INITIAL.
+      CONCATENATE '[' lv_file_line ']' INTO lv_file_line.
+      APPEND lv_file_line TO ct_file.
+    ELSE.
+      lv_head_line = lv_file_line.
+    ENDIF.
+
+*   Export internal keys
+    IF iv_internal_keys = abap_true.
+      IF iv_table IS INITIAL.
+        lv_file_line = |"__parent" = "{ mv_parent_key }"|.
+        APPEND lv_file_line TO ct_file.
+        lv_file_line = |"__intern" = "{ mv_internal_key }"|.
+        APPEND lv_file_line TO ct_file.
+      ELSE.
+        lv_head_line = lv_head_line && lc_tab && mv_parent_key.
+        lv_head_line = lv_head_line && lc_tab && mv_internal_key.
+      ENDIF.
+    ENDIF.
 
 *   Export key values
     LOOP AT mt_values INTO ls_kv.
-      CONCATENATE '"' ls_kv-key '"="' ls_kv-value '"' INTO lv_file_line.
-      APPEND lv_file_line TO ct_file.
+      IF iv_table IS INITIAL.
+        IF ls_kv-value IS INITIAL OR ls_kv-value CO ` `.
+          lv_file_line = |"{ ls_kv-key }" = ""|.
+        ELSEIF ls_kv-value CO `01234567890 `.
+          lv_file_line = |"{ ls_kv-key }" = { ls_kv-value }|.
+        ELSE.
+          lv_file_line = |"{ ls_kv-key }" = "{ ls_kv-value }"|.
+        ENDIF.
+        APPEND lv_file_line TO ct_file.
+      ELSE.
+        lv_file_line = lv_head_line && lc_tab && ls_kv-key && lc_tab && ls_kv-value.
+        APPEND lv_file_line TO ct_file.
+      ENDIF.
     ENDLOOP.
-    APPEND '' TO ct_file.
+    IF iv_table IS INITIAL.
+      APPEND '' TO ct_file.
+    ELSEIF sy-subrc <> 0.
+      APPEND lv_head_line TO ct_file.
+    ENDIF.
 
 *   Export sub entries (recursive)
     LOOP AT mt_sub_entries INTO ls_kv.
       lo_reg_entry = get_subentry( ls_kv-key ).
 
-      lo_reg_entry->export( CHANGING ct_file = ct_file ).
+      lo_reg_entry->export(
+        EXPORTING
+          iv_internal_keys = iv_internal_keys
+          iv_table         = iv_table
+        CHANGING
+          ct_file          = ct_file ).
     ENDLOOP.
 *<<<INS
   ENDMETHOD.
@@ -691,7 +736,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     ENDIF.
 *>>>INS
     SELECT SINGLE * FROM /mbtools/regs INTO ms_regs
-      WHERE relid = 'ZR' AND srtfd = mv_internal_key AND srtf2 = 0.
+      WHERE relid = c_relid AND srtfd = mv_internal_key AND srtf2 = 0.
 *<<<INS
     set_optimistic_lock( ).
   ENDMETHOD.                    "reload
@@ -782,7 +827,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     CALL FUNCTION 'ENQUEUE_/MBTOOLS/E_REGS'
       EXPORTING
         mode_/mbtools/regs = 'O'
-        relid              = 'ZR'
+        relid              = c_relid
         srtfd              = mv_internal_key
       EXCEPTIONS
         foreign_lock       = 1
@@ -852,7 +897,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DELETE FROM /mbtools/regs WHERE relid = 'ZR'.
+    DELETE FROM /mbtools/regs WHERE relid = c_relid.
     IF sy-subrc = 0.
       MESSAGE 'Registry truncated successfully'(004) TYPE 'S'.
     ENDIF.

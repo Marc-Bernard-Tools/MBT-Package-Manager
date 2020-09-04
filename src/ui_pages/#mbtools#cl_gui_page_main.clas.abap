@@ -38,70 +38,77 @@ CLASS /mbtools/cl_gui_page_main DEFINITION
       RAISING
         /mbtools/cx_exception .
   PROTECTED SECTION.
-  PRIVATE SECTION.
+PRIVATE SECTION.
 
-    DATA mv_mode TYPE c .
-    DATA mo_asset_manager TYPE REF TO /mbtools/cl_gui_asset_manager .
+  DATA mv_mode TYPE c .
+  DATA mo_asset_manager TYPE REF TO /mbtools/cl_gui_asset_manager .
 
-    METHODS get_tool_from_param
-      IMPORTING
-        !iv_name       TYPE string
-      RETURNING
-        VALUE(ro_tool) TYPE REF TO /mbtools/cl_tools
-      RAISING
-        /mbtools/cx_exception .
-    METHODS validate_tool
-      IMPORTING
-        !iv_action TYPE clike
-        !io_tool   TYPE REF TO /mbtools/cl_tools
-      RAISING
-        /mbtools/cx_exception .
-    CLASS-METHODS build_menu
-      IMPORTING
-        !iv_mode       TYPE c OPTIONAL
-      RETURNING
-        VALUE(ro_menu) TYPE REF TO /mbtools/cl_html_toolbar .
-    METHODS register_header
-      RAISING
-        /mbtools/cx_exception .
-    METHODS register_thumbnail
-      IMPORTING
-        !io_tool         TYPE REF TO /mbtools/cl_tools
-      RETURNING
-        VALUE(rv_result) TYPE string
-      RAISING
-        /mbtools/cx_exception .
-    METHODS render_actions
-      IMPORTING
-        !io_tool       TYPE REF TO /mbtools/cl_tools
-      RETURNING
-        VALUE(ri_html) TYPE REF TO /mbtools/if_html
-      RAISING
-        /mbtools/cx_exception .
-    METHODS render_bundle
-      IMPORTING
-        !iv_title      TYPE string
-      RETURNING
-        VALUE(ri_html) TYPE REF TO /mbtools/if_html
-      RAISING
-        /mbtools/cx_exception .
-    METHODS render_bundles
-      RETURNING
-        VALUE(ri_html) TYPE REF TO /mbtools/if_html
-      RAISING
-        /mbtools/cx_exception .
-    METHODS render_tools
-      RETURNING
-        VALUE(ri_html) TYPE REF TO /mbtools/if_html
-      RAISING
-        /mbtools/cx_exception .
-    METHODS render_tool
-      IMPORTING
-        !iv_title      TYPE string
-      RETURNING
-        VALUE(ri_html) TYPE REF TO /mbtools/if_html
-      RAISING
-        /mbtools/cx_exception .
+  METHODS get_tool_from_param
+    IMPORTING
+      !iv_name       TYPE string
+    RETURNING
+      VALUE(ro_tool) TYPE REF TO /mbtools/cl_tools
+    RAISING
+      /mbtools/cx_exception .
+  METHODS validate_tool
+    IMPORTING
+      !iv_action TYPE clike
+      !io_tool   TYPE REF TO /mbtools/cl_tools
+    RAISING
+      /mbtools/cx_exception .
+  CLASS-METHODS build_menu
+    IMPORTING
+      !iv_mode       TYPE c OPTIONAL
+    RETURNING
+      VALUE(ro_menu) TYPE REF TO /mbtools/cl_html_toolbar .
+  METHODS register_header
+    RAISING
+      /mbtools/cx_exception .
+  METHODS register_thumbnail
+    IMPORTING
+      !io_tool         TYPE REF TO /mbtools/cl_tools
+    RETURNING
+      VALUE(rv_result) TYPE string
+    RAISING
+      /mbtools/cx_exception .
+  METHODS render_actions
+    IMPORTING
+      !io_tool       TYPE REF TO /mbtools/cl_tools
+    RETURNING
+      VALUE(ri_html) TYPE REF TO /mbtools/if_html
+    RAISING
+      /mbtools/cx_exception .
+  METHODS render_bundle
+    IMPORTING
+      !iv_title      TYPE string
+    RETURNING
+      VALUE(ri_html) TYPE REF TO /mbtools/if_html
+    RAISING
+      /mbtools/cx_exception .
+  METHODS render_bundles
+    RETURNING
+      VALUE(ri_html) TYPE REF TO /mbtools/if_html
+    RAISING
+      /mbtools/cx_exception .
+  METHODS render_tools
+    RETURNING
+      VALUE(ri_html) TYPE REF TO /mbtools/if_html
+    RAISING
+      /mbtools/cx_exception .
+  METHODS render_tool
+    IMPORTING
+      !iv_title      TYPE string
+    RETURNING
+      VALUE(ri_html) TYPE REF TO /mbtools/if_html
+    RAISING
+      /mbtools/cx_exception .
+  METHODS render_tool_details
+    IMPORTING
+      !iv_title      TYPE string
+    RETURNING
+      VALUE(ri_html) TYPE REF TO /mbtools/if_html
+    RAISING
+      /mbtools/cx_exception .
 ENDCLASS.
 
 
@@ -121,10 +128,12 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
     CASE iv_action.
 
-      WHEN /mbtools/if_actions=>tool_check ##TODO.
+      WHEN /mbtools/if_actions=>tool_check.
+        /mbtools/cl_tools=>run_action( iv_action ).
         ev_state = /mbtools/cl_gui=>c_event_state-re_render.
 
-      WHEN /mbtools/if_actions=>tool_update ##TODO.
+      WHEN /mbtools/if_actions=>tool_update.
+        /mbtools/cl_tools=>run_action( iv_action ).
         ev_state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_docs.
@@ -715,6 +724,30 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
     ri_html->add( '</ul>' ).
     ri_html->add( '</div>' ).
+
+  ENDMETHOD.
+
+
+  METHOD render_tool_details.
+
+    DATA:
+      lo_tool      TYPE REF TO /mbtools/cl_tools,
+      lv_changelog TYPE string.
+
+    IF mv_mode <> c_mode-admin.
+      RETURN.
+    ENDIF.
+
+    lo_tool = /mbtools/cl_tools=>factory( iv_title ).
+
+    ri_html = /mbtools/cl_html=>create( ).
+
+    ri_html->add( |<span class="title">{ lo_tool->get_title( ) }</span>| ) ##TODO.
+
+    ri_html = /mbtools/cl_html_lib=>render_infopanel(
+      iv_div_id     = |changelog-{ lo_tool->get_name( ) }|
+      iv_title      = |Changelog for { lo_tool->get_title( ) }|
+      io_content    = ri_html ).
 
   ENDMETHOD.
 

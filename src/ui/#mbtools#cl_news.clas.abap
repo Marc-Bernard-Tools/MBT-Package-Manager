@@ -101,8 +101,8 @@ CLASS /MBTOOLS/CL_NEWS IMPLEMENTATION.
 
   METHOD compare_versions.
 
-    rv_result = /mbtools/cl_version=>compare( iv_a = iv_a
-                                              iv_b = iv_b ).
+    rv_result = /mbtools/cl_version=>compare( iv_current = iv_a
+                                              iv_compare = iv_b ).
 
   ENDMETHOD.
 

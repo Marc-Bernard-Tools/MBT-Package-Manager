@@ -47,8 +47,9 @@ CLASS /mbtools/cl_tools DEFINITION
         " Update
         update             TYPE string VALUE '.Update' ##NO_TEXT,
         key_new_version    TYPE string VALUE 'NewVersion' ##NO_TEXT,
-        key_changelog      TYPE string VALUE 'ChangelogURL' ##NO_TEXT,
-        key_download       TYPE string VALUE 'DownloadURL' ##NO_TEXT,
+        key_changelog_url  TYPE string VALUE 'ChangelogURL' ##NO_TEXT,
+        key_download_url   TYPE string VALUE 'DownloadURL' ##NO_TEXT,
+        key_changelog_html TYPE string VALUE 'ChangelogHTML' ##NO_TEXT,
       END OF c_reg .
     " Evaluation
     CONSTANTS c_eval_days TYPE i VALUE 60 ##NO_TEXT.
@@ -336,8 +337,9 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lv_license   TYPE string,
       lv_id        TYPE string,
       lv_version   TYPE string,
-      lv_changelog TYPE string,
-      lv_download  TYPE string.
+      lv_changelog_url TYPE string,
+      lv_changelog_html TYPE string,
+      lv_download_url  TYPE string.
 
     " Is tool or bundle registered?
     IF is_bundle( ) IS INITIAL.
@@ -358,26 +360,29 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     " Get version info via call to EDD API on MBT
     /mbtools/cl_edd=>get_version(
       EXPORTING
-        iv_id        = lv_id
-        iv_license   = lv_license
+        iv_id             = lv_id
+        iv_license        = lv_license
       IMPORTING
-        ev_version   = lv_version
-        ev_changelog = lv_changelog
-        ev_download  = lv_download ).
+        ev_version        = lv_version
+        ev_changelog_url  = lv_changelog_url
+        ev_changelog_html = lv_changelog_html
+        ev_download_url   = lv_download_url ).
 
     " If newer version is available, save info
-    IF /mbtools/cl_version=>compare( iv_a = lv_version
-                                     iv_b = get_version( ) ) > 0.
+    IF /mbtools/cl_version=>compare( iv_current = get_version( )
+                                     iv_compare = lv_version ) > 0.
 
       lo_reg_entry = lo_reg_tool->get_subentry( c_reg-update ).
       CHECK lo_reg_entry IS BOUND.
 
       lo_reg_entry->set_value( iv_key   = c_reg-key_new_version
                                iv_value = lv_version ).
-      lo_reg_entry->set_value( iv_key   = c_reg-key_changelog
-                               iv_value = lv_changelog ).
-      lo_reg_entry->set_value( iv_key   = c_reg-key_download
-                               iv_value = lv_download ).
+      lo_reg_entry->set_value( iv_key   = c_reg-key_changelog_url
+                               iv_value = lv_changelog_url ).
+      lo_reg_entry->set_value( iv_key   = c_reg-key_changelog_html
+                               iv_value = lv_changelog_html ).
+      lo_reg_entry->set_value( iv_key   = c_reg-key_download_url
+                               iv_value = lv_download_url ).
 
       lo_reg_entry->save( ).
 
@@ -756,9 +761,9 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
         rv_result = lo_reg_entry->get_value( c_reg-key_new_version ).
 
-        " Check if version is indeed newer
-        IF /mbtools/cl_version=>compare( iv_a = rv_result
-                                         iv_b = get_version( ) ) <= 0.
+        " If current version is newer, then reset registry value
+        IF /mbtools/cl_version=>compare( iv_current = get_version( )
+                                         iv_compare = rv_result ) >= 0.
           CLEAR rv_result.
           lo_reg_entry->set_value( iv_key   = c_reg-key_new_version
                                    iv_value = rv_result ).
@@ -975,7 +980,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         lo_reg_entry = lo_reg_tool->get_subentry( c_reg-update ).
         CHECK lo_reg_entry IS BOUND.
 
-        rv_result = lo_reg_entry->get_value( c_reg-key_changelog ).
+        rv_result = lo_reg_entry->get_value( c_reg-key_changelog_url ).
 
       CATCH cx_root.
         RETURN.
@@ -1010,7 +1015,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         lo_reg_entry = lo_reg_tool->get_subentry( c_reg-update ).
         CHECK lo_reg_entry IS BOUND.
 
-        rv_result = lo_reg_entry->get_value( c_reg-key_download ).
+        rv_result = lo_reg_entry->get_value( c_reg-key_download_url ).
 
       CATCH cx_root.
         RETURN.
@@ -1390,8 +1395,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           lo_reg_entry = lo_reg_tool->add_subentry( c_reg-update ).
           IF lo_reg_entry IS BOUND.
             lo_reg_entry->set_value( c_reg-key_new_version ).
-            lo_reg_entry->set_value( c_reg-key_changelog ).
-            lo_reg_entry->set_value( c_reg-key_download ).
+            lo_reg_entry->set_value( c_reg-key_changelog_url ).
+            lo_reg_entry->set_value( c_reg-key_download_url ).
             lo_reg_entry->save( ).
           ENDIF.
         ENDIF.

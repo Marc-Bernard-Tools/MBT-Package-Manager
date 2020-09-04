@@ -18,14 +18,12 @@ CLASS /mbtools/cl_version DEFINITION
         !iv_version       TYPE string
       RETURNING
         VALUE(rv_version) TYPE string .
-
     CLASS-METHODS compare
       IMPORTING
-        !iv_a            TYPE string
-        !iv_b            TYPE string
+        !iv_current      TYPE string
+        !iv_compare      TYPE string
       RETURNING
         VALUE(rv_result) TYPE i .
-
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -37,11 +35,10 @@ CLASS /mbtools/cl_version DEFINITION
         VALUE(rs_version) TYPE /mbtools/if_definitions=>ty_version
       RAISING
         /mbtools/cx_exception .
-
     CLASS-METHODS check_dependant_version
       IMPORTING
-        !is_current   TYPE /mbtools/if_definitions=>ty_version
-        !is_dependant TYPE /mbtools/if_definitions=>ty_version
+        !is_current TYPE /mbtools/if_definitions=>ty_version
+        !is_compare TYPE /mbtools/if_definitions=>ty_version
       RAISING
         /mbtools/cx_exception .
 ENDCLASS.
@@ -55,21 +52,21 @@ CLASS /MBTOOLS/CL_VERSION IMPLEMENTATION.
 
     CONSTANTS: lc_message TYPE string VALUE 'Current version is older than required' ##NO_TEXT.
 
-    IF is_dependant-major > is_current-major.
+    IF is_compare-major > is_current-major.
       /mbtools/cx_exception=>raise( lc_message ).
-    ELSEIF is_dependant-major < is_current-major.
+    ELSEIF is_compare-major < is_current-major.
       RETURN.
     ENDIF.
 
-    IF is_dependant-minor > is_current-minor.
+    IF is_compare-minor > is_current-minor.
       /mbtools/cx_exception=>raise( lc_message ).
-    ELSEIF is_dependant-minor < is_current-minor.
+    ELSEIF is_compare-minor < is_current-minor.
       RETURN.
     ENDIF.
 
-    IF is_dependant-patch > is_current-patch.
+    IF is_compare-patch > is_current-patch.
       /mbtools/cx_exception=>raise( lc_message ).
-    ELSEIF is_dependant-patch < is_current-patch.
+    ELSEIF is_compare-patch < is_current-patch.
       RETURN.
     ENDIF.
 
@@ -79,23 +76,23 @@ CLASS /MBTOOLS/CL_VERSION IMPLEMENTATION.
 
     CASE is_current-prerelase.
       WHEN 'rc'.
-        IF is_dependant-prerelase = ''.
+        IF is_compare-prerelase = ''.
           /mbtools/cx_exception=>raise( lc_message ).
         ENDIF.
 
       WHEN 'beta'.
-        IF is_dependant-prerelase = '' OR is_dependant-prerelase = 'rc'.
+        IF is_compare-prerelase = '' OR is_compare-prerelase = 'rc'.
           /mbtools/cx_exception=>raise( lc_message ).
         ENDIF.
 
       WHEN 'alpha'.
-        IF is_dependant-prerelase = '' OR is_dependant-prerelase = 'rc' OR is_dependant-prerelase = 'beta'.
+        IF is_compare-prerelase = '' OR is_compare-prerelase = 'rc' OR is_compare-prerelase = 'beta'.
           /mbtools/cx_exception=>raise( lc_message ).
         ENDIF.
 
     ENDCASE.
 
-    IF is_dependant-prerelase = is_current-prerelase AND is_dependant-prerelase_patch > is_current-prerelase_patch.
+    IF is_compare-prerelase = is_current-prerelase AND is_compare-prerelase_patch > is_current-prerelase_patch.
       /mbtools/cx_exception=>raise( lc_message ).
     ENDIF.
 
@@ -104,12 +101,21 @@ CLASS /MBTOOLS/CL_VERSION IMPLEMENTATION.
 
   METHOD compare.
 
+    " current < compare: -1
+    " current = compare: 0
+    " current > compare: +1
+
     DATA: ls_version_a TYPE zif_abapgit_definitions=>ty_version,
           ls_version_b TYPE zif_abapgit_definitions=>ty_version.
 
+    IF iv_current IS INITIAL OR iv_compare IS INITIAL.
+      rv_result = 0.
+      RETURN.
+    ENDIF.
+
     TRY.
-        ls_version_a = conv_str_to_version( iv_a ).
-        ls_version_b = conv_str_to_version( iv_b ).
+        ls_version_a = conv_str_to_version( iv_current ).
+        ls_version_b = conv_str_to_version( iv_compare ).
       CATCH /mbtools/cx_exception.
         rv_result = 0.
         RETURN.
@@ -119,8 +125,8 @@ CLASS /MBTOOLS/CL_VERSION IMPLEMENTATION.
       rv_result = 0.
     ELSE.
       TRY.
-          check_dependant_version( is_current   = ls_version_a
-                                   is_dependant = ls_version_b ).
+          check_dependant_version( is_current = ls_version_a
+                                   is_compare = ls_version_b ).
           rv_result = 1.
         CATCH /mbtools/cx_exception.
           rv_result = -1.

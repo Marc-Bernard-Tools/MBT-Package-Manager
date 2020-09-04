@@ -60,12 +60,13 @@ CLASS /mbtools/cl_edd DEFINITION
         /mbtools/cx_exception .
     CLASS-METHODS get_version
       IMPORTING
-        !iv_id        TYPE string
-        !iv_license   TYPE string
+        !iv_id             TYPE string
+        !iv_license        TYPE string
       EXPORTING
-        !ev_version   TYPE string
-        !ev_changelog TYPE string
-        !ev_download  TYPE string
+        !ev_version        TYPE string
+        !ev_changelog_url  TYPE string
+        !ev_changelog_html TYPE string
+        !ev_download_url   TYPE string
       RAISING
         /mbtools/cx_exception .
   PROTECTED SECTION.
@@ -364,9 +365,11 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     ev_version = lo_json->get_string( '/new_version' ).
 
-    ev_changelog = lo_json->get_string( '/url' ).
+    ev_changelog_url = lo_json->get_string( '/url' ).
 
-    ev_download = lo_json->get_string( '/download_link' ).
+    ev_download_url = lo_json->get_string( '/download_link' ).
+
+    ev_changelog_html = '' ##TODO.
 
   ENDMETHOD.
 ENDCLASS.

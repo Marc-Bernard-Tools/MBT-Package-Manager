@@ -2,6 +2,7 @@ CLASS /mbtools/cl_proxy_config DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT Proxy Configuration
 *
@@ -10,23 +11,16 @@ CLASS /mbtools/cl_proxy_config DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-
   PUBLIC SECTION.
 
     METHODS constructor .
     METHODS get_proxy_url
-      IMPORTING
-        !iv_repo_url        TYPE csequence OPTIONAL
       RETURNING
         VALUE(rv_proxy_url) TYPE string .
     METHODS get_proxy_port
-      IMPORTING
-        !iv_repo_url   TYPE csequence OPTIONAL
       RETURNING
         VALUE(rv_port) TYPE string .
     METHODS get_proxy_authentication
-      IMPORTING
-        !iv_repo_url   TYPE csequence OPTIONAL
       RETURNING
         VALUE(rv_auth) TYPE abap_bool .
   PROTECTED SECTION.

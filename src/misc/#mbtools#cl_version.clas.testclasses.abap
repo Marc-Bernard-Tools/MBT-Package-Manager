@@ -20,8 +20,8 @@ CLASS ltcl_version IMPLEMENTATION.
     DATA lv_result TYPE i.
 
     " Case 1: version A > version B
-    lv_result = /mbtools/cl_version=>compare( iv_a = '1.28.10'
-                                              iv_b = '1.23.10' ).
+    lv_result = /mbtools/cl_version=>compare( iv_current = '1.28.10'
+                                              iv_compare = '1.23.10' ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lv_result
@@ -30,8 +30,8 @@ CLASS ltcl_version IMPLEMENTATION.
     CLEAR: lv_result.
 
     " Case 2: version A < version B
-    lv_result = /mbtools/cl_version=>compare( iv_a = '1.28.10'
-                                              iv_b = '2.23.10' ).
+    lv_result = /mbtools/cl_version=>compare( iv_current = '1.28.10'
+                                              iv_compare = '2.23.10' ).
 
     cl_abap_unit_assert=>assert_equals( exp = -1
                                         act = lv_result
@@ -40,8 +40,8 @@ CLASS ltcl_version IMPLEMENTATION.
     CLEAR: lv_result.
 
     " Case 3: version A = version B
-    lv_result = /mbtools/cl_version=>compare( iv_a = '1.28.10'
-                                              iv_b = '1.28.10' ).
+    lv_result = /mbtools/cl_version=>compare( iv_current = '1.28.10'
+                                              iv_compare = '1.28.10' ).
 
     cl_abap_unit_assert=>assert_equals( exp = 0
                                         act = lv_result

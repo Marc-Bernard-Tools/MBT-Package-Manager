@@ -509,14 +509,18 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
 
   METHOD handle_tree_command.
 
+    CONSTANTS:
+      lc_tab TYPE c VALUE cl_abap_char_utilities=>horizontal_tab.
+
     " Handle commands to the tree toolbar
-    DATA: lv_new_key TYPE string.
-    DATA: lr_reg_entry TYPE REF TO /mbtools/cl_registry.
-    DATA: lv_node_key TYPE lvc_nkey.
-    DATA: lv_rc TYPE char1.
-    DATA: lx_exc TYPE REF TO /mbtools/cx_exception.
-    DATA: lr_parent TYPE REF TO /mbtools/cl_registry.
-    DATA: lv_msg TYPE string.
+    DATA:
+      lv_new_key   TYPE string,
+      lr_reg_entry TYPE REF TO /mbtools/cl_registry,
+      lv_node_key  TYPE lvc_nkey,
+      lv_rc        TYPE char1,
+      lx_exc       TYPE REF TO /mbtools/cx_exception,
+      lr_parent    TYPE REF TO /mbtools/cl_registry,
+      lv_msg       TYPE string.
 
     IF gr_sel_reg_entry IS NOT BOUND.
       MESSAGE 'Select a node from the tree first'(003) TYPE 'I'. "<<<CHG
@@ -640,29 +644,72 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
           lc_registry_title TYPE string VALUE 'MBT Registry 1.0' ##NO_TEXT.
 
         DATA:
-          lv_file     TYPE string,
-          lv_path     TYPE string,
-          lv_fullpath TYPE string,
-          lv_action   TYPE i,
-          lt_file    TYPE string_table.
+          lv_answer    TYPE c,
+          lv_extension TYPE string,
+          lv_file      TYPE string,
+          lv_path      TYPE string,
+          lv_fullpath  TYPE string,
+          lv_action    TYPE i,
+          lt_file      TYPE string_table.
+
+        CALL FUNCTION 'POPUP_TO_CONFIRM'
+          EXPORTING
+            titlebar       = 'Registry Export'
+            text_question  = 'Select file format for the export'
+            text_button_1  = 'Registry'
+            icon_button_1  = 'ICON_BIW_INFO_CUBE'
+            text_button_2  = 'Table'
+            icon_button_2  = 'ICON_XLS'
+          IMPORTING
+            answer         = lv_answer
+          EXCEPTIONS
+            text_not_found = 1
+            OTHERS         = 2.
+        IF sy-subrc <> 0 OR lv_answer = 'A'.
+          RETURN.
+        ENDIF.
 
         CLEAR lt_file.
 
-        APPEND lc_registry_title TO lt_file.
-        APPEND '' TO lt_file.
+        IF lv_answer = '1'.
+          APPEND lc_registry_title TO lt_file.
+          APPEND '' TO lt_file.
+        ELSE.
+          lv_msg = 'Node' && lc_tab && 'Parent Key' && lc_tab && 'Internal Key'
+            && lc_tab && 'Key' && lc_tab && 'Value'.
+          APPEND lv_msg TO lt_file.
+        ENDIF.
 
         TRY.
-            gr_sel_reg_entry->export( CHANGING ct_file = lt_file ).
+            IF lv_answer = '1'.
+              gr_sel_reg_entry->export(
+                EXPORTING
+                  iv_internal_keys = abap_false
+                  iv_table         = abap_false
+                CHANGING
+                  ct_file          = lt_file ).
+
+              lv_extension = 'reg'.
+            ELSE.
+              gr_sel_reg_entry->export(
+                EXPORTING
+                  iv_internal_keys = abap_true
+                  iv_table         = abap_true
+                CHANGING
+                  ct_file          = lt_file ).
+
+              lv_extension = 'tab'.
+            ENDIF.
           CATCH /mbtools/cx_exception INTO lx_exc.
             lv_msg = lx_exc->get_text( ).
-            MESSAGE lv_msg TYPE 'I'.
+            MESSAGE lv_msg TYPE 'S' DISPLAY LIKE 'E'.
             RETURN.
         ENDTRY.
 
         cl_gui_frontend_services=>file_save_dialog(
           EXPORTING
             window_title              = |Registry Export|
-            default_extension         = 'reg'
+            default_extension         = lv_extension
             default_file_name         = 'mbt_registry'
           CHANGING
             filename                  = lv_file
@@ -720,6 +767,11 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
           gr_sel_reg_entry->ms_regs-chdate
           gr_sel_reg_entry->ms_regs-chtime
           gr_sel_reg_entry->ms_regs-chname.
+        MESSAGE i000(/mbtools/bc) WITH
+          'Parent key:'
+          gr_sel_reg_entry->mv_parent_key
+          ', Internal key:'
+          gr_sel_reg_entry->mv_internal_key.
 *<<<INS
     ENDCASE.
 
