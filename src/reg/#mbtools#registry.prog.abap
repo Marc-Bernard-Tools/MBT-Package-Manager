@@ -18,7 +18,7 @@ TYPE-POOLS: icon.
 DATA: gr_splitter TYPE REF TO cl_gui_easy_splitter_container.
 
 " Single statement to generate a selection screen
-PARAMETERS: p_dummy.
+PARAMETERS: p_dummy ##NEEDED.
 
 DATA: gv_dynnr TYPE sydynnr.
 DATA: gv_repid TYPE syrepid.

@@ -16,9 +16,9 @@ CLASS /mbtools/cl_datetime DEFINITION
     CONSTANTS c_week_in_seconds TYPE i VALUE 604800 ##NO_TEXT.
     CONSTANTS c_month_in_seconds TYPE i VALUE 2592000 ##NO_TEXT.
     CONSTANTS c_year_in_seconds TYPE i VALUE 31536000 ##NO_TEXT.
-    CONSTANTS c_week_in_days TYPE i VALUE 7 ##NO_TEXT.
-    CONSTANTS c_month_in_days TYPE i VALUE 30 ##NO_TEXT.
-    CONSTANTS c_year_in_days TYPE i VALUE 365 ##NO_TEXT.
+    CONSTANTS c_week_in_days TYPE i VALUE 7 ##NEEDED ##NO_TEXT.
+    CONSTANTS c_month_in_days TYPE i VALUE 30 ##NEEDED ##NO_TEXT.
+    CONSTANTS c_year_in_days TYPE i VALUE 365 ##NEEDED ##NO_TEXT.
 
     CLASS-METHODS human_date_diff
       IMPORTING

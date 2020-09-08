@@ -127,7 +127,7 @@ CLASS /MBTOOLS/CL_VERSION IMPLEMENTATION.
       TRY.
           check_dependant_version( is_current = ls_version_a
                                    is_compare = ls_version_b ).
-          rv_result = 1.
+          rv_result = +1.
         CATCH /mbtools/cx_exception.
           rv_result = -1.
           RETURN.

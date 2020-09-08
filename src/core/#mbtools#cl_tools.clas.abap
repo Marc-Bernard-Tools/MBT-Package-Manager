@@ -332,14 +332,16 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD check_version.
 
     DATA:
-      lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
-      lo_reg_entry TYPE REF TO /mbtools/cl_registry,
-      lv_license   TYPE string,
-      lv_id        TYPE string,
-      lv_version   TYPE string,
-      lv_changelog_url TYPE string,
+      lo_reg_tool       TYPE REF TO /mbtools/cl_registry,
+      lo_reg_entry      TYPE REF TO /mbtools/cl_registry,
+      lv_license        TYPE string,
+      lv_id             TYPE string,
+      lv_version        TYPE string,
+      lv_changelog_url  TYPE string,
       lv_changelog_html TYPE string,
-      lv_download_url  TYPE string.
+      lv_download_url   TYPE string.
+
+    go_reg_root->reload( ).
 
     " Is tool or bundle registered?
     IF is_bundle( ) IS INITIAL.
@@ -370,7 +372,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     " If newer version is available, save info
     IF /mbtools/cl_version=>compare( iv_current = get_version( )
-                                     iv_compare = lv_version ) > 0.
+                                     iv_compare = lv_version ) < 0.
 
       lo_reg_entry = lo_reg_tool->get_subentry( c_reg-update ).
       CHECK lo_reg_entry IS BOUND.
@@ -672,6 +674,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lo_reg_entry TYPE REF TO /mbtools/cl_registry.
 
     TRY.
+        go_reg_root->reload( ).
+
         " Is tool already registered?
         IF is_bundle( ) IS INITIAL.
           lo_reg_tool = get_reg_tool( mv_name ).
@@ -761,9 +765,11 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
         rv_result = lo_reg_entry->get_value( c_reg-key_new_version ).
 
-        " If current version is newer, then reset registry value
-        IF /mbtools/cl_version=>compare( iv_current = get_version( )
-                                         iv_compare = rv_result ) >= 0.
+        " If current version is same or newer, then reset registry value
+        IF NOT rv_result IS INITIAL AND
+          /mbtools/cl_version=>compare( iv_current = get_version( )
+                                        iv_compare = rv_result ) >= 0.
+
           CLEAR rv_result.
           lo_reg_entry->set_value( iv_key   = c_reg-key_new_version
                                    iv_value = rv_result ).
@@ -802,6 +808,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lt_bundles   TYPE /mbtools/cl_registry=>ty_keyobjs.
 
     TRY.
+        " Reload of root should be handled outside of this method
         lt_bundles = go_reg_root->get_subentries( ).
 
         LOOP AT lt_bundles INTO ls_bundle.
@@ -826,7 +833,9 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       ls_bundle  TYPE /mbtools/cl_registry=>ty_keyobj,
       lt_bundles TYPE /mbtools/cl_registry=>ty_keyobjs.
 
+
     TRY.
+        " Reload of root should be handled outside of this method
         lt_bundles = go_reg_root->get_subentries( ).
 
         LOOP AT lt_bundles INTO ls_bundle.
@@ -963,7 +972,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD GET_URL_CHANGELOG.
+  METHOD get_url_changelog.
 
     DATA:
       lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
@@ -998,7 +1007,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD GET_URL_DOWNLOAD.
+  METHOD get_url_download.
 
     DATA:
       lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
@@ -1126,6 +1135,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     ENDIF.
 
     TRY.
+        go_reg_root->reload( ).
+
         " Is tool already registered?
         IF is_bundle( ) IS INITIAL.
           lo_reg_tool = get_reg_tool( mv_name ).
@@ -1193,6 +1204,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lv_valid     TYPE abap_bool,
       lv_expire    TYPE d.
 
+    go_reg_root->reload( ).
+
     " Is tool or bundle registered?
     IF is_bundle( ) IS INITIAL.
       lo_reg_tool = get_reg_tool( mv_name ).
@@ -1243,6 +1256,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lv_license   TYPE string,
       lv_id        TYPE string.
 
+    go_reg_root->reload( ).
+
     " Is tool or bundle registered?
     IF is_bundle( ) IS INITIAL.
       lo_reg_tool = get_reg_tool( mv_name ).
@@ -1284,6 +1299,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lv_timestamp  TYPE timestamp.
 
     TRY.
+        go_reg_root->reload( ).
+
         " Is tool already registered?
         IF is_bundle( ) IS INITIAL.
           lo_reg_tool = get_reg_tool( mv_name ).
@@ -1391,7 +1408,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
             lo_reg_entry = lo_reg_tool->add_subentry( c_reg-settings ).
           ENDIF.
 
-         " Update
+          " Update
           lo_reg_entry = lo_reg_tool->add_subentry( c_reg-update ).
           IF lo_reg_entry IS BOUND.
             lo_reg_entry->set_value( c_reg-key_new_version ).
@@ -1467,6 +1484,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lt_entries    TYPE /mbtools/cl_registry=>ty_keyobjs.
 
     TRY.
+        go_reg_root->reload( ).
+
         " Is tool still registered?
         IF is_bundle( ) IS INITIAL.
           lo_reg_tool = get_reg_tool( mv_name ).

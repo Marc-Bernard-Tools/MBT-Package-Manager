@@ -48,9 +48,7 @@ CLASS lcl_main DEFINITION FINAL.
     CLASS-METHODS main_run.
     CLASS-METHODS main_screen_init.
     CLASS-METHODS main_screen_output.
-    CLASS-METHODS main_screen_exit
-      EXCEPTIONS
-        /mbtools/cx_exception.
+    CLASS-METHODS main_screen_exit.
 
     CLASS-METHODS password_popup
       IMPORTING

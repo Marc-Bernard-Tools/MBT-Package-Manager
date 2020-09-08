@@ -735,8 +735,14 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
       /mbtools/cx_exception=>raise( 'Registry entry does not exist'(006) ).
     ENDIF.
 *>>>INS
+    " Get last changed user, date, time
     SELECT SINGLE * FROM /mbtools/regs INTO ms_regs
       WHERE relid = c_relid AND srtfd = mv_internal_key AND srtf2 = 0.
+
+    " On reload of root, reset instance cache
+    IF mv_internal_key = c_registry_root.
+      CLEAR gt_registry_entries.
+    ENDIF.
 *<<<INS
     set_optimistic_lock( ).
   ENDMETHOD.                    "reload

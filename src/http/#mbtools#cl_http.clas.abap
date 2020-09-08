@@ -161,8 +161,8 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
       EXPORTING
         url                = iv_url
         ssl_id             = 'ANONYM'
-        proxy_host         = lo_proxy_configuration->get_proxy_url( iv_url )
-        proxy_service      = lo_proxy_configuration->get_proxy_port( iv_url )
+        proxy_host         = lo_proxy_configuration->get_proxy_url( )
+        proxy_service      = lo_proxy_configuration->get_proxy_port( )
       IMPORTING
         client             = li_client
       EXCEPTIONS
@@ -183,7 +183,7 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
       /mbtools/cx_exception=>raise( lv_text ).
     ENDIF.
 
-    IF lo_proxy_configuration->get_proxy_authentication( iv_url ) = abap_true.
+    IF lo_proxy_configuration->get_proxy_authentication( ) = abap_true.
       /mbtools/cl_proxy_auth=>run( li_client ).
     ENDIF.
 

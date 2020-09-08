@@ -77,55 +77,55 @@ CLASS /mbtools/cl_gui DEFINITION
       RAISING
         /mbtools/cx_exception .
   PROTECTED SECTION.
-PRIVATE SECTION.
+  PRIVATE SECTION.
 
-  TYPES:
-    BEGIN OF ty_page_stack,
-      page     TYPE REF TO /mbtools/if_gui_renderable,
-      bookmark TYPE abap_bool,
-    END OF ty_page_stack .
+    TYPES:
+      BEGIN OF ty_page_stack,
+        page     TYPE REF TO /mbtools/if_gui_renderable,
+        bookmark TYPE abap_bool,
+      END OF ty_page_stack .
 
-  DATA mv_rollback_on_error TYPE abap_bool .
-  DATA mi_cur_page TYPE REF TO /mbtools/if_gui_renderable .
-  DATA:
-    mt_stack             TYPE STANDARD TABLE OF ty_page_stack .
-  DATA:
-    mt_event_handlers    TYPE STANDARD TABLE OF REF TO /mbtools/if_gui_event_handler .
-  DATA mi_router TYPE REF TO /mbtools/if_gui_event_handler .
-  DATA mi_asset_man TYPE REF TO /mbtools/if_gui_asset_manager .
-  DATA mi_hotkey_ctl TYPE REF TO /mbtools/if_gui_hotkey_ctl .
-  DATA mi_html_processor TYPE REF TO /mbtools/if_gui_html_processor .
-  DATA mo_html_viewer TYPE REF TO cl_gui_html_viewer .
-  DATA mo_html_parts TYPE REF TO /mbtools/cl_html_parts .
-  DATA mv_online TYPE abap_bool .
+    DATA mv_rollback_on_error TYPE abap_bool .
+    DATA mi_cur_page TYPE REF TO /mbtools/if_gui_renderable .
+    DATA:
+      mt_stack             TYPE STANDARD TABLE OF ty_page_stack .
+    DATA:
+      mt_event_handlers    TYPE STANDARD TABLE OF REF TO /mbtools/if_gui_event_handler .
+    DATA mi_router TYPE REF TO /mbtools/if_gui_event_handler .
+    DATA mi_asset_man TYPE REF TO /mbtools/if_gui_asset_manager .
+    DATA mi_hotkey_ctl TYPE REF TO /mbtools/if_gui_hotkey_ctl .
+    DATA mi_html_processor TYPE REF TO /mbtools/if_gui_html_processor .
+    DATA mo_html_viewer TYPE REF TO cl_gui_html_viewer .
+    DATA mo_html_parts TYPE REF TO /mbtools/cl_html_parts .
+    DATA mv_online TYPE abap_bool .
 
-  METHODS startup
-    RAISING
-      /mbtools/cx_exception .
-  METHODS cache_html
-    IMPORTING
-      !iv_text      TYPE string
-    RETURNING
-      VALUE(rv_url) TYPE w3url .
-  METHODS render
-    RAISING
-      /mbtools/cx_exception .
-  METHODS call_page
-    IMPORTING
-      !ii_page          TYPE REF TO /mbtools/if_gui_renderable
-      !iv_with_bookmark TYPE abap_bool DEFAULT abap_false
-      !iv_replacing     TYPE abap_bool DEFAULT abap_false
-    RAISING
-      /mbtools/cx_exception .
-  METHODS handle_action
-    IMPORTING
-      !iv_action   TYPE c
-      !iv_getdata  TYPE c OPTIONAL
-      !it_postdata TYPE cnht_post_data_tab OPTIONAL .
-  METHODS handle_error
-    IMPORTING
-      !ix_exception TYPE REF TO /mbtools/cx_exception .
-  METHODS ping .
+    METHODS startup
+      RAISING
+        /mbtools/cx_exception .
+    METHODS cache_html
+      IMPORTING
+        !iv_text      TYPE string
+      RETURNING
+        VALUE(rv_url) TYPE w3url .
+    METHODS render
+      RAISING
+        /mbtools/cx_exception .
+    METHODS call_page
+      IMPORTING
+        !ii_page          TYPE REF TO /mbtools/if_gui_renderable
+        !iv_with_bookmark TYPE abap_bool DEFAULT abap_false
+        !iv_replacing     TYPE abap_bool DEFAULT abap_false
+      RAISING
+        /mbtools/cx_exception .
+    METHODS handle_action
+      IMPORTING
+        !iv_action   TYPE c
+        !iv_getdata  TYPE c OPTIONAL
+        !it_postdata TYPE cnht_post_data_tab OPTIONAL .
+    METHODS handle_error
+      IMPORTING
+        !ix_exception TYPE REF TO /mbtools/cx_exception .
+    METHODS ping .
 ENDCLASS.
 
 
@@ -135,8 +135,7 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
 
   METHOD /mbtools/if_gui_services~cache_asset.
 
-    DATA: lv_xstr  TYPE xstring,
-          lt_xdata TYPE lvc_t_mime,
+    DATA: lt_xdata TYPE lvc_t_mime,
           lv_size  TYPE i,
           lt_html  TYPE w3htmltab.
 
@@ -492,7 +491,7 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
       ls_entry-k = condense( to_lower( cl_http_utility=>unescape_url( ls_entry-k ) ) ).
       ls_entry-v = cl_http_utility=>unescape_url( ls_entry-v ).
 
-      IF ro_parameters->has( ls_entry-k ).
+      IF ro_parameters->has( ls_entry-k ) = abap_true.
         /mbtools/cx_exception=>raise( |Duplicate parameter { ls_entry-k }| ).
       ELSE.
         ro_parameters->set( iv_key = ls_entry-k
