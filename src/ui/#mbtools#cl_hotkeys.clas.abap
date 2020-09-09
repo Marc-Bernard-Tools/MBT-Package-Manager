@@ -51,7 +51,6 @@ CLASS /mbtools/cl_hotkeys DEFINITION
     DATA:
       mt_hotkey_providers TYPE TABLE OF REF TO /mbtools/if_gui_hotkeys .
     CLASS-DATA gv_hint_was_shown TYPE abap_bool .
-    CLASS-DATA gt_interface_implementations TYPE saboo_iimpt .
 
     CLASS-METHODS filter_relevant_classes
       IMPORTING

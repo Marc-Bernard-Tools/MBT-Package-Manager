@@ -22,9 +22,9 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD repo_error.
 
     TRY.
-        /mbtools/cl_url=>host( 'not a real url' ).          "#EC NOTEXT
+        /mbtools/cl_url=>host( 'not a real url' ).
         cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_exception.                      "#EC NO_HANDLER
+      CATCH /mbtools/cx_exception ##NO_HANDLER.
     ENDTRY.
 
   ENDMETHOD.
@@ -104,8 +104,8 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD url_validate1.
 
     TRY.
-        /mbtools/cl_url=>validate( 'http://github.com/larshp/Foobar.git' ). "#EC NOTEXT
-      CATCH /mbtools/cx_exception.                      "#EC NO_HANDLER
+        /mbtools/cl_url=>validate( 'http://github.com/larshp/Foobar.git' ).
+      CATCH /mbtools/cx_exception.
         cl_abap_unit_assert=>fail( ).
     ENDTRY.
 
@@ -114,8 +114,8 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD url_validate2.
 
     TRY.
-        /mbtools/cl_url=>validate( 'https://github.com/larshp/Foobar.git' ). "#EC NOTEXT
-      CATCH /mbtools/cx_exception.                      "#EC NO_HANDLER
+        /mbtools/cl_url=>validate( 'https://github.com/larshp/Foobar.git' ).
+      CATCH /mbtools/cx_exception.
         cl_abap_unit_assert=>fail( ).
     ENDTRY.
 
@@ -124,9 +124,9 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD url_validate3.
 
     TRY.
-        /mbtools/cl_url=>validate( 'XYZ://github.com/larshp/Foobar.git' ). "#EC NOTEXT
+        /mbtools/cl_url=>validate( 'XYZ://github.com/larshp/Foobar.git' ).
         cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_exception.                      "#EC NO_HANDLER
+      CATCH /mbtools/cx_exception ##NO_HANDLER.
     ENDTRY.
 
   ENDMETHOD.

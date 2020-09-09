@@ -38,77 +38,77 @@ CLASS /mbtools/cl_gui_page_main DEFINITION
       RAISING
         /mbtools/cx_exception .
   PROTECTED SECTION.
-PRIVATE SECTION.
+  PRIVATE SECTION.
 
-  DATA mv_mode TYPE c .
-  DATA mo_asset_manager TYPE REF TO /mbtools/cl_gui_asset_manager .
+    DATA mv_mode TYPE c .
+    DATA mo_asset_manager TYPE REF TO /mbtools/cl_gui_asset_manager .
 
-  METHODS get_tool_from_param
-    IMPORTING
-      !iv_name       TYPE string
-    RETURNING
-      VALUE(ro_tool) TYPE REF TO /mbtools/cl_tools
-    RAISING
-      /mbtools/cx_exception .
-  METHODS validate_tool
-    IMPORTING
-      !iv_action TYPE clike
-      !io_tool   TYPE REF TO /mbtools/cl_tools
-    RAISING
-      /mbtools/cx_exception .
-  CLASS-METHODS build_menu
-    IMPORTING
-      !iv_mode       TYPE c OPTIONAL
-    RETURNING
-      VALUE(ro_menu) TYPE REF TO /mbtools/cl_html_toolbar .
-  METHODS register_header
-    RAISING
-      /mbtools/cx_exception .
-  METHODS register_thumbnail
-    IMPORTING
-      !io_tool         TYPE REF TO /mbtools/cl_tools
-    RETURNING
-      VALUE(rv_result) TYPE string
-    RAISING
-      /mbtools/cx_exception .
-  METHODS render_actions
-    IMPORTING
-      !io_tool       TYPE REF TO /mbtools/cl_tools
-    RETURNING
-      VALUE(ri_html) TYPE REF TO /mbtools/if_html
-    RAISING
-      /mbtools/cx_exception .
-  METHODS render_bundle
-    IMPORTING
-      !iv_title      TYPE string
-    RETURNING
-      VALUE(ri_html) TYPE REF TO /mbtools/if_html
-    RAISING
-      /mbtools/cx_exception .
-  METHODS render_bundles
-    RETURNING
-      VALUE(ri_html) TYPE REF TO /mbtools/if_html
-    RAISING
-      /mbtools/cx_exception .
-  METHODS render_tools
-    RETURNING
-      VALUE(ri_html) TYPE REF TO /mbtools/if_html
-    RAISING
-      /mbtools/cx_exception .
-  METHODS render_tool
-    IMPORTING
-      !iv_title      TYPE string
-    RETURNING
-      VALUE(ri_html) TYPE REF TO /mbtools/if_html
-    RAISING
-      /mbtools/cx_exception .
-  METHODS render_tool_details
-    IMPORTING
-      !iv_title      TYPE string
-    RETURNING
-      VALUE(ri_html) TYPE REF TO /mbtools/if_html
-    RAISING
-      /mbtools/cx_exception .
+    METHODS get_tool_from_param
+      IMPORTING
+        !iv_name       TYPE string
+      RETURNING
+        VALUE(ro_tool) TYPE REF TO /mbtools/cl_tools
+      RAISING
+        /mbtools/cx_exception .
+    METHODS validate_tool
+      IMPORTING
+        !iv_action TYPE clike
+        !io_tool   TYPE REF TO /mbtools/cl_tools
+      RAISING
+        /mbtools/cx_exception .
+    CLASS-METHODS build_menu
+      IMPORTING
+        !iv_mode       TYPE c OPTIONAL
+      RETURNING
+        VALUE(ro_menu) TYPE REF TO /mbtools/cl_html_toolbar .
+    METHODS register_header
+      RAISING
+        /mbtools/cx_exception .
+    METHODS register_thumbnail
+      IMPORTING
+        !io_tool         TYPE REF TO /mbtools/cl_tools
+      RETURNING
+        VALUE(rv_result) TYPE string
+      RAISING
+        /mbtools/cx_exception .
+    METHODS render_actions
+      IMPORTING
+        !io_tool       TYPE REF TO /mbtools/cl_tools
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
+      RAISING
+        /mbtools/cx_exception .
+    METHODS render_bundle
+      IMPORTING
+        !iv_title      TYPE string
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
+      RAISING
+        /mbtools/cx_exception .
+    METHODS render_bundles
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
+      RAISING
+        /mbtools/cx_exception .
+    METHODS render_tools
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
+      RAISING
+        /mbtools/cx_exception .
+    METHODS render_tool
+      IMPORTING
+        !iv_title      TYPE string
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
+      RAISING
+        /mbtools/cx_exception .
+    METHODS render_tool_details
+      IMPORTING
+        !iv_title      TYPE string
+      RETURNING
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html
+      RAISING
+        /mbtools/cx_exception .
 ENDCLASS.
 
 
