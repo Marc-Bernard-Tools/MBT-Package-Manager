@@ -568,8 +568,8 @@ CLASS ltcl_test IMPLEMENTATION.
         impossible_int = 1 / 0.                            "Make an error!
       CATCH cx_sy_zerodivide INTO err.
         anon_log->add( err ).
-        exp_txt         = err->if_message~get_text( ).
-        long_text       = err->if_message~get_longtext( ).
+        exp_txt   = err->get_text( ).
+        long_text = err->get_longtext( ).
     ENDTRY.
 
     msg_handle-log_handle = anon_log->mv_handle.

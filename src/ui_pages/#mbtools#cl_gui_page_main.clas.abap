@@ -731,8 +731,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
   METHOD render_tool_details.
 
     DATA:
-      lo_tool      TYPE REF TO /mbtools/cl_tools,
-      lv_changelog TYPE string.
+      lo_tool TYPE REF TO /mbtools/cl_tools.
 
     IF mv_mode <> c_mode-admin.
       RETURN.
