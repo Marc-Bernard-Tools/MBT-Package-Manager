@@ -3,23 +3,14 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>/MBTOOLS/CL_GUI_PAGE_MAIN</CLSNAME>
+    <CLSNAME>/MBTOOLS/CL_HTML_VIEWER</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>MBT GUI Page Main</DESCRIPT>
+    <DESCRIPT>MBT HTML Viewer</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
     <UNICODE>X</UNICODE>
-    <RSTAT>K</RSTAT>
    </VSEOCLASS>
-   <DESCRIPTIONS>
-    <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_GUI_PAGE_MAIN</CLSNAME>
-     <CMPNAME>MO_ASSET_MANAGER</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>MBT GUI Asset Manager</DESCRIPT>
-    </SEOCOMPOTX>
-   </DESCRIPTIONS>
   </asx:values>
  </asx:abap>
 </abapGit>

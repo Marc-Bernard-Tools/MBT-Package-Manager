@@ -9,6 +9,7 @@ INTERFACE /mbtools/if_progress
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
 
+  METHODS hide.
   METHODS show
     IMPORTING
       !iv_current TYPE i

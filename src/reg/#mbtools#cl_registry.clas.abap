@@ -271,7 +271,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * Save the current entry to update the list of sub-keys
     save( ).
 
-  ENDMETHOD.                    "add_subentry
+  ENDMETHOD.
 
 
   METHOD constructor.
@@ -290,7 +290,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     ls_ko-value = me.
     INSERT ls_ko INTO TABLE gt_registry_entries.
 
-  ENDMETHOD.                    "constructor
+  ENDMETHOD.
 
 
   METHOD copy_subentry.
@@ -316,7 +316,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     copy_subentry_deep( io_source = lo_source_entry
                         io_target = ro_target_entry ).
 
-  ENDMETHOD.                    "copy_subentry
+  ENDMETHOD.
 
 
   METHOD copy_subentry_deep.
@@ -342,7 +342,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * Ensure that values are also saved
     save( ).
 
-  ENDMETHOD.                    "copy_subentry_deep
+  ENDMETHOD.
 
 
   METHOD create_by_path.
@@ -370,7 +370,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * After successful processing of chain, ENTRY will
 * contain the last-created node
 
-  ENDMETHOD.                    "create_by_path
+  ENDMETHOD.
 
 
   METHOD delete.
@@ -406,7 +406,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * Release lock held on this key
     release_lock( ).
 
-  ENDMETHOD.                    "delete
+  ENDMETHOD.
 
 
   METHOD delete_value.
@@ -421,7 +421,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
     ls_kv-key = iv_key.
     DELETE mt_values WHERE key = ls_kv-key.
-  ENDMETHOD.                    "delete_value
+  ENDMETHOD.
 
 
   METHOD export.
@@ -528,7 +528,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
           ig_internal_key = iv_key.
 * Will insert itself into registry entries
     ENDIF.
-  ENDMETHOD.                    "get_entry_by_internal_key
+  ENDMETHOD.
 
 
   METHOD get_parent.
@@ -536,7 +536,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * GET_PARENT - retrieve parent entry of this entry
 *--------------------------------------------------------------------*
     ro_parent = get_entry_by_internal_key( mv_parent_key ).
-  ENDMETHOD.                    "get_parent
+  ENDMETHOD.
 
 
   METHOD get_root.
@@ -571,7 +571,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * Retrieve the root entry of the registry
     ro_root = get_entry_by_internal_key( c_registry_root ).
 
-  ENDMETHOD.                    "get_root
+  ENDMETHOD.
 
 
   METHOD get_subentries.
@@ -592,7 +592,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
       INSERT ls_ko INTO TABLE rt_sub_entries. "sorted table
     ENDLOOP.
 
-  ENDMETHOD.                    "get_subentries
+  ENDMETHOD.
 
 
   METHOD get_subentry.
@@ -622,7 +622,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * Will insert itself into registry entries
     ENDIF.
 
-  ENDMETHOD.                    "get_subentry
+  ENDMETHOD.
 
 
   METHOD get_subentry_by_path.
@@ -650,7 +650,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * After successful processing of chain, ENTRY will
 * contain the last node
 *<<<INS
-  ENDMETHOD. "get_subentry_by_path.
+  ENDMETHOD.
 
 
   METHOD get_subentry_keys.
@@ -661,7 +661,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     LOOP AT mt_sub_entries INTO ls_kv.
       APPEND ls_kv-key TO rt_keys.
     ENDLOOP.
-  ENDMETHOD.                    "get_subentry_keys
+  ENDMETHOD.
 
 
   METHOD get_value.
@@ -673,7 +673,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     IF sy-subrc = 0.
       rv_value = ls_kv-value.
     ENDIF.
-  ENDMETHOD.                    "get_value
+  ENDMETHOD.
 
 
   METHOD get_values.
@@ -681,7 +681,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * GET_VALUES - retrieve all values at once in key+value table
 *--------------------------------------------------------------------*
     rt_values = mt_values.
-  ENDMETHOD.                    "get_values
+  ENDMETHOD.
 
 
   METHOD get_value_keys.
@@ -692,13 +692,15 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     LOOP AT mt_values INTO ls_kv.
       APPEND ls_kv-key TO rt_keys.
     ENDLOOP.
-  ENDMETHOD.                    "get_value_keys
+  ENDMETHOD.
 
 
   METHOD promote_lock.
 *--------------------------------------------------------------------*
 * PROMOTE_LOCK - Get exclusive lock just before saving
 *--------------------------------------------------------------------*
+    DATA lv_msg TYPE string.
+
     CALL FUNCTION 'ENQUEUE_/MBTOOLS/E_REGS'
       EXPORTING
         mode_/mbtools/regs = 'R'
@@ -709,9 +711,22 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
         system_failure     = 2
         OTHERS             = 3.
     IF sy-subrc <> 0.
-      /mbtools/cx_exception=>raise( 'Registry entry is locked'(009) ).
+      " If not optimistic lock exist, lock exclusively
+      CALL FUNCTION 'ENQUEUE_/MBTOOLS/E_REGS'
+        EXPORTING
+          mode_/mbtools/regs = 'E'
+          relid              = c_relid
+          srtfd              = mv_internal_key
+        EXCEPTIONS
+          foreign_lock       = 1
+          system_failure     = 2
+          OTHERS             = 3.
+      IF sy-subrc <> 0.
+        lv_msg = 'Registry entry is locked'(009) && | ({ mv_internal_key }, { mv_entry_id })|.
+        /mbtools/cx_exception=>raise( lv_msg ).
+      ENDIF.
     ENDIF.
-  ENDMETHOD.                    "promote_lock
+  ENDMETHOD.
 
 
   METHOD release_lock.
@@ -722,7 +737,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
       EXPORTING
         relid = c_relid
         srtfd = mv_internal_key.
-  ENDMETHOD.                    "release_lock
+  ENDMETHOD.
 
 
   METHOD reload.
@@ -745,7 +760,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     ENDIF.
 *<<<INS
     set_optimistic_lock( ).
-  ENDMETHOD.                    "reload
+  ENDMETHOD.
 
 
   METHOD remove_subentries.
@@ -763,7 +778,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     LOOP AT mt_sub_entries INTO ls_kv.
       remove_subentry( ls_kv-key ).
     ENDLOOP.
-  ENDMETHOD.                    "remove_subentries
+  ENDMETHOD.
 
 
   METHOD remove_subentry.
@@ -798,7 +813,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
       save( ). "Save current entry to remove subentry that has been removed
     ENDIF.
 
-  ENDMETHOD.                    "remove_subentry
+  ENDMETHOD.
 
 
   METHOD save.
@@ -821,15 +836,18 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
       TO DATABASE /mbtools/regs(zr) FROM ls_regs ID mv_internal_key.
     COMMIT WORK AND WAIT.
     set_optimistic_lock( ).
-  ENDMETHOD.                    "save
+  ENDMETHOD.
 
 
   METHOD set_optimistic_lock.
 *--------------------------------------------------------------------*
 * SET_OPTIMISTIC_LOCK - always set when (re-)reading an entry
 *--------------------------------------------------------------------*
-* Existing lock must be released before acquiring a new one
+    DATA lv_msg TYPE string.
+
+    " Existing lock must be released before acquiring a new one
     release_lock( ).
+
     CALL FUNCTION 'ENQUEUE_/MBTOOLS/E_REGS'
       EXPORTING
         mode_/mbtools/regs = 'O'
@@ -840,9 +858,10 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
         system_failure     = 2
         OTHERS             = 3.
     IF sy-subrc <> 0.
-      /mbtools/cx_exception=>raise( 'Registry entry is locked'(009) ).
+        lv_msg = 'Registry entry is locked'(009) && | ({ mv_internal_key }, { mv_entry_id })|.
+      /mbtools/cx_exception=>raise( lv_msg ).
     ENDIF.
-  ENDMETHOD.                    "set_optimistic_lock
+  ENDMETHOD.
 
 
   METHOD set_value.
@@ -866,7 +885,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
       ls_kv-value = iv_value.
       MODIFY TABLE mt_values FROM ls_kv.
     ENDIF.
-  ENDMETHOD.                    "set_value
+  ENDMETHOD.
 
 
   METHOD set_values.
@@ -879,7 +898,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     ENDIF.
 
     mt_values = it_values.
-  ENDMETHOD.                    "set_values
+  ENDMETHOD.
 
 
   METHOD truncate.

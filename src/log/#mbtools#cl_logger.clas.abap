@@ -17,41 +17,6 @@ CLASS /mbtools/cl_logger DEFINITION
 
     INTERFACES /mbtools/if_logger .
 
-    ALIASES db_number
-      FOR /mbtools/if_logger~mv_db_number .
-    ALIASES handle
-      FOR /mbtools/if_logger~mv_handle .
-    ALIASES header
-      FOR /mbtools/if_logger~ms_header .
-    ALIASES a
-      FOR /mbtools/if_logger~a .
-    ALIASES add
-      FOR /mbtools/if_logger~add .
-    ALIASES e
-      FOR /mbtools/if_logger~e .
-    ALIASES export_to_table
-      FOR /mbtools/if_logger~export_to_table .
-    ALIASES fullscreen
-      FOR /mbtools/if_logger~fullscreen .
-    ALIASES has_errors
-      FOR /mbtools/if_logger~has_errors .
-    ALIASES has_warnings
-      FOR /mbtools/if_logger~has_warnings .
-    ALIASES i
-      FOR /mbtools/if_logger~i .
-    ALIASES is_empty
-      FOR /mbtools/if_logger~is_empty .
-    ALIASES length
-      FOR /mbtools/if_logger~length .
-    ALIASES popup
-      FOR /mbtools/if_logger~popup .
-    ALIASES s
-      FOR /mbtools/if_logger~s .
-    ALIASES save
-      FOR /mbtools/if_logger~save .
-    ALIASES w
-      FOR /mbtools/if_logger~w .
-
     "! Starts a new log.
     "! For backwards compatibility only! Use /MBTOOLS/CL_LOGGER_FACTORY instead.
     CLASS-METHODS new
@@ -89,8 +54,8 @@ CLASS /mbtools/cl_logger DEFINITION
         cause(32)    TYPE c,                          "original: hrpad_message_cause
         detail_level TYPE ballevel.
         INCLUDE TYPE symsg .
-    TYPES: field_list TYPE STANDARD TABLE OF ty_hrpad_message_field_list
-                           WITH NON-UNIQUE KEY scrrprfd.
+        TYPES: field_list   TYPE STANDARD TABLE OF ty_hrpad_message_field_list
+                        WITH NON-UNIQUE KEY scrrprfd.
     TYPES: END OF ty_hrpad_message_alike .
 
     DATA mv_sec_connection TYPE abap_bool .
@@ -127,8 +92,9 @@ ENDCLASS.
 CLASS /MBTOOLS/CL_LOGGER IMPLEMENTATION.
 
 
-  METHOD a.
-    ro_self = add(
+  METHOD /mbtools/if_logger~a.
+
+    ro_self = /mbtools/if_logger~add(
       iv_obj_to_log    = iv_obj_to_log
       iv_context       = iv_context
       iv_callback_form = iv_callback_form
@@ -136,200 +102,413 @@ CLASS /MBTOOLS/CL_LOGGER IMPLEMENTATION.
       iv_callback_fm   = iv_callback_fm
       iv_type          = 'A'
       iv_importance    = iv_importance ).
+
   ENDMETHOD.
 
 
-  METHOD add.
+  METHOD /mbtools/if_logger~add.
 
     DATA:
-      detailed_msg         TYPE bal_s_msg,
-      exception_data_table TYPE ty_exception_data,
-      free_text_msg        TYPE char200,
-      ctx_type             TYPE REF TO cl_abap_typedescr,
-      ctx_ddic_header      TYPE x030l,
-      msg_type             TYPE REF TO cl_abap_typedescr,
-      msg_table_type       TYPE REF TO cl_abap_tabledescr,
-      log_numbers          TYPE bal_t_lgnm,
-      log_handles          TYPE bal_t_logh,
-      log_number           TYPE bal_s_lgnm,
-      formatted_context    TYPE bal_s_cont,
-      formatted_params     TYPE bal_s_parm.
+      ls_detailed_msg         TYPE bal_s_msg,
+      lt_exception_data_table TYPE ty_exception_data,
+      lv_free_text_msg        TYPE char200,
+      lo_ctx_type             TYPE REF TO cl_abap_typedescr,
+      ls_ctx_ddic_header      TYPE x030l,
+      lo_msg_type             TYPE REF TO cl_abap_typedescr,
+      lo_msg_table_type       TYPE REF TO cl_abap_tabledescr,
+      lt_log_numbers          TYPE bal_t_lgnm,
+      lt_log_handles          TYPE bal_t_logh,
+      ls_log_number           TYPE bal_s_lgnm,
+      ls_formatted_context    TYPE bal_s_cont,
+      ls_formatted_params     TYPE bal_s_parm.
 
     FIELD-SYMBOLS:
-      <table_of_messages> TYPE ANY TABLE,
-      <message_line>      TYPE any,
-      <bapiret1_msg>      TYPE bapiret1,
-      <bapi_msg>          TYPE bapiret2,
-      <bapi_coru_msg>     TYPE bapi_coru_return,
-      "<bapi_order_msg>    TYPE bapi_order_return,
-      <bdc_msg>           TYPE bdcmsgcoll,
-      <hrpad_msg>         TYPE ty_hrpad_message_alike,
-      "<rcomp_msg>         TYPE rcomp,
-      <iv_context_val>    TYPE any.
+      <ls_exception_data>    LIKE LINE OF lt_exception_data_table,
+      <lt_table_of_messages> TYPE ANY TABLE,
+      <ls_message_line>      TYPE any,
+      <ls_bapiret1_msg>      TYPE bapiret1,
+      <ls_bapi_msg>          TYPE bapiret2,
+      <ls_bapi_coru_msg>     TYPE bapi_coru_return,
+      "<ls_bapi_order_msg>    TYPE bapi_order_return,
+      <ls_bdc_msg>           TYPE bdcmsgcoll,
+      <ls_hrpad_msg>         TYPE ty_hrpad_message_alike,
+      "<ls_rcomp_msg>         TYPE rcomp,
+      <iv_context_val>       TYPE any.
 
     IF iv_context IS NOT INITIAL.
       ASSIGN iv_context TO <iv_context_val>.
-      formatted_context-value = <iv_context_val>.
-      ctx_type                = cl_abap_typedescr=>describe_by_data( iv_context ).
+      ls_formatted_context-value = <iv_context_val>.
+      lo_ctx_type                = cl_abap_typedescr=>describe_by_data( iv_context ).
 
-      CALL METHOD ctx_type->get_ddic_header
+      CALL METHOD lo_ctx_type->get_ddic_header
         RECEIVING
-          p_header     = ctx_ddic_header
+          p_header     = ls_ctx_ddic_header
         EXCEPTIONS
           not_found    = 1
           no_ddic_type = 2
           OTHERS       = 3.
       IF sy-subrc = 0.
-        formatted_context-tabname = ctx_ddic_header-tabname.
+        ls_formatted_context-tabname = ls_ctx_ddic_header-tabname.
       ENDIF.
     ENDIF.
 
     IF iv_callback_fm IS NOT INITIAL.
-      formatted_params-callback-userexitf = iv_callback_fm.
-      formatted_params-callback-userexitp = iv_callback_prog.
-      formatted_params-callback-userexitt = 'F'.
+      ls_formatted_params-callback-userexitf = iv_callback_fm.
+      ls_formatted_params-callback-userexitp = iv_callback_prog.
+      ls_formatted_params-callback-userexitt = 'F'.
     ELSEIF iv_callback_form IS NOT INITIAL.
-      formatted_params-callback-userexitf = iv_callback_form.
-      formatted_params-callback-userexitp = iv_callback_prog.
-      formatted_params-callback-userexitt = ' '.
+      ls_formatted_params-callback-userexitf = iv_callback_form.
+      ls_formatted_params-callback-userexitp = iv_callback_prog.
+      ls_formatted_params-callback-userexitt = ' '.
     ENDIF.
 
-    msg_type = cl_abap_typedescr=>describe_by_data( iv_obj_to_log ).
+    lo_msg_type = cl_abap_typedescr=>describe_by_data( iv_obj_to_log ).
 
     IF iv_obj_to_log IS NOT SUPPLIED.
-      detailed_msg-msgty = sy-msgty.
-      detailed_msg-msgid = sy-msgid.
-      detailed_msg-msgno = sy-msgno.
-      detailed_msg-msgv1 = sy-msgv1.
-      detailed_msg-msgv2 = sy-msgv2.
-      detailed_msg-msgv3 = sy-msgv3.
-      detailed_msg-msgv4 = sy-msgv4.
-    ELSEIF msg_type->absolute_name = '\TYPE=BAPIRET1'.
-      ASSIGN iv_obj_to_log TO <bapiret1_msg>.
-      detailed_msg-msgty = <bapiret1_msg>-type.
-      detailed_msg-msgid = <bapiret1_msg>-id.
-      detailed_msg-msgno = <bapiret1_msg>-number.
-      detailed_msg-msgv1 = <bapiret1_msg>-message_v1.
-      detailed_msg-msgv2 = <bapiret1_msg>-message_v2.
-      detailed_msg-msgv3 = <bapiret1_msg>-message_v3.
-      detailed_msg-msgv4 = <bapiret1_msg>-message_v4.
-    ELSEIF msg_type->absolute_name = '\TYPE=BAPIRET2'.
-      ASSIGN iv_obj_to_log TO <bapi_msg>.
-      detailed_msg-msgty = <bapi_msg>-type.
-      detailed_msg-msgid = <bapi_msg>-id.
-      detailed_msg-msgno = <bapi_msg>-number.
-      detailed_msg-msgv1 = <bapi_msg>-message_v1.
-      detailed_msg-msgv2 = <bapi_msg>-message_v2.
-      detailed_msg-msgv3 = <bapi_msg>-message_v3.
-      detailed_msg-msgv4 = <bapi_msg>-message_v4.
-    ELSEIF msg_type->absolute_name = '\TYPE=BAPI_CORU_RETURN'.
-      ASSIGN iv_obj_to_log TO <bapi_coru_msg>.
-      detailed_msg-msgty = <bapi_coru_msg>-type.
-      detailed_msg-msgid = <bapi_coru_msg>-id.
-      detailed_msg-msgno = <bapi_coru_msg>-number.
-      detailed_msg-msgv1 = <bapi_coru_msg>-message_v1.
-      detailed_msg-msgv2 = <bapi_coru_msg>-message_v2.
-      detailed_msg-msgv3 = <bapi_coru_msg>-message_v3.
-      detailed_msg-msgv4 = <bapi_coru_msg>-message_v4.
-*    ELSEIF msg_type->absolute_name = '\TYPE=BAPI_ORDER_RETURN'.
-*      ASSIGN iv_obj_to_log TO <bapi_order_msg>.
-*      detailed_msg-msgty = <bapi_order_msg>-type.
-*      detailed_msg-msgid = <bapi_order_msg>-id.
-*      detailed_msg-msgno = <bapi_order_msg>-number.
-*      detailed_msg-msgv1 = <bapi_order_msg>-message_v1.
-*      detailed_msg-msgv2 = <bapi_order_msg>-message_v2.
-*      detailed_msg-msgv3 = <bapi_order_msg>-message_v3.
-*      detailed_msg-msgv4 = <bapi_order_msg>-message_v4.
-    ELSEIF msg_type->absolute_name = '\TYPE=BDCMSGCOLL'.
-      ASSIGN iv_obj_to_log TO <bdc_msg>.
-      detailed_msg-msgty = <bdc_msg>-msgtyp.
-      detailed_msg-msgid = <bdc_msg>-msgid.
-      detailed_msg-msgno = <bdc_msg>-msgnr.
-      detailed_msg-msgv1 = <bdc_msg>-msgv1.
-      detailed_msg-msgv2 = <bdc_msg>-msgv2.
-      detailed_msg-msgv3 = <bdc_msg>-msgv3.
-      detailed_msg-msgv4 = <bdc_msg>-msgv4.
-    ELSEIF msg_type->absolute_name = '\TYPE=HRPAD_MESSAGE'.
-      ASSIGN iv_obj_to_log TO <hrpad_msg>.
-      detailed_msg-msgty = <hrpad_msg>-msgty.
-      detailed_msg-msgid = <hrpad_msg>-msgid.
-      detailed_msg-msgno = <hrpad_msg>-msgno.
-      detailed_msg-msgv1 = <hrpad_msg>-msgv1.
-      detailed_msg-msgv2 = <hrpad_msg>-msgv2.
-      detailed_msg-msgv3 = <hrpad_msg>-msgv3.
-      detailed_msg-msgv4 = <hrpad_msg>-msgv4.
-*    ELSEIF msg_type->absolute_name = '\TYPE=RCOMP'.
-*      ASSIGN iv_obj_to_log TO <rcomp_msg>.
-*      detailed_msg-msgty = <rcomp_msg>-msgty.
-*      detailed_msg-msgid = <rcomp_msg>-msgid.
-*      detailed_msg-msgno = <rcomp_msg>-msgno.
-*      detailed_msg-msgv1 = <rcomp_msg>-msgv1.
-*      detailed_msg-msgv2 = <rcomp_msg>-msgv2.
-*      detailed_msg-msgv3 = <rcomp_msg>-msgv3.
-*      detailed_msg-msgv4 = <rcomp_msg>-msgv4.
-    ELSEIF msg_type->type_kind = cl_abap_typedescr=>typekind_oref.
-      exception_data_table = drill_down_into_exception(
-          io_exception   = iv_obj_to_log
-          iv_type        = iv_type
-          iv_importance  = iv_importance ).
-    ELSEIF msg_type->type_kind = cl_abap_typedescr=>typekind_table.
-      ASSIGN iv_obj_to_log TO <table_of_messages>.
-      LOOP AT <table_of_messages> ASSIGNING <message_line>.
-        add( iv_obj_to_log = <message_line>
-             iv_context    = iv_context ).
+      ls_detailed_msg-msgty = sy-msgty.
+      ls_detailed_msg-msgid = sy-msgid.
+      ls_detailed_msg-msgno = sy-msgno.
+      ls_detailed_msg-msgv1 = sy-msgv1.
+      ls_detailed_msg-msgv2 = sy-msgv2.
+      ls_detailed_msg-msgv3 = sy-msgv3.
+      ls_detailed_msg-msgv4 = sy-msgv4.
+    ELSEIF lo_msg_type->absolute_name = '\TYPE=BAPIRET1'.
+      ASSIGN iv_obj_to_log TO <ls_bapiret1_msg>.
+      ls_detailed_msg-msgty = <ls_bapiret1_msg>-type.
+      ls_detailed_msg-msgid = <ls_bapiret1_msg>-id.
+      ls_detailed_msg-msgno = <ls_bapiret1_msg>-number.
+      ls_detailed_msg-msgv1 = <ls_bapiret1_msg>-message_v1.
+      ls_detailed_msg-msgv2 = <ls_bapiret1_msg>-message_v2.
+      ls_detailed_msg-msgv3 = <ls_bapiret1_msg>-message_v3.
+      ls_detailed_msg-msgv4 = <ls_bapiret1_msg>-message_v4.
+    ELSEIF lo_msg_type->absolute_name = '\TYPE=BAPIRET2'.
+      ASSIGN iv_obj_to_log TO <ls_bapi_msg>.
+      ls_detailed_msg-msgty = <ls_bapi_msg>-type.
+      ls_detailed_msg-msgid = <ls_bapi_msg>-id.
+      ls_detailed_msg-msgno = <ls_bapi_msg>-number.
+      ls_detailed_msg-msgv1 = <ls_bapi_msg>-message_v1.
+      ls_detailed_msg-msgv2 = <ls_bapi_msg>-message_v2.
+      ls_detailed_msg-msgv3 = <ls_bapi_msg>-message_v3.
+      ls_detailed_msg-msgv4 = <ls_bapi_msg>-message_v4.
+    ELSEIF lo_msg_type->absolute_name = '\TYPE=BAPI_CORU_RETURN'.
+      ASSIGN iv_obj_to_log TO <ls_bapi_coru_msg>.
+      ls_detailed_msg-msgty = <ls_bapi_coru_msg>-type.
+      ls_detailed_msg-msgid = <ls_bapi_coru_msg>-id.
+      ls_detailed_msg-msgno = <ls_bapi_coru_msg>-number.
+      ls_detailed_msg-msgv1 = <ls_bapi_coru_msg>-message_v1.
+      ls_detailed_msg-msgv2 = <ls_bapi_coru_msg>-message_v2.
+      ls_detailed_msg-msgv3 = <ls_bapi_coru_msg>-message_v3.
+      ls_detailed_msg-msgv4 = <ls_bapi_coru_msg>-message_v4.
+*    ELSEIF lo_msg_type->absolute_name = '\TYPE=BAPI_ORDER_RETURN'.
+*      ASSIGN iv_obj_to_log TO <ls_bapi_order_msg>.
+*      ls_detailed_msg-msgty = <ls_bapi_order_msg>-type.
+*      ls_detailed_msg-msgid = <ls_bapi_order_msg>-id.
+*      ls_detailed_msg-msgno = <ls_bapi_order_msg>-number.
+*      ls_detailed_msg-msgv1 = <ls_bapi_order_msg>-message_v1.
+*      ls_detailed_msg-msgv2 = <ls_bapi_order_msg>-message_v2.
+*      ls_detailed_msg-msgv3 = <ls_bapi_order_msg>-message_v3.
+*      ls_detailed_msg-msgv4 = <ls_bapi_order_msg>-message_v4.
+    ELSEIF lo_msg_type->absolute_name = '\TYPE=BDCMSGCOLL'.
+      ASSIGN iv_obj_to_log TO <ls_bdc_msg>.
+      ls_detailed_msg-msgty = <ls_bdc_msg>-msgtyp.
+      ls_detailed_msg-msgid = <ls_bdc_msg>-msgid.
+      ls_detailed_msg-msgno = <ls_bdc_msg>-msgnr.
+      ls_detailed_msg-msgv1 = <ls_bdc_msg>-msgv1.
+      ls_detailed_msg-msgv2 = <ls_bdc_msg>-msgv2.
+      ls_detailed_msg-msgv3 = <ls_bdc_msg>-msgv3.
+      ls_detailed_msg-msgv4 = <ls_bdc_msg>-msgv4.
+    ELSEIF lo_msg_type->absolute_name = '\TYPE=HRPAD_MESSAGE'.
+      ASSIGN iv_obj_to_log TO <ls_hrpad_msg>.
+      ls_detailed_msg-msgty = <ls_hrpad_msg>-msgty.
+      ls_detailed_msg-msgid = <ls_hrpad_msg>-msgid.
+      ls_detailed_msg-msgno = <ls_hrpad_msg>-msgno.
+      ls_detailed_msg-msgv1 = <ls_hrpad_msg>-msgv1.
+      ls_detailed_msg-msgv2 = <ls_hrpad_msg>-msgv2.
+      ls_detailed_msg-msgv3 = <ls_hrpad_msg>-msgv3.
+      ls_detailed_msg-msgv4 = <ls_hrpad_msg>-msgv4.
+*    ELSEIF lo_msg_type->absolute_name = '\TYPE=RCOMP'.
+*      ASSIGN iv_obj_to_log TO <ls_rcomp_msg>.
+*      ls_detailed_msg-msgty = <ls_rcomp_msg>-msgty.
+*      ls_detailed_msg-msgid = <ls_rcomp_msg>-msgid.
+*      ls_detailed_msg-msgno = <ls_rcomp_msg>-msgno.
+*      ls_detailed_msg-msgv1 = <ls_rcomp_msg>-msgv1.
+*      ls_detailed_msg-msgv2 = <ls_rcomp_msg>-msgv2.
+*      ls_detailed_msg-msgv3 = <ls_rcomp_msg>-msgv3.
+*      ls_detailed_msg-msgv4 = <ls_rcomp_msg>-msgv4.
+    ELSEIF lo_msg_type->type_kind = cl_abap_typedescr=>typekind_oref.
+      lt_exception_data_table = drill_down_into_exception(
+        io_exception   = iv_obj_to_log
+        iv_type        = iv_type
+        iv_importance  = iv_importance ).
+    ELSEIF lo_msg_type->type_kind = cl_abap_typedescr=>typekind_table.
+      ASSIGN iv_obj_to_log TO <lt_table_of_messages>.
+      LOOP AT <lt_table_of_messages> ASSIGNING <ls_message_line>.
+        /mbtools/if_logger~add( iv_obj_to_log = <ls_message_line>
+                                iv_context    = iv_context ).
       ENDLOOP.
-    ELSEIF msg_type->type_kind = cl_abap_typedescr=>typekind_struct1   "flat structure
-        OR msg_type->type_kind = cl_abap_typedescr=>typekind_struct2.  "deep structure (already when string is used)
+    ELSEIF lo_msg_type->type_kind = cl_abap_typedescr=>typekind_struct1   "flat structure
+        OR lo_msg_type->type_kind = cl_abap_typedescr=>typekind_struct2.  "deep structure (already when string is used)
       add_structure( iv_obj_to_log ).
     ELSE.
-      free_text_msg = iv_obj_to_log.
+      lv_free_text_msg = iv_obj_to_log.
     ENDIF.
 
-    IF free_text_msg IS NOT INITIAL.
+    IF lv_free_text_msg IS NOT INITIAL.
       CALL FUNCTION 'BAL_LOG_MSG_ADD_FREE_TEXT'
         EXPORTING
-          i_log_handle = handle
+          i_log_handle = /mbtools/if_logger~mv_handle
           i_msgty      = iv_type
           i_probclass  = iv_importance
-          i_text       = free_text_msg
-          i_s_context  = formatted_context
-          i_s_params   = formatted_params.
-    ELSEIF exception_data_table IS NOT INITIAL.
-      FIELD-SYMBOLS <exception_data> LIKE LINE OF exception_data_table.
-      LOOP AT exception_data_table ASSIGNING <exception_data>.
+          i_text       = lv_free_text_msg
+          i_s_context  = ls_formatted_context
+          i_s_params   = ls_formatted_params.
+    ELSEIF lt_exception_data_table IS NOT INITIAL.
+      LOOP AT lt_exception_data_table ASSIGNING <ls_exception_data>.
         CALL FUNCTION 'BAL_LOG_EXCEPTION_ADD'
           EXPORTING
-            i_log_handle = handle
-            i_s_exc      = <exception_data>.
+            i_log_handle = /mbtools/if_logger~mv_handle
+            i_s_exc      = <ls_exception_data>.
       ENDLOOP.
-    ELSEIF detailed_msg IS NOT INITIAL.
-      detailed_msg-context   = formatted_context.
-      detailed_msg-params    = formatted_params.
-      detailed_msg-probclass = iv_importance.
+    ELSEIF ls_detailed_msg IS NOT INITIAL.
+      ls_detailed_msg-context   = ls_formatted_context.
+      ls_detailed_msg-params    = ls_formatted_params.
+      ls_detailed_msg-probclass = iv_importance.
       CALL FUNCTION 'BAL_LOG_MSG_ADD'
         EXPORTING
-          i_log_handle = handle
-          i_s_msg      = detailed_msg.
+          i_log_handle = /mbtools/if_logger~mv_handle
+          i_s_msg      = ls_detailed_msg.
     ENDIF.
 
     IF mo_settings->get_autosave( ) = abap_true.
       save_log( ).
     ENDIF.
+
     ro_self = me.
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_logger~e.
+
+    ro_self = /mbtools/if_logger~add(
+      iv_obj_to_log    = iv_obj_to_log
+      iv_context       = iv_context
+      iv_callback_form = iv_callback_form
+      iv_callback_prog = iv_callback_prog
+      iv_callback_fm   = iv_callback_fm
+      iv_type          = 'E'
+      iv_importance    = iv_importance ).
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_logger~export_to_table.
+
+    DATA:
+      lt_message_handles TYPE bal_t_msgh,
+      ls_message         TYPE bal_s_msg,
+      ls_bapiret2        TYPE bapiret2.
+
+    FIELD-SYMBOLS <ls_msg_handle> TYPE balmsghndl.
+
+    lt_message_handles = get_message_handles( ).
+
+    LOOP AT lt_message_handles ASSIGNING <ls_msg_handle>.
+      CALL FUNCTION 'BAL_LOG_MSG_READ'
+        EXPORTING
+          i_s_msg_handle = <ls_msg_handle>
+        IMPORTING
+          e_s_msg        = ls_message
+        EXCEPTIONS
+          OTHERS         = 3.
+      IF sy-subrc IS INITIAL.
+        MESSAGE ID ls_message-msgid
+          TYPE ls_message-msgty
+          NUMBER ls_message-msgno
+          INTO ls_bapiret2-message
+          WITH ls_message-msgv1 ls_message-msgv2 ls_message-msgv3 ls_message-msgv4.
+
+        ls_bapiret2-type       = ls_message-msgty.
+        ls_bapiret2-id         = ls_message-msgid.
+        ls_bapiret2-number     = ls_message-msgno.
+        ls_bapiret2-log_no     = <ls_msg_handle>-log_handle.     "last 2 chars missing!!
+        ls_bapiret2-log_msg_no = <ls_msg_handle>-msgnumber.
+        ls_bapiret2-message_v1 = ls_message-msgv1.
+        ls_bapiret2-message_v2 = ls_message-msgv2.
+        ls_bapiret2-message_v3 = ls_message-msgv3.
+        ls_bapiret2-message_v4 = ls_message-msgv4.
+        ls_bapiret2-system     = sy-sysid.
+        APPEND ls_bapiret2 TO rt_bapiret.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_logger~fullscreen.
+
+    DATA:
+      ls_profile     TYPE bal_s_prof,
+      lt_log_handles TYPE bal_t_logh.
+
+    APPEND /mbtools/if_logger~mv_handle TO lt_log_handles.
+
+    CALL FUNCTION 'BAL_DSP_PROFILE_SINGLE_LOG_GET'
+      IMPORTING
+        e_s_display_profile = ls_profile.
+
+    CALL FUNCTION 'BAL_DSP_LOG_DISPLAY'
+      EXPORTING
+        i_s_display_profile = ls_profile
+        i_t_log_handle      = lt_log_handles.
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_logger~has_errors.
+
+    rv_yes = boolc( lines( get_message_handles( iv_msgtype = 'E' ) ) > 0 ).
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_logger~has_warnings.
+
+    rv_yes = boolc( lines( get_message_handles( iv_msgtype = 'W' ) ) > 0 ).
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_logger~i.
+
+    ro_self = /mbtools/if_logger~add(
+      iv_obj_to_log    = iv_obj_to_log
+      iv_context       = iv_context
+      iv_callback_form = iv_callback_form
+      iv_callback_prog = iv_callback_prog
+      iv_callback_fm   = iv_callback_fm
+      iv_type          = 'I'
+      iv_importance    = iv_importance ).
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_logger~is_empty.
+
+    rv_yes = boolc( /mbtools/if_logger~length( ) = 0 ).
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_logger~length.
+
+    rv_length = lines( get_message_handles( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_logger~popup.
+* See SBAL_DEMO_04_POPUP for ideas
+
+    DATA:
+      ls_profile     TYPE bal_s_prof,
+      lt_log_handles TYPE bal_t_logh.
+
+    APPEND /mbtools/if_logger~mv_handle TO lt_log_handles.
+
+    IF is_profile IS SUPPLIED.
+      ls_profile = is_profile.
+    ELSE.
+      CALL FUNCTION 'BAL_DSP_PROFILE_POPUP_GET'
+        IMPORTING
+          e_s_display_profile = ls_profile.
+    ENDIF.
+
+    CALL FUNCTION 'BAL_DSP_LOG_DISPLAY'
+      EXPORTING
+        i_s_display_profile = ls_profile
+        i_t_log_handle      = lt_log_handles.
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_logger~s.
+
+    ro_self = /mbtools/if_logger~add(
+      iv_obj_to_log    = iv_obj_to_log
+      iv_context       = iv_context
+      iv_callback_form = iv_callback_form
+      iv_callback_prog = iv_callback_prog
+      iv_callback_fm   = iv_callback_fm
+      iv_type          = 'S'
+      iv_importance    = iv_importance ).
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_logger~save.
+
+    CHECK mo_settings->get_autosave( ) = abap_false.
+    save_log( ).
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_logger~timer_end.
+
+    DATA:
+      lv_timestamp TYPE timestampl,
+      lv_sec       TYPE p LENGTH 10 DECIMALS 2.
+
+    GET TIME STAMP FIELD lv_timestamp.
+
+    rv_result = cl_abap_timestamp_util=>get_instance( )->tstmpl_seconds_between(
+                  iv_timestamp0 = /mbtools/if_logger~mv_timestamp
+                  iv_timestamp1 = lv_timestamp ).
+
+    lv_sec = rv_result. " round to 2 decimal places
+
+    /mbtools/if_logger~add(
+      iv_obj_to_log    = |Runtime: { lv_sec } seconds|
+      iv_type          = 'I' ).
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_logger~timer_start.
+
+    GET TIME STAMP FIELD /mbtools/if_logger~mv_timestamp.
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_logger~w.
+
+    ro_self = /mbtools/if_logger~add(
+      iv_obj_to_log    = iv_obj_to_log
+      iv_context       = iv_context
+      iv_callback_form = iv_callback_form
+      iv_callback_prog = iv_callback_prog
+      iv_callback_fm   = iv_callback_fm
+      iv_type          = 'W'
+      iv_importance    = iv_importance ).
+
   ENDMETHOD.
 
 
   METHOD add_structure.
-    DATA: msg_type             TYPE REF TO cl_abap_typedescr,
-          msg_struct_type      TYPE REF TO cl_abap_structdescr,
-          structure_descriptor TYPE REF TO cl_abap_structdescr,
-          components           TYPE cl_abap_structdescr=>component_table,
-          component            LIKE LINE OF components.
+
+    DATA:
+      msg_type             TYPE REF TO cl_abap_typedescr,
+      msg_struct_type      TYPE REF TO cl_abap_structdescr,
+      structure_descriptor TYPE REF TO cl_abap_structdescr,
+      components           TYPE cl_abap_structdescr=>component_table,
+      component            LIKE LINE OF components.
 
     FIELD-SYMBOLS: <component> TYPE any.
 
     msg_struct_type ?= cl_abap_typedescr=>describe_by_data( is_structure_to_log ).
-    add( '--- Begin of structure ---' ).
+    /mbtools/if_logger~add( '--- Begin of structure ---' ).
 
     structure_descriptor ?= cl_abap_structdescr=>describe_by_data( is_structure_to_log ).
     get_structure_fields( EXPORTING io_data_structure   = structure_descriptor
@@ -339,137 +518,67 @@ CLASS /MBTOOLS/CL_LOGGER IMPLEMENTATION.
       CHECK component-type->kind = cl_abap_typedescr=>kind_elem.
       ASSIGN COMPONENT component-name OF STRUCTURE is_structure_to_log TO <component>.
       IF sy-subrc = 0.
-        add( iv_obj_to_log = |{ to_lower( component-name ) } = { <component> }|
+        /mbtools/if_logger~add( iv_obj_to_log = |{ to_lower( component-name ) } = { <component> }|
              iv_importance = '4' ).
       ENDIF.
     ENDLOOP.
 
-    add( '--- End of structure ---' ).
+    /mbtools/if_logger~add( '--- End of structure ---' ).
 
   ENDMETHOD.
 
 
   METHOD drill_down_into_exception.
-    DATA: i                  TYPE i VALUE 2,
-          previous_exception TYPE REF TO cx_root,
-          exceptions         TYPE ty_exceptions.
 
-    FIELD-SYMBOLS: <ex> LIKE LINE OF exceptions,
-                   <ret> LIKE LINE OF rt_exception_data_table.
+    DATA:
+      lv_i                  TYPE i VALUE 2,
+      lx_previous_exception TYPE REF TO cx_root,
+      lt_exceptions         TYPE ty_exceptions.
 
-    APPEND INITIAL LINE TO exceptions ASSIGNING <ex>.
-    <ex>-level = 1.
-    <ex>-exception = io_exception.
+    FIELD-SYMBOLS: <ls_ex>  LIKE LINE OF lt_exceptions,
+                   <ls_ret> LIKE LINE OF rt_exception_data_table.
 
-    previous_exception = io_exception.
+    APPEND INITIAL LINE TO lt_exceptions ASSIGNING <ls_ex>.
+    <ls_ex>-level = 1.
+    <ls_ex>-exception = io_exception.
 
-    WHILE i <= mo_settings->get_max_exception_drill_down( ).
-      IF previous_exception->previous IS NOT BOUND.
+    lx_previous_exception = io_exception.
+
+    WHILE lv_i <= mo_settings->get_max_exception_drill_down( ).
+      IF lx_previous_exception->previous IS NOT BOUND.
         EXIT.
       ENDIF.
 
-      previous_exception ?= previous_exception->previous.
+      lx_previous_exception ?= lx_previous_exception->previous.
 
-      APPEND INITIAL LINE TO exceptions ASSIGNING <ex>.
-      <ex>-level = i.
-      <ex>-exception = previous_exception.
-      i = i + 1.
+      APPEND INITIAL LINE TO lt_exceptions ASSIGNING <ls_ex>.
+      <ls_ex>-level = lv_i.
+      <ls_ex>-exception = lx_previous_exception.
+      lv_i = lv_i + 1.
     ENDWHILE.
 
-    SORT exceptions BY level DESCENDING. "Display the deepest exception first
-    LOOP AT exceptions ASSIGNING <ex>.
-      APPEND INITIAL LINE TO rt_exception_data_table ASSIGNING <ret>.
-      <ret>-exception = <ex>-exception.
-      <ret>-msgty     = iv_type.
-      <ret>-probclass = iv_importance.
+    SORT lt_exceptions BY level DESCENDING. "Display the deepest exception first
+    LOOP AT lt_exceptions ASSIGNING <ls_ex>.
+      APPEND INITIAL LINE TO rt_exception_data_table ASSIGNING <ls_ret>.
+      <ls_ret>-exception = <ls_ex>-exception.
+      <ls_ret>-msgty     = iv_type.
+      <ls_ret>-probclass = iv_importance.
     ENDLOOP.
-  ENDMETHOD.
-
-
-  METHOD e.
-    ro_self = add(
-      iv_obj_to_log    = iv_obj_to_log
-      iv_context       = iv_context
-      iv_callback_form = iv_callback_form
-      iv_callback_prog = iv_callback_prog
-      iv_callback_fm   = iv_callback_fm
-      iv_type          = 'E'
-      iv_importance    = iv_importance ).
-  ENDMETHOD.
-
-
-  METHOD export_to_table.
-    DATA: message_handles TYPE bal_t_msgh,
-          message         TYPE bal_s_msg,
-          bapiret2        TYPE bapiret2.
-
-    FIELD-SYMBOLS <msg_handle> TYPE balmsghndl.
-
-    message_handles = get_message_handles( ).
-
-    LOOP AT message_handles ASSIGNING <msg_handle>.
-      CALL FUNCTION 'BAL_LOG_MSG_READ'
-        EXPORTING
-          i_s_msg_handle = <msg_handle>
-        IMPORTING
-          e_s_msg        = message
-        EXCEPTIONS
-          OTHERS         = 3.
-      IF sy-subrc IS INITIAL.
-        MESSAGE ID message-msgid
-                TYPE message-msgty
-                NUMBER message-msgno
-                INTO bapiret2-message
-                WITH message-msgv1 message-msgv2 message-msgv3 message-msgv4.
-
-        bapiret2-type       = message-msgty.
-        bapiret2-id         = message-msgid.
-        bapiret2-number     = message-msgno.
-        bapiret2-log_no     = <msg_handle>-log_handle.     "last 2 chars missing!!
-        bapiret2-log_msg_no = <msg_handle>-msgnumber.
-        bapiret2-message_v1 = message-msgv1.
-        bapiret2-message_v2 = message-msgv2.
-        bapiret2-message_v3 = message-msgv3.
-        bapiret2-message_v4 = message-msgv4.
-        bapiret2-system     = sy-sysid.
-        APPEND bapiret2 TO rt_bapiret.
-      ENDIF.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD fullscreen.
-
-    DATA:
-      profile        TYPE bal_s_prof,
-      lt_log_handles TYPE bal_t_logh.
-
-    APPEND handle TO lt_log_handles.
-
-    CALL FUNCTION 'BAL_DSP_PROFILE_SINGLE_LOG_GET'
-      IMPORTING
-        e_s_display_profile = profile.
-
-    CALL FUNCTION 'BAL_DSP_LOG_DISPLAY'
-      EXPORTING
-        i_s_display_profile = profile
-        i_t_log_handle      = lt_log_handles.
 
   ENDMETHOD.
 
 
   METHOD get_message_handles.
 
-    DATA: log_handle TYPE bal_t_logh,
-          filter     TYPE bal_s_mfil.
+    DATA: lt_log_handle TYPE bal_t_logh,
+          ls_filter     TYPE bal_s_mfil.
 
-    FIELD-SYMBOLS <f> LIKE LINE OF filter-msgty.
+    FIELD-SYMBOLS <f> LIKE LINE OF ls_filter-msgty.
 
-    INSERT handle INTO TABLE log_handle.
+    INSERT /mbtools/if_logger~mv_handle INTO TABLE lt_log_handle.
 
     IF iv_msgtype IS NOT INITIAL.
-      APPEND INITIAL LINE TO filter-msgty ASSIGNING <f>.
+      APPEND INITIAL LINE TO ls_filter-msgty ASSIGNING <f>.
       <f>-sign   = 'I'.
       <f>-option = 'EQ'.
       <f>-low    = iv_msgtype.
@@ -477,8 +586,8 @@ CLASS /MBTOOLS/CL_LOGGER IMPLEMENTATION.
 
     CALL FUNCTION 'BAL_GLB_SEARCH_MSG'
       EXPORTING
-        i_t_log_handle = log_handle
-        i_s_msg_filter = filter
+        i_t_log_handle = lt_log_handle
+        i_s_msg_filter = ls_filter
       IMPORTING
         e_t_msg_handle = rt_message_handles
       EXCEPTIONS
@@ -488,67 +597,30 @@ CLASS /MBTOOLS/CL_LOGGER IMPLEMENTATION.
 
 
   METHOD get_structure_fields.
-    DATA structure_components TYPE cl_abap_structdescr=>component_table.
-    DATA structure_component LIKE LINE OF structure_components.
-    DATA substructure TYPE REF TO cl_abap_structdescr.
 
-    structure_components = io_data_structure->get_components( ).
-    LOOP AT structure_components INTO structure_component.
-      IF structure_component-as_include = 'X' OR structure_component-type->kind = cl_abap_typedescr=>kind_struct.
-        substructure ?= structure_component-type.
+    DATA:
+      lt_structure_components TYPE cl_abap_structdescr=>component_table,
+      ls_structure_component  LIKE LINE OF lt_structure_components,
+      lo_substructure         TYPE REF TO cl_abap_structdescr.
+
+    lt_structure_components = io_data_structure->get_components( ).
+    LOOP AT lt_structure_components INTO ls_structure_component.
+      IF ls_structure_component-as_include = 'X' OR ls_structure_component-type->kind = cl_abap_typedescr=>kind_struct.
+        lo_substructure ?= ls_structure_component-type.
 
         get_structure_fields(
           EXPORTING
-            iv_prefix           = structure_component-name
-            io_data_structure   = substructure
+            iv_prefix           = ls_structure_component-name
+            io_data_structure   = lo_substructure
           CHANGING
             ct_structure_fields = ct_structure_fields ).
       ELSE.
         IF NOT iv_prefix IS INITIAL.
-          CONCATENATE iv_prefix '-' structure_component-name INTO structure_component-name.
+          CONCATENATE iv_prefix '-' ls_structure_component-name INTO ls_structure_component-name.
         ENDIF.
-        APPEND structure_component TO ct_structure_fields.
+        APPEND ls_structure_component TO ct_structure_fields.
       ENDIF.
     ENDLOOP.
-  ENDMETHOD.
-
-
-  METHOD has_errors.
-
-    rv_yes = boolc( lines( get_message_handles( iv_msgtype = 'E' ) ) > 0 ).
-
-  ENDMETHOD.
-
-
-  METHOD has_warnings.
-
-    rv_yes = boolc( lines( get_message_handles( iv_msgtype = 'W' ) ) > 0 ).
-
-  ENDMETHOD.
-
-
-  METHOD i.
-    ro_self = add(
-      iv_obj_to_log    = iv_obj_to_log
-      iv_context       = iv_context
-      iv_callback_form = iv_callback_form
-      iv_callback_prog = iv_callback_prog
-      iv_callback_fm   = iv_callback_fm
-      iv_type          = 'I'
-      iv_importance    = iv_importance ).
-  ENDMETHOD.
-
-
-  METHOD is_empty.
-
-    rv_yes = boolc( length( ) = 0 ).
-
-  ENDMETHOD.
-
-
-  METHOD length.
-
-    rv_length = lines( get_message_handles( ) ).
 
   ENDMETHOD.
 
@@ -598,77 +670,26 @@ CLASS /MBTOOLS/CL_LOGGER IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD popup.
-* See SBAL_DEMO_04_POPUP for ideas
+  METHOD save_log.
 
     DATA:
-      profile        TYPE bal_s_prof,
-      lt_log_handles TYPE bal_t_logh.
+      lt_log_handles TYPE bal_t_logh,
+      lt_log_numbers TYPE bal_t_lgnm,
+      ls_log_number  TYPE bal_s_lgnm.
 
-    APPEND handle TO lt_log_handles.
+    INSERT /mbtools/if_logger~mv_handle INTO TABLE lt_log_handles.
 
-    IF is_profile IS SUPPLIED.
-      profile = is_profile.
-    ELSE.
-      CALL FUNCTION 'BAL_DSP_PROFILE_POPUP_GET'
-        IMPORTING
-          e_s_display_profile = profile.
-    ENDIF.
-
-    CALL FUNCTION 'BAL_DSP_LOG_DISPLAY'
-      EXPORTING
-        i_s_display_profile = profile
-        i_t_log_handle      = lt_log_handles.
-
-  ENDMETHOD.
-
-
-  METHOD s.
-    ro_self = add(
-      iv_obj_to_log    = iv_obj_to_log
-      iv_context       = iv_context
-      iv_callback_form = iv_callback_form
-      iv_callback_prog = iv_callback_prog
-      iv_callback_fm   = iv_callback_fm
-      iv_type          = 'S'
-      iv_importance    = iv_importance ).
-  ENDMETHOD.
-
-
-  METHOD save.
-    CHECK mo_settings->get_autosave( ) = abap_false.
-    save_log( ).
-  ENDMETHOD.
-
-
-  METHOD save_log.
-    DATA log_handles TYPE bal_t_logh.
-    DATA log_numbers TYPE bal_t_lgnm.
-    DATA log_number TYPE bal_s_lgnm.
-
-    INSERT handle INTO TABLE log_handles.
     CALL FUNCTION 'BAL_DB_SAVE'
       EXPORTING
-        i_t_log_handle       = log_handles
+        i_t_log_handle       = lt_log_handles
         i_2th_connection     = mv_sec_connection
         i_2th_connect_commit = mv_sec_connect_commit
       IMPORTING
-        e_new_lognumbers     = log_numbers.
-    IF db_number IS INITIAL.
-      READ TABLE log_numbers INDEX 1 INTO log_number.
-      db_number = log_number-lognumber.
+        e_new_lognumbers     = lt_log_numbers.
+    IF /mbtools/if_logger~mv_db_number IS INITIAL.
+      READ TABLE lt_log_numbers INDEX 1 INTO ls_log_number.
+      /mbtools/if_logger~mv_db_number = ls_log_number-lognumber.
     ENDIF.
-  ENDMETHOD.
 
-
-  METHOD w.
-    ro_self = add(
-      iv_obj_to_log    = iv_obj_to_log
-      iv_context       = iv_context
-      iv_callback_form = iv_callback_form
-      iv_callback_prog = iv_callback_prog
-      iv_callback_fm   = iv_callback_fm
-      iv_type          = 'W'
-      iv_importance    = iv_importance ).
   ENDMETHOD.
 ENDCLASS.

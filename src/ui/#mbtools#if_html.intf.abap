@@ -26,9 +26,10 @@ INTERFACE /mbtools/if_html
       cancel   TYPE c VALUE 'C',
       crossout TYPE c VALUE 'X',
     END OF c_html_opt .
+
   DATA mv_chunk_title TYPE string READ-ONLY . " Primarily for debug of posponed html parts
 
-  CLASS-METHODS a
+  METHODS a
     IMPORTING
       !iv_txt       TYPE string
       !iv_act       TYPE string
@@ -40,28 +41,9 @@ INTERFACE /mbtools/if_html
       !iv_title     TYPE string OPTIONAL
     RETURNING
       VALUE(rv_str) TYPE string .
-  CLASS-METHODS icon
-    IMPORTING
-      !iv_name      TYPE string
-      !iv_hint      TYPE string OPTIONAL
-      !iv_class     TYPE string OPTIONAL
-      !iv_onclick   TYPE string OPTIONAL
-    RETURNING
-      VALUE(rv_str) TYPE string .
-  METHODS set_title
-    IMPORTING
-      !iv_title TYPE string .
   METHODS add
     IMPORTING
       !ig_chunk TYPE any .
-  METHODS render
-    IMPORTING
-      !iv_no_indent_jscss TYPE abap_bool OPTIONAL
-    RETURNING
-      VALUE(rv_html)      TYPE string .
-  METHODS is_empty
-    RETURNING
-      VALUE(rv_yes) TYPE abap_bool .
   METHODS add_a
     IMPORTING
       !iv_txt   TYPE string
@@ -82,4 +64,23 @@ INTERFACE /mbtools/if_html
       !iv_hint    TYPE string OPTIONAL
       !iv_class   TYPE string OPTIONAL
       !iv_onclick TYPE string OPTIONAL .
+  METHODS icon
+    IMPORTING
+      !iv_name      TYPE string
+      !iv_hint      TYPE string OPTIONAL
+      !iv_class     TYPE string OPTIONAL
+      !iv_onclick   TYPE string OPTIONAL
+    RETURNING
+      VALUE(rv_str) TYPE string .
+  METHODS is_empty
+    RETURNING
+      VALUE(rv_yes) TYPE abap_bool .
+  METHODS render
+    IMPORTING
+      !iv_no_indent_jscss TYPE abap_bool OPTIONAL
+    RETURNING
+      VALUE(rv_html)      TYPE string .
+  METHODS set_title
+    IMPORTING
+      !iv_title TYPE string .
 ENDINTERFACE.

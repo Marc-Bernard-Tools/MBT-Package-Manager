@@ -14,29 +14,20 @@ CLASS /mbtools/cl_html DEFINITION
 
     INTERFACES /mbtools/if_html .
 
-    ALIASES a
-      FOR /mbtools/if_html~a .
-    ALIASES add
-      FOR /mbtools/if_html~add .
-    ALIASES add_a
-      FOR /mbtools/if_html~add_a .
-    ALIASES add_checkbox
-      FOR /mbtools/if_html~add_checkbox .
-    ALIASES add_icon
-      FOR /mbtools/if_html~add_icon.
-    ALIASES icon
-      FOR /mbtools/if_html~icon .
-    ALIASES is_empty
-      FOR /mbtools/if_html~is_empty .
-    ALIASES render
-      FOR /mbtools/if_html~render .
-
     CONSTANTS c_indent_size TYPE i VALUE 2 ##NO_TEXT.
 
     CLASS-METHODS class_constructor .
     CLASS-METHODS create
       RETURNING
         VALUE(ro_html) TYPE REF TO /mbtools/cl_html .
+    CLASS-METHODS icon
+      IMPORTING
+        !iv_name      TYPE string
+        !iv_hint      TYPE string OPTIONAL
+        !iv_class     TYPE string OPTIONAL
+        !iv_onclick   TYPE string OPTIONAL
+      RETURNING
+        VALUE(rv_str) TYPE string .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -91,6 +82,7 @@ CLASS /MBTOOLS/CL_HTML IMPLEMENTATION.
 
     DATA: lv_class TYPE string,
           lv_href  TYPE string,
+          lv_act   TYPE string,
           lv_click TYPE string,
           lv_id    TYPE string,
           lv_style TYPE string,
@@ -112,17 +104,18 @@ CLASS /MBTOOLS/CL_HTML IMPLEMENTATION.
       lv_class = | class="{ lv_class }"|.
     ENDIF.
 
-    lv_href  = ' href="#"'. " Default, dummy
+    lv_href = ' href="#"'. " Default, dummy
+    lv_act = escape( val = iv_act format = cl_abap_format=>e_url ).
     IF ( iv_act IS NOT INITIAL OR iv_typ = /mbtools/if_html=>c_action_type-dummy )
         AND iv_opt NA /mbtools/if_html=>c_html_opt-crossout.
       CASE iv_typ.
         WHEN /mbtools/if_html=>c_action_type-url.
-          lv_href  = | href="{ iv_act }"|.
+          lv_href  = | href="{ lv_act }"|.
         WHEN /mbtools/if_html=>c_action_type-sapevent.
-          lv_href  = | href="sapevent:{ iv_act }"|.
+          lv_href  = | href="sapevent:{ lv_act }"|.
         WHEN /mbtools/if_html=>c_action_type-onclick.
           lv_href  = ' href="#"'.
-          lv_click = | onclick="{ iv_act }"|.
+          lv_click = | onclick="{ lv_act }"|.
         WHEN /mbtools/if_html=>c_action_type-dummy.
           lv_href  = ' href="#"'.
       ENDCASE.
@@ -178,70 +171,46 @@ CLASS /MBTOOLS/CL_HTML IMPLEMENTATION.
 
   METHOD /mbtools/if_html~add_a.
 
-    add( a( iv_txt   = iv_txt
-            iv_act   = iv_act
-            iv_typ   = iv_typ
-            iv_opt   = iv_opt
-            iv_class = iv_class
-            iv_id    = iv_id
-            iv_style = iv_style
-            iv_title = iv_title ) ).
+    /mbtools/if_html~add( /mbtools/if_html~a(
+      iv_txt   = iv_txt
+      iv_act   = iv_act
+      iv_typ   = iv_typ
+      iv_opt   = iv_opt
+      iv_class = iv_class
+      iv_id    = iv_id
+      iv_style = iv_style
+      iv_title = iv_title ) ).
 
   ENDMETHOD.
 
 
   METHOD /mbtools/if_html~add_checkbox.
 
-    add( checkbox( iv_id      = iv_id
-                   iv_checked = iv_checked ) ).
+    /mbtools/if_html~add( checkbox(
+      iv_id      = iv_id
+      iv_checked = iv_checked ) ).
 
   ENDMETHOD.
 
 
   METHOD /mbtools/if_html~add_icon.
 
-    add( icon( iv_name    = iv_name
-               iv_class   = iv_class
-               iv_hint    = iv_hint
-               iv_onclick = iv_onclick  ) ).
+    /mbtools/if_html~add( icon(
+      iv_name    = iv_name
+      iv_class   = iv_class
+      iv_hint    = iv_hint
+      iv_onclick = iv_onclick  ) ).
 
   ENDMETHOD.
 
 
   METHOD /mbtools/if_html~icon.
 
-    DATA: lv_hint       TYPE string,
-          lv_name       TYPE string,
-          lv_color      TYPE string,
-          lv_class      TYPE string,
-          lv_large_icon TYPE string,
-          lv_xpixel     TYPE i,
-          lv_onclick    TYPE string.
-
-    SPLIT iv_name AT '/' INTO lv_name lv_color.
-
-    IF iv_hint IS NOT INITIAL.
-      lv_hint  = | title="{ iv_hint }"|.
-    ENDIF.
-    IF iv_onclick IS NOT INITIAL.
-      lv_onclick = | onclick="{ iv_onclick }"|.
-    ENDIF.
-    IF iv_class IS NOT INITIAL.
-      lv_class = | { iv_class }|.
-    ENDIF.
-    IF lv_color IS NOT INITIAL.
-      lv_color = | has-mbt-{ lv_color }-color|. "<<<MBT
-    ENDIF.
-
-    lv_xpixel = cl_gui_cfw=>compute_pixel_from_metric( x_or_y = 'X'
-                                                       in = 1 ).
-    IF lv_xpixel >= 2.
-      lv_large_icon = ' fa-lg'. "<<<MBT
-    ENDIF.
-
-    " Font Awesome
-    rv_str = |<i class="fa fa-{ lv_name }{ lv_color }{ lv_large_icon }|. "<<<MBT
-    rv_str = |{ rv_str }{ lv_class }"{ lv_onclick }{ lv_hint }></i>|.
+    rv_str = icon(
+      iv_name    = iv_name
+      iv_hint    = iv_hint
+      iv_class   = iv_class
+      iv_onclick = iv_onclick ).
 
   ENDMETHOD.
 
@@ -299,6 +268,44 @@ CLASS /MBTOOLS/CL_HTML IMPLEMENTATION.
 
   METHOD create.
     CREATE OBJECT ro_html.
+  ENDMETHOD.
+
+
+  METHOD icon.
+
+    DATA: lv_hint       TYPE string,
+          lv_name       TYPE string,
+          lv_color      TYPE string,
+          lv_class      TYPE string,
+          lv_large_icon TYPE string,
+          lv_xpixel     TYPE i,
+          lv_onclick    TYPE string.
+
+    SPLIT iv_name AT '/' INTO lv_name lv_color.
+
+    IF iv_hint IS NOT INITIAL.
+      lv_hint  = | title="{ iv_hint }"|.
+    ENDIF.
+    IF iv_onclick IS NOT INITIAL.
+      lv_onclick = | onclick="{ iv_onclick }"|.
+    ENDIF.
+    IF iv_class IS NOT INITIAL.
+      lv_class = | { iv_class }|.
+    ENDIF.
+    IF lv_color IS NOT INITIAL.
+      lv_color = | has-mbt-{ lv_color }-color|. "<<<MBT
+    ENDIF.
+
+    lv_xpixel = cl_gui_cfw=>compute_pixel_from_metric( x_or_y = 'X'
+                                                       in = 1 ).
+    IF lv_xpixel >= 2.
+      lv_large_icon = ' fa-lg'. "<<<MBT
+    ENDIF.
+
+    " Font Awesome
+    rv_str = |<i class="fa fa-{ lv_name }{ lv_color }{ lv_large_icon }|. "<<<MBT
+    rv_str = |{ rv_str }{ lv_class }"{ lv_onclick }{ lv_hint }></i>|.
+
   ENDMETHOD.
 
 

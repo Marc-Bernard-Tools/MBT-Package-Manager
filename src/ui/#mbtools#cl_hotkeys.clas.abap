@@ -185,7 +185,7 @@ CLASS /MBTOOLS/CL_HOTKEYS IMPLEMENTATION.
       iv_hint       = lv_hint
       iv_hide       = abap_true
       iv_scrollable = abap_false
-      io_content    = ri_html ).
+      ii_content    = ri_html ).
 
     IF lv_hotkey IS NOT INITIAL AND should_show_hint( ) = abap_true.
       ri_html->add( |<div id="hotkeys-hint" class="corner-hint">|

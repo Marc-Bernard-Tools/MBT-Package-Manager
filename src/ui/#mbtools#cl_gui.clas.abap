@@ -1,8 +1,6 @@
 CLASS /mbtools/cl_gui DEFINITION
   PUBLIC
-  FINAL
   CREATE PUBLIC .
-
 ************************************************************************
 * MBT GUI
 *
@@ -51,7 +49,7 @@ CLASS /mbtools/cl_gui DEFINITION
       RAISING
         /mbtools/cx_exception .
     METHODS on_event
-        FOR EVENT sapevent OF cl_gui_html_viewer
+        FOR EVENT sapevent OF /mbtools/if_html_viewer
       IMPORTING
         !action
         !frame
@@ -95,7 +93,7 @@ CLASS /mbtools/cl_gui DEFINITION
     DATA mi_asset_man TYPE REF TO /mbtools/if_gui_asset_manager .
     DATA mi_hotkey_ctl TYPE REF TO /mbtools/if_gui_hotkey_ctl .
     DATA mi_html_processor TYPE REF TO /mbtools/if_gui_html_processor .
-    DATA mo_html_viewer TYPE REF TO cl_gui_html_viewer .
+    DATA mi_html_viewer TYPE REF TO /mbtools/if_html_viewer .
     DATA mo_html_parts TYPE REF TO /mbtools/cl_html_parts .
     DATA mv_online TYPE abap_bool .
 
@@ -145,21 +143,23 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
 
       /mbtools/cl_convert=>string_to_tab(
         EXPORTING
-          iv_str = iv_text
+          iv_str  = iv_text
         IMPORTING
-          et_tab = lt_html ).
+          ev_size = lv_size
+          et_tab  = lt_html ).
 
-      mo_html_viewer->load_data(
+      mi_html_viewer->load_data(
         EXPORTING
-          type         = iv_type
-          subtype      = iv_subtype
-          url          = iv_url
+          iv_type         = iv_type
+          iv_subtype      = iv_subtype
+          iv_size         = lv_size
+          iv_url          = iv_url
         IMPORTING
-          assigned_url = rv_url
+          ev_assigned_url = rv_url
         CHANGING
-          data_table   = lt_html
+          ct_data_table   = lt_html
         EXCEPTIONS
-          OTHERS       = 1 ) ##NO_TEXT.
+          OTHERS          = 1 ).
 
     ELSE. " Raw input
 
@@ -170,18 +170,18 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
           ev_size   = lv_size
           et_bintab = lt_xdata ).
 
-      mo_html_viewer->load_data(
+      mi_html_viewer->load_data(
         EXPORTING
-          type         = iv_type
-          subtype      = iv_subtype
-          size         = lv_size
-          url          = iv_url
+          iv_type         = iv_type
+          iv_subtype      = iv_subtype
+          iv_size         = lv_size
+          iv_url          = iv_url
         IMPORTING
-          assigned_url = rv_url
+          ev_assigned_url = rv_url
         CHANGING
-          data_table   = lt_xdata
+          ct_data_table   = lt_xdata
         EXCEPTIONS
-          OTHERS       = 1 ) ##NO_TEXT.
+          OTHERS          = 1 ).
 
     ENDIF.
 
@@ -302,10 +302,10 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
 
   METHOD free.
 
-    SET HANDLER me->on_event FOR mo_html_viewer ACTIVATION space.
-    mo_html_viewer->close_document( ).
-    mo_html_viewer->free( ).
-    FREE mo_html_viewer.
+    SET HANDLER me->on_event FOR mi_html_viewer ACTIVATION space.
+    mi_html_viewer->close_document( ).
+    mi_html_viewer->free( ).
+    FREE mi_html_viewer.
 
   ENDMETHOD.
 
@@ -491,8 +491,8 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
       ls_entry-k = condense( to_lower( cl_http_utility=>unescape_url( ls_entry-k ) ) ).
       ls_entry-v = cl_http_utility=>unescape_url( ls_entry-v ).
 
-      IF ro_parameters->has( ls_entry-k ) = abap_true.
-        /mbtools/cx_exception=>raise( |Duplicate parameter { ls_entry-k }| ).
+      IF ro_parameters->has( ls_entry-k ) = abap_true AND ls_entry-v <> ro_parameters->get( ls_entry-k ).
+        /mbtools/cx_exception=>raise( |Duplicate parameter { ls_entry-k } with different values| ).
       ELSE.
         ro_parameters->set( iv_key = ls_entry-k
                             iv_val = ls_entry-v ).
@@ -542,7 +542,7 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
     ENDIF.
 
     lv_url  = cache_html( lv_html ).
-    mo_html_viewer->show_url( lv_url ).
+    mi_html_viewer->show_url( lv_url ).
 
   ENDMETHOD.
 
@@ -555,27 +555,25 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_asset> LIKE LINE OF lt_assets.
 
-    CREATE OBJECT mo_html_viewer
-      EXPORTING
-        query_table_disabled = abap_true
-        parent               = cl_gui_container=>screen0.
+    mi_html_viewer = /mbtools/cl_gui_factory=>get_html_viewer( ).
 
     IF mi_asset_man IS BOUND.
       lt_assets = mi_asset_man->get_all_assets( ).
       LOOP AT lt_assets ASSIGNING <ls_asset> WHERE is_cacheable = abap_true.
-        /mbtools/if_gui_services~cache_asset( iv_xdata   = <ls_asset>-content
-                     iv_url     = <ls_asset>-url
-                     iv_type    = <ls_asset>-type
-                     iv_subtype = <ls_asset>-subtype ).
+        /mbtools/if_gui_services~cache_asset(
+          iv_xdata   = <ls_asset>-content
+          iv_url     = <ls_asset>-url
+          iv_type    = <ls_asset>-type
+          iv_subtype = <ls_asset>-subtype ).
       ENDLOOP.
     ENDIF.
 
-    ls_event-eventid    = mo_html_viewer->m_id_sapevent.
+    ls_event-eventid    = mi_html_viewer->m_id_sapevent.
     ls_event-appl_event = abap_true.
     APPEND ls_event TO lt_events.
 
-    mo_html_viewer->set_registered_events( lt_events ).
-    SET HANDLER me->on_event FOR mo_html_viewer.
+    mi_html_viewer->set_registered_events( lt_events ).
+    SET HANDLER me->on_event FOR mi_html_viewer.
 
   ENDMETHOD.
 ENDCLASS.

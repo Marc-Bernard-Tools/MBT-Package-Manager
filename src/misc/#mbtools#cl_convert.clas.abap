@@ -27,9 +27,10 @@ CLASS /mbtools/cl_convert DEFINITION
 
     CLASS-METHODS string_to_tab
       IMPORTING
-        !iv_str       TYPE string
+        !iv_str TYPE string
       EXPORTING
-        VALUE(et_tab) TYPE STANDARD TABLE.
+        ev_size TYPE i
+        et_tab  TYPE STANDARD TABLE.
 
     CLASS-METHODS string_to_xstring
       IMPORTING
@@ -120,6 +121,8 @@ CLASS /MBTOOLS/CL_CONVERT IMPLEMENTATION.
     CALL FUNCTION 'SCMS_STRING_TO_FTEXT'
       EXPORTING
         text      = iv_str
+      IMPORTING
+        length    = ev_size
       TABLES
         ftext_tab = et_tab
       EXCEPTIONS

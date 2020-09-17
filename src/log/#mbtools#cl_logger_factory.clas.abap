@@ -19,10 +19,11 @@ CLASS /mbtools/cl_logger_factory DEFINITION
     CLASS-METHODS create_log
       IMPORTING
         !iv_object      TYPE csequence DEFAULT '/MBTOOLS/'
-        !iv_subobject   TYPE csequence
+        !iv_subobject   TYPE csequence DEFAULT 'LOG'
         !iv_description TYPE csequence OPTIONAL
         !iv_context     TYPE simple OPTIONAL
         !io_settings    TYPE REF TO /mbtools/if_logger_settings OPTIONAL
+          PREFERRED PARAMETER iv_subobject
       RETURNING
         VALUE(ro_log)   TYPE REF TO /mbtools/if_logger .
     "! Reopens an already existing log.
@@ -52,12 +53,13 @@ CLASS /MBTOOLS/CL_LOGGER_FACTORY IMPLEMENTATION.
   METHOD create_log.
 
     DATA: lo_log TYPE REF TO /mbtools/cl_logger.
-    FIELD-SYMBOLS <context_val> TYPE c.
+
+    FIELD-SYMBOLS <lv_context_val> TYPE c.
 
     CREATE OBJECT lo_log.
-    lo_log->header-object    = iv_object.
-    lo_log->header-subobject = iv_subobject.
-    lo_log->header-extnumber = iv_description.
+    lo_log->/mbtools/if_logger~ms_header-object    = iv_object.
+    lo_log->/mbtools/if_logger~ms_header-subobject = iv_subobject.
+    lo_log->/mbtools/if_logger~ms_header-extnumber = iv_description.
 
     IF io_settings IS BOUND.
       lo_log->mo_settings = io_settings.
@@ -79,29 +81,29 @@ CLASS /MBTOOLS/CL_LOGGER_FACTORY IMPLEMENTATION.
     ENDIF.
 
 * Set deletion date and set if log can be deleted before deletion date is reached.
-    lo_log->header-aldate_del = lo_log->mo_settings->get_expiry_date( ).
-    lo_log->header-del_before = lo_log->mo_settings->get_must_be_kept_until_expiry( ).
+    lo_log->/mbtools/if_logger~ms_header-aldate_del = lo_log->mo_settings->get_expiry_date( ).
+    lo_log->/mbtools/if_logger~ms_header-del_before = lo_log->mo_settings->get_must_be_kept_until_expiry( ).
 
     IF iv_context IS SUPPLIED AND iv_context IS NOT INITIAL.
-      lo_log->header-context-tabname =
+      lo_log->/mbtools/if_logger~ms_header-context-tabname =
         cl_abap_typedescr=>describe_by_data( iv_context )->get_ddic_header( )-tabname.
-      ASSIGN iv_context TO <context_val> CASTING.
-      lo_log->header-context-value = <context_val>.
+      ASSIGN iv_context TO <lv_context_val> CASTING.
+      lo_log->/mbtools/if_logger~ms_header-context-value = <lv_context_val>.
     ENDIF.
 
     CALL FUNCTION 'BAL_LOG_CREATE'
       EXPORTING
-        i_s_log      = lo_log->header
+        i_s_log      = lo_log->/mbtools/if_logger~ms_header
       IMPORTING
-        e_log_handle = lo_log->handle.
+        e_log_handle = lo_log->/mbtools/if_logger~mv_handle.
 
 * BAL_LOG_CREATE will fill in some additional header data.
 * This FM updates our instance attribute to reflect that.
     CALL FUNCTION 'BAL_LOG_HDR_READ'
       EXPORTING
-        i_log_handle = lo_log->handle
+        i_log_handle = lo_log->/mbtools/if_logger~mv_handle
       IMPORTING
-        e_s_log      = lo_log->header.
+        e_s_log      = lo_log->/mbtools/if_logger~ms_header.
 
     ro_log = lo_log.
 
@@ -117,33 +119,33 @@ CLASS /MBTOOLS/CL_LOGGER_FACTORY IMPLEMENTATION.
 
   METHOD open_log.
 
-    DATA: filter             TYPE bal_s_lfil,
-          desc_filter        TYPE bal_s_extn,
-          obj_filter         TYPE bal_s_obj,
-          subobj_filter      TYPE bal_s_sub,
+    DATA:
+      ls_filter             TYPE bal_s_lfil,
+      ls_desc_filter        TYPE bal_s_extn,
+      ls_obj_filter         TYPE bal_s_obj,
+      ls_subobj_filter      TYPE bal_s_sub,
+      lt_found_headers      TYPE balhdr_t,
+      ls_most_recent_header TYPE balhdr,
+      lt_handles_loaded     TYPE bal_t_logh,
+      lo_log                TYPE REF TO /mbtools/cl_logger.
 
-          found_headers      TYPE balhdr_t,
-          most_recent_header TYPE balhdr,
-          handles_loaded     TYPE bal_t_logh.
-    DATA: lo_log             TYPE REF TO /mbtools/cl_logger.
+    ls_desc_filter-option = ls_subobj_filter-option = ls_obj_filter-option = 'EQ'.
+    ls_desc_filter-sign   = ls_subobj_filter-sign = ls_obj_filter-sign = 'I'.
 
-    desc_filter-option = subobj_filter-option = obj_filter-option = 'EQ'.
-    desc_filter-sign   = subobj_filter-sign = obj_filter-sign = 'I'.
-
-    obj_filter-low = iv_object.
-    APPEND obj_filter TO filter-object.
-    subobj_filter-low = iv_subobject.
-    APPEND subobj_filter TO filter-subobject.
+    ls_obj_filter-low = iv_object.
+    APPEND ls_obj_filter TO ls_filter-object.
+    ls_subobj_filter-low = iv_subobject.
+    APPEND ls_subobj_filter TO ls_filter-subobject.
     IF iv_description IS SUPPLIED.
-      desc_filter-low = iv_description.
-      APPEND desc_filter TO filter-extnumber.
+      ls_desc_filter-low = iv_description.
+      APPEND ls_desc_filter TO ls_filter-extnumber.
     ENDIF.
 
     CALL FUNCTION 'BAL_DB_SEARCH'
       EXPORTING
-        i_s_log_filter = filter
+        i_s_log_filter = ls_filter
       IMPORTING
-        e_t_log_header = found_headers
+        e_t_log_header = lt_found_headers
       EXCEPTIONS
         log_not_found  = 1.
 
@@ -158,14 +160,14 @@ CLASS /MBTOOLS/CL_LOGGER_FACTORY IMPLEMENTATION.
 
 * Delete all but the last row.  Keep the found_headers table this way
 * so we can pass it to BAL_DB_LOAD.
-    IF lines( found_headers ) > 1.
-      DELETE found_headers TO ( lines( found_headers ) - 1 ).
+    IF lines( lt_found_headers ) > 1.
+      DELETE lt_found_headers TO ( lines( lt_found_headers ) - 1 ).
     ENDIF.
-    READ TABLE found_headers INDEX 1 INTO most_recent_header.
+    READ TABLE lt_found_headers INDEX 1 INTO ls_most_recent_header.
 
     CREATE OBJECT lo_log.
-    lo_log->db_number = most_recent_header-lognumber.
-    lo_log->handle    = most_recent_header-log_handle.
+    lo_log->/mbtools/if_logger~mv_db_number = ls_most_recent_header-lognumber.
+    lo_log->/mbtools/if_logger~mv_handle    = ls_most_recent_header-log_handle.
 
     IF io_settings IS BOUND.
       lo_log->mo_settings = io_settings.
@@ -175,13 +177,13 @@ CLASS /MBTOOLS/CL_LOGGER_FACTORY IMPLEMENTATION.
 
     CALL FUNCTION 'BAL_DB_LOAD'
       EXPORTING
-        i_t_log_header = found_headers.
+        i_t_log_header = lt_found_headers.
 
     CALL FUNCTION 'BAL_LOG_HDR_READ'
       EXPORTING
-        i_log_handle = lo_log->handle
+        i_log_handle = lo_log->/mbtools/if_logger~mv_handle
       IMPORTING
-        e_s_log      = lo_log->header.
+        e_s_log      = lo_log->/mbtools/if_logger~ms_header.
 
     ro_log = lo_log.
 

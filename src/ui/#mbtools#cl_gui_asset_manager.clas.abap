@@ -2,6 +2,7 @@ CLASS /mbtools/cl_gui_asset_manager DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT GUI Asset Manager
 *
@@ -10,27 +11,20 @@ CLASS /mbtools/cl_gui_asset_manager DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-
   PUBLIC SECTION.
 
     INTERFACES /mbtools/if_gui_asset_manager .
 
+    ALIASES register_asset
+      FOR /mbtools/if_gui_asset_manager~register_asset .
+
     TYPES:
       BEGIN OF ty_asset_entry.
         INCLUDE TYPE /mbtools/if_gui_asset_manager~ty_web_asset.
-    TYPES: mime_name TYPE wwwdatatab-objid,
+        TYPES: mime_name TYPE wwwdatatab-objid,
       END OF ty_asset_entry .
     TYPES:
       ty_asset_register TYPE STANDARD TABLE OF ty_asset_entry WITH KEY url .
-
-    METHODS register_asset
-      IMPORTING
-        !iv_url       TYPE string
-        !iv_type      TYPE string
-        !iv_cachable  TYPE abap_bool DEFAULT abap_true
-        !iv_mime_name TYPE csequence OPTIONAL
-        !iv_base64    TYPE string OPTIONAL
-        !iv_inline    TYPE string OPTIONAL .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -101,6 +95,31 @@ CLASS /MBTOOLS/CL_GUI_ASSET_MANAGER IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD /mbtools/if_gui_asset_manager~register_asset.
+
+    DATA ls_asset LIKE LINE OF mt_asset_register.
+
+    READ TABLE mt_asset_register TRANSPORTING NO FIELDS
+      WITH TABLE KEY url = iv_url.
+    IF sy-subrc = 0.
+      RETURN.
+    ENDIF.
+
+    SPLIT iv_type AT '/' INTO ls_asset-type ls_asset-subtype.
+    ls_asset-url          = iv_url.
+    ls_asset-mime_name    = iv_mime_name.
+    ls_asset-is_cacheable = iv_cachable.
+    IF iv_base64 IS NOT INITIAL.
+      ls_asset-content = /mbtools/cl_convert=>base64_to_xstring( iv_base64 ).
+    ELSEIF iv_inline IS NOT INITIAL.
+      ls_asset-content = /mbtools/cl_convert=>string_to_xstring( iv_inline ).
+    ENDIF.
+
+    APPEND ls_asset TO mt_asset_register.
+
+  ENDMETHOD.
+
+
   METHOD get_mime_asset.
 
     DATA: ls_key    TYPE wwwdatatab,
@@ -159,31 +178,6 @@ CLASS /MBTOOLS/CL_GUI_ASSET_MANAGER IMPLEMENTATION.
     IF rs_asset-content IS INITIAL.
       /mbtools/cx_exception=>raise( |failed to load GUI asset: { is_asset_entry-url }| ).
     ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD register_asset.
-
-    DATA ls_asset LIKE LINE OF mt_asset_register.
-
-    READ TABLE mt_asset_register TRANSPORTING NO FIELDS
-      WITH TABLE KEY url = iv_url.
-    IF sy-subrc = 0.
-      RETURN.
-    ENDIF.
-
-    SPLIT iv_type AT '/' INTO ls_asset-type ls_asset-subtype.
-    ls_asset-url          = iv_url.
-    ls_asset-mime_name    = iv_mime_name.
-    ls_asset-is_cacheable = iv_cachable.
-    IF iv_base64 IS NOT INITIAL.
-      ls_asset-content = /mbtools/cl_convert=>base64_to_xstring( iv_base64 ).
-    ELSEIF iv_inline IS NOT INITIAL.
-      ls_asset-content = /mbtools/cl_convert=>string_to_xstring( iv_inline ).
-    ENDIF.
-
-    APPEND ls_asset TO mt_asset_register.
 
   ENDMETHOD.
 ENDCLASS.

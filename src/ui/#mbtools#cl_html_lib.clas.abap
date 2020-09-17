@@ -67,7 +67,7 @@ CLASS /mbtools/cl_html_lib DEFINITION
         !iv_hide       TYPE abap_bool DEFAULT abap_true
         !iv_hint       TYPE string OPTIONAL
         !iv_scrollable TYPE abap_bool DEFAULT abap_true
-        !io_content    TYPE REF TO /mbtools/if_html
+        !ii_content    TYPE REF TO /mbtools/if_html
       RETURNING
         VALUE(ri_html) TYPE REF TO /mbtools/if_html
       RAISING
@@ -283,16 +283,14 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
 
     IF iv_hint IS NOT INITIAL.
       ri_html->add( '<div class="info-hint">'
-        && ri_html->icon( iv_name = 'exclamation-triangle'
-                          iv_class = 'pad-right' )
         && iv_hint
         && '</div>' ).
     ENDIF.
 
-    ri_html->add( |<div class="info-list">| ).
-    ri_html->add( io_content ).
+    ri_html->add( '<div class="info-list">' ).
+    ri_html->add( ii_content ).
     ri_html->add( '</div>' ).
-    ri_html->add( '</div>' ).
+    ri_html->add( '</div><!-- infopanel -->' ).
 
   ENDMETHOD.
 
@@ -352,7 +350,7 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
       iv_title   = 'Announcement of Latest Changes'
       iv_hint    = lv_hint
       iv_hide    = boolc( io_news->has_unseen( ) = abap_false )
-      io_content = ri_html ).
+      ii_content = ri_html ).
 
   ENDMETHOD.
 

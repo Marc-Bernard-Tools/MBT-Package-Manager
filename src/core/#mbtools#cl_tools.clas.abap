@@ -14,42 +14,44 @@ CLASS /mbtools/cl_tools DEFINITION
       " Global Constant
       BEGIN OF c_reg,
         " Registry General (read-only in Registry Browser)
-        general            TYPE string VALUE '.General' ##NO_TEXT,
-        key_name           TYPE string VALUE 'Name' ##NO_TEXT,
-        key_class          TYPE string VALUE 'Class' ##NO_TEXT,
-        key_title          TYPE string VALUE 'Title' ##NO_TEXT,
-        key_description    TYPE string VALUE 'Description' ##NO_TEXT,
-        key_version        TYPE string VALUE 'Version' ##NO_TEXT,
-        key_namespace      TYPE string VALUE 'Namespace' ##NO_TEXT,
-        key_package        TYPE string VALUE 'Package' ##NO_TEXT,
+        general              TYPE string VALUE '.General' ##NO_TEXT,
+        key_name             TYPE string VALUE 'Name' ##NO_TEXT,
+        key_class            TYPE string VALUE 'Class' ##NO_TEXT,
+        key_title            TYPE string VALUE 'Title' ##NO_TEXT,
+        key_description      TYPE string VALUE 'Description' ##NO_TEXT,
+        key_version          TYPE string VALUE 'Version' ##NO_TEXT,
+        key_namespace        TYPE string VALUE 'Namespace' ##NO_TEXT,
+        key_package          TYPE string VALUE 'Package' ##NO_TEXT,
         " Registry Properties (read-only in Registry Browser)
-        properties         TYPE string VALUE '.Properties' ##NO_TEXT,
-        key_install_time   TYPE string VALUE 'InstallTimestamp' ##NO_TEXT,
-        key_install_user   TYPE string VALUE 'InstallUser' ##NO_TEXT,
-        key_uninstall_time TYPE string VALUE 'UninstallTimestamp' ##NO_TEXT,
-        key_uninstall_user TYPE string VALUE 'UninstallUser' ##NO_TEXT,
-        key_update_time    TYPE string VALUE 'UpdateTimestamp' ##NO_TEXT,
-        key_update_user    TYPE string VALUE 'UpdateUser' ##NO_TEXT,
+        properties           TYPE string VALUE '.Properties' ##NO_TEXT,
+        key_install_time     TYPE string VALUE 'InstallTimestamp' ##NO_TEXT,
+        key_install_user     TYPE string VALUE 'InstallUser' ##NO_TEXT,
+        key_uninstall_time   TYPE string VALUE 'UninstallTimestamp' ##NO_TEXT,
+        key_uninstall_user   TYPE string VALUE 'UninstallUser' ##NO_TEXT,
+        key_update_time      TYPE string VALUE 'UpdateTimestamp' ##NO_TEXT,
+        key_update_user      TYPE string VALUE 'UpdateUser' ##NO_TEXT,
         " Registry Switches
-        switches           TYPE string VALUE 'Switches' ##NO_TEXT,
-        key_active         TYPE string VALUE 'Active' ##NO_TEXT,
-        key_debug          TYPE string VALUE 'Debug' ##NO_TEXT,
-        key_trace          TYPE string VALUE 'Trace' ##NO_TEXT,
+        switches             TYPE string VALUE 'Switches' ##NO_TEXT,
+        key_active           TYPE string VALUE 'Active' ##NO_TEXT,
+        key_debug            TYPE string VALUE 'Debug' ##NO_TEXT,
+        key_trace            TYPE string VALUE 'Trace' ##NO_TEXT,
         " Registry License (read-only in Registry Browser)
-        license            TYPE string VALUE '.License' ##NO_TEXT,
-        key_lic_id         TYPE string VALUE 'ID' ##NO_TEXT,
-        key_lic_bundle     TYPE string VALUE 'BundleID' ##NO_TEXT,
-        key_lic_key        TYPE string VALUE 'LicenseKey' ##NO_TEXT,
-        key_lic_valid      TYPE string VALUE 'LicenseValid' ##NO_TEXT,
-        key_lic_expire     TYPE string VALUE 'LicenseExpiration' ##NO_TEXT,
+        license              TYPE string VALUE '.License' ##NO_TEXT,
+        key_lic_id           TYPE string VALUE 'ID' ##NO_TEXT,
+        key_lic_bundle       TYPE string VALUE 'BundleID' ##NO_TEXT,
+        key_lic_key          TYPE string VALUE 'LicenseKey' ##NO_TEXT,
+        key_lic_valid        TYPE string VALUE 'LicenseValid' ##NO_TEXT,
+        key_lic_expire       TYPE string VALUE 'LicenseExpiration' ##NO_TEXT,
         " Settings
-        settings           TYPE string VALUE 'Settings' ##NO_TEXT,
+        settings             TYPE string VALUE 'Settings' ##NO_TEXT,
         " Update
-        update             TYPE string VALUE '.Update' ##NO_TEXT,
-        key_new_version    TYPE string VALUE 'NewVersion' ##NO_TEXT,
-        key_changelog_url  TYPE string VALUE 'ChangelogURL' ##NO_TEXT,
-        key_download_url   TYPE string VALUE 'DownloadURL' ##NO_TEXT,
-        key_changelog_html TYPE string VALUE 'ChangelogHTML' ##NO_TEXT,
+        update               TYPE string VALUE '.Update' ##NO_TEXT,
+        key_new_version      TYPE string VALUE 'NewVersion' ##NO_TEXT,
+        key_description_html TYPE string VALUE 'DescriptionHTML' ##NO_TEXT,
+        key_changelog_url    TYPE string VALUE 'ChangelogURL' ##NO_TEXT,
+        key_changelog_html   TYPE string VALUE 'ChangelogHTML' ##NO_TEXT,
+        key_download_url     TYPE string VALUE 'DownloadURL' ##NO_TEXT,
+        key_changelog        TYPE string VALUE 'ChangelogHTML' ##NO_TEXT,
       END OF c_reg .
     " Evaluation
     CONSTANTS c_eval_days TYPE i VALUE 60 ##NO_TEXT.
@@ -192,9 +194,15 @@ CLASS /mbtools/cl_tools DEFINITION
     METHODS get_download_id
       RETURNING
         VALUE(rv_result) TYPE i .
+    METHODS get_html_changelog
+      RETURNING
+        VALUE(rv_result) TYPE string .
     METHODS get_description
       RETURNING
         VALUE(rv_description) TYPE string .
+    METHODS get_html_description
+      RETURNING
+        VALUE(rv_result) TYPE string .
     METHODS get_class
       RETURNING
         VALUE(rv_class) TYPE string .
@@ -332,16 +340,15 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD check_version.
 
     DATA:
-      lo_reg_tool       TYPE REF TO /mbtools/cl_registry,
-      lo_reg_entry      TYPE REF TO /mbtools/cl_registry,
-      lv_license        TYPE string,
-      lv_id             TYPE string,
-      lv_version        TYPE string,
-      lv_changelog_url  TYPE string,
-      lv_changelog_html TYPE string,
-      lv_download_url   TYPE string.
-
-    go_reg_root->reload( ).
+      lo_reg_tool      TYPE REF TO /mbtools/cl_registry,
+      lo_reg_entry     TYPE REF TO /mbtools/cl_registry,
+      lv_license       TYPE string,
+      lv_id            TYPE string,
+      lv_version       TYPE string,
+      lv_description   TYPE string,
+      lv_changelog_url TYPE string,
+      lv_changelog     TYPE string,
+      lv_download_url  TYPE string.
 
     " Is tool or bundle registered?
     IF is_bundle( ) IS INITIAL.
@@ -366,8 +373,9 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         iv_license        = lv_license
       IMPORTING
         ev_version        = lv_version
+        ev_description    = lv_description
         ev_changelog_url  = lv_changelog_url
-        ev_changelog_html = lv_changelog_html
+        ev_changelog      = lv_changelog
         ev_download_url   = lv_download_url ).
 
     " If newer version is available, save info
@@ -379,10 +387,12 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
       lo_reg_entry->set_value( iv_key   = c_reg-key_new_version
                                iv_value = lv_version ).
+      lo_reg_entry->set_value( iv_key   = c_reg-key_description_html
+                               iv_value = lv_description ).
       lo_reg_entry->set_value( iv_key   = c_reg-key_changelog_url
                                iv_value = lv_changelog_url ).
       lo_reg_entry->set_value( iv_key   = c_reg-key_changelog_html
-                               iv_value = lv_changelog_html ).
+                               iv_value = lv_changelog ).
       lo_reg_entry->set_value( iv_key   = c_reg-key_download_url
                                iv_value = lv_download_url ).
 
@@ -609,6 +619,54 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_html_changelog.
+
+    DATA:
+      lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
+      lo_reg_entry TYPE REF TO /mbtools/cl_registry.
+
+    TRY.
+        " Is tool installed?
+        lo_reg_tool = get_reg_tool( mv_name ).
+        CHECK lo_reg_tool IS BOUND.
+
+        " Update
+        lo_reg_entry = lo_reg_tool->get_subentry( c_reg-update ).
+        CHECK lo_reg_entry IS BOUND.
+
+        rv_result = lo_reg_entry->get_value( c_reg-key_changelog_html ).
+
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD get_html_description.
+
+    DATA:
+      lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
+      lo_reg_entry TYPE REF TO /mbtools/cl_registry.
+
+    TRY.
+        " Is tool installed?
+        lo_reg_tool = get_reg_tool( mv_name ).
+        CHECK lo_reg_tool IS BOUND.
+
+        " Update
+        lo_reg_entry = lo_reg_tool->get_subentry( c_reg-update ).
+        CHECK lo_reg_entry IS BOUND.
+
+        rv_result = lo_reg_entry->get_value( c_reg-key_description_html ).
+
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
   METHOD get_id.
 
     " Upper case, Underscore, Namespaced
@@ -674,8 +732,6 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lo_reg_entry TYPE REF TO /mbtools/cl_registry.
 
     TRY.
-        go_reg_root->reload( ).
-
         " Is tool already registered?
         IF is_bundle( ) IS INITIAL.
           lo_reg_tool = get_reg_tool( mv_name ).
@@ -808,7 +864,6 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lt_bundles   TYPE /mbtools/cl_registry=>ty_keyobjs.
 
     TRY.
-        " Reload of root should be handled outside of this method
         lt_bundles = go_reg_root->get_subentries( ).
 
         LOOP AT lt_bundles INTO ls_bundle.
@@ -835,7 +890,6 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
 
     TRY.
-        " Reload of root should be handled outside of this method
         lt_bundles = go_reg_root->get_subentries( ).
 
         LOOP AT lt_bundles INTO ls_bundle.
@@ -856,7 +910,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD get_settings.
 
     DATA:
-     lo_reg_tool TYPE REF TO /mbtools/cl_registry.
+      lo_reg_tool TYPE REF TO /mbtools/cl_registry.
 
     CHECK mv_is_bundle IS INITIAL.
 
@@ -1135,8 +1189,6 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        go_reg_root->reload( ).
-
         " Is tool already registered?
         IF is_bundle( ) IS INITIAL.
           lo_reg_tool = get_reg_tool( mv_name ).
@@ -1204,8 +1256,6 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lv_valid     TYPE abap_bool,
       lv_expire    TYPE d.
 
-    go_reg_root->reload( ).
-
     " Is tool or bundle registered?
     IF is_bundle( ) IS INITIAL.
       lo_reg_tool = get_reg_tool( mv_name ).
@@ -1256,8 +1306,6 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lv_license   TYPE string,
       lv_id        TYPE string.
 
-    go_reg_root->reload( ).
-
     " Is tool or bundle registered?
     IF is_bundle( ) IS INITIAL.
       lo_reg_tool = get_reg_tool( mv_name ).
@@ -1299,8 +1347,6 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lv_timestamp  TYPE timestamp.
 
     TRY.
-        go_reg_root->reload( ).
-
         " Is tool already registered?
         IF is_bundle( ) IS INITIAL.
           lo_reg_tool = get_reg_tool( mv_name ).
@@ -1433,15 +1479,20 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   METHOD run_action.
 
     DATA:
-      ls_tool   TYPE /mbtools/tool_with_text,
-      lt_tools  TYPE TABLE OF /mbtools/tool_with_text,
-      lv_result TYPE abap_bool.
+      ls_tool     TYPE /mbtools/tool_with_text,
+      lt_tools    TYPE TABLE OF /mbtools/tool_with_text,
+      li_progress TYPE REF TO /mbtools/if_progress,
+      lv_result   TYPE abap_bool.
 
     lt_tools = get_tools( iv_admin = abap_true ).
 
     rv_result = abap_true.
 
+    li_progress = /mbtools/cl_progress=>get_instance( lines( lt_tools ) ).
+
     LOOP AT lt_tools INTO ls_tool.
+      li_progress->show( iv_current = sy-tabix
+                         iv_text    = |Run action for { ls_tool-name }| ).
 
       TRY.
           CASE iv_action.
@@ -1472,6 +1523,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     ENDLOOP.
 
+    li_progress->hide( ).
+
   ENDMETHOD.
 
 
@@ -1484,8 +1537,6 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       lt_entries    TYPE /mbtools/cl_registry=>ty_keyobjs.
 
     TRY.
-        go_reg_root->reload( ).
-
         " Is tool still registered?
         IF is_bundle( ) IS INITIAL.
           lo_reg_tool = get_reg_tool( mv_name ).

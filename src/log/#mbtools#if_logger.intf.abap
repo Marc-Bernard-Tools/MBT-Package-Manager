@@ -15,6 +15,7 @@ INTERFACE /mbtools/if_logger
   DATA mv_handle TYPE balloghndl READ-ONLY .
   DATA mv_db_number TYPE balognr READ-ONLY .
   DATA ms_header TYPE bal_s_log READ-ONLY .
+  DATA mv_timestamp TYPE timestampl READ-ONLY.
 
   METHODS add
     IMPORTING
@@ -109,4 +110,9 @@ INTERFACE /mbtools/if_logger
   METHODS popup
     IMPORTING
       is_profile TYPE bal_s_prof OPTIONAL.
+  METHODS timer_start.
+  "! Time in milliseconds (1/1000s)
+  METHODS timer_end
+    RETURNING
+      VALUE(rv_result) TYPE timestampl.
 ENDINTERFACE.

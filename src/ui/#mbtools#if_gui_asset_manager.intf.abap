@@ -43,4 +43,13 @@ INTERFACE /mbtools/if_gui_asset_manager
     RAISING
       /mbtools/cx_exception .
 
+  METHODS register_asset
+    IMPORTING
+      !iv_url       TYPE string
+      !iv_type      TYPE string
+      !iv_cachable  TYPE abap_bool DEFAULT abap_true
+      !iv_mime_name TYPE csequence OPTIONAL
+      !iv_base64    TYPE string OPTIONAL
+      !iv_inline    TYPE string OPTIONAL .
+
 ENDINTERFACE.

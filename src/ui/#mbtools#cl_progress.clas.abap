@@ -23,6 +23,7 @@ CLASS /mbtools/cl_progress DEFINITION
         !iv_total          TYPE i
       RETURNING
         VALUE(ri_progress) TYPE REF TO /mbtools/if_progress .
+
   PROTECTED SECTION.
 
     DATA mv_total TYPE i .
@@ -33,15 +34,24 @@ CLASS /mbtools/cl_progress DEFINITION
         !iv_current   TYPE i
       RETURNING
         VALUE(rv_pct) TYPE i .
+
   PRIVATE SECTION.
 
     DATA mv_cv_time_next TYPE sy-uzeit .
     DATA mv_cv_datum_next TYPE sy-datum .
+
 ENDCLASS.
 
 
 
 CLASS /MBTOOLS/CL_PROGRESS IMPLEMENTATION.
+
+
+  METHOD /mbtools/if_progress~hide.
+
+    CALL FUNCTION 'SAPGUI_PROGRESS_INDICATOR'.
+
+  ENDMETHOD.
 
 
   METHOD /mbtools/if_progress~set_total.

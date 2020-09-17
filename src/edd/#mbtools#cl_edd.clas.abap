@@ -12,7 +12,7 @@ CLASS /mbtools/cl_edd DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    CONSTANTS c_name TYPE string VALUE 'MBT_EDD_API' ##NEEDED.
+    CONSTANTS c_name TYPE string VALUE 'MBT_EDD_API' ##NO_TEXT ##NEEDED.
     CONSTANTS c_edd_host TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.
     CONSTANTS:
       BEGIN OF c_edd_action,
@@ -31,6 +31,7 @@ CLASS /mbtools/cl_edd DEFINITION
         sysno  TYPE string VALUE '$sysno$' ##NO_TEXT,
       END OF c_edd_param .
 
+    CLASS-METHODS class_constructor .
     CLASS-METHODS activate_license
       IMPORTING
         !iv_id      TYPE string
@@ -59,18 +60,21 @@ CLASS /mbtools/cl_edd DEFINITION
         /mbtools/cx_exception .
     CLASS-METHODS get_version
       IMPORTING
-        !iv_id             TYPE string
-        !iv_license        TYPE string
+        !iv_id            TYPE string
+        !iv_license       TYPE string
       EXPORTING
-        !ev_version        TYPE string
-        !ev_changelog_url  TYPE string
-        !ev_changelog_html TYPE string
-        !ev_download_url   TYPE string
+        !ev_version       TYPE string
+        !ev_description   TYPE string
+        !ev_changelog_url TYPE string
+        !ev_changelog     TYPE string
+        !ev_download_url  TYPE string
       RAISING
         /mbtools/cx_exception .
   PROTECTED SECTION.
 
   PRIVATE SECTION.
+
+    CLASS-DATA mi_log TYPE REF TO /mbtools/if_logger .
 
     CLASS-METHODS get_data
       IMPORTING
@@ -96,6 +100,11 @@ CLASS /mbtools/cl_edd DEFINITION
         VALUE(ro_json) TYPE REF TO /mbtools/if_ajson_reader
       RAISING
         /mbtools/cx_exception .
+    CLASS-METHODS adjust_html
+      IMPORTING
+        !iv_html         TYPE string
+      RETURNING
+        VALUE(rv_result) TYPE string .
 ENDCLASS.
 
 
@@ -127,6 +136,8 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
       lo_json     TYPE REF TO /mbtools/if_ajson_reader.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
+
+    mi_log->i( |EDD API ActivateLicense for ID { iv_id }| ).
 
     lv_endpoint = get_endpoint( iv_action  = c_edd_action-activate
                                 iv_id      = iv_id
@@ -170,6 +181,19 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD adjust_html.
+
+    rv_result = iv_html.
+
+    REPLACE ALL OCCURRENCES OF 'href="/' IN rv_result WITH 'href="' && /mbtools/if_definitions=>c_www_home.
+
+    REPLACE ALL OCCURRENCES OF '<p>' IN rv_result WITH '<h4>'.
+
+    REPLACE ALL OCCURRENCES OF '</p>' IN rv_result WITH '</h4>'.
+
+  ENDMETHOD.
+
+
   METHOD check_license.
 
 *{
@@ -194,6 +218,8 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
       lo_json     TYPE REF TO /mbtools/if_ajson_reader.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
+
+    mi_log->i( |EDD API CheckLicense for ID { iv_id }| ).
 
     lv_endpoint = get_endpoint( iv_action  = c_edd_action-check
                                 iv_id      = iv_id
@@ -229,6 +255,13 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD class_constructor.
+
+    mi_log = /mbtools/cl_logger_factory=>create_log( 'EDD' ).
+
+  ENDMETHOD.
+
+
   METHOD deactivate_license.
 
     DATA:
@@ -237,6 +270,8 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
       lo_json     TYPE REF TO /mbtools/if_ajson_reader.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
+
+    mi_log->i( |EDD API DeactivateLicense for ID { iv_id }| ).
 
     lv_endpoint = get_endpoint( iv_action  = c_edd_action-deactivate
                                 iv_id      = iv_id
@@ -262,6 +297,10 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
       lo_client    TYPE REF TO /mbtools/cl_http_client,
       lx_exception TYPE REF TO /mbtools/cx_exception.
 
+    mi_log->timer_start( ).
+
+    mi_log->i( |Endpoint { iv_url }| ).
+
     TRY.
         lo_client = /mbtools/cl_http=>create_by_url( iv_url     = iv_url
                                                      iv_request = 'GET'
@@ -278,9 +317,11 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
         IF lo_client IS BOUND.
           lo_client->close( ).
         ENDIF.
+        mi_log->e( lx_exception ).
         /mbtools/cx_exception=>raise( lx_exception->get_text( ) ).
     ENDTRY.
 
+    mi_log->timer_end( ).
 
   ENDMETHOD.
 
@@ -349,9 +390,12 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
     DATA:
       lv_endpoint TYPE string,
       lv_data     TYPE string,
+      lv_sections TYPE string,
       lo_json     TYPE REF TO /mbtools/if_ajson_reader.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
+
+    mi_log->i( |EDD API GetVersion for ID { iv_id }| ).
 
     lv_endpoint = get_endpoint( iv_action  = c_edd_action-version
                                 iv_id      = iv_id
@@ -368,7 +412,22 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     ev_download_url = lo_json->get_string( '/download_link' ).
 
-    ev_changelog_html = '' ##TODO.
+    lv_sections = lo_json->get_string( '/sections' ).
+
+    TRY.
+        lo_json = /mbtools/cl_aphp=>deserialize(
+                    iv_data       = lv_sections
+                    iv_ignore_len = abap_true ).
+
+        IF lo_json->get_string( '/a/1/key' ) = 'description'.
+          ev_description = lo_json->get_string( '/a/1/val' ).
+        ENDIF.
+        IF lo_json->get_string( '/a/2/key' ) = 'changelog'.
+          ev_changelog = lo_json->get_string( '/a/2/val' ).
+          ev_changelog = adjust_html( ev_changelog ).
+        ENDIF.
+      CATCH /mbtools/cx_ajson_error.
+    ENDTRY.
 
   ENDMETHOD.
 ENDCLASS.

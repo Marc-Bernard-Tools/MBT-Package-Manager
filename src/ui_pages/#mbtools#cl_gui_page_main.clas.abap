@@ -41,7 +41,7 @@ CLASS /mbtools/cl_gui_page_main DEFINITION
   PRIVATE SECTION.
 
     DATA mv_mode TYPE c .
-    DATA mo_asset_manager TYPE REF TO /mbtools/cl_gui_asset_manager .
+    DATA mo_asset_manager TYPE REF TO /mbtools/if_gui_asset_manager .
 
     METHODS get_tool_from_param
       IMPORTING
@@ -103,8 +103,6 @@ CLASS /mbtools/cl_gui_page_main DEFINITION
       RAISING
         /mbtools/cx_exception .
     METHODS render_tool_details
-      IMPORTING
-        !iv_title      TYPE string
       RETURNING
         VALUE(ri_html) TYPE REF TO /mbtools/if_html
       RAISING
@@ -129,11 +127,13 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
     CASE iv_action.
 
       WHEN /mbtools/if_actions=>tool_check.
-        /mbtools/cl_tools=>run_action( iv_action ).
+        /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_check ).
+        MESSAGE 'Check for latest versions completed' TYPE 'S'.
         ev_state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_update.
-        /mbtools/cl_tools=>run_action( iv_action ).
+        /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_update ).
+        MESSAGE 'Update to latest versions completed' TYPE 'S'.
         ev_state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_docs.
@@ -164,7 +164,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
         lo_tool->unregister( ).
         ev_state = /mbtools/cl_gui=>c_event_state-re_render.
 
-      WHEN /mbtools/if_actions=>tool_changelog ##TODO.
+      WHEN /mbtools/if_actions=>tool_changelog.
         ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
       WHEN /mbtools/if_actions=>tool_license.
@@ -236,8 +236,6 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
     gui_services( )->register_event_handler( me ).
     gui_services( )->get_hotkeys_ctl( )->register_hotkeys( me ).
 
-    register_header( ).
-
     ri_html = /mbtools/cl_html=>create( ).
 
     CASE mv_mode.
@@ -245,12 +243,13 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
         ri_html->add( render_tools( ) ).
       WHEN c_mode-admin.
         ri_html->add( render_bundles( ) ).
+        ri_html->add( render_tool_details( ) ).
       WHEN c_mode-license.
         ri_html->add( render_bundles( ) ).
     ENDCASE.
 
     IF mo_asset_manager IS BOUND.
-      lt_assets = mo_asset_manager->/mbtools/if_gui_asset_manager~get_all_assets( ).
+      lt_assets = mo_asset_manager->get_all_assets( ).
       LOOP AT lt_assets ASSIGNING <ls_asset> WHERE is_cacheable = abap_true.
         gui_services( )->cache_asset(
           iv_xdata   = <ls_asset>-content
@@ -317,7 +316,10 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
         lo_bar_menu->add(
           iv_txt = 'Exit Admin'
-          iv_act = /mbtools/if_actions=>go_home ).
+          iv_act = /mbtools/if_actions=>go_home
+        )->add(
+          iv_txt = 'Registry'
+          iv_act = /mbtools/if_actions=>run_transaction && '?transaction=/MBTOOLS/REG' ).
 
       WHEN c_mode-license.
 
@@ -347,7 +349,9 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
   METHOD constructor.
     super->constructor( ).
 
-    CREATE OBJECT mo_asset_manager.
+    mo_asset_manager = /mbtools/cl_gui_factory=>get_asset_manager( ).
+
+    register_header( ).
 
     mv_mode = iv_mode.
   ENDMETHOD.
@@ -646,11 +650,10 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
             lo_tool->get_last_update( ) } ago|.
 
           IF NOT lo_tool->get_new_version( ) IS INITIAL.
-            lv_changelog = ri_html->a(
-*              iv_act = |{ /mbtools/if_actions=>tool_changelog }?name={ lo_tool->get_name( ) }|
-              iv_act = lo_tool->get_url_changelog( )
-              iv_typ = /mbtools/if_html=>c_action_type-url
-              iv_txt = |View version { lo_tool->get_new_version( ) } details| ).
+            lv_changelog = |toggleDisplay('changelog-{ lo_tool->get_name( ) }')|.
+            lv_changelog = ri_html->a( iv_act = lv_changelog
+                                       iv_typ = zif_abapgit_html=>c_action_type-onclick
+                                       iv_txt = |View version { lo_tool->get_new_version( ) } details| ).
 
             lv_update = ri_html->a(
               iv_act = |{ /mbtools/if_actions=>tool_update }?name={ lo_tool->get_name( ) }|
@@ -731,22 +734,38 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
   METHOD render_tool_details.
 
     DATA:
-      lo_tool TYPE REF TO /mbtools/cl_tools.
+      lo_tool  TYPE REF TO /mbtools/cl_tools,
+      ls_tool  TYPE /mbtools/tool_with_text,
+      lt_tools TYPE TABLE OF /mbtools/tool_with_text,
+      lv_html  TYPE string,
+      li_html  TYPE REF TO /mbtools/if_html.
+
+    ri_html = /mbtools/cl_html=>create( ).
 
     IF mv_mode <> c_mode-admin.
       RETURN.
     ENDIF.
 
-    lo_tool = /mbtools/cl_tools=>factory( iv_title ).
+    lt_tools = /mbtools/cl_tools=>get_tools( ).
 
-    ri_html = /mbtools/cl_html=>create( ).
+    LOOP AT lt_tools INTO ls_tool.
+      lo_tool = /mbtools/cl_tools=>factory( ls_tool-name ).
 
-    ri_html->add( |<span class="title">{ lo_tool->get_title( ) }</span>| ) ##TODO.
+      lv_html = lo_tool->get_html_changelog( ).
 
-    ri_html = /mbtools/cl_html_lib=>render_infopanel(
-      iv_div_id     = |changelog-{ lo_tool->get_name( ) }|
-      iv_title      = |Changelog for { lo_tool->get_title( ) }|
-      io_content    = ri_html ).
+      CHECK NOT lv_html IS INITIAL.
+
+      li_html = /mbtools/cl_html=>create( ).
+
+      " li_html->add( |<span class="title">{ lo_tool->get_title( ) }</span>| )
+
+      li_html->add( lv_html ).
+
+      ri_html->add( /mbtools/cl_html_lib=>render_infopanel(
+        iv_div_id     = |changelog-{ lo_tool->get_name( ) }|
+        iv_title      = |Changelog for { lo_tool->get_title( ) }|
+        ii_content    = li_html ) ).
+    ENDLOOP.
 
   ENDMETHOD.
 

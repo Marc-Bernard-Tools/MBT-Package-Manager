@@ -82,7 +82,7 @@ CLASS ltcl_test IMPLEMENTATION.
     /mbtools/cl_logger=>new(
       iv_object = 'ABAPUNIT'
       iv_subobject = 'LOGGER'
-      iv_description = 'Log saved in database' )->add( 'This message is in the database' ).
+      iv_description = 'Log saved in database' )->/mbtools/if_logger~add( 'This message is in the database' ).
   ENDMETHOD.
 
   METHOD setup.
