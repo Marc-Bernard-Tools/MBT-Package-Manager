@@ -153,6 +153,8 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
       lv_hana_rel TYPE i,
       lv_hana_sps TYPE i.
 
+    CLEAR: es_dbinfo, es_hana_release.
+
     CALL FUNCTION 'DB_DBRELINFO'
       IMPORTING
         dbinfo = es_dbinfo.
@@ -169,15 +171,15 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
           WHEN 1.
             IF es_hana_release-version = 0.
               lv_hana_sps = 0.
-            ELSEIF es_hana_release-version BETWEEN 1 AND 10.
+            ELSEIF es_hana_release-version BETWEEN 1 AND 10. "#EC NUMBER_OK
               lv_hana_sps = 1.
-            ELSEIF es_hana_release-version BETWEEN 11 AND 18.
+            ELSEIF es_hana_release-version BETWEEN 11 AND 18. "#EC NUMBER_OK
               lv_hana_sps = 2.
-            ELSEIF es_hana_release-version BETWEEN 19 AND 27.
+            ELSEIF es_hana_release-version BETWEEN 19 AND 27. "#EC NUMBER_OK
               lv_hana_sps = 3.
-            ELSEIF es_hana_release-version BETWEEN 28 AND 44.
+            ELSEIF es_hana_release-version BETWEEN 28 AND 44. "#EC NUMBER_OK
               lv_hana_sps = 4.
-            ELSEIF es_hana_release-version BETWEEN 45 AND 59.
+            ELSEIF es_hana_release-version BETWEEN 45 AND 59. "#EC NUMBER_OK
               lv_hana_sps = 5.
             ELSE.
               lv_hana_sps = es_hana_release-version DIV 10.
@@ -271,6 +273,8 @@ CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
       ls_hana_release   TYPE ty_strv_release_patch,
       ls_kernel_release TYPE ty_strv_release_patch,
       ls_spam_release   TYPE ty_strv_release_patch.
+
+    CLEAR: ev_value, ev_value_float, ev_value_integer, ev_subrc.
 
     lv_property = iv_property.
     TRANSLATE lv_property TO UPPER CASE.

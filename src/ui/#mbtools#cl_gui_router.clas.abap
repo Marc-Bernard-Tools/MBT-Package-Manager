@@ -98,6 +98,8 @@ CLASS /MBTOOLS/CL_GUI_ROUTER IMPLEMENTATION.
 
   METHOD actions_internet.
 
+    CLEAR: ei_page, ev_state.
+
     CASE is_event_data-action.
 
       WHEN /mbtools/if_actions=>url.
@@ -134,6 +136,8 @@ CLASS /MBTOOLS/CL_GUI_ROUTER IMPLEMENTATION.
 
   METHOD actions_objects.
 
+    CLEAR: ei_page, ev_state.
+
     CASE is_event_data-action.
 
       WHEN /mbtools/if_actions=>show_object.
@@ -155,6 +159,8 @@ CLASS /MBTOOLS/CL_GUI_ROUTER IMPLEMENTATION.
 
 
   METHOD general_page_routing.
+
+    CLEAR: ei_page, ev_state.
 
     CASE is_event_data-action.
 

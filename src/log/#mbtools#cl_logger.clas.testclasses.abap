@@ -952,6 +952,8 @@ CLASS ltcl_test IMPLEMENTATION.
           msg_detail      TYPE bal_s_msg,
           msg_text        TYPE char255.
 
+    CLEAR: msg_details, texts.
+
     APPEND log_handle TO handle_as_table.
     CALL FUNCTION 'BAL_GLB_SEARCH_MSG'
       EXPORTING
@@ -987,7 +989,7 @@ CLASS ltcl_test IMPLEMENTATION.
       EXCEPTIONS
         not_found = 1
         OTHERS    = 2.
-*      TODO: raise abap unit
+    cl_aunit_assert=>assert_subrc( act = sy-subrc ).
   ENDMETHOD.
 
   METHOD teardown.

@@ -71,7 +71,7 @@ CLASS /mbtools/cl_gui_page DEFINITION
         VALUE(ri_html) TYPE REF TO /mbtools/if_html .
     METHODS render_link_hints
       IMPORTING
-        !ii_html TYPE REF TO /mbtools/if_html
+        !ii_html TYPE REF TO /mbtools/if_html ##NEEDED
       RAISING
         /mbtools/cx_exception .
     METHODS render_command_palettes
@@ -110,6 +110,8 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
 
 
   METHOD /mbtools/if_gui_event_handler~on_event.
+
+    CLEAR: ei_page, ev_state.
 
     CASE iv_action.
       WHEN /mbtools/if_actions=>goto_source.

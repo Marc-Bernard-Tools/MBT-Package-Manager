@@ -74,9 +74,9 @@ CLASS /mbtools/cl_tools DEFINITION
     " Class Get
     CLASS-METHODS factory
       IMPORTING
-        VALUE(iv_title) TYPE csequence DEFAULT /mbtools/cl_tool_bc=>c_tool-title
+        !iv_title      TYPE csequence DEFAULT /mbtools/cl_tool_bc=>c_tool-title
       RETURNING
-        VALUE(ro_tool)  TYPE REF TO /mbtools/cl_tools .
+        VALUE(ro_tool) TYPE REF TO /mbtools/cl_tools .
     CLASS-METHODS get_tools
       IMPORTING
         VALUE(iv_pattern)     TYPE csequence OPTIONAL
@@ -98,7 +98,7 @@ CLASS /mbtools/cl_tools DEFINITION
     " Class Actions
     CLASS-METHODS run_action
       IMPORTING
-        VALUE(iv_action) TYPE string
+        !iv_action       TYPE string
       RETURNING
         VALUE(rv_result) TYPE abap_bool .
     " Class Manifests
@@ -162,9 +162,9 @@ CLASS /mbtools/cl_tools DEFINITION
         VALUE(rv_result) TYPE abap_bool .
     METHODS license_add
       IMPORTING
-        VALUE(iv_license) TYPE string
+        !iv_license      TYPE string
       RETURNING
-        VALUE(rv_result)  TYPE abap_bool
+        VALUE(rv_result) TYPE abap_bool
       RAISING
         /mbtools/cx_exception .
     METHODS license_remove
@@ -560,7 +560,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     lt_implementations = get_implementations( ).
 
-    LOOP AT lt_implementations INTO lv_implementation.
+    LOOP AT lt_implementations INTO lv_implementation.  "#EC CI_NOORDER
 
       TRY.
           " Get instance of tool
@@ -682,7 +682,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     " Get all classes that implement the MBT Manifest
     SELECT clsname FROM seometarel INTO TABLE rt_classes
       WHERE version    = '1'
-        AND refclsname = /mbtools/if_definitions=>c_manifest.
+        AND refclsname = /mbtools/if_definitions=>c_manifest. "#EC CI_GENBUFF
     IF sy-subrc <> 0 AND iv_quiet IS INITIAL.
       " There are no tools installed
       MESSAGE s002(/mbtools/bc).
@@ -1181,7 +1181,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
       SELECT COUNT(*) FROM usr02 INTO lv_user_count
         WHERE ustyp = 'A' AND trdat BETWEEN lv_date_from AND sy-datum
-          AND ( bname <> 'DDIC' AND bname NOT LIKE '%SUPPORT%' ).
+          AND ( bname <> 'DDIC' AND bname NOT LIKE '%SUPPORT%' ). "#EC CI_BYPASS "#EC CI_GENBUFF
       IF lv_user_count <= c_eval_users.
         rv_result = abap_true.
         RETURN.
@@ -1560,7 +1560,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         ELSE.
           " Check if any tools are still registered
           lt_entries = lo_reg_bundle->get_subentries( ).
-          LOOP AT lt_entries INTO ls_entry WHERE key CP 'MBT*'.
+          LOOP AT lt_entries INTO ls_entry WHERE key CP 'MBT*'. "#EC CI_SORTSEQ
             EXIT.
           ENDLOOP.
           IF sy-subrc <> 0.

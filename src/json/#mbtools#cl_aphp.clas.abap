@@ -2,7 +2,6 @@ CLASS /mbtools/cl_aphp DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
-
 ************************************************************************
 * MBT PHP
 *
@@ -10,8 +9,10 @@ CLASS /mbtools/cl_aphp DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    CLASS-METHODS serialize .
-    CLASS-METHODS deserialize
+    CLASS-METHODS serialize
+      RAISING
+        /mbtools/cx_ajson_error .
+    CLASS-METHODS unserialize
       IMPORTING
         !iv_data        TYPE string
         !iv_precision   TYPE i DEFAULT 2
@@ -19,26 +20,26 @@ CLASS /mbtools/cl_aphp DEFINITION
       RETURNING
         VALUE(ro_ajson) TYPE REF TO /mbtools/cl_ajson
       RAISING
-        /mbtools/cx_ajson_error.
+        /mbtools/cx_ajson_error .
   PROTECTED SECTION.
   PRIVATE SECTION.
     CLASS-DATA mv_ignore_len TYPE abap_bool.
 
-    CLASS-METHODS deserialize_array
+    CLASS-METHODS unserialize_array
       IMPORTING
         !iv_path  TYPE string
         !iv_data  TYPE string
         !io_ajson TYPE REF TO /mbtools/cl_ajson
       RAISING
         /mbtools/cx_ajson_error.
-    CLASS-METHODS deserialize_object
+    CLASS-METHODS unserialize_object
       IMPORTING
         !iv_path  TYPE string
         !iv_data  TYPE string
         !io_ajson TYPE REF TO /mbtools/cl_ajson
       RAISING
         /mbtools/cx_ajson_error.
-    CLASS-METHODS deserialize_reference
+    CLASS-METHODS unserialize_reference
       IMPORTING
         !iv_path  TYPE string
         !iv_data  TYPE string
@@ -83,7 +84,106 @@ ENDCLASS.
 CLASS /MBTOOLS/CL_APHP IMPLEMENTATION.
 
 
-  METHOD deserialize.
+  METHOD get_boolean.
+
+    DATA lv_val TYPE string.
+
+    " b:0;  or  b:1;
+    lv_val = shift_right( val = iv_data
+                          sub = ';' ).
+    IF sy-subrc <> 0.
+      /mbtools/cx_ajson_error=>raise( |Data error type "b"| ).
+    ENDIF.
+    IF lv_val = '0'.
+      rv_val = abap_false.
+    ELSE.
+      rv_val = abap_true.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD get_float.
+
+    DATA lv_val TYPE string.
+
+    " d:<value>;
+    lv_val = shift_right( val = iv_data
+                          sub = ';' ).
+    rv_val = lv_val.
+
+  ENDMETHOD.
+
+
+  METHOD get_integer.
+
+    DATA lv_val TYPE string.
+
+    " i:<value>;
+    lv_val = shift_right( val = iv_data
+                          sub = ';' ).
+    rv_val = lv_val.
+
+  ENDMETHOD.
+
+
+  METHOD get_string.
+
+    DATA:
+      lv_len_str TYPE string,
+      lv_len_int TYPE i.
+
+    " s:<len>:"<value>";
+    SPLIT iv_data AT ':' INTO lv_len_str rv_val.
+    IF sy-subrc <> 0.
+      /mbtools/cx_ajson_error=>raise( |Data error type "s"| ).
+    ENDIF.
+    lv_len_int = lv_len_str.
+    rv_val = shift_right( val = rv_val
+                          sub = ';' ).
+    rv_val = strip( iv_val  = rv_val
+                    iv_char = '"' ).
+    REPLACE ALL OCCURRENCES OF '\"' IN rv_val WITH '"'.
+
+    IF strlen( rv_val ) <> lv_len_int AND mv_ignore_len IS INITIAL.
+      /mbtools/cx_ajson_error=>raise( |Data error type "s"; incorrect length| ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD serialize.
+
+    " Takes JSON string and returns PHP-serialized value
+    " https://www.php.net/manual/en/function.serialize.php
+
+    /mbtools/cx_ajson_error=>raise( |Not implemented yet| ) ##TODO.
+
+  ENDMETHOD.
+
+
+  METHOD strip.
+
+    rv_val = shift_left( val = iv_val
+                         sub = iv_char ).
+    IF iv_char = '{'.
+      rv_val = shift_right( val = rv_val
+                            sub = '}' ).
+    ELSEIF iv_char = '['.
+      rv_val = shift_right( val = rv_val
+                            sub = ']' ).
+    ELSE.
+      rv_val = shift_right( val = rv_val
+                            sub = iv_char ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD unserialize.
+
+    " Takes PHP-serialized value and returns corresponding JSON string
+    " https://www.php.net/manual/en/function.serialize.php
 
     DATA:
       lv_data TYPE string,
@@ -124,15 +224,15 @@ CLASS /MBTOOLS/CL_APHP IMPLEMENTATION.
       WHEN 'N'. "null
         ro_ajson->set_null( iv_path = lv_path ).
       WHEN 'a'. "array
-        deserialize_array( iv_path  = lv_path
+        unserialize_array( iv_path  = lv_path
                            iv_data  = lv_data
                            io_ajson = ro_ajson ).
       WHEN 'O'. "object
-        deserialize_object( iv_path  = lv_path
+        unserialize_object( iv_path  = lv_path
                             iv_data  = lv_data
                             io_ajson = ro_ajson ).
       WHEN 'R'. "reference
-        deserialize_reference( iv_path  = lv_path
+        unserialize_reference( iv_path  = lv_path
                                iv_data  = lv_data
                                io_ajson = ro_ajson ).
       WHEN OTHERS. "unknown
@@ -142,7 +242,7 @@ CLASS /MBTOOLS/CL_APHP IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD deserialize_array.
+  METHOD unserialize_array.
 
     TYPES:
       BEGIN OF ty_array_string,
@@ -224,7 +324,7 @@ CLASS /MBTOOLS/CL_APHP IMPLEMENTATION.
               io_ajson->push( iv_path = iv_path
                               iv_val  = get_boolean( lv_val ) ).
             WHEN 'a'. "array
-              deserialize_array( iv_path  = iv_path && '/a'
+              unserialize_array( iv_path  = iv_path && '/a'
                                  iv_data  = lv_val
                                  io_ajson = io_ajson ).
             WHEN OTHERS.
@@ -253,7 +353,7 @@ CLASS /MBTOOLS/CL_APHP IMPLEMENTATION.
               io_ajson->push( iv_path = iv_path
                               iv_val  = ls_array_bool ).
             WHEN 'a'. "array
-              deserialize_array( iv_path  = iv_path && '/a'
+              unserialize_array( iv_path  = iv_path && '/a'
                                  iv_data  = lv_val
                                  io_ajson = io_ajson ).
             WHEN OTHERS.
@@ -270,111 +370,19 @@ CLASS /MBTOOLS/CL_APHP IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD deserialize_object.
+  METHOD unserialize_object.
 
-    " O:strlen(object name):object name:object size:{s:strlen(property name):property name:property definition;...(repeated per property)}
+    " O:strlen(object name):object name:object size:
+    " {s:strlen(property name):property name:property definition;...(repeated per property)}
     /mbtools/cx_ajson_error=>raise( |Not implemented type "O"| ) ##TODO.
 
   ENDMETHOD.
 
 
-  METHOD deserialize_reference.
+  METHOD unserialize_reference.
 
     " R:...
     /mbtools/cx_ajson_error=>raise( |Not implemented type "R"| ) ##TODO.
-
-  ENDMETHOD.
-
-
-  METHOD get_boolean.
-
-    DATA lv_val TYPE string.
-
-    " b:0;  or  b:1;
-    lv_val = shift_right( val = iv_data
-                          sub = ';' ).
-    IF sy-subrc <> 0.
-      /mbtools/cx_ajson_error=>raise( |Data error type "b"| ).
-    ENDIF.
-    IF lv_val = '0'.
-      rv_val = abap_false.
-    ELSE.
-      rv_val = abap_true.
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD get_float.
-
-    DATA lv_val TYPE string.
-
-    " d:<value>;
-    lv_val = shift_right( val = iv_data
-                          sub = ';' ).
-    rv_val = lv_val.
-
-  ENDMETHOD.
-
-
-  METHOD get_integer.
-
-    DATA lv_val TYPE string.
-
-    " i:<value>;
-    lv_val = shift_right( val = iv_data
-                          sub = ';' ).
-    rv_val = lv_val.
-
-  ENDMETHOD.
-
-
-  METHOD get_string.
-
-    DATA:
-      lv_len_str TYPE string,
-      lv_len_int TYPE i.
-
-    " s:<len>:"<value>";
-    SPLIT iv_data AT ':' INTO lv_len_str rv_val.
-    IF sy-subrc <> 0.
-      /mbtools/cx_ajson_error=>raise( |Data error type "s"| ).
-    ENDIF.
-    lv_len_int = lv_len_str.
-    rv_val = shift_right( val = rv_val
-                          sub = ';' ).
-    rv_val = strip( iv_val  = rv_val
-                    iv_char = '"' ).
-    REPLACE ALL OCCURRENCES OF '\"' IN rv_val WITH '"'.
-
-    IF strlen( rv_val ) <> lv_len_int AND mv_ignore_len IS INITIAL.
-      /mbtools/cx_ajson_error=>raise( |Data error type "s"; incorrect length| ).
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD serialize.
-
-    /mbtools/cx_ajson_error=>raise( |Not implemented yet| ) ##TODO.
-
-  ENDMETHOD.
-
-
-  METHOD strip.
-
-    rv_val = shift_left( val = iv_val
-                         sub = iv_char ).
-    IF iv_char = '{'.
-      rv_val = shift_right( val = rv_val
-                            sub = '}' ).
-    ELSEIF iv_char = '['.
-      rv_val = shift_right( val = rv_val
-                            sub = ']' ).
-    ELSE.
-      rv_val = shift_right( val = rv_val
-                            sub = iv_char ).
-    ENDIF.
 
   ENDMETHOD.
 ENDCLASS.

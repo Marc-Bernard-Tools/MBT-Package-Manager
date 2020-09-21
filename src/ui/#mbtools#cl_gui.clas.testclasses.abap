@@ -27,7 +27,7 @@ CLASS ltcl_parse_data IMPLEMENTATION.
     TRY.
         CREATE OBJECT mo_gui.
       CATCH /mbtools/cx_exception.
-        BREAK-POINT.
+        BREAK-POINT.                                       "#EC NOBREAK
     ENDTRY.
     CLEAR: mv_getdata, mt_postdata.
   ENDMETHOD.

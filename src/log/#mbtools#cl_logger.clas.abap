@@ -21,7 +21,7 @@ CLASS /mbtools/cl_logger DEFINITION
     "! For backwards compatibility only! Use /MBTOOLS/CL_LOGGER_FACTORY instead.
     CLASS-METHODS new
       IMPORTING
-        !iv_object         TYPE csequence DEFAULT '/MBTOOLS/'
+        !iv_object         TYPE csequence OPTIONAL
         !iv_subobject      TYPE csequence OPTIONAL
         !iv_description    TYPE csequence OPTIONAL
         !iv_context        TYPE simple OPTIONAL

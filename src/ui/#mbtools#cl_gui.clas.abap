@@ -407,7 +407,7 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
           lx_exception         TYPE REF TO cx_root.
 
     IF mv_rollback_on_error = abap_true.
-      ROLLBACK WORK.
+      ROLLBACK WORK.                                   "#EC CI_ROLLBACK
     ENDIF.
 
     TRY.

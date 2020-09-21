@@ -272,19 +272,17 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
 
     ri_html->add( |<div id="{ iv_div_id }" class="{ lv_class }" style="{ lv_display }">| ).
 
-    ri_html->add( |<div class="info-title">{ iv_title }|
-               && '<div class="float-right">'
-               && ri_html->a(
+    ri_html->add( |<div class="info-title">{ iv_title
+                  }<div class="float-right">{
+                  ri_html->a(
                     iv_txt   = '&#x274c;'
                     iv_typ   = /mbtools/if_html=>c_action_type-onclick
                     iv_act   = |toggleDisplay('{ iv_div_id }')|
                     iv_class = 'close-btn' )
-               && '</div></div>' ).
+                  }</div></div>| ).
 
     IF iv_hint IS NOT INITIAL.
-      ri_html->add( '<div class="info-hint">'
-        && iv_hint
-        && '</div>' ).
+      ri_html->add( |<div class="info-hint">{ iv_hint }</div>| ).
     ENDIF.
 
     ri_html->add( '<div class="info-list">' ).
@@ -360,7 +358,7 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
     ri_html = /mbtools/cl_html=>create( ).
 
     ri_html->add( '<div class="dummydiv warning">' ).
-    ri_html->add( |{ ri_html->icon( 'exclamation-triangle/yellow' ) }| && | { iv_text }| ).
+    ri_html->add( |{ ri_html->icon( 'exclamation-triangle/yellow' ) } { iv_text }| ).
     ri_html->add( '</div>' ).
 
   ENDMETHOD.

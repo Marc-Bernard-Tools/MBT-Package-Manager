@@ -294,7 +294,7 @@ CLASS /MBTOOLS/CL_EXCEPTION_VIEWER IMPLEMENTATION.
         lo_alv->set_screen_popup( start_column = 10
                                   end_column   = 180
                                   start_line   = 3
-                                  end_line     = 30 ).
+                                  end_line     = 30 ).   "#EC NUMBER_OK
 
         lo_event = lo_alv->get_event( ).
 

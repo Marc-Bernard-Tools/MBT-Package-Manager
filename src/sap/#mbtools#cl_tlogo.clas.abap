@@ -84,7 +84,7 @@ CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
       FROM dd07t
       WHERE domname    = 'RSTLOGO'
         AND ddlanguage = sy-langu
-        AND as4local   = rs_c_objvers-active.
+        AND as4local   = rs_c_objvers-active.            "#EC CI_BYPASS
 
     " Add Application Component Hierarchty and DataSource
     ls_tlogo_text-tlogo = 'DSAA'.
@@ -96,7 +96,7 @@ CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
 
     SELECT DISTINCT tlogo_d tlogo INTO TABLE gt_tlogo_cont
       FROM rstlogoprop
-      WHERE tlogo_d <> ''.
+      WHERE tlogo_d <> ''.                               "#EC CI_BYPASS
 
   ENDMETHOD.
 

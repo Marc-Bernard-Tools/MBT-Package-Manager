@@ -123,7 +123,7 @@ CLASS /MBTOOLS/CL_GUI_CSS_PROCESSOR IMPLEMENTATION.
     ENDLOOP.
 
     " 2. Replace all variable usages in variables
-    LOOP AT lt_css_variables ASSIGNING <ls_css_variable> WHERE value CS 'var(--'.
+    LOOP AT lt_css_variables ASSIGNING <ls_css_variable> WHERE value CS 'var(--'. "#EC CI_SORTSEQ
       resolve_var_recursively( EXPORTING iv_variable_name = <ls_css_variable>-name
                                CHANGING  ct_variables     = lt_css_variables ).
     ENDLOOP.

@@ -2,6 +2,7 @@ CLASS /mbtools/cl_switches DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT Switches
 *
@@ -10,44 +11,43 @@ CLASS /mbtools/cl_switches DEFINITION
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-
   PUBLIC SECTION.
 
     CLASS-METHODS class_constructor .
     CLASS-METHODS is_active
       IMPORTING
-        VALUE(iv_title)  TYPE string
+        !iv_title        TYPE string
       RETURNING
         VALUE(rv_result) TYPE abap_bool .
     CLASS-METHODS is_debug
       IMPORTING
-        VALUE(iv_title)  TYPE string
+        !iv_title        TYPE string
       RETURNING
         VALUE(rv_result) TYPE abap_bool .
     CLASS-METHODS is_trace
       IMPORTING
-        VALUE(iv_title)  TYPE string
+        !iv_title        TYPE string
       RETURNING
         VALUE(rv_result) TYPE abap_bool .
   PROTECTED SECTION.
-  PRIVATE SECTION.
+PRIVATE SECTION.
 
-    CONSTANTS:
-      BEGIN OF c_reg,
-        " Registry Switches
-        switches   TYPE string VALUE 'Switches' ##NO_TEXT,
-        key_active TYPE string VALUE 'Active' ##NO_TEXT,
-        key_debug  TYPE string VALUE 'Debug' ##NO_TEXT,
-        key_trace  TYPE string VALUE 'Trace' ##NO_TEXT,
-      END OF c_reg .
-    CLASS-DATA go_reg_root TYPE REF TO /mbtools/cl_registry .
+  CONSTANTS:
+    BEGIN OF c_reg,
+      " Registry Switches
+      switches   TYPE string VALUE 'Switches' ##NO_TEXT,
+      key_active TYPE string VALUE 'Active' ##NO_TEXT,
+      key_debug  TYPE string VALUE 'Debug' ##NO_TEXT,
+      key_trace  TYPE string VALUE 'Trace' ##NO_TEXT,
+    END OF c_reg .
+  CLASS-DATA go_reg_root TYPE REF TO /mbtools/cl_registry .
 
-    CLASS-METHODS check_switch
-      IMPORTING
-        VALUE(iv_title)  TYPE string
-        VALUE(iv_key)    TYPE string
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+  CLASS-METHODS check_switch
+    IMPORTING
+      !iv_title        TYPE string
+      !iv_key          TYPE string
+    RETURNING
+      VALUE(rv_result) TYPE abap_bool .
 ENDCLASS.
 
 

@@ -87,7 +87,8 @@ CLASS lcl_main IMPLEMENTATION.
 
         CALL SELECTION-SCREEN c_dynnr-main. " trigger screen
       CATCH cx_root INTO lx_error.
-        BREAK-POINT.
+        " unexpected
+        BREAK-POINT.                                       "#EC NOBREAK
     ENDTRY.
 
   ENDMETHOD.

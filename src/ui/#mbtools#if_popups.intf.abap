@@ -1,6 +1,7 @@
 INTERFACE /mbtools/if_popups
   PUBLIC .
 
+
 ************************************************************************
 * MBT Popups
 *
@@ -9,7 +10,6 @@ INTERFACE /mbtools/if_popups
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-
   METHODS popup_search_help
     IMPORTING
       !iv_tab_field   TYPE string
@@ -17,7 +17,6 @@ INTERFACE /mbtools/if_popups
       VALUE(rv_value) TYPE ddshretval-fieldval
     RAISING
       /mbtools/cx_exception .
-
   METHODS popup_to_confirm
     IMPORTING
       !iv_titlebar              TYPE clike
@@ -32,18 +31,15 @@ INTERFACE /mbtools/if_popups
       VALUE(rv_answer)          TYPE char1
     RAISING
       /mbtools/cx_exception .
-
   METHODS popup_to_inform
     IMPORTING
       !iv_titlebar     TYPE clike
       !iv_text_message TYPE clike
     RAISING
       /mbtools/cx_exception .
-
   METHODS popup_to_select_transports
     RETURNING
       VALUE(rt_trkorr) TYPE trwbo_request_headers .
-
   METHODS popup_to_select_from_list
     IMPORTING
       !it_list               TYPE STANDARD TABLE
@@ -59,10 +55,9 @@ INTERFACE /mbtools/if_popups
       !iv_select_column_text TYPE csequence DEFAULT space
       !it_columns_to_display TYPE /mbtools/if_definitions=>ty_alv_column_tt
     EXPORTING
-      VALUE(et_list)         TYPE STANDARD TABLE
+      !et_list               TYPE STANDARD TABLE
     RAISING
       /mbtools/cx_exception .
-
   METHODS popup_transport_request
     IMPORTING
       !is_transport_type  TYPE /mbtools/if_definitions=>ty_transport_type

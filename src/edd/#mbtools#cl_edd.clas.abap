@@ -137,6 +137,8 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
+    CLEAR: ev_valid, ev_expire.
+
     mi_log->i( |EDD API ActivateLicense for ID { iv_id }| ).
 
     lv_endpoint = get_endpoint( iv_action  = c_edd_action-activate
@@ -218,6 +220,8 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
       lo_json     TYPE REF TO /mbtools/if_ajson_reader.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
+
+    CLEAR: ev_valid, ev_expire.
 
     mi_log->i( |EDD API CheckLicense for ID { iv_id }| ).
 
@@ -395,6 +399,8 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
+    CLEAR: ev_version, ev_description, ev_changelog_url, ev_changelog, ev_download_url.
+
     mi_log->i( |EDD API GetVersion for ID { iv_id }| ).
 
     lv_endpoint = get_endpoint( iv_action  = c_edd_action-version
@@ -407,15 +413,12 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
     lo_json = get_json( lv_data ).
 
     ev_version = lo_json->get_string( '/new_version' ).
-
     ev_changelog_url = lo_json->get_string( '/url' ).
-
     ev_download_url = lo_json->get_string( '/download_link' ).
-
     lv_sections = lo_json->get_string( '/sections' ).
 
     TRY.
-        lo_json = /mbtools/cl_aphp=>deserialize(
+        lo_json = /mbtools/cl_aphp=>unserialize(
                     iv_data       = lv_sections
                     iv_ignore_len = abap_true ).
 

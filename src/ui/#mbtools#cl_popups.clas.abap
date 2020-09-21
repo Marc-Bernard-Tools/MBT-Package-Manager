@@ -35,7 +35,6 @@ CLASS /mbtools/cl_popups DEFINITION
       ty_sval_tt TYPE STANDARD TABLE OF sval WITH DEFAULT KEY.
 
     CONSTANTS c_fieldname_selected TYPE lvc_fname VALUE `SELECTED` ##NO_TEXT.
-    CONSTANTS c_answer_cancel      TYPE c LENGTH 1 VALUE 'A' ##NO_TEXT.
 
     DATA mo_select_list_popup TYPE REF TO cl_salv_table .
     DATA mr_table TYPE REF TO data .
@@ -72,7 +71,6 @@ CLASS /mbtools/cl_popups DEFINITION
       IMPORTING
         !row
         !column .
-
 ENDCLASS.
 
 
@@ -392,8 +390,10 @@ CLASS /MBTOOLS/CL_POPUPS IMPLEMENTATION.
 
   METHOD get_selected_rows.
 
-    DATA: lv_condition TYPE string,
-          lr_exporting TYPE REF TO data.
+    DATA: lv_condition     TYPE string,
+          lr_exporting     TYPE REF TO data,
+          lo_selections    TYPE REF TO cl_salv_selections,
+          lt_selected_rows TYPE salv_t_row.
 
     FIELD-SYMBOLS: <lg_exporting>    TYPE any,
                    <lt_table>        TYPE STANDARD TABLE,
@@ -401,8 +401,7 @@ CLASS /MBTOOLS/CL_POPUPS IMPLEMENTATION.
                    <lv_selected>     TYPE abap_bool,
                    <lv_selected_row> TYPE LINE OF salv_t_row.
 
-    DATA: lo_selections    TYPE REF TO cl_salv_selections,
-          lt_selected_rows TYPE salv_t_row.
+    CLEAR et_list.
 
     ASSIGN mr_table->* TO <lt_table>.
     ASSERT sy-subrc = 0.

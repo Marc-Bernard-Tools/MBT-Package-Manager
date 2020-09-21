@@ -174,7 +174,7 @@ START-OF-SELECTION.
 
     WHEN p_show.
 
-      SUBMIT /mbtools/registry VIA SELECTION-SCREEN AND RETURN.
+      SUBMIT /mbtools/registry VIA SELECTION-SCREEN AND RETURN. "#EC CI_SUBMIT
 
       RETURN.
 
@@ -239,7 +239,7 @@ START-OF-SELECTION.
           gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_check ).
           gv_action = 'version checked'.
 
-        WHEN p_uninst.
+        WHEN p_update.
 
           gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_update ).
           gv_action = 'updated ##TODO'.

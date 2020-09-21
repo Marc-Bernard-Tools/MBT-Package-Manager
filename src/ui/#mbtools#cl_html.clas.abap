@@ -105,7 +105,8 @@ CLASS /MBTOOLS/CL_HTML IMPLEMENTATION.
     ENDIF.
 
     lv_href = ' href="#"'. " Default, dummy
-    lv_act = escape( val = iv_act format = cl_abap_format=>e_url ).
+    lv_act = escape( val    = iv_act
+                     format = cl_abap_format=>e_url ).
     IF ( iv_act IS NOT INITIAL OR iv_typ = /mbtools/if_html=>c_action_type-dummy )
         AND iv_opt NA /mbtools/if_html=>c_html_opt-crossout.
       CASE iv_typ.

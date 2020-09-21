@@ -116,8 +116,9 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
   METHOD /mbtools/if_gui_event_handler~on_event.
 
-    DATA:
-      lo_tool TYPE REF TO /mbtools/cl_tools.
+    DATA lo_tool TYPE REF TO /mbtools/cl_tools.
+
+    CLEAR: ei_page, ev_state.
 
     lo_tool = get_tool_from_param( io_parameters->get( 'name' ) ).
 

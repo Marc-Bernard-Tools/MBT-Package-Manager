@@ -167,7 +167,7 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
 
     " Add Workbench Development Objects
     SELECT type singular FROM euobjt INTO (ls_object_text-object, ls_object_text-text)
-      WHERE spras = sy-langu.
+      WHERE spras = sy-langu.                           "#EC CI_GENBUFF
       COLLECT ls_object_text INTO gt_object_texts.
     ENDSELECT.
 
@@ -312,7 +312,7 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
       SELECT a~domvalue_l a~valpos a~appval b~ddtext INTO TABLE rt_values
         FROM dd07l AS a LEFT OUTER JOIN dd07t AS b
         ON a~domname = b~domname AND a~valpos = b~valpos AND b~ddlanguage = sy-langu
-        WHERE a~domname = iv_domain AND a~as4local = 'A' AND a~as4vers = '0000'.
+        WHERE a~domname = iv_domain AND a~as4local = 'A' AND a~as4vers = '0000'. "#EC CI_BUFFJOIN
 
     ELSE.
 
@@ -570,7 +570,7 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
           OTHERS = 3.
       CASE sy-subrc.
         WHEN 0.
-          CALL TRANSACTION lv_tcode.
+          CALL TRANSACTION lv_tcode.                     "#EC CI_CALLTA
           rv_exit = abap_true.
         WHEN 2.
           MESSAGE i172(00) WITH iv_tcode.
@@ -588,18 +588,28 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
 
     CONSTANTS: lc_icon_browser TYPE progname VALUE '/MBTOOLS/ICON_BROWSER'.
 
-    DATA: ls_trdir_entry TYPE trdir.
+    DATA: lv_name TYPE trdir-name.
 
     " Check if executable program exists
-    SELECT SINGLE * FROM trdir INTO ls_trdir_entry
+    SELECT SINGLE name FROM trdir INTO lv_name
       WHERE name = lc_icon_browser AND subc = '1'.
     IF sy-subrc = 0.
+      TRY.
+          cl_sabe=>auth_check_progname(
+            i_scenario_name = 'BC_GENERIC_REPORT_START'
+            i_program_name  = lc_icon_browser
+            i_action        = 'SUBMIT'  ).
+        CATCH cx_sabe.
+          MESSAGE i149(00) WITH lc_icon_browser.
+          RETURN.
+      ENDTRY.
+
       SUBMIT (lc_icon_browser)
         WITH p_disp_i = abap_false
         WITH p_disp_n = abap_false
         WITH p_disp_p = abap_true
         WITH s_icon   = iv_icon
-        AND RETURN.
+        AND RETURN.                                      "#EC CI_SUBMIT
 
       rv_exit = abap_true.
     ENDIF.

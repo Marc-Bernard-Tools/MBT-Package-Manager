@@ -69,8 +69,10 @@ CLASS /MBTOOLS/CL_LOGGER_FACTORY IMPLEMENTATION.
 
 * Special case: Logger can work without object - but then
 * the data cannot be written to the database.
-    IF iv_object IS INITIAL.
+    IF iv_object IS INITIAL OR iv_subobject IS INITIAL.
       lo_log->mo_settings->set_autosave( abap_false ).
+      lo_log->/mbtools/if_logger~ms_header-object    = '/MBTOOLS/'.
+      lo_log->/mbtools/if_logger~ms_header-subobject = 'LOG'.
     ENDIF.
 
 * Use secondary database connection to write data to database even if

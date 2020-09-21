@@ -858,7 +858,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
         system_failure     = 2
         OTHERS             = 3.
     IF sy-subrc <> 0.
-        lv_msg = 'Registry entry is locked'(009) && | ({ mv_internal_key }, { mv_entry_id })|.
+      lv_msg = 'Registry entry is locked'(009) && | ({ mv_internal_key }, { mv_entry_id })|.
       /mbtools/cx_exception=>raise( lv_msg ).
     ENDIF.
   ENDMETHOD.

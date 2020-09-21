@@ -120,7 +120,7 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
     go_banner->set_position( height = 21
                              left   = iv_left
                              top    = iv_top
-                             width  = 500 ).
+                             width  = 500 ).             "#EC NUMBER_OK
 
     IF gv_banner_url IS INITIAL.
       ls_query-name  = '_OBJECT_ID'.
@@ -272,7 +272,7 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
     go_logo->set_position( height = 27
                            left   = iv_left
                            top    = iv_top
-                           width  = 200 ).
+                           width  = 200 ).               "#EC NUMBER_OK
 
     IF gv_logo_url IS INITIAL.
       ls_query-name  = '_OBJECT_ID'.

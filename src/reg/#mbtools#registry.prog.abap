@@ -51,7 +51,7 @@ AT SELECTION-SCREEN OUTPUT.
         OTHERS            = 3.
 
     IF sy-subrc <> 0.
-      EXIT.
+      RETURN.
     ENDIF.
 
     /mbtools/cl_registry_ui=>create_tree( gr_splitter ).

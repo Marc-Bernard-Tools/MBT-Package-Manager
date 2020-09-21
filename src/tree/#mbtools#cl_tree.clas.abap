@@ -591,6 +591,8 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
 
   METHOD init .
 
+    CONSTANTS: lc_width_header TYPE i VALUE 60.
+
     DATA:
       ls_event            TYPE cntl_simple_event,
       lt_events           TYPE cntl_simple_events,
@@ -702,7 +704,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     CLEAR ls_hierarchy_header.
     ls_hierarchy_header-t_image = icon_sap.
     ls_hierarchy_header-heading = 'Objects'(001).
-    ls_hierarchy_header-width   = 60.
+    ls_hierarchy_header-width   = lc_width_header.
 
     " Exclude SUM button from toolbar
     CLEAR ls_exclude.
