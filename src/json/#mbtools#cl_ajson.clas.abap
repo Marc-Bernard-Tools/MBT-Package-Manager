@@ -121,7 +121,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_AJSON IMPLEMENTATION.
+CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
 
   METHOD /mbtools/if_ajson_reader~array_to_string_table.
@@ -629,14 +629,12 @@ CLASS /MBTOOLS/CL_AJSON IMPLEMENTATION.
     DATA lt_path TYPE string_table.
     DATA node_ref LIKE LINE OF rt_node_stack.
     DATA node_parent LIKE LINE OF rt_node_stack.
-    DATA lv_size TYPE i.
     DATA lv_cur_path TYPE string.
     DATA lv_cur_name TYPE string.
-    DATA node_tmp LIKE LINE OF mt_json_tree.
+    DATA ls_new_node LIKE LINE OF mt_json_tree.
 
     SPLIT iv_path AT '/' INTO TABLE lt_path.
     DELETE lt_path WHERE table_line IS INITIAL.
-    lv_size = lines( lt_path ).
 
     DO.
       node_parent = node_ref.
@@ -645,18 +643,19 @@ CLASS /MBTOOLS/CL_AJSON IMPLEMENTATION.
           path = lv_cur_path
           name = lv_cur_name.
       IF sy-subrc <> 0. " New node, assume it is always object as it has a named child, use touch_array to init array
+        CLEAR ls_new_node.
         IF node_parent IS NOT INITIAL. " if has parent
           node_parent->children = node_parent->children + 1.
           IF node_parent->type = 'array'.
-            node_tmp-index = lcl_utils=>validate_array_index(
+            ls_new_node-index = lcl_utils=>validate_array_index(
               iv_path  = lv_cur_path
               iv_index = lv_cur_name ).
           ENDIF.
         ENDIF.
-        node_tmp-path = lv_cur_path.
-        node_tmp-name = lv_cur_name.
-        node_tmp-type = 'object'.
-        INSERT node_tmp INTO TABLE mt_json_tree REFERENCE INTO node_ref.
+        ls_new_node-path = lv_cur_path.
+        ls_new_node-name = lv_cur_name.
+        ls_new_node-type = 'object'.
+        INSERT ls_new_node INTO TABLE mt_json_tree REFERENCE INTO node_ref.
       ENDIF.
       INSERT node_ref INTO rt_node_stack INDEX 1.
       lv_cur_path = lv_cur_path && lv_cur_name && '/'.

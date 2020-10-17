@@ -13,9 +13,6 @@ CLASS /mbtools/cl_gui DEFINITION
 
     INTERFACES /mbtools/if_gui_services .
 
-    ALIASES cache_asset
-      FOR /mbtools/if_gui_services~cache_asset .
-
     CONSTANTS:
       BEGIN OF c_event_state,
         not_handled         TYPE i VALUE 0,
@@ -129,6 +126,29 @@ ENDCLASS.
 
 
 CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
+
+
+  METHOD /mbtools/if_gui_services~cache_all_assets.
+
+    DATA lt_assets TYPE /mbtools/if_gui_asset_manager=>ty_web_assets.
+
+    FIELD-SYMBOLS <ls_asset> LIKE LINE OF lt_assets.
+
+    TRY.
+        lt_assets = ii_asset_manager->get_all_assets( ).
+
+        LOOP AT lt_assets ASSIGNING <ls_asset> WHERE is_cacheable = abap_true.
+          /mbtools/if_gui_services~cache_asset(
+            iv_xdata   = <ls_asset>-content
+            iv_url     = <ls_asset>-url
+            iv_type    = <ls_asset>-type
+            iv_subtype = <ls_asset>-subtype ).
+        ENDLOOP.
+      CATCH /mbtools/cx_exception.
+        ASSERT 0 = 1.
+    ENDTRY.
+
+  ENDMETHOD.
 
 
   METHOD /mbtools/if_gui_services~cache_asset.
@@ -343,44 +363,39 @@ CLASS /MBTOOLS/CL_GUI IMPLEMENTATION.
 
   METHOD handle_action.
 
-    DATA: lx_exception  TYPE REF TO /mbtools/cx_exception,
-          lo_parameters TYPE REF TO /mbtools/cl_string_map,
-          li_handler    TYPE REF TO /mbtools/if_gui_event_handler,
-          li_page       TYPE REF TO /mbtools/if_gui_renderable,
-          lv_state      TYPE i.
+    DATA:
+      lx_exception TYPE REF TO /mbtools/cx_exception,
+      li_handler   TYPE REF TO /mbtools/if_gui_event_handler,
+      li_event     TYPE REF TO /mbtools/if_gui_event,
+      ls_handled   TYPE /mbtools/if_gui_event_handler=>ty_handling_result.
+
+    CREATE OBJECT li_event TYPE /mbtools/cl_gui_event
+      EXPORTING
+        ii_gui_services = me
+        iv_action       = iv_action
+        iv_getdata      = iv_getdata
+        it_postdata     = it_postdata.
 
     TRY.
-        lo_parameters = parse_data(
-          iv_getdata  = iv_getdata
-          it_postdata = it_postdata ).
-
         LOOP AT mt_event_handlers INTO li_handler.
-          li_handler->on_event(
-            EXPORTING
-              iv_action     = iv_action
-              iv_getdata    = iv_getdata
-              it_postdata   = it_postdata
-              io_parameters = lo_parameters
-            IMPORTING
-              ei_page       = li_page
-              ev_state      = lv_state ).
-          IF lv_state IS NOT INITIAL AND lv_state <> c_event_state-not_handled. " is handled
+          ls_handled = li_handler->on_event( li_event ).
+          IF ls_handled-state IS NOT INITIAL AND ls_handled-state <> c_event_state-not_handled.
             EXIT.
           ENDIF.
         ENDLOOP.
 
-        CASE lv_state.
+        CASE ls_handled-state.
           WHEN c_event_state-re_render.
             render( ).
           WHEN c_event_state-new_page.
-            call_page( li_page ).
+            call_page( ls_handled-page ).
           WHEN c_event_state-new_page_w_bookmark.
             call_page(
-              ii_page          = li_page
+              ii_page          = ls_handled-page
               iv_with_bookmark = abap_true ).
           WHEN c_event_state-new_page_replacing.
             call_page(
-              ii_page      = li_page
+              ii_page      = ls_handled-page
               iv_replacing = abap_true ).
           WHEN c_event_state-go_back.
             back( ).

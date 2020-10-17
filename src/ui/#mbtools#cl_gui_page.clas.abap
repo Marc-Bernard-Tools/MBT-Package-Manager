@@ -43,6 +43,7 @@ CLASS /mbtools/cl_gui_page DEFINITION
       END OF  ty_control .
 
     DATA ms_control TYPE ty_control .
+
   PRIVATE SECTION.
 
     DATA mx_error TYPE REF TO /mbtools/cx_exception .
@@ -71,7 +72,7 @@ CLASS /mbtools/cl_gui_page DEFINITION
         VALUE(ri_html) TYPE REF TO /mbtools/if_html .
     METHODS render_link_hints
       IMPORTING
-        !ii_html TYPE REF TO /mbtools/if_html ##NEEDED
+        !ii_html TYPE REF TO /mbtools/if_html   ##NEEDED
       RAISING
         /mbtools/cx_exception .
     METHODS render_command_palettes
@@ -111,29 +112,27 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
 
   METHOD /mbtools/if_gui_event_handler~on_event.
 
-    CLEAR: ei_page, ev_state.
-
-    CASE iv_action.
+    CASE ii_event->mv_action.
       WHEN /mbtools/if_actions=>goto_source.
 
         IF mo_exception_viewer IS BOUND.
           mo_exception_viewer->goto_source( ).
         ENDIF.
-        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
       WHEN /mbtools/if_actions=>show_callstack.
 
         IF mo_exception_viewer IS BOUND.
           mo_exception_viewer->show_callstack( ).
         ENDIF.
-        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
       WHEN /mbtools/if_actions=>goto_message.
 
         IF mo_exception_viewer IS BOUND.
           mo_exception_viewer->goto_message( ).
         ENDIF.
-        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
     ENDCASE.
 
@@ -197,6 +196,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
     DATA lo_page TYPE REF TO /mbtools/cl_gui_page.
 
     CREATE OBJECT lo_page.
+
     lo_page->ms_control-has_logo   = iv_has_logo.
     lo_page->ms_control-has_banner = iv_has_banner.
     lo_page->ms_control-page_title = iv_page_title.

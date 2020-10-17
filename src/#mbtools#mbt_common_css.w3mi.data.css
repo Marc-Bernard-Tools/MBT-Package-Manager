@@ -767,7 +767,7 @@ div.log .icon {
 .info-panel {
     position: absolute;
     z-index: 99;
-    top: 36px;
+    top: 150px;
     left: 50%;
     width: 40em;
     margin-left: -20em;
@@ -785,6 +785,7 @@ div.log .icon {
     text-align: center;
 }
 .info-panel .info-title {
+    background-color: #ddd;
     font-size: medium;
     padding: 6px;
     text-align: center;

@@ -19,6 +19,10 @@ INTERFACE /mbtools/if_gui_services
     RETURNING
       VALUE(rv_url) TYPE w3url .
 
+  METHODS cache_all_assets
+    IMPORTING
+      !ii_asset_manager TYPE REF TO /mbtools/if_gui_asset_manager.
+
   METHODS register_event_handler
     IMPORTING
       !ii_event_handler TYPE REF TO /mbtools/if_gui_event_handler .

@@ -113,12 +113,12 @@ CLASS lcl_main IMPLEMENTATION.
   METHOD main_screen_exit.
 
     CASE sy-ucomm.
-      WHEN 'CBAC'.  "Back
+      WHEN 'CBAC' OR 'CCAN'.  "Back/Cancel
         TRY.
             IF /mbtools/cl_gui_factory=>get_gui( )->back( ) = abap_true. " end of stack
               /mbtools/cl_gui_factory=>get_gui( )->free( ). " Graceful shutdown
             ELSE.
-              LEAVE TO SCREEN c_dynnr-main.
+              CALL SELECTION-SCREEN c_dynnr-main.
             ENDIF.
           CATCH cx_root.
         ENDTRY.

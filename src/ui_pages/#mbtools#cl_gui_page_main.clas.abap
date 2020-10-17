@@ -118,66 +118,64 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
     DATA lo_tool TYPE REF TO /mbtools/cl_tools.
 
-    CLEAR: ei_page, ev_state.
-
-    lo_tool = get_tool_from_param( io_parameters->get( 'name' ) ).
+    lo_tool = get_tool_from_param( ii_event->get_param( 'name' ) ).
 
     validate_tool( io_tool   = lo_tool
-                   iv_action = iv_action ).
+                   iv_action = ii_event->mv_action ).
 
-    CASE iv_action.
+    CASE ii_event->mv_action.
 
       WHEN /mbtools/if_actions=>tool_check.
         /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_check ).
         MESSAGE 'Check for latest versions completed' TYPE 'S'.
-        ev_state = /mbtools/cl_gui=>c_event_state-re_render.
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_update.
         /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_update ).
         MESSAGE 'Update to latest versions completed' TYPE 'S'.
-        ev_state = /mbtools/cl_gui=>c_event_state-re_render.
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_docs.
         /mbtools/cl_utilities=>call_browser( lo_tool->get_url_docs( ) ).
-        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
       WHEN /mbtools/if_actions=>tool_info.
         /mbtools/cl_utilities=>call_browser( lo_tool->get_url_tool( ) ).
-        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
       WHEN /mbtools/if_actions=>tool_launch.
         lo_tool->launch( ).
-        ev_state = /mbtools/cl_gui=>c_event_state-re_render.
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_activate.
         lo_tool->activate( ).
-        ev_state = /mbtools/cl_gui=>c_event_state-re_render.
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_deactivate.
         lo_tool->deactivate( ).
-        ev_state = /mbtools/cl_gui=>c_event_state-re_render.
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_install ##TODO.
         lo_tool->register( ).
-        ev_state = /mbtools/cl_gui=>c_event_state-re_render.
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_uninstall ##TODO.
         lo_tool->unregister( ).
-        ev_state = /mbtools/cl_gui=>c_event_state-re_render.
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_changelog.
-        ev_state = /mbtools/cl_gui=>c_event_state-no_more_act.
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
       WHEN /mbtools/if_actions=>tool_license.
-        IF io_parameters->get( 'action' ) = /mbtools/if_actions=>license_add AND NOT
-           io_parameters->get( 'license' ) IS INITIAL.
-          IF lo_tool->license_add( io_parameters->get( 'license' ) ) = abap_true.
+        IF ii_event->get_param( 'action' ) = /mbtools/if_actions=>license_add AND NOT
+           ii_event->get_param( 'license' ) IS INITIAL.
+          IF lo_tool->license_add( ii_event->get_param( 'license' ) ) = abap_true.
             MESSAGE 'License saved and activated successfully' TYPE 'S'.
           ENDIF.
         ELSEIF lo_tool->license_remove( ) = abap_true.
           MESSAGE 'License deactivated and removed successfully' TYPE 'S'.
         ENDIF.
-        ev_state = /mbtools/cl_gui=>c_event_state-re_render.
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
     ENDCASE.
 
@@ -230,10 +228,6 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
   METHOD /mbtools/if_gui_renderable~render.
 
-    DATA lt_assets TYPE /mbtools/if_gui_asset_manager=>ty_web_assets.
-
-    FIELD-SYMBOLS <ls_asset> LIKE LINE OF lt_assets.
-
     gui_services( )->register_event_handler( me ).
     gui_services( )->get_hotkeys_ctl( )->register_hotkeys( me ).
 
@@ -249,16 +243,7 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
         ri_html->add( render_bundles( ) ).
     ENDCASE.
 
-    IF mo_asset_manager IS BOUND.
-      lt_assets = mo_asset_manager->get_all_assets( ).
-      LOOP AT lt_assets ASSIGNING <ls_asset> WHERE is_cacheable = abap_true.
-        gui_services( )->cache_asset(
-          iv_xdata   = <ls_asset>-content
-          iv_url     = <ls_asset>-url
-          iv_type    = <ls_asset>-type
-          iv_subtype = <ls_asset>-subtype ).
-      ENDLOOP.
-    ENDIF.
+    gui_services( )->cache_all_assets( mo_asset_manager ).
 
   ENDMETHOD.
 

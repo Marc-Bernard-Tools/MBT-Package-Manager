@@ -26,8 +26,6 @@ CLASS /mbtools/cl_tools DEFINITION
         properties           TYPE string VALUE '.Properties' ##NO_TEXT,
         key_install_time     TYPE string VALUE 'InstallTimestamp' ##NO_TEXT,
         key_install_user     TYPE string VALUE 'InstallUser' ##NO_TEXT,
-        key_uninstall_time   TYPE string VALUE 'UninstallTimestamp' ##NO_TEXT,
-        key_uninstall_user   TYPE string VALUE 'UninstallUser' ##NO_TEXT,
         key_update_time      TYPE string VALUE 'UpdateTimestamp' ##NO_TEXT,
         key_update_user      TYPE string VALUE 'UpdateUser' ##NO_TEXT,
         " Registry Switches
@@ -1418,8 +1416,6 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
             lo_reg_entry->set_value( c_reg-key_update_time ).
             lo_reg_entry->set_value( c_reg-key_update_user ).
           ENDIF.
-          lo_reg_entry->set_value( c_reg-key_uninstall_time ).
-          lo_reg_entry->set_value( c_reg-key_uninstall_user ).
           lo_reg_entry->save( ).
         ENDIF.
 
