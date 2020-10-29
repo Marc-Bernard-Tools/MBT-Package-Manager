@@ -23,6 +23,9 @@ CLASS ltcl_gui_mock IMPLEMENTATION.
     ms_last_cache_signature-data = iv_text.
   ENDMETHOD.
 
+  METHOD /mbtools/if_gui_services~cache_all_assets.
+  ENDMETHOD.
+
   METHOD /mbtools/if_gui_services~register_event_handler.
   ENDMETHOD.
 
