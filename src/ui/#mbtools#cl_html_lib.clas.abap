@@ -96,7 +96,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
+CLASS /mbtools/cl_html_lib IMPLEMENTATION.
 
 
   METHOD class_constructor.
@@ -171,21 +171,21 @@ CLASS /MBTOOLS/CL_HTML_LIB IMPLEMENTATION.
     lv_error_text = ix_error->get_text( ).
     lv_longtext = ix_error->get_longtext( abap_true ).
 
-    REPLACE FIRST OCCURRENCE OF REGEX |(<br>{ /mbtools/cl_message_helper=>gc_section_text-cause }<br>)|
-            IN lv_longtext
-            WITH |<h3>$1</h3>|.
+    REPLACE FIRST OCCURRENCE OF REGEX
+      |({ /mbtools/cx_exception=>gc_section_text-cause }{ cl_abap_char_utilities=>newline })|
+      IN lv_longtext WITH |<h3>$1</h3>|.
 
-    REPLACE FIRST OCCURRENCE OF REGEX |(<br>{ /mbtools/cl_message_helper=>gc_section_text-system_response }<br>)|
-            IN lv_longtext
-            WITH |<h3>$1</h3>|.
+    REPLACE FIRST OCCURRENCE OF REGEX
+      |({ /mbtools/cx_exception=>gc_section_text-system_response }{ cl_abap_char_utilities=>newline })|
+      IN lv_longtext WITH |<h3>$1</h3>|.
 
-    REPLACE FIRST OCCURRENCE OF REGEX |(<br>{ /mbtools/cl_message_helper=>gc_section_text-what_to_do }<br>)|
-            IN lv_longtext
-            WITH |<h3>$1</h3>|.
+    REPLACE FIRST OCCURRENCE OF REGEX
+      |({ /mbtools/cx_exception=>gc_section_text-what_to_do }{ cl_abap_char_utilities=>newline })|
+      IN lv_longtext WITH |<h3>$1</h3>|.
 
-    REPLACE FIRST OCCURRENCE OF REGEX |(<br>{ /mbtools/cl_message_helper=>gc_section_text-sys_admin }<br>)|
-            IN lv_longtext
-            WITH |<h3>$1</h3>|.
+    REPLACE FIRST OCCURRENCE OF REGEX
+      |({ /mbtools/cx_exception=>gc_section_text-sys_admin }{ cl_abap_char_utilities=>newline })|
+      IN lv_longtext WITH |<h3>$1</h3>|.
 
     ri_html->add( |<div id="message" class="message-panel">| ).
     ri_html->add( |{ lv_error_text }| ).

@@ -630,6 +630,7 @@ CLASS ltcl_reader_test DEFINITION FINAL
   PRIVATE SECTION.
 
     METHODS get_value FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS get_node_type FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS exists FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS value_integer FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS value_number FOR TESTING RAISING /mbtools/cx_ajson_error.
@@ -755,6 +756,41 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->get( '/issues/2/start/row' )
       exp = '3' ).
+
+  ENDMETHOD.
+
+  METHOD get_node_type.
+
+    DATA li_cut TYPE REF TO /mbtools/if_ajson_reader.
+    li_cut = /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/' )
+      exp = 'object' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/string' )
+      exp = 'str' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/number' )
+      exp = 'num' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/float' )
+      exp = 'num' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/boolean' )
+      exp = 'bool' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/false' )
+      exp = 'bool' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/null' )
+      exp = 'null' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/date' )
+      exp = 'str' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->get_node_type( '/issues' )
+      exp = 'array' ).
 
   ENDMETHOD.
 
@@ -2434,7 +2470,7 @@ CLASS ltcl_abap_to_json DEFINITION
       ty_strucs TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
       BEGIN OF ty_struc_complex.
         INCLUDE TYPE ty_struc.
-    TYPES:
+      TYPES:
         el    TYPE string,
         struc TYPE ty_struc,
         tab   TYPE ty_strucs,

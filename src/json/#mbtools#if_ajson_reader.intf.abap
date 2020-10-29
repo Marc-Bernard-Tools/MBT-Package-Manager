@@ -24,6 +24,11 @@ INTERFACE /mbtools/if_ajson_reader
       iv_path         TYPE string
     RETURNING
       VALUE(rv_value) TYPE string.
+  METHODS get_node_type
+    IMPORTING
+      iv_path             TYPE string
+    RETURNING
+      VALUE(rv_node_type) TYPE string.
   METHODS get_boolean
     IMPORTING
       iv_path         TYPE string

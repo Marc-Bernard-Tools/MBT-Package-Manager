@@ -230,6 +230,17 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD /mbtools/if_ajson_reader~get_node_type.
+
+    DATA lv_item TYPE REF TO ty_node.
+    lv_item = get_item( iv_path ).
+    IF lv_item IS NOT INITIAL.
+      rv_node_type = lv_item->type.
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD /mbtools/if_ajson_reader~get_number.
 
     DATA lv_item TYPE REF TO ty_node.

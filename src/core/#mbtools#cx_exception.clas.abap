@@ -81,7 +81,7 @@ CLASS /mbtools/cx_exception DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    CONSTANTS gc_generic_error_msg TYPE string VALUE `An error occured (MBT Exception)` ##NO_TEXT.
+    CONSTANTS gc_generic_error_msg TYPE string VALUE `An error occured (Marc Bernard Tools)` ##NO_TEXT.
 
     CLASS-METHODS split_text_to_symsg
       IMPORTING
