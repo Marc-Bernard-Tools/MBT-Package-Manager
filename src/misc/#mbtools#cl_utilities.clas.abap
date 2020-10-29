@@ -113,32 +113,29 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_UTILITIES IMPLEMENTATION.
+CLASS /mbtools/cl_utilities IMPLEMENTATION.
 
 
   METHOD call_browser.
 
-    DATA:
-      lv_url_c TYPE c LENGTH 500.
-
-    CHECK NOT iv_url IS INITIAL.
-
-    lv_url_c = iv_url.
-
-    CALL FUNCTION 'CALL_BROWSER'
+    cl_gui_frontend_services=>execute(
       EXPORTING
-        url                    = lv_url_c
-        new_window             = abap_true
+        document               = |{ iv_url }|
       EXCEPTIONS
-        frontend_not_supported = 1
-        frontend_error         = 2
-        prog_not_found         = 3
-        no_batch               = 4
-        unspecified_error      = 5.
+        cntl_error             = 1
+        error_no_gui           = 2
+        bad_parameter          = 3
+        file_not_found         = 4
+        path_not_found         = 5
+        file_extension_unknown = 6
+        error_execute_failed   = 7
+        synchronous_failed     = 8
+        not_supported_by_gui   = 9
+        OTHERS                 = 10 ).
     IF sy-subrc <> 0.
-      MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+      MESSAGE ID sy-msgid TYPE 'S' NUMBER sy-msgno
         WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4
-        DISPLAY LIKE 'S'.
+        DISPLAY LIKE sy-msgty.
     ENDIF.
 
   ENDMETHOD.                    "call_browser
