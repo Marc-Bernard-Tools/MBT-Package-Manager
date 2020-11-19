@@ -16,17 +16,7 @@
 /* exported enableArrowListNavigation */
 /* exported activateLinkHints */
 /* exported setKeyBindings */
-/* exported preparePatch */
-/* exported registerStagePatch */
-/* exported toggleRepoListDetail */
-/* exported onTagTypeChange */
-/* exported getIndocStyleSheet */
-/* exported addMarginBottom */
-/* exported enumerateTocAllRepos */
-/* exported enumerateJumpAllFiles */
 /* exported enumerateToolbarActions */
-/* exported onDiffCollapse */
-/* exported restoreScrollPosition */
 
 /**********************************************************
  * Polyfills
@@ -849,27 +839,6 @@ CommandPalette.prototype.exec = function(cmd) {
 
 /* COMMAND ENUMERATORS */
 
-function enumerateTocAllRepos() {
-  var root = document.getElementById("toc-all-repos");
-  if (!root || root.nodeName !== "UL") return null;
-
-  var items = [];
-  for (var i = 0; i < root.children.length; i++) {
-    if (root.children[i].nodeName === "LI") items.push(root.children[i]);
-  }
-
-  items = items.map(function(listItem) {
-    var anchor = listItem.children[0];
-    return {
-      action:    anchor.href.replace("sapevent:", ""),  // a
-      iconClass: anchor.childNodes[0].className,        // i with icon
-      title:     anchor.childNodes[1].textContent       // text with repo name
-    };
-  });
-
-  return items;
-}
-
 function enumerateToolbarActions() {
 
   var items = [];
@@ -879,7 +848,12 @@ function enumerateToolbarActions() {
       if (item.nodeName !== "LI") continue; // unexpected node
       if (item.children.length >=2 && item.children[1].nodeName === "UL") {
         // submenu detected
-        processUL(item.children[1], item.children[0].innerText);
+        var menutext = item.children[0].innerText;
+        // special treatment for menus without text
+        if (!menutext) {
+          menutext = item.children[0].getAttribute("title");
+        }
+        processUL(item.children[1], menutext);
       } else if (item.firstElementChild && item.firstElementChild.nodeName === "A") {
         var anchor = item.firstElementChild;
         if (anchor.href && anchor.href !== "#") items.push([anchor, prefix]);
@@ -899,50 +873,36 @@ function enumerateToolbarActions() {
     var prefix = item[1];
     return {
       action:    anchor.href.replace("sapevent:", ""),
-      title:     (prefix ? prefix + ": " : "") + anchor.innerText
+      title:     (prefix ? prefix + ": " : "") + anchor.innerText.trim()
     };
   });
 
   return items;
 }
 
-function enumerateJumpAllFiles() {
-  var root = document.getElementById("jump");
-  if (!root || root.nodeName !== "UL") return null;
+/* GENERIC SCROLL POSITION SAVER */
 
-  return Array
-    .prototype.slice.call(root.children)
-    .filter(function(elem) { return elem.nodeName === "LI" })
-    .map(function(listItem) {
-      var title = listItem.children[0].childNodes[0].textContent;
-      return {
-        action: root.onclick.bind(null, title),
-        title:  title
-      };});
-}
-
-/* SCROLL POSITION */
-
-function saveScrollPosition() {
-	if (!window.sessionStorage) { return }
-	window.sessionStorage.setItem("scrollTop", document.querySelector("html").scrollTop);
-}
-
-function restoreScrollPosition() {
-	if (!window.sessionStorage) { return }
-
-	var scrollTop = window.sessionStorage.getItem("scrollTop");
-	if (scrollTop) {
-		document.querySelector("html").scrollTop = scrollTop;
-	}
-	// window.sessionStorage.setItem("scrollTop", 0);
-	window.sessionStorage.removeItem('scrollTop');
+function getPageTitle(){
+  var pageTitle = document.getElementsByClassName('title')[0].innerHTML;
+  pageTitle = pageTitle.replace(/\<.*\>/g, '');
+  pageTitle = pageTitle.replace(/\s+/g, '');
+  if (pageTitle == '&nbsp;') pageTitle = 'Main';
+  return pageTitle;
 }
 
 document.addEventListener("DOMContentLoaded", function (event) {
-	restoreScrollPosition();
+  if (!window.sessionStorage) { return }
+  var scrollItem = 'scrollPos-' + getPageTitle();
+  var scrollPos = window.sessionStorage.getItem(scrollItem);
+  if (scrollPos) {
+    window.scrollTo(0, scrollPos);
+    window.sessionStorage.removeItem(scrollItem);
+  }
 });
 
-window.addEventListener("beforeunload", function (e) {
-	saveScrollPosition();
+window.addEventListener("beforeunload", function (event) {
+  if (!window.sessionStorage) { return }
+  var scrollItem = 'scrollPos-' + getPageTitle();
+  var scrollPos = document.querySelector("html").scrollTop;
+  window.sessionStorage.setItem(scrollItem, scrollPos);
 });

@@ -1,35 +1,33 @@
 CLASS /mbtools/cl_tlogo DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
+
 ************************************************************************
 * MBT TLOGO
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-
   PUBLIC SECTION.
 
-    CLASS-METHODS class_constructor .
+    CLASS-METHODS class_constructor.
     CLASS-METHODS get_tlogo_from_tlogo_d
       IMPORTING
         !iv_tlogo_d     TYPE rstlogo
       RETURNING
-        VALUE(rv_tlogo) TYPE rstlogo .
+        VALUE(rv_tlogo) TYPE rstlogo.
     CLASS-METHODS get_tlogo_icon
       IMPORTING
         !iv_tlogo      TYPE rstlogo
         !iv_tlogo_sub  TYPE csequence OPTIONAL
         !iv_icon       TYPE icon_d OPTIONAL
       RETURNING
-        VALUE(rv_icon) TYPE icon_d .
+        VALUE(rv_icon) TYPE icon_d.
     CLASS-METHODS get_tlogo_text
       IMPORTING
         !iv_tlogo      TYPE rstlogo
       RETURNING
-        VALUE(rv_text) TYPE rstxtlg
-      RAISING
-        /mbtools/cx_exception .
+        VALUE(rv_text) TYPE rstxtlg.
     CLASS-METHODS get_object_text
       IMPORTING
         !iv_tlogo      TYPE rstlogo
@@ -37,7 +35,7 @@ CLASS /mbtools/cl_tlogo DEFINITION
       RETURNING
         VALUE(rv_text) TYPE rstxtlg
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     CLASS-METHODS get_tlogo_sub
       IMPORTING
         !iv_tlogo           TYPE rstlogo
@@ -45,7 +43,8 @@ CLASS /mbtools/cl_tlogo DEFINITION
       RETURNING
         VALUE(rv_tlogo_sub) TYPE /mbtools/tlogo_sub
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
+
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -69,7 +68,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
+CLASS /mbtools/cl_tlogo IMPLEMENTATION.
 
 
   METHOD class_constructor.
@@ -86,7 +85,10 @@ CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
         AND ddlanguage = sy-langu
         AND as4local   = rs_c_objvers-active.            "#EC CI_BYPASS
 
-    " Add Application Component Hierarchty and DataSource
+    " Add Meta Object, Application Component Hierarchty, and DataSource
+    ls_tlogo_text-tlogo = 'BIMO'.
+    ls_tlogo_text-txtlg = 'BI Meta (Transport) Object Type'(004).
+    INSERT ls_tlogo_text INTO TABLE gt_tlogo_text.
     ls_tlogo_text-tlogo = 'DSAA'.
     ls_tlogo_text-txtlg = 'Application Component Hierarchty'(003).
     INSERT ls_tlogo_text INTO TABLE gt_tlogo_text.
@@ -110,6 +112,11 @@ CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
       lv_txtlg      TYPE rstxtlg.
 
     CASE iv_tlogo.
+      WHEN 'BIMO'.
+        " BI Meta (Transport) Object Type
+        SELECT SINGLE txtlg FROM  rsobjs_obj_typet INTO lv_txtlg
+          WHERE langu = sy-langu AND obj_type = iv_object.
+
       WHEN 'DSAA'.
         " Application component hierarchy
         SELECT SINGLE txtsh txtlg FROM rodsapplt INTO (lv_txtsh, lv_txtlg)
@@ -182,6 +189,12 @@ CLASS /MBTOOLS/CL_TLOGO IMPLEMENTATION.
     " Get icon
     IF iv_icon IS INITIAL.
       CASE iv_tlogo.
+        WHEN 'BIMO'. " BI Meta (Transport) Object Type
+          rv_icon = icon_transport.
+
+        WHEN 'PCLA'. " Program Class for BW Generation Tools
+          rv_icon = icon_generate.
+
         WHEN 'DSAA' OR 'DSAD'. " Application component hierarchy
           rv_icon = cl_rso_repository=>get_tlogo_icon( rs_c_tlogo-application ).
 

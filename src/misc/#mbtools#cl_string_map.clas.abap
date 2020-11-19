@@ -16,7 +16,7 @@ CLASS /mbtools/cl_string_map DEFINITION
 
   PUBLIC SECTION.
 
-    CONSTANTS version TYPE string VALUE 'v1.0.2'.
+    CONSTANTS version TYPE string VALUE 'v1.0.2' ##NEEDED.
 
     TYPES:
       BEGIN OF ty_entry,
@@ -32,12 +32,14 @@ CLASS /mbtools/cl_string_map DEFINITION
 
     CLASS-METHODS create
       IMPORTING
-        !iv_from           TYPE any OPTIONAL
+        !iv_case_insensitive TYPE abap_bool DEFAULT abap_false
+        !iv_from             TYPE any OPTIONAL
       RETURNING
-        VALUE(ro_instance) TYPE REF TO /mbtools/cl_string_map .
+        VALUE(ro_instance)   TYPE REF TO /mbtools/cl_string_map .
     METHODS constructor
       IMPORTING
-        !iv_from TYPE any OPTIONAL.
+        !iv_case_insensitive TYPE abap_bool DEFAULT abap_false
+        !iv_from             TYPE any OPTIONAL.
 
     METHODS get
       IMPORTING
@@ -86,16 +88,16 @@ CLASS /mbtools/cl_string_map DEFINITION
       RETURNING
         VALUE(ro_instance) TYPE REF TO /mbtools/cl_string_map .
     METHODS freeze.
-
   PROTECTED SECTION.
   PRIVATE SECTION.
     DATA mv_is_strict TYPE abap_bool.
     DATA mv_read_only TYPE abap_bool.
+    DATA mv_case_insensitive TYPE abap_bool.
 ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
+CLASS /mbtools/cl_string_map IMPLEMENTATION.
 
 
   METHOD clear.
@@ -111,6 +113,7 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
 
   METHOD constructor.
     mv_is_strict = abap_true.
+    mv_case_insensitive = iv_case_insensitive.
 
     IF iv_from IS NOT INITIAL.
       DATA lo_type TYPE REF TO cl_abap_typedescr.
@@ -141,7 +144,10 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
 
 
   METHOD create.
-    CREATE OBJECT ro_instance EXPORTING iv_from = iv_from.
+    CREATE OBJECT ro_instance
+      EXPORTING
+        iv_case_insensitive = iv_case_insensitive
+        iv_from             = iv_from.
   ENDMETHOD.
 
 
@@ -212,8 +218,16 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
 
   METHOD get.
 
+    DATA lv_key LIKE iv_key.
     FIELD-SYMBOLS <entry> LIKE LINE OF mt_entries.
-    READ TABLE mt_entries ASSIGNING <entry> WITH KEY k = iv_key.
+
+    IF mv_case_insensitive = abap_true.
+      lv_key = to_upper( iv_key ).
+    ELSE.
+      lv_key = iv_key.
+    ENDIF.
+
+    READ TABLE mt_entries ASSIGNING <entry> WITH KEY k = lv_key.
     IF sy-subrc = 0.
       rv_val = <entry>-v.
     ENDIF.
@@ -247,17 +261,24 @@ CLASS /MBTOOLS/CL_STRING_MAP IMPLEMENTATION.
   METHOD set.
 
     DATA ls_entry LIKE LINE OF mt_entries.
+    DATA lv_key LIKE iv_key.
     FIELD-SYMBOLS <entry> LIKE LINE OF mt_entries.
 
     IF mv_read_only = abap_true.
       lcx_error=>raise( 'String map is read only' ).
     ENDIF.
 
-    READ TABLE mt_entries ASSIGNING <entry> WITH KEY k = iv_key.
+    IF mv_case_insensitive = abap_true.
+      lv_key = to_upper( iv_key ).
+    ELSE.
+      lv_key = iv_key.
+    ENDIF.
+
+    READ TABLE mt_entries ASSIGNING <entry> WITH KEY k = lv_key.
     IF sy-subrc = 0.
       <entry>-v = iv_val.
     ELSE.
-      ls_entry-k = iv_key.
+      ls_entry-k = lv_key.
       ls_entry-v = iv_val.
       INSERT ls_entry INTO TABLE mt_entries.
     ENDIF.

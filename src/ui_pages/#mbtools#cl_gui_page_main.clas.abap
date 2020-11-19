@@ -111,7 +111,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
+CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
 
   METHOD /mbtools/if_gui_event_handler~on_event.
@@ -264,10 +264,12 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
       iv_act = /mbtools/if_actions=>go_faq
     )->add(
       iv_txt = 'Documentation'
-      iv_act = /mbtools/if_actions=>mbt_docs
+      iv_typ = /mbtools/if_html=>c_action_type-url
+      iv_act = /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_docs
     )->add(
       iv_txt = 'Ticket'
-      iv_act = /mbtools/if_actions=>mbt_support ).
+      iv_typ = /mbtools/if_html=>c_action_type-url
+      iv_act = /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_support  ).
 
     CREATE OBJECT lo_bar_menu.
 
@@ -317,7 +319,8 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
 
     lo_bar_menu->add(
       iv_txt = 'Website'
-      iv_act = /mbtools/if_actions=>mbt_website
+      iv_typ = /mbtools/if_html=>c_action_type-url
+      iv_act = /mbtools/if_definitions=>c_www_home
     )->add(
       iv_txt = 'About'
       iv_act = /mbtools/if_actions=>go_about ).
@@ -326,8 +329,9 @@ CLASS /MBTOOLS/CL_GUI_PAGE_MAIN IMPLEMENTATION.
       iv_txt = 'Support'
       io_sub = lo_support_menu
     )->add(
-      iv_txt = /mbtools/cl_html=>icon( iv_name  = 'bars/grey' )
-      io_sub = lo_bar_menu ).
+      iv_txt   = /mbtools/cl_html=>icon( iv_name  = 'bars/grey' )
+      iv_title = 'MBT'
+      io_sub   = lo_bar_menu ).
 
   ENDMETHOD.
 

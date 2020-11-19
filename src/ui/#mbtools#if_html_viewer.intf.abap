@@ -26,7 +26,7 @@ INTERFACE /mbtools/if_html_viewer
       !iv_subtype      TYPE c DEFAULT 'html'
       !iv_size         TYPE i DEFAULT 0
     EXPORTING
-      !ev_assigned_url TYPE c
+      !ev_assigned_url TYPE w3url
     CHANGING
       !ct_data_table   TYPE STANDARD TABLE
     EXCEPTIONS
@@ -51,4 +51,8 @@ INTERFACE /mbtools/if_html_viewer
       dp_error_general .
   METHODS free .
   METHODS close_document .
+  METHODS get_url
+    RETURNING
+      VALUE(rv_url) TYPE w3url.
+  METHODS back .
 ENDINTERFACE.

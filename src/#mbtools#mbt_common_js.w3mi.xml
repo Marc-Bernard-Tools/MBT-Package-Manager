@@ -21,7 +21,7 @@
      <RELID>MI</RELID>
      <OBJID>/MBTOOLS/MBT_COMMON_JS</OBJID>
      <NAME>mimetype</NAME>
-     <VALUE>application/json</VALUE>
+     <VALUE>text/javascript</VALUE>
     </WWWPARAMS>
    </PARAMS>
   </asx:values>

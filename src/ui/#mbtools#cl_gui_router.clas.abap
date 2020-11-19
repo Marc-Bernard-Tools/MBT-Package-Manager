@@ -44,7 +44,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_GUI_ROUTER IMPLEMENTATION.
+CLASS /mbtools/cl_gui_router IMPLEMENTATION.
 
 
   METHOD /mbtools/if_gui_event_handler~on_event.
@@ -140,6 +140,11 @@ CLASS /MBTOOLS/CL_GUI_ROUTER IMPLEMENTATION.
       WHEN /mbtools/if_actions=>go_license.
         rs_handled-page  = /mbtools/cl_gui_page_main=>create( /mbtools/cl_gui_page_main=>c_mode-license ).
         rs_handled-state = /mbtools/cl_gui=>c_event_state-new_page.
+
+      WHEN /mbtools/if_actions=>go_faq ##TODO. " change to built-in/offline FAQ
+        /mbtools/cl_utilities=>call_browser(
+          /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_faq ).
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
       WHEN /mbtools/if_actions=>go_about.
         rs_handled-page  = /mbtools/cl_gui_page_about=>create( ).

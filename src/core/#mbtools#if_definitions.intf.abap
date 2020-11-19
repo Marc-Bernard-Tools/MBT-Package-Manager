@@ -91,8 +91,8 @@ INTERFACE /mbtools/if_definitions
   CONSTANTS c_www_tool_download TYPE string VALUE 'downloads/' ##NO_TEXT.
   CONSTANTS c_www_docs TYPE string VALUE 'support/docs/' ##NO_TEXT.
   CONSTANTS c_www_support TYPE string VALUE 'support/ticket/' ##NO_TEXT.
+  CONSTANTS c_www_faq TYPE string VALUE 'support/faq/' ##NO_TEXT.
   CONSTANTS c_www_portfolio TYPE string VALUE 'tools/portfolio/' ##NO_TEXT.
   CONSTANTS c_namespace TYPE devclass VALUE '/MBTOOLS/' ##NO_TEXT.
   CONSTANTS c_manifest TYPE seoclsname VALUE '/MBTOOLS/IF_MANIFEST' ##NO_TEXT.
-
 ENDINTERFACE.

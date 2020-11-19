@@ -34,7 +34,14 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_HTML_VIEWER IMPLEMENTATION.
+CLASS /mbtools/cl_html_viewer IMPLEMENTATION.
+
+
+  METHOD /mbtools/if_html_viewer~back.
+
+    mo_html_viewer->go_back( ).
+
+  ENDMETHOD.
 
 
   METHOD /mbtools/if_html_viewer~close_document.
@@ -47,6 +54,14 @@ CLASS /MBTOOLS/CL_HTML_VIEWER IMPLEMENTATION.
   METHOD /mbtools/if_html_viewer~free.
 
     mo_html_viewer->free( ).
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_html_viewer~get_url.
+
+    mo_html_viewer->get_current_url( IMPORTING url = rv_url ).
+    cl_gui_cfw=>flush( ).
 
   ENDMETHOD.
 
