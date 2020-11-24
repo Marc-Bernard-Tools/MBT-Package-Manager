@@ -5,6 +5,26 @@
    <MASTER_LANGUAGE>E</MASTER_LANGUAGE>
    <STARTING_FOLDER>/src/</STARTING_FOLDER>
    <FOLDER_LOGIC>PREFIX</FOLDER_LOGIC>
+   <REQUIREMENTS>
+    <item>
+     <COMPONENT>SAP_BASIS</COMPONENT>
+     <MIN_RELEASE>702</MIN_RELEASE>
+    </item>
+    <item>
+     <COMPONENT>SAP_BW</COMPONENT>
+     <MIN_RELEASE>702</MIN_RELEASE>
+    </item>
+   </REQUIREMENTS>
+   <PACKAGING>
+    <NAME>mbtools/marc_bernard_tools</NAME>
+    <VERSION>1.0.0</VERSION>
+    <SEM_VERSION>
+     <MAJOR>1</MAJOR>
+    </SEM_VERSION>
+    <DESCRIPTION>Marc Bernard Tools - Essential for SAP® Customers and Partners</DESCRIPTION>
+    <GIT_URL>https://github.com/mbtools/Marc_Bernard_Tools</GIT_URL>
+    <TARGET_PACKAGE>/MBTOOLS/BC</TARGET_PACKAGE>
+   </PACKAGING>
   </DATA>
  </asx:values>
 </asx:abap>
