@@ -1,7 +1,7 @@
 CLASS /mbtools/cl_switches DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * MBT Switches
@@ -13,58 +13,58 @@ CLASS /mbtools/cl_switches DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    CLASS-METHODS class_constructor .
+    CLASS-METHODS class_constructor.
     CLASS-METHODS is_active
       IMPORTING
         !iv_title        TYPE string
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
     CLASS-METHODS is_debug
       IMPORTING
         !iv_title        TYPE string
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
     CLASS-METHODS is_trace
       IMPORTING
         !iv_title        TYPE string
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
   PROTECTED SECTION.
-PRIVATE SECTION.
+  PRIVATE SECTION.
 
-  CONSTANTS:
-    BEGIN OF c_reg,
-      " Registry Switches
-      switches   TYPE string VALUE 'Switches' ##NO_TEXT,
-      key_active TYPE string VALUE 'Active' ##NO_TEXT,
-      key_debug  TYPE string VALUE 'Debug' ##NO_TEXT,
-      key_trace  TYPE string VALUE 'Trace' ##NO_TEXT,
-    END OF c_reg .
-  CLASS-DATA go_reg_root TYPE REF TO /mbtools/cl_registry .
+    CONSTANTS:
+      BEGIN OF c_reg,
+        " Registry Switches
+        switches   TYPE string VALUE 'Switches' ##NO_TEXT,
+        key_active TYPE string VALUE 'Active' ##NO_TEXT,
+        key_debug  TYPE string VALUE 'Debug' ##NO_TEXT,
+        key_trace  TYPE string VALUE 'Trace' ##NO_TEXT,
+      END OF c_reg.
+    CLASS-DATA go_reg_root TYPE REF TO /mbtools/cl_registry.
 
-  CLASS-METHODS check_switch
-    IMPORTING
-      !iv_title        TYPE string
-      !iv_key          TYPE string
-    RETURNING
-      VALUE(rv_result) TYPE abap_bool .
+    CLASS-METHODS check_switch
+      IMPORTING
+        !iv_title        TYPE string
+        !iv_key          TYPE string
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool.
 ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_SWITCHES IMPLEMENTATION.
+CLASS /mbtools/cl_switches IMPLEMENTATION.
 
 
   METHOD check_switch.
 
     DATA:
-      lv_name       TYPE string,
-      ls_bundle     TYPE /mbtools/cl_registry=>ty_keyobj,
-      lt_bundles    TYPE /mbtools/cl_registry=>ty_keyobjs,
-      lo_reg_tool   TYPE REF TO /mbtools/cl_registry,
-      lo_reg_entry  TYPE REF TO /mbtools/cl_registry,
-      lt_users      TYPE TABLE OF string,
-      lv_value      TYPE string.
+      lv_name      TYPE string,
+      ls_bundle    TYPE /mbtools/cl_registry=>ty_keyobj,
+      lt_bundles   TYPE /mbtools/cl_registry=>ty_keyobjs,
+      lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
+      lo_reg_entry TYPE REF TO /mbtools/cl_registry,
+      lt_users     TYPE TABLE OF string,
+      lv_value     TYPE string.
 
     lv_name = iv_title.
     REPLACE ALL OCCURRENCES OF ` ` IN lv_name WITH `_`.

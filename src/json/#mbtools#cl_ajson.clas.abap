@@ -394,7 +394,6 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
     DATA ls_split_path TYPE ty_path_name.
     DATA parent_ref TYPE REF TO ty_node.
     DATA lt_node_stack TYPE TABLE OF REF TO ty_node.
-    FIELD-SYMBOLS <topnode> TYPE ty_node.
 
     IF mv_read_only = abap_true.
       /mbtools/cx_ajson_error=>raise( 'This json instance is read only' ).

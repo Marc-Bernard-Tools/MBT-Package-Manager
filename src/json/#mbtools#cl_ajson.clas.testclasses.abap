@@ -1435,8 +1435,6 @@ CLASS ltcl_writer_test DEFINITION FINAL
 
   PRIVATE SECTION.
 
-    CLASS-DATA gv_sample TYPE string.
-
     METHODS set_ajson FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS set_value FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS ignore_empty FOR TESTING RAISING /mbtools/cx_ajson_error.
@@ -1865,7 +1863,6 @@ CLASS ltcl_writer_test IMPLEMENTATION.
   METHOD arrays_negative.
 
     DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
     DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
 
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
@@ -2470,7 +2467,7 @@ CLASS ltcl_abap_to_json DEFINITION
       ty_strucs TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
       BEGIN OF ty_struc_complex.
         INCLUDE TYPE ty_struc.
-      TYPES:
+    TYPES:
         el    TYPE string,
         struc TYPE ty_struc,
         tab   TYPE ty_strucs,

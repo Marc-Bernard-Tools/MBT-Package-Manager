@@ -67,6 +67,7 @@ CLASS /mbtools/cl_aphp DEFINITION
     CLASS-METHODS get_float
       IMPORTING
         !iv_data      TYPE string
+        !iv_precision TYPE i DEFAULT 2
       RETURNING
         VALUE(rv_val) TYPE f .
     CLASS-METHODS get_boolean
@@ -81,7 +82,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_APHP IMPLEMENTATION.
+CLASS /mbtools/cl_aphp IMPLEMENTATION.
 
 
   METHOD get_boolean.
@@ -110,7 +111,7 @@ CLASS /MBTOOLS/CL_APHP IMPLEMENTATION.
     " d:<value>;
     lv_val = shift_right( val = iv_data
                           sub = ';' ).
-    rv_val = lv_val.
+    rv_val = round( val = lv_val dec = iv_precision ).
 
   ENDMETHOD.
 
@@ -217,7 +218,8 @@ CLASS /MBTOOLS/CL_APHP IMPLEMENTATION.
                                iv_val  = get_integer( lv_data ) ).
       WHEN 'd'. "float
         ro_ajson->set( iv_path = lv_path
-                       iv_val  = get_float( lv_data ) ).
+                       iv_val  = get_float( iv_data      = lv_data
+                                            iv_precision = iv_precision ) ).
       WHEN 'b'. "boolean
         ro_ajson->set_boolean( iv_path = lv_path
                                iv_val  = get_boolean( lv_data ) ).
