@@ -238,6 +238,8 @@ ENDFORM.
 
 INITIALIZATION.
 
+  /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_register ).
+
   lcl_main=>main_screen_init( ).
 
 AT SELECTION-SCREEN.

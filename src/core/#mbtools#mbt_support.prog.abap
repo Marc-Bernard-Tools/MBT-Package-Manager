@@ -1,6 +1,6 @@
-REPORT /mbtools/marc_bernard_tools.
+REPORT /mbtools/mbt_support.
 ************************************************************************
-* Marc Bernard Tools
+* MBT Support
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
@@ -82,7 +82,7 @@ CONSTANTS:
 DATA:
   go_tool   TYPE REF TO /mbtools/cl_tools,
   go_screen TYPE REF TO /mbtools/cl_screen,
-  go_app    TYPE REF TO /mbtools/cl_base,
+  go_app    TYPE REF TO /mbtools/cl_support,
   gx_exc    TYPE REF TO /mbtools/cx_exception,
   gv_tool   TYPE string,
   gv_action TYPE string,
@@ -92,6 +92,12 @@ DATA:
 *-----------------------------------------------------------------------
 
 INITIALIZATION.
+
+  GET PARAMETER ID '/MBTOOLS/SUPPORT' FIELD gv_flag.
+  IF gv_flag IS INITIAL.
+    MESSAGE 'This program shall only be used by MBT Support' TYPE 'E'.
+    EXIT.
+  ENDIF.
 
   CREATE OBJECT go_app.
 

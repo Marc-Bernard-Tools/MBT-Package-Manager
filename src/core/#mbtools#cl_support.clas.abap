@@ -1,13 +1,13 @@
-CLASS /mbtools/cl_base DEFINITION
+CLASS /mbtools/cl_support DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+
 ************************************************************************
-* MBT Base
+* MBT Support
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-
   PUBLIC SECTION.
 
     METHODS initialize
@@ -24,7 +24,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_BASE IMPLEMENTATION.
+CLASS /mbtools/cl_support IMPLEMENTATION.
 
 
   METHOD initialize.
