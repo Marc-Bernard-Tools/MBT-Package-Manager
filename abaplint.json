@@ -1,9 +1,13 @@
 {
   "global": {
+    "exclude": {
+      "#mbtools#cl_logger.clas.testclasses.abap"
+    },
     "files": "/src/**/*.*",
+    "skipGeneratedFunctionGroups": true,
     "skipGeneratedGatewayClasses": true,
     "skipGeneratedPersistentClasses": true,
-    "skipGeneratedFunctionGroups": true
+    "useApackDependencies": false
   },
   "dependencies": [
     {
