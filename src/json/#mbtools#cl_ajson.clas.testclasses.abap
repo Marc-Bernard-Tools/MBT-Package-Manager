@@ -1451,6 +1451,15 @@ CLASS ltcl_writer_test DEFINITION FINAL
     METHODS set_int FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS set_date FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS read_only FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS set_array_obj FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS set_with_type FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS set_with_type_slice
+      IMPORTING
+        io_json_in  TYPE REF TO /mbtools/cl_ajson
+        io_json_out TYPE REF TO /mbtools/if_ajson_writer
+        iv_path     TYPE string
+      RAISING
+        /mbtools/cx_ajson_error.
 
 ENDCLASS.
 
@@ -2217,6 +2226,94 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD set_array_obj.
+
+    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
+    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
+    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
+
+    CREATE OBJECT nodes_exp.
+    nodes_exp->add( '                 |         |object |                        |  |1' ).
+    nodes_exp->add( '/                |issues   |array  |                        |  |2' ).
+    nodes_exp->add( '/issues/         |1        |object |                        |1 |1' ).
+    nodes_exp->add( '/issues/         |2        |object |                        |2 |1' ).
+    nodes_exp->add( '/issues/1/       |end      |object |                        |  |2' ).
+    nodes_exp->add( '/issues/1/end/   |col      |num    |26                      |  |0' ).
+    nodes_exp->add( '/issues/1/end/   |row      |num    |4                       |  |0' ).
+    nodes_exp->add( '/issues/2/       |end      |object |                        |  |2' ).
+    nodes_exp->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
+    nodes_exp->add( '/issues/2/end/   |row      |num    |3                       |  |0' ).
+
+    lo_cut = /mbtools/cl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    li_writer->touch_array( iv_path = '/issues' ).
+    li_writer->set(
+      iv_path = '/issues/1/end/col'
+      iv_val  = 26 ).
+    li_writer->set(
+      iv_path = '/issues/1/end/row'
+      iv_val  = 4 ).
+    li_writer->set(
+      iv_path = '/issues/2/end/col'
+      iv_val  = 22 ).
+    li_writer->set(
+      iv_path = '/issues/2/end/row'
+      iv_val  = 3 ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = nodes_exp->sorted( ) ).
+
+  ENDMETHOD.
+
+  METHOD set_with_type.
+
+    DATA lo_sample TYPE REF TO /mbtools/cl_ajson.
+    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
+    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
+
+    lo_sample = /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
+
+    lo_cut = /mbtools/cl_ajson=>create_empty( ).
+    li_writer = lo_cut.
+
+    set_with_type_slice( io_json_in  = lo_sample
+                         io_json_out = li_writer
+                         iv_path     = '/' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->mt_json_tree
+      exp = lo_sample->mt_json_tree ).
+
+  ENDMETHOD.
+
+  METHOD set_with_type_slice.
+
+    DATA lv_path TYPE string.
+
+    FIELD-SYMBOLS <ls_node> TYPE /mbtools/cl_ajson=>ty_node.
+
+    LOOP AT io_json_in->mt_json_tree ASSIGNING <ls_node> WHERE path = iv_path.
+      lv_path = <ls_node>-path && <ls_node>-name && '/'.
+      CASE <ls_node>-type.
+        WHEN 'array'.
+          io_json_out->touch_array( lv_path ).
+          set_with_type_slice( io_json_in  = io_json_in
+                               io_json_out = io_json_out
+                               iv_path     = lv_path ).
+        WHEN 'object'.
+          set_with_type_slice( io_json_in  = io_json_in
+                               io_json_out = io_json_out
+                               iv_path     = lv_path ).
+        WHEN OTHERS.
+          io_json_out->set_with_type( iv_path = lv_path
+                                      iv_val  = <ls_node>-value
+                                      iv_type = <ls_node>-type ).
+      ENDCASE.
+    ENDLOOP.
+
+  ENDMETHOD.
 ENDCLASS.
 
 
@@ -2467,7 +2564,7 @@ CLASS ltcl_abap_to_json DEFINITION
       ty_strucs TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
       BEGIN OF ty_struc_complex.
         INCLUDE TYPE ty_struc.
-    TYPES:
+      TYPES:
         el    TYPE string,
         struc TYPE ty_struc,
         tab   TYPE ty_strucs,
@@ -2745,5 +2842,4 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
       exp = nodes_exp->mt_nodes ).
 
   ENDMETHOD.
-
 ENDCLASS.

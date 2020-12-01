@@ -680,6 +680,17 @@ CLASS lcl_abap_to_json DEFINITION FINAL.
       RAISING
         /mbtools/cx_ajson_error.
 
+    CLASS-METHODS insert_with_type
+      IMPORTING
+        iv_data         TYPE any
+        iv_type         TYPE string
+        is_prefix       TYPE /mbtools/cl_ajson=>ty_path_name OPTIONAL
+        iv_array_index  TYPE i DEFAULT 0
+      RETURNING
+        VALUE(rt_nodes) TYPE /mbtools/cl_ajson=>ty_nodes_tt
+      RAISING
+        /mbtools/cx_ajson_error.
+
     CLASS-METHODS class_constructor.
 
   PRIVATE SECTION.
@@ -750,9 +761,19 @@ CLASS lcl_abap_to_json DEFINITION FINAL.
       RAISING
         /mbtools/cx_ajson_error.
 
-ENDCLASS.
+    METHODS insert_value_with_type
+      IMPORTING
+        iv_data   TYPE any
+        iv_type   TYPE string
+        io_type   TYPE REF TO cl_abap_typedescr
+        is_prefix TYPE /mbtools/cl_ajson=>ty_path_name
+        iv_index  TYPE i DEFAULT 0
+      CHANGING
+        ct_nodes  TYPE /mbtools/cl_ajson=>ty_nodes_tt
+      RAISING
+        /mbtools/cx_ajson_error.
 
-CLASS /mbtools/cl_ajson DEFINITION LOCAL FRIENDS lcl_abap_to_json.
+ENDCLASS.
 
 CLASS lcl_abap_to_json IMPLEMENTATION.
 
@@ -1014,6 +1035,61 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 
       <root>-children = <root>-children + 1.
     ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD insert_with_type.
+
+    DATA lo_type TYPE REF TO cl_abap_typedescr.
+    DATA lo_converter TYPE REF TO lcl_abap_to_json.
+
+    lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
+    CREATE OBJECT lo_converter.
+
+    lo_converter->insert_value_with_type(
+      EXPORTING
+        iv_data   = iv_data
+        iv_type   = iv_type
+        io_type   = lo_type
+        is_prefix = is_prefix
+        iv_index  = iv_array_index
+      CHANGING
+        ct_nodes = rt_nodes ).
+
+  ENDMETHOD.
+
+  METHOD insert_value_with_type.
+
+    DATA lv_prefix TYPE string.
+
+    FIELD-SYMBOLS <n> LIKE LINE OF ct_nodes.
+
+    lv_prefix = is_prefix-path && is_prefix-name.
+    IF io_type->type_kind CO 'CNgXyDT'. " Char like, date/time, xstring
+      IF iv_type = 'bool' AND iv_data <> 'true' AND iv_data <> 'false'.
+        /mbtools/cx_ajson_error=>raise( |Unexpected boolean value [{ iv_data }] @{ lv_prefix }| ).
+      ELSEIF iv_type = 'null' AND iv_data IS NOT INITIAL.
+        /mbtools/cx_ajson_error=>raise( |Unexpected null value [{ iv_data }] @{ lv_prefix }| ).
+      ELSEIF iv_type = 'num' AND iv_data CN '0123456789. E+-'.
+        /mbtools/cx_ajson_error=>raise( |Unexpected numeric value [{ iv_data }] @{ lv_prefix }| ).
+      ELSEIF iv_type <> 'str' AND iv_type <> 'bool' AND iv_type <> 'null' AND iv_type <> 'num'.
+        /mbtools/cx_ajson_error=>raise( |Unexpected type for value [{ iv_type },{ iv_data }] @{ lv_prefix }| ).
+      ENDIF.
+    ELSEIF io_type->type_kind CO 'bsI8PaeF'. " Numeric
+      IF iv_type <> 'num'.
+        /mbtools/cx_ajson_error=>raise( |Unexpected value for numeric [{ iv_data }] @{ lv_prefix }| ).
+      ENDIF.
+    ELSE.
+      /mbtools/cx_ajson_error=>raise( |Unexpected type [{ io_type->type_kind }] @{ lv_prefix }| ).
+    ENDIF.
+
+    APPEND INITIAL LINE TO ct_nodes ASSIGNING <n>.
+
+    <n>-path  = is_prefix-path.
+    <n>-name  = is_prefix-name.
+    <n>-index = iv_index.
+    <n>-value = iv_data.
+    <n>-type  = iv_type.
 
   ENDMETHOD.
 

@@ -9,7 +9,7 @@ CLASS /mbtools/cl_ajson DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 *
-* Last update: 2020-08-02
+* Last update: 2020-11-30
 ************************************************************************
 
   PUBLIC SECTION.
@@ -40,6 +40,7 @@ CLASS /mbtools/cl_ajson DEFINITION
       set_integer FOR /mbtools/if_ajson_writer~set_integer,
       set_date FOR /mbtools/if_ajson_writer~set_date,
       set_null FOR /mbtools/if_ajson_writer~set_null,
+      set_with_type FOR /mbtools/if_ajson_writer~set_with_type,
       delete FOR /mbtools/if_ajson_writer~delete,
       touch_array FOR /mbtools/if_ajson_writer~touch_array,
       push FOR /mbtools/if_ajson_writer~push.
@@ -88,6 +89,8 @@ CLASS /mbtools/cl_ajson DEFINITION
 
     METHODS freeze.
 
+    DATA mt_json_tree TYPE ty_nodes_ts READ-ONLY.
+
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -95,7 +98,6 @@ CLASS /mbtools/cl_ajson DEFINITION
     TYPES:
       ty_node_stack_tt TYPE STANDARD TABLE OF REF TO ty_node WITH DEFAULT KEY.
 
-    DATA mt_json_tree TYPE ty_nodes_ts.
     DATA mv_read_only TYPE abap_bool.
 
     METHODS get_item
@@ -500,6 +502,64 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_val ).
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_ajson_writer~set_with_type.
+
+    DATA lt_path TYPE string_table.
+    DATA ls_split_path TYPE ty_path_name.
+    DATA parent_ref TYPE REF TO ty_node.
+    DATA lt_node_stack TYPE TABLE OF REF TO ty_node.
+    FIELD-SYMBOLS <topnode> TYPE ty_node.
+
+    IF mv_read_only = abap_true.
+      /mbtools/cx_ajson_error=>raise( 'This json instance is read only' ).
+    ENDIF.
+
+    IF iv_type <> 'bool' AND iv_type <> 'null' AND iv_type <> 'num' AND iv_type <> 'str'.
+      /mbtools/cx_ajson_error=>raise( |Unexpected type { iv_type }| ).
+    ENDIF.
+
+    ls_split_path = lcl_utils=>split_path( iv_path ).
+    IF ls_split_path IS INITIAL. " Assign root, exceptional processing
+      mt_json_tree = lcl_abap_to_json=>insert_with_type(
+        iv_data   = iv_val
+        iv_type   = iv_type
+        is_prefix = ls_split_path ).
+      RETURN.
+    ENDIF.
+
+    " Ensure whole path exists
+    lt_node_stack = prove_path_exists( ls_split_path-path ).
+    READ TABLE lt_node_stack INDEX 1 INTO parent_ref.
+    ASSERT sy-subrc = 0.
+
+    " delete if exists with subtree
+    delete_subtree(
+      iv_path = ls_split_path-path
+      iv_name = ls_split_path-name ).
+
+    " convert to json
+    DATA lt_new_nodes TYPE ty_nodes_tt.
+    DATA lv_array_index TYPE i.
+
+    IF parent_ref->type = 'array'.
+      lv_array_index = lcl_utils=>validate_array_index(
+        iv_path  = ls_split_path-path
+        iv_index = ls_split_path-name ).
+    ENDIF.
+
+    lt_new_nodes = lcl_abap_to_json=>insert_with_type(
+      iv_data        = iv_val
+      iv_type        = iv_type
+      iv_array_index = lv_array_index
+      is_prefix      = ls_split_path ).
+
+    " update data
+    parent_ref->children = parent_ref->children + 1.
+    INSERT LINES OF lt_new_nodes INTO TABLE mt_json_tree.
 
   ENDMETHOD.
 

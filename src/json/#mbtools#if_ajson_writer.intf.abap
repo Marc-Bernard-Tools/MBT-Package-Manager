@@ -75,4 +75,12 @@ INTERFACE /mbtools/if_ajson_writer
     RAISING
       /mbtools/cx_ajson_error.
 
+  METHODS set_with_type
+    IMPORTING
+      iv_path TYPE string
+      iv_val  TYPE any
+      iv_type TYPE string
+    RAISING
+      /mbtools/cx_ajson_error.
+
 ENDINTERFACE.

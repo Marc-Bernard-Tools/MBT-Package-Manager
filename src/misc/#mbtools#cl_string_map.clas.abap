@@ -8,10 +8,11 @@ CLASS /mbtools/cl_string_map DEFINITION
 *
 * Original Author: Copyright (c) 2014 abapGit Contributors
 * http://www.abapgit.org
+* Renamed: to_abap > to_struc
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 *
-* Last update: 2020-08-01
+* Last update: 2020-11-30
 ************************************************************************
 
   PUBLIC SECTION.
@@ -304,7 +305,6 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
   METHOD to_struc.
 
     DATA lo_type TYPE REF TO cl_abap_typedescr.
-    DATA lo_struc TYPE REF TO cl_abap_structdescr.
     DATA lv_field TYPE string.
     FIELD-SYMBOLS <entry> LIKE LINE OF mt_entries.
     FIELD-SYMBOLS <val> TYPE any.
@@ -315,7 +315,6 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
       lcx_error=>raise( 'Only structures supported' ).
     ENDIF.
 
-    lo_struc ?= lo_type.
     LOOP AT mt_entries ASSIGNING <entry>.
       lv_field = to_upper( <entry>-k ).
       ASSIGN COMPONENT lv_field OF STRUCTURE cs_container TO <val>.
