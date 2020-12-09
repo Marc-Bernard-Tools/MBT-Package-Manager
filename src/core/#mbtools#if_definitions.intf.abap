@@ -82,8 +82,24 @@ INTERFACE /mbtools/if_definitions
     END OF ty_alv_column .
   TYPES:
     ty_alv_column_tt TYPE TABLE OF ty_alv_column WITH DEFAULT KEY .
+  TYPES:
+    ty_sha1 TYPE c LENGTH 40 .
+  TYPES:
+    BEGIN OF ty_file_signature,
+      path     TYPE string,
+      filename TYPE string,
+      sha1     TYPE ty_sha1,
+    END OF ty_file_signature .
+  TYPES:
+    BEGIN OF ty_file.
+      INCLUDE TYPE ty_file_signature.
+      TYPES: data TYPE xstring,
+    END OF ty_file .
+  TYPES:
+    ty_files_tt TYPE STANDARD TABLE OF ty_file WITH DEFAULT KEY .
 
   CONSTANTS c_github TYPE string VALUE 'github.com/mbtools' ##NO_TEXT.
+  CONSTANTS c_dot_abapgit TYPE string VALUE '.abapgit.xml' ##NO_TEXT.
   CONSTANTS c_www_home TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.
   CONSTANTS c_www_ping TYPE string VALUE 'info/index.html' ##NO_TEXT.
   CONSTANTS c_www_terms TYPE string VALUE 'company/terms-software/' ##NO_TEXT.

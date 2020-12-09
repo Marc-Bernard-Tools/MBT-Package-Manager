@@ -46,7 +46,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_GUI_PAGE_ABOUT IMPLEMENTATION.
+CLASS /mbtools/cl_gui_page_about IMPLEMENTATION.
 
 
   METHOD /mbtools/if_gui_event_handler~on_event.

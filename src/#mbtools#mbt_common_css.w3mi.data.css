@@ -1163,3 +1163,6 @@ td.tool-actions {
 .tool-actions a:hover .has-mbt-black-color {
     color: #04c;
 }
+.tool-license input[type="text"] {
+    width: 250px;
+}

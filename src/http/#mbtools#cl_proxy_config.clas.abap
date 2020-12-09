@@ -14,9 +14,9 @@ CLASS /mbtools/cl_proxy_config DEFINITION
   PUBLIC SECTION.
 
     METHODS constructor .
-    METHODS get_proxy_url
+    METHODS get_proxy_host
       RETURNING
-        VALUE(rv_proxy_url) TYPE string .
+        VALUE(rv_proxy_host) TYPE string .
     METHODS get_proxy_port
       RETURNING
         VALUE(rv_port) TYPE string .
@@ -27,7 +27,7 @@ CLASS /mbtools/cl_proxy_config DEFINITION
   PRIVATE SECTION.
     CONSTANTS:
       BEGIN OF c_proxy,
-        url  TYPE string VALUE 'ProxyURL',
+        host TYPE string VALUE 'ProxyHost',
         port TYPE string VALUE 'ProxyPort',
         auth TYPE string VALUE 'ProxyAuthentication',
       END OF c_proxy.
@@ -38,7 +38,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_PROXY_CONFIG IMPLEMENTATION.
+CLASS /mbtools/cl_proxy_config IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -55,18 +55,18 @@ CLASS /MBTOOLS/CL_PROXY_CONFIG IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_proxy_host.
+
+    rv_proxy_host = mo_settings->get_value( c_proxy-host ).
+
+  ENDMETHOD.
+
+
   METHOD get_proxy_port.
 
     rv_port = mo_settings->get_value( c_proxy-port ).
 
     CONDENSE rv_port.
-
-  ENDMETHOD.
-
-
-  METHOD get_proxy_url.
-
-    rv_proxy_url = mo_settings->get_value( c_proxy-url ).
 
   ENDMETHOD.
 ENDCLASS.

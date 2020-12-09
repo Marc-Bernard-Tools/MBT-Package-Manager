@@ -103,13 +103,14 @@ CLASS /mbtools/cl_edd DEFINITION
     CLASS-METHODS adjust_html
       IMPORTING
         !iv_html         TYPE string
+        !iv_headers      TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(rv_result) TYPE string .
 ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
+CLASS /mbtools/cl_edd IMPLEMENTATION.
 
 
   METHOD activate_license.
@@ -185,13 +186,16 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
   METHOD adjust_html.
 
+    DATA lv_text TYPE string.
+
     rv_result = iv_html.
 
     REPLACE ALL OCCURRENCES OF 'href="/' IN rv_result WITH 'href="' && /mbtools/if_definitions=>c_www_home.
 
-    REPLACE ALL OCCURRENCES OF '<p>' IN rv_result WITH '<h4>'.
-
-    REPLACE ALL OCCURRENCES OF '</p>' IN rv_result WITH '</h4>'.
+    IF iv_headers = abap_true.
+      REPLACE ALL OCCURRENCES OF '<p>' IN rv_result WITH '<h4>'.
+      REPLACE ALL OCCURRENCES OF '</p>' IN rv_result WITH '</h4>'.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -306,9 +310,10 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
     mi_log->i( |Endpoint { iv_url }| ).
 
     TRY.
-        lo_client = /mbtools/cl_http=>create_by_url( iv_url     = iv_url
-                                                     iv_request = 'GET'
-                                                     iv_content = 'application/x-www-form-urlencoded' ).
+        lo_client = /mbtools/cl_http=>create_by_url(
+          iv_url     = iv_url
+          iv_request = 'GET'
+          iv_content = 'application/x-www-form-urlencoded' ).
 
         lo_client->check_smart_response(
           iv_expected_content_type = 'application/json'
@@ -424,10 +429,13 @@ CLASS /MBTOOLS/CL_EDD IMPLEMENTATION.
 
         IF lo_json->get_string( '/a/1/key' ) = 'description'.
           ev_description = lo_json->get_string( '/a/1/val' ).
+          ev_description = adjust_html( ev_description ).
         ENDIF.
         IF lo_json->get_string( '/a/2/key' ) = 'changelog'.
           ev_changelog = lo_json->get_string( '/a/2/val' ).
-          ev_changelog = adjust_html( ev_changelog ).
+          ev_changelog = adjust_html(
+                           iv_html    = ev_changelog
+                           iv_headers = abap_true ).
         ENDIF.
       CATCH /mbtools/cx_ajson_error.
     ENDTRY.

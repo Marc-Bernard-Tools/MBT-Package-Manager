@@ -49,7 +49,6 @@ CLASS /mbtools/cl_tools DEFINITION
         key_changelog_url    TYPE string VALUE 'ChangelogURL' ##NO_TEXT,
         key_changelog_html   TYPE string VALUE 'ChangelogHTML' ##NO_TEXT,
         key_download_url     TYPE string VALUE 'DownloadURL' ##NO_TEXT,
-        key_changelog        TYPE string VALUE 'ChangelogHTML' ##NO_TEXT,
       END OF c_reg .
     " Evaluation
     CONSTANTS c_eval_days TYPE i VALUE 60 ##NO_TEXT.
@@ -75,6 +74,10 @@ CLASS /mbtools/cl_tools DEFINITION
         !iv_title      TYPE csequence DEFAULT /mbtools/cl_tool_bc=>c_tool-title
       RETURNING
         VALUE(ro_tool) TYPE REF TO /mbtools/cl_tools .
+    " Class Manifests
+    CLASS-METHODS get_manifests
+      RETURNING
+        VALUE(rt_manifests) TYPE /mbtools/manifests .
     CLASS-METHODS get_tools
       IMPORTING
         VALUE(iv_pattern)     TYPE csequence OPTIONAL
@@ -99,16 +102,29 @@ CLASS /mbtools/cl_tools DEFINITION
         !iv_action       TYPE string
       RETURNING
         VALUE(rv_result) TYPE abap_bool .
-    " Class Manifests
-    CLASS-METHODS get_manifests
+    CLASS-METHODS install
+      IMPORTING
+        !iv_title        TYPE csequence
       RETURNING
-        VALUE(rt_manifests) TYPE /mbtools/manifests .
+        VALUE(rv_result) TYPE abap_bool .
+    CLASS-METHODS update
+      IMPORTING
+        !io_tool         TYPE REF TO /mbtools/cl_tools
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool .
+    CLASS-METHODS uninstall
+      IMPORTING
+        !io_tool         TYPE REF TO /mbtools/cl_tools
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool .
     " Tool Manifest
     METHODS build_manifest
       RETURNING
         VALUE(rs_manifest) TYPE /mbtools/if_manifest=>ty_descriptor .
     " Tool Register/Unregister
     METHODS register
+      IMPORTING
+        !iv_update       TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(rv_result) TYPE abap_bool .
     METHODS unregister
@@ -280,7 +296,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
+CLASS /mbtools/cl_tools IMPLEMENTATION.
 
 
   METHOD activate.
@@ -378,7 +394,7 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
 
     " If newer version is available, save info
     IF /mbtools/cl_version=>compare( iv_current = get_version( )
-                                     iv_compare = lv_version ) < 0.
+                                     iv_compare = lv_version ) < 0 OR lv_version = '1.0.0'.
 
       lo_reg_entry = lo_reg_tool->get_subentry( c_reg-update ).
       CHECK lo_reg_entry IS BOUND.
@@ -713,11 +729,13 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           IF lv_update IS INITIAL.
             lv_update = lo_reg_entry->get_value( c_reg-key_install_time ).
           ENDIF.
-          rv_result = /mbtools/cl_datetime=>human_time_diff( lv_update ).
+          rv_result = /mbtools/cl_datetime=>human_time_diff( lv_update ) && ' ago'.
+        ELSE.
+          rv_result = 'never'.
         ENDIF.
 
       CATCH cx_root.
-        rv_result = ''.
+        rv_result = 'n/a'.
     ENDTRY.
 
   ENDMETHOD.
@@ -1116,6 +1134,14 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD install ##todo.
+
+    " call zcl_abapinst_installer=>install.
+    MESSAGE 'This feature is not implemented, yet' TYPE 'I'.
+
+  ENDMETHOD.
+
+
   METHOD is_active.
 
     rv_result = /mbtools/cl_switches=>is_active( mv_title ).
@@ -1404,10 +1430,12 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
         IF lo_reg_entry IS BOUND.
           GET TIME STAMP FIELD lv_timestamp.
           IF rv_result = abap_true.
-            lo_reg_entry->set_value( iv_key = c_reg-key_update_time
-                                     iv_value = lv_timestamp ).
-            lo_reg_entry->set_value( iv_key = c_reg-key_update_user
-                                     iv_value = sy-uname ).
+            IF iv_update = abap_true.
+              lo_reg_entry->set_value( iv_key = c_reg-key_update_time
+                                       iv_value = lv_timestamp ).
+              lo_reg_entry->set_value( iv_key = c_reg-key_update_user
+                                       iv_value = sy-uname ).
+            ENDIF.
           ELSE.
             lo_reg_entry->set_value( iv_key   = c_reg-key_install_time
                                      iv_value = lv_timestamp ).
@@ -1454,6 +1482,8 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
           lo_reg_entry = lo_reg_tool->add_subentry( c_reg-update ).
           IF lo_reg_entry IS BOUND.
             lo_reg_entry->set_value( c_reg-key_new_version ).
+            lo_reg_entry->set_value( c_reg-key_description_html ).
+            lo_reg_entry->set_value( c_reg-key_changelog_html ).
             lo_reg_entry->set_value( c_reg-key_changelog_url ).
             lo_reg_entry->set_value( c_reg-key_download_url ).
             lo_reg_entry->save( ).
@@ -1502,10 +1532,10 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
               lv_result = factory( ls_tool-name )->deactivate( ).
             WHEN /mbtools/if_actions=>tool_check.
               lv_result = factory( ls_tool-name )->check_version( ).
-            WHEN /mbtools/if_actions=>tool_update ##TODO.
-*              lv_result = factory( ls_tool-name )->update( ).
-            WHEN /mbtools/if_actions=>tool_uninstall ##TODO.
-*              lv_result = factory( ls_tool-name )->uninstall( ).
+            WHEN /mbtools/if_actions=>tool_update.
+              lv_result = install( ls_tool-name ).
+            WHEN /mbtools/if_actions=>tool_uninstall.
+              lv_result = uninstall( factory( ls_tool-name ) ).
             WHEN OTHERS.
               " unknow action
               ASSERT 0 = 1.
@@ -1520,6 +1550,14 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
     ENDLOOP.
 
     li_progress->hide( ).
+
+  ENDMETHOD.
+
+
+  METHOD uninstall ##todo.
+
+    " call zcl_abapinst_installer=>uninstall
+    MESSAGE 'This feature is not implemented, yet' TYPE 'I'.
 
   ENDMETHOD.
 
@@ -1571,6 +1609,13 @@ CLASS /MBTOOLS/CL_TOOLS IMPLEMENTATION.
       CATCH cx_root.
         rv_result = abap_false.
     ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD UPDATE ##todo.
+
+    " call zcl_abapinst_installer=>install with same parameters
 
   ENDMETHOD.
 ENDCLASS.

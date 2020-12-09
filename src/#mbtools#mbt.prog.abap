@@ -118,7 +118,7 @@ CLASS lcl_main IMPLEMENTATION.
             IF /mbtools/cl_gui_factory=>get_gui( )->back( ) = abap_true. " end of stack
               /mbtools/cl_gui_factory=>get_gui( )->free( ). " Graceful shutdown
             ELSE.
-              CALL SELECTION-SCREEN c_dynnr-main.
+              LEAVE TO SCREEN c_dynnr-main.
             ENDIF.
           CATCH cx_root.
         ENDTRY.

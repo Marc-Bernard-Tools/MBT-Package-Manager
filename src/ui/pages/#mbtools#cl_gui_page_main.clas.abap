@@ -23,16 +23,16 @@ CLASS /mbtools/cl_gui_page_main DEFINITION
         user    TYPE c VALUE 'U',
         admin   TYPE c VALUE 'A',
         license TYPE c VALUE 'L',
-      END OF c_mode.
+      END OF c_mode .
 
     METHODS constructor
       IMPORTING
-        iv_mode TYPE abap_bool OPTIONAL
+        !iv_mode TYPE abap_bool OPTIONAL
       RAISING
         /mbtools/cx_exception .
     CLASS-METHODS create
       IMPORTING
-        iv_mode        TYPE c OPTIONAL
+        !iv_mode       TYPE c OPTIONAL
       RETURNING
         VALUE(ri_page) TYPE REF TO /mbtools/if_gui_renderable
       RAISING
@@ -118,21 +118,25 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     DATA lo_tool TYPE REF TO /mbtools/cl_tools.
 
-    lo_tool = get_tool_from_param( ii_event->get_param( 'name' ) ).
+    IF ii_event->mv_action <> /mbtools/if_actions=>tool_install.
+      lo_tool = get_tool_from_param( ii_event->get_param( 'name' ) ).
 
-    validate_tool( io_tool   = lo_tool
-                   iv_action = ii_event->mv_action ).
+      validate_tool( io_tool   = lo_tool
+                     iv_action = ii_event->mv_action ).
+    ENDIF.
 
     CASE ii_event->mv_action.
 
       WHEN /mbtools/if_actions=>tool_check.
-        /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_check ).
-        MESSAGE 'Check for latest versions completed' TYPE 'S'.
+        IF /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_check ) = abap_true.
+          MESSAGE 'Check for latest versions completed' TYPE 'S'.
+        ENDIF.
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_update.
-        /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_update ).
-        MESSAGE 'Update to latest versions completed' TYPE 'S'.
+        IF /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_update ) = abap_true.
+          MESSAGE 'Update to latest versions completed' TYPE 'S'.
+        ENDIF.
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_docs.
@@ -155,12 +159,18 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
         lo_tool->deactivate( ).
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
-      WHEN /mbtools/if_actions=>tool_install ##TODO.
-        lo_tool->register( ).
+      WHEN /mbtools/if_actions=>tool_install.
+        IF /mbtools/cl_tools=>install( ii_event->get_param( 'name' ) ) = abap_true.
+          lo_tool->register( abap_true ).
+          MESSAGE 'Tool successfully installed' TYPE 'S'.
+        ENDIF.
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
-      WHEN /mbtools/if_actions=>tool_uninstall ##TODO.
-        lo_tool->unregister( ).
+      WHEN /mbtools/if_actions=>tool_uninstall.
+        IF /mbtools/cl_tools=>uninstall( lo_tool ) = abap_true.
+          lo_tool->unregister( ).
+          MESSAGE 'Tool successfully uninstalled' TYPE 'S'.
+        ENDIF.
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_changelog.
@@ -236,6 +246,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
     CASE mv_mode.
       WHEN c_mode-user.
         ri_html->add( render_tools( ) ).
+        ri_html->add( render_tool_details( ) ).
       WHEN c_mode-admin.
         ri_html->add( render_bundles( ) ).
         ri_html->add( render_tool_details( ) ).
@@ -329,7 +340,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
       iv_txt = 'Support'
       io_sub = lo_support_menu
     )->add(
-      iv_txt   = /mbtools/cl_html=>icon( iv_name  = 'bars/grey' )
+      iv_txt   = /mbtools/cl_gui_buttons=>admin( )
       iv_title = 'MBT'
       io_sub   = lo_bar_menu ).
 
@@ -453,6 +464,12 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
         IF io_tool->is_bundle( ) = abap_false.
           ri_html->add_a(
+            iv_act = |toggleDisplay('details-{ io_tool->get_name( ) }')|
+            iv_typ = zif_abapgit_html=>c_action_type-onclick
+            iv_txt = ri_html->icon( iv_name  = 'info/black'
+                                    iv_hint  = 'View tool infos' ) ).
+
+          ri_html->add_a(
             iv_act = |{ /mbtools/if_actions=>tool_docs }?name={ io_tool->get_name( ) }|
             iv_txt = ri_html->icon( iv_name  = 'question/black'
                                     iv_hint  = 'Display tool documentation' ) ).
@@ -486,40 +503,43 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
       WHEN c_mode-license.
 
-        lo_form = /mbtools/cl_html_form=>create( iv_form_id     = |license-{ io_tool->get_name( ) }|
-                                                 iv_form_action = /mbtools/if_actions=>tool_license ).
+        IF io_tool->is_bundle( ) = abap_false.
+          lo_form = /mbtools/cl_html_form=>create( iv_form_id     = |license-{ io_tool->get_name( ) }|
+                                                   iv_form_action = /mbtools/if_actions=>tool_license ).
 
-        CREATE OBJECT lo_values.
+          CREATE OBJECT lo_values.
 
-        lo_values->set( iv_key = 'name'
-                        iv_val = io_tool->get_name( ) ).
-        lo_values->set( iv_key = 'license'
-                        iv_val = io_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_key ) ).
+          lo_values->set( iv_key = 'name'
+                          iv_val = io_tool->get_name( ) ).
+          lo_values->set( iv_key = 'license'
+                          iv_val = io_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_key ) ).
 
-        lo_form->hidden( iv_name = 'name' ).
+          lo_form->hidden( iv_name = 'name' ).
 
-        lo_form->text(
-          iv_name        = 'license'
-          iv_size        = 32
-          iv_required    = abap_false
-          iv_label       = ''
-          iv_hint        = 'You can find the license key in your account area on the MBT website'
-          iv_placeholder = 'License Key' ).
+          lo_form->text(
+            iv_name        = 'license'
+            iv_min         = 32
+            iv_max         = 32
+            iv_required    = abap_false
+            iv_label       = ''
+            iv_hint        = 'You can find the license key in your account area on the MBT website'
+            iv_placeholder = 'License Key' ).
 
-        lo_form->command(
-          iv_cmd_type = /mbtools/cl_html_form=>c_cmd_type-button
-          iv_action   = /mbtools/if_actions=>license_add
-          iv_label    = ri_html->icon( iv_name  = 'save/black'
-                                       iv_hint  = 'Save and activate license key' ) ).
+          lo_form->command(
+            iv_cmd_type = /mbtools/cl_html_form=>c_cmd_type-button
+            iv_action   = /mbtools/if_actions=>license_add
+            iv_label    = ri_html->icon( iv_name  = 'save/black'
+                                         iv_hint  = 'Save and activate license key' ) ).
 
-        lo_form->command(
-          iv_cmd_type = /mbtools/cl_html_form=>c_cmd_type-button
-          iv_action   = /mbtools/if_actions=>license_remove
-          iv_label    = ri_html->icon( iv_name  = 'trash-alt/black'
-                                       iv_hint  = 'Deactivate and remove license key' ) ).
+          lo_form->command(
+            iv_cmd_type = /mbtools/cl_html_form=>c_cmd_type-button
+            iv_action   = /mbtools/if_actions=>license_remove
+            iv_label    = ri_html->icon( iv_name  = 'trash-alt/black'
+                                         iv_hint  = 'Deactivate and remove license key' ) ).
 
-        ri_html->add( lo_form->render( iv_form_class = 'tool-license'
-                                       io_values     = lo_values ) ).
+          ri_html->add( lo_form->render( iv_form_class = 'tool-license'
+                                         io_values     = lo_values ) ).
+        ENDIF.
 
     ENDCASE.
 
@@ -537,10 +557,8 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     lo_bundle = /mbtools/cl_tools=>factory( iv_title ).
 
-    lt_tools = /mbtools/cl_tools=>get_tools( iv_bundle_id   = lo_bundle->get_bundle_id( )
-                                             iv_get_bundles = abap_false
-                                             iv_get_tools   = abap_true
-                                             iv_admin       = abap_true ).
+    lt_tools = /mbtools/cl_tools=>get_tools( iv_bundle_id = lo_bundle->get_bundle_id( )
+                                             iv_admin     = abap_true ).
 
     IF lt_tools IS INITIAL.
       RETURN.
@@ -636,8 +654,12 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
       WHEN c_mode-admin.
         IF lo_tool->is_bundle( ) = abap_false.
-          lv_details = |Version: { lo_tool->get_version( ) } \| Last update: {
-            lo_tool->get_last_update( ) } ago|.
+          lv_details = |toggleDisplay('details-{ lo_tool->get_name( ) }')|.
+          lv_details = ri_html->a( iv_act = lv_details
+                                   iv_typ = zif_abapgit_html=>c_action_type-onclick
+                                   iv_txt = |View details| ).
+          lv_details = |Version: { lo_tool->get_version( ) } \| | &&
+                       |{ lv_details } \| Last update: { lo_tool->get_last_update( ) }|.
 
           IF NOT lo_tool->get_new_version( ) IS INITIAL.
             lv_changelog = |toggleDisplay('changelog-{ lo_tool->get_name( ) }')|.
@@ -656,16 +678,18 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
         ENDIF.
 
       WHEN c_mode-license.
-        IF lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_valid ) = abap_true.
-          lv_expire = lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_expire ).
-          lv_details = /mbtools/cl_datetime=>get_long_date( lv_expire ).
-          lv_details = |<span class="has-mbt-green-color">{ lv_details }</span>|.
-          lv_details = |Your license key expires { lv_details }|.
-        ELSEIF NOT lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_key ) IS INITIAL.
-          lv_details = |<span class="has-mbt-red-color">expired</span>|.
-          lv_details = |Your license key has { lv_details }. Please enter a valid key.|.
-        ELSE.
-          lv_details = 'To receive updates, please enter your valid license key'.
+        IF lo_tool->is_bundle( ) = abap_false.
+          IF lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_valid ) = abap_true.
+            lv_expire = lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_expire ).
+            lv_details = /mbtools/cl_datetime=>get_long_date( lv_expire ).
+            lv_details = |<span class="has-mbt-green-color">{ lv_details }</span>|.
+            lv_details = |Your license key expires { lv_details }|.
+          ELSEIF NOT lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_key ) IS INITIAL.
+            lv_details = |<span class="has-mbt-red-color">expired</span>|.
+            lv_details = |Your license key has { lv_details }. Please enter a valid key.|.
+          ELSE.
+            lv_details = 'To receive updates, please enter your valid license key'.
+          ENDIF.
         ENDIF.
     ENDCASE.
 
@@ -732,29 +756,47 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     ri_html = /mbtools/cl_html=>create( ).
 
-    IF mv_mode <> c_mode-admin.
-      RETURN.
-    ENDIF.
-
-    lt_tools = /mbtools/cl_tools=>get_tools( ).
+    CASE mv_mode.
+      WHEN c_mode-user.
+        lt_tools = /mbtools/cl_tools=>get_tools( ).
+      WHEN c_mode-admin.
+        lt_tools = /mbtools/cl_tools=>get_tools( iv_admin = abap_true ).
+      WHEN c_mode-license.
+        RETURN.
+    ENDCASE.
 
     LOOP AT lt_tools INTO ls_tool.
       lo_tool = /mbtools/cl_tools=>factory( ls_tool-name ).
 
-      lv_html = lo_tool->get_html_changelog( ).
-
-      CHECK NOT lv_html IS INITIAL.
-
+      " Description
       li_html = /mbtools/cl_html=>create( ).
 
-      " li_html->add( |<span class="title">{ lo_tool->get_title( ) }</span>| )
-
-      li_html->add( lv_html ).
+      lv_html = lo_tool->get_html_description( ).
+      IF lv_html IS INITIAL.
+        li_html->add( 'Details become available after first update run' ).
+        li_html->add( '(see Admin > Tools > Check for Updates)' ).
+      ELSE.
+        li_html->add( lv_html ).
+      ENDIF.
 
       ri_html->add( /mbtools/cl_html_lib=>render_infopanel(
-        iv_div_id     = |changelog-{ lo_tool->get_name( ) }|
-        iv_title      = |Changelog for { lo_tool->get_title( ) }|
-        ii_content    = li_html ) ).
+        iv_div_id  = |details-{ lo_tool->get_name( ) }|
+        iv_title   = |Details of { lo_tool->get_title( ) }|
+        ii_content = li_html ) ).
+
+      " Changelog
+      li_html = /mbtools/cl_html=>create( ).
+
+      lv_html = lo_tool->get_html_changelog( ).
+      IF lv_html IS NOT INITIAL.
+        li_html->add( lv_html ).
+
+        ri_html->add( /mbtools/cl_html_lib=>render_infopanel(
+          iv_div_id  = |changelog-{ lo_tool->get_name( ) }|
+          iv_title   = |Changelog for { lo_tool->get_title( ) }|
+          ii_content = li_html ) ).
+      ENDIF.
+
     ENDLOOP.
 
   ENDMETHOD.

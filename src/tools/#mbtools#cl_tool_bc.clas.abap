@@ -22,7 +22,7 @@ CLASS /mbtools/cl_tool_bc DEFINITION
         title       TYPE string VALUE 'MBT Base' ##NO_TEXT,
         description TYPE string VALUE 'Foundation for Marc Bernard Tools' ##NO_TEXT,
         bundle_id   TYPE i VALUE 0,
-        download_id TYPE i VALUE 4480,
+        download_id TYPE i VALUE 4873,
       END OF c_tool.
 
     METHODS constructor .
@@ -35,7 +35,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_TOOL_BC IMPLEMENTATION.
+CLASS /mbtools/cl_tool_bc IMPLEMENTATION.
 
 
   METHOD constructor.

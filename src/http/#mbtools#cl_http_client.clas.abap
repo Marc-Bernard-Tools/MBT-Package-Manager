@@ -26,6 +26,9 @@ CLASS /mbtools/cl_http_client DEFINITION
         VALUE(rv_data) TYPE xstring
       RAISING
         /mbtools/cx_exception .
+    METHODS get_data
+      RETURNING
+        VALUE(rv_value) TYPE xstring .
     METHODS get_cdata
       RETURNING
         VALUE(rv_value) TYPE string .
@@ -55,7 +58,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_HTTP_CLIENT IMPLEMENTATION.
+CLASS /mbtools/cl_http_client IMPLEMENTATION.
 
 
   METHOD check_http_200.
@@ -128,6 +131,11 @@ CLASS /MBTOOLS/CL_HTTP_CLIENT IMPLEMENTATION.
 
   METHOD get_cdata.
     rv_value = mi_client->response->get_cdata( ).
+  ENDMETHOD.
+
+
+  METHOD get_data.
+    rv_value = mi_client->response->get_data( ).
   ENDMETHOD.
 
 

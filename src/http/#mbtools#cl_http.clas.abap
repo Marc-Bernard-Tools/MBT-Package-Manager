@@ -70,7 +70,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
+CLASS /mbtools/cl_http IMPLEMENTATION.
 
 
   METHOD acquire_login_details.
@@ -161,7 +161,7 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
       EXPORTING
         url                = iv_url
         ssl_id             = 'ANONYM'
-        proxy_host         = lo_proxy_configuration->get_proxy_url( )
+        proxy_host         = lo_proxy_configuration->get_proxy_host( )
         proxy_service      = lo_proxy_configuration->get_proxy_port( )
       IMPORTING
         client             = li_client
@@ -173,12 +173,11 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
     IF sy-subrc <> 0.
       CASE sy-subrc.
         WHEN 1.
-          " make sure:
-          " a) SSL is setup properly in STRUST
-          lv_text = 'HTTPS ARGUMENT_NOT_FOUND | STRUST/SSL Setup correct?' ##NO_TEXT.
+          lv_text = 'Error creating HTTPS connection. Check SSL setup in transaction STRUST' ##NO_TEXT.
+        WHEN 2.
+          lv_text = 'Error creating HTTPS connection. Check service setup in transaction SMICM' ##NO_TEXT.
         WHEN OTHERS.
-          lv_text = 'While creating HTTP Client'.           "#EC NOTEXT
-
+          lv_text = 'Error creating HTTP/HTTPS client' ##NO_TEXT.
       ENDCASE.
       /mbtools/cx_exception=>raise( lv_text ).
     ENDIF.
@@ -195,6 +194,7 @@ CLASS /MBTOOLS/CL_HTTP IMPLEMENTATION.
       li_client->send_sap_logon_ticket( ).
     ENDIF.
 
+    li_client->request->set_compression( ).
     li_client->request->set_cdata( '' ).
     li_client->request->set_header_field(
         name  = '~request_method'

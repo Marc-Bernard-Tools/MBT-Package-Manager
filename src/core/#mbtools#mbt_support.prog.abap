@@ -289,15 +289,15 @@ START-OF-SELECTION.
               gv_flag   = go_tool->check_version( ).
               gv_action = 'version checked'.
 
-            WHEN p_update ##TODO.
+            WHEN p_update.
 
-              " gv_flag   = go_tool->update( ).
-              gv_action = 'uninstalled ##TODO'.
+              gv_flag   = /mbtools/cl_tools=>update( go_tool ).
+              gv_action = 'updated'.
 
-            WHEN p_uninst ##TODO.
+            WHEN p_uninst.
 
-              " gv_flag   = go_tool->uninstall( ).
-              gv_action = 'uninstalled ##TODO'.
+              gv_flag   = /mbtools/cl_tools=>uninstall( go_tool ).
+              gv_action = 'uninstalled'.
 
           ENDCASE.
 
