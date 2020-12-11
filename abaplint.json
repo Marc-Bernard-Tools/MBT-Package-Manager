@@ -149,7 +149,9 @@
         },
         "class_attribute_names": {
             "constants": "^C_.+$",
-            "exclude": [],
+            "exclude": [
+                "#mbtools#if_actions.intf.abap"
+            ],
             "ignoreExceptions": true,
             "ignoreInterfaces": false,
             "ignoreLocal": false,
@@ -624,7 +626,9 @@
             ],
             "severity": "Error",
             "skipNames": [
-                "C_TOOL"
+                "C_TOOL",
+                "IO_TOOL",
+                "RV_RESULT"
             ]
         },
         "use_bool_expression": {
