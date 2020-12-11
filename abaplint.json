@@ -617,14 +617,15 @@
             "severity": "Error"
         },
         "unused_types": {
-            "exclude": [],
+            "exclude": [
+                "#mbtools#if_definitions.intf.abap"
+            ],
             "severity": "Error",
             "skipNames": []
         },
         "unused_variables": {
             "exclude": [
-                "#mbtools#cl_logger.*",
-                "#mbtools#if_definitions.intf.abap"
+                "#mbtools#cl_logger.*"
             ],
             "severity": "Error",
             "skipNames": [
