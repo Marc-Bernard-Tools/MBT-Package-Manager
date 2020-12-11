@@ -150,7 +150,8 @@
         "class_attribute_names": {
             "constants": "^C_.+$",
             "exclude": [
-                "#mbtools#if_actions.intf.abap"
+                "#mbtools#if_actions.intf.abap",
+                "#mbtools#if_manifest.intf.abap"
             ],
             "ignoreExceptions": true,
             "ignoreInterfaces": false,
@@ -622,7 +623,8 @@
         },
         "unused_variables": {
             "exclude": [
-                "#mbtools#cl_logger.*"
+                "#mbtools#cl_logger.*",
+                "#mbtools#if_definitions.intf.abap"
             ],
             "severity": "Error",
             "skipNames": [
