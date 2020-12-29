@@ -20,7 +20,9 @@
     },
     "rules": {
         "7bit_ascii": {
-            "exclude": [],
+            "exclude": [
+                "#mbtools#cl_screen.clas.abap"
+            ],
             "severity": "Error"
         },
         "abapdoc": {
@@ -72,7 +74,9 @@
             "define": true,
             "describeLines": true,
             "endselect": false,
-            "exclude": [],
+            "exclude": [
+                "#mbtools#cl_utilities.clas.abap"
+            ],
             "execSQL": true,
             "kernelCall": true,
             "severity": "Error",
@@ -150,6 +154,7 @@
         "class_attribute_names": {
             "constants": "^C_.+$",
             "exclude": [
+                "#mbtools#cl_tree_level.clas.abap",
                 "#mbtools#if_actions.intf.abap",
                 "#mbtools#if_manifest.intf.abap"
             ],
@@ -267,7 +272,10 @@
                 "^sytabix$",
                 "^syuzeit$"
             ],
-            "exclude": [],
+            "exclude": [
+                "#mbtools#cl_registry_ui.clas.abap",
+                "#mbtools#cl_tree.clas.abap"
+            ],
             "severity": "Error"
         },
         "form_tables_obsolete": {
@@ -374,7 +382,9 @@
             "severity": "Error"
         },
         "local_variable_names": {
-            "exclude": [],
+            "exclude": [
+                "#mbtools#cl_string_map.clas.abap"
+            ],
             "expectedConstant": "^LC_.+$",
             "expectedData": "^L._.+$",
             "expectedFS": "^<L._.+>$",
@@ -398,8 +408,8 @@
         "method_length": {
             "errorWhenEmpty": true,
             "exclude": [],
-            "ignoreTestClasses": false,
-            "severity": "Error",
+            "ignoreTestClasses": true,
+            "severity": "Warning",
             "statements": 100
         },
         "method_parameter_names": {
@@ -441,7 +451,10 @@
         },
         "no_public_attributes": {
             "allowReadOnly": true,
-            "exclude": [],
+            "exclude": [
+                "#mbtools#cl_registry_ui.clas.abap",
+                "#mbtools#cl_tree_level.clas.abap"
+            ],
             "severity": "Error"
         },
         "object_naming": {
@@ -625,7 +638,9 @@
         },
         "unused_variables": {
             "exclude": [
-                "#mbtools#cl_logger.*"
+                "#mbtools#cl_datetime.clas.abap",
+                "#mbtools#cl_logger.*",
+                "#mbtools#cl_tree.clas.abap"
             ],
             "severity": "Error",
             "skipNames": [
@@ -686,6 +701,9 @@
             "icon_tools",
             "icon_url",
             "icon_write_file",
+            "rs_c_obj_dtel",
+            "rs_c_obj_tabl",
+            "rs_c_obj_nrob",
             "rs_c_objvers",
             "rs_c_tlogo",
             "rsd_c_cubetype",
