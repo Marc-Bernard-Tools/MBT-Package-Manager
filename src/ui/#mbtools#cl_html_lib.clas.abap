@@ -26,9 +26,6 @@ CLASS /mbtools/cl_html_lib DEFINITION
         add_tz       TYPE abap_bool,
         title        TYPE string,
       END OF ty_col_spec .
-    TYPES:
-      ty_col_specs TYPE STANDARD TABLE OF ty_col_spec
-                                    WITH NON-UNIQUE KEY tech_name .
 
     CLASS-METHODS class_constructor .
     CLASS-METHODS render_error
@@ -39,13 +36,6 @@ CLASS /mbtools/cl_html_lib DEFINITION
       RETURNING
         VALUE(ri_html)  TYPE REF TO /mbtools/if_html .
     CLASS-METHODS render_js_error_banner
-      RETURNING
-        VALUE(ri_html) TYPE REF TO /mbtools/if_html
-      RAISING
-        /mbtools/cx_exception .
-    CLASS-METHODS render_news
-      IMPORTING
-        !io_news       TYPE REF TO /mbtools/cl_news
       RETURNING
         VALUE(ri_html) TYPE REF TO /mbtools/if_html
       RAISING
@@ -302,53 +292,6 @@ CLASS /mbtools/cl_html_lib IMPLEMENTATION.
                   ' If this does not disappear soon,' &&
                   ' then there is a JS init error, please log an issue' ).
     ri_html->add( '</div>' ).
-
-  ENDMETHOD.
-
-
-  METHOD render_news.
-
-    DATA: lv_text TYPE string,
-          lv_hint TYPE string,
-          lt_log  TYPE /mbtools/cl_news=>ty_logs.
-
-    FIELD-SYMBOLS: <ls_line> LIKE LINE OF lt_log.
-
-    ri_html = /mbtools/cl_html=>create( ).
-
-    IF io_news IS NOT BOUND OR io_news->has_news( ) = abap_false.
-      RETURN.
-    ENDIF.
-
-    lt_log = io_news->get_log( ).
-
-    " Render news
-    LOOP AT lt_log ASSIGNING <ls_line>.
-      IF <ls_line>-is_header = abap_true.
-        IF <ls_line>-pos_to_cur > 0.
-          lv_text = <ls_line>-text && '<span class="version-marker update">update</span>'.
-        ELSEIF <ls_line>-pos_to_cur = 0.
-          lv_text = <ls_line>-text && '<span class="version-marker">current</span>'.
-        ELSE. " < 0
-          lv_text = <ls_line>-text.
-        ENDIF.
-        ri_html->add( |<h1>{ lv_text }</h1>| ).
-      ELSE.
-        ri_html->add( |<li>{ <ls_line>-text }</li>| ).
-      ENDIF.
-    ENDLOOP.
-
-    " Wrap
-    IF io_news->has_important( ) = abap_true.
-      lv_hint = 'Please note changes marked with "!"'.
-    ENDIF.
-
-    ri_html = render_infopanel(
-      iv_div_id  = 'news'
-      iv_title   = 'Announcement of Latest Changes'
-      iv_hint    = lv_hint
-      iv_hide    = boolc( io_news->has_unseen( ) = abap_false )
-      ii_content = ri_html ).
 
   ENDMETHOD.
 

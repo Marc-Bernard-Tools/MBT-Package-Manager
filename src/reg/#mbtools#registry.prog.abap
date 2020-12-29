@@ -12,8 +12,6 @@ REPORT /mbtools/registry MESSAGE-ID /mbtools/bc.
 * Ported to namespace and enhanced by Marc Bernard Tools
 ************************************************************************
 
-TYPE-POOLS: icon.
-
 " For splitter container
 DATA: gr_splitter TYPE REF TO cl_gui_easy_splitter_container.
 

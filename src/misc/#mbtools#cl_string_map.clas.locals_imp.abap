@@ -21,10 +21,10 @@ ENDCLASS.
 
 CLASS lcx_error IMPLEMENTATION.
   METHOD raise.
-    DATA lx TYPE REF TO lcx_error.
-    CREATE OBJECT lx.
-    lx->msg = iv_msg.
-    lx->if_t100_message~t100key = c_error_signature.
-    RAISE EXCEPTION lx.
+    DATA lx_error TYPE REF TO lcx_error.
+    CREATE OBJECT lx_error.
+    lx_error->msg = iv_msg.
+    lx_error->if_t100_message~t100key = c_error_signature.
+    RAISE EXCEPTION lx_error.
   ENDMETHOD.
 ENDCLASS.

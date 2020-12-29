@@ -8,7 +8,6 @@ CLASS /mbtools/cl_screen DEFINITION
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
   PUBLIC SECTION.
-    TYPE-POOLS cndp .
 
     TYPES:
       ty_screen_field TYPE c LENGTH 83 .
@@ -88,7 +87,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
+CLASS /mbtools/cl_screen IMPLEMENTATION.
 
 
   METHOD banner.
@@ -109,7 +108,7 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    IF NOT go_banner IS BOUND.
+    IF go_banner IS NOT BOUND.
       CREATE OBJECT go_banner EXPORTING parent = go_banner_dock.
 
       go_banner->set_3d_border( border = 0 ).
@@ -261,7 +260,7 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    IF NOT go_logo IS BOUND.
+    IF go_logo IS NOT BOUND.
       CREATE OBJECT go_logo EXPORTING parent = go_logo_dock.
 
       go_logo->set_3d_border( border = 0 ).
@@ -345,11 +344,7 @@ CLASS /MBTOOLS/CL_SCREEN IMPLEMENTATION.
       RETURN. " No change required
     ENDIF.
 
-    IF iv_show = abap_true.
-      ls_header-no_toolbar = abap_false.
-    ELSE.
-      ls_header-no_toolbar = abap_true.
-    ENDIF.
+    ls_header-no_toolbar = boolc( iv_show = abap_false ).
 
     CALL FUNCTION 'RPY_DYNPRO_INSERT'
       EXPORTING

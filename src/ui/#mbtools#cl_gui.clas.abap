@@ -518,7 +518,7 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
       ENDLOOP.
     ENDIF.
 
-    ls_event-eventid    = mi_html_viewer->m_id_sapevent.
+    ls_event-eventid    = mi_html_viewer->c_id_sapevent.
     ls_event-appl_event = abap_true.
     APPEND ls_event TO lt_events.
 

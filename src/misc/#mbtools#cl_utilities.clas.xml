@@ -39,6 +39,12 @@
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/MBTOOLS/CL_UTILITIES</CLSNAME>
+     <CMPNAME>GET_HANA_RELEASE</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Return HANA release, version, and patch info</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_UTILITIES</CLSNAME>
      <CMPNAME>GET_KERNEL_RELEASE</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Return Kernel release, version, and patch info</DESCRIPT>

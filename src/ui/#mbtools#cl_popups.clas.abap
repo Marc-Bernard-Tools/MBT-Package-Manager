@@ -2,7 +2,7 @@ CLASS /mbtools/cl_popups DEFINITION
   PUBLIC
   FINAL
   CREATE PRIVATE
-  GLOBAL FRIENDS /mbtools/cl_gui_factory .
+  GLOBAL FRIENDS /mbtools/cl_gui_factory.
 
 ************************************************************************
 * MBT Popups
@@ -14,20 +14,20 @@ CLASS /mbtools/cl_popups DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    INTERFACES /mbtools/if_popups .
+    INTERFACES /mbtools/if_popups.
 
     ALIASES popup_search_help
-      FOR /mbtools/if_popups~popup_search_help .
+      FOR /mbtools/if_popups~popup_search_help.
     ALIASES popup_to_confirm
-      FOR /mbtools/if_popups~popup_to_confirm .
+      FOR /mbtools/if_popups~popup_to_confirm.
     ALIASES popup_to_inform
-      FOR /mbtools/if_popups~popup_to_inform .
+      FOR /mbtools/if_popups~popup_to_inform.
     ALIASES popup_to_select_from_list
-      FOR /mbtools/if_popups~popup_to_select_from_list .
+      FOR /mbtools/if_popups~popup_to_select_from_list.
     ALIASES popup_to_select_transports
-      FOR /mbtools/if_popups~popup_to_select_transports .
+      FOR /mbtools/if_popups~popup_to_select_transports.
     ALIASES popup_transport_request
-      FOR /mbtools/if_popups~popup_transport_request .
+      FOR /mbtools/if_popups~popup_transport_request.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -36,10 +36,10 @@ CLASS /mbtools/cl_popups DEFINITION
 
     CONSTANTS c_fieldname_selected TYPE lvc_fname VALUE `SELECTED` ##NO_TEXT.
 
-    DATA mo_select_list_popup TYPE REF TO cl_salv_table .
-    DATA mr_table TYPE REF TO data .
+    DATA mo_select_list_popup TYPE REF TO cl_salv_table.
+    DATA mr_table TYPE REF TO data.
     DATA mv_cancel TYPE abap_bool VALUE abap_false.
-    DATA mo_table_descr TYPE REF TO cl_abap_tabledescr .
+    DATA mo_table_descr TYPE REF TO cl_abap_tabledescr.
 
     METHODS add_field
       IMPORTING
@@ -50,32 +50,32 @@ CLASS /mbtools/cl_popups DEFINITION
         !iv_field_attr TYPE sval-field_attr DEFAULT ''
         !iv_obligatory TYPE spo_obl OPTIONAL
       CHANGING
-        !ct_fields     TYPE ty_sval_tt .
+        !ct_fields     TYPE ty_sval_tt.
     METHODS create_new_table
       IMPORTING
-        !it_list TYPE STANDARD TABLE .
+        !it_list TYPE STANDARD TABLE.
     METHODS get_selected_rows
       EXPORTING
-        !et_list TYPE INDEX TABLE .
+        !et_list TYPE INDEX TABLE.
     METHODS on_select_list_link_click
         FOR EVENT link_click OF cl_salv_events_table
       IMPORTING
         !row
-        !column .
+        !column.
     METHODS on_select_list_function_click
         FOR EVENT added_function OF cl_salv_events_table
       IMPORTING
-        !e_salv_function .
+        !e_salv_function.
     METHODS on_double_click
         FOR EVENT double_click OF cl_salv_events_table
       IMPORTING
         !row
-        !column .
+        !column.
 ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_POPUPS IMPLEMENTATION.
+CLASS /mbtools/cl_popups IMPLEMENTATION.
 
 
   METHOD /mbtools/if_popups~popup_search_help.
@@ -223,7 +223,7 @@ CLASS /MBTOOLS/CL_POPUPS IMPLEMENTATION.
 
           lo_column ?= ls_column-r_column.
 
-          IF    iv_selection_mode    = if_salv_c_selection_mode=>multiple
+          IF iv_selection_mode = if_salv_c_selection_mode=>multiple
             AND ls_column-columnname = c_fieldname_selected.
             lo_column->set_cell_type( if_salv_c_cell_type=>checkbox_hotspot ).
             lo_column->set_output_length( 20 ).
@@ -289,7 +289,7 @@ CLASS /MBTOOLS/CL_POPUPS IMPLEMENTATION.
       IMPORTING
         ev_selected_request = lv_trkorr.
 
-    IF NOT lv_trkorr IS INITIAL.
+    IF lv_trkorr IS NOT INITIAL.
       ls_trkorr-trkorr = lv_trkorr.
       APPEND ls_trkorr TO rt_trkorr.
     ENDIF.
@@ -417,12 +417,12 @@ CLASS /MBTOOLS/CL_POPUPS IMPLEMENTATION.
         READ TABLE <lt_table>
           ASSIGNING <lg_line>
           INDEX <lv_selected_row>.
-        CHECK <lv_selected_row> IS ASSIGNED.
+        CHECK sy-subrc = 0.
 
         ASSIGN COMPONENT c_fieldname_selected
            OF STRUCTURE <lg_line>
            TO <lv_selected>.
-        CHECK <lv_selected> IS ASSIGNED.
+        CHECK sy-subrc = 0.
 
         <lv_selected> = abap_true.
 

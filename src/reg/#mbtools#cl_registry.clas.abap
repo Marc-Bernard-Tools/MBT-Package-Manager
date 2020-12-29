@@ -211,7 +211,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
+CLASS /mbtools/cl_registry IMPLEMENTATION.
 
 
   METHOD add_subentry.
@@ -232,7 +232,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 * sensible paths and string handling in other applications
 * Most of all, we want to avoid spaces and slashes (although those
 * square and curly brackets could cause problems for JSON...)
-    IF NOT iv_key CO 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890@#$%^_+-().'.
+    IF iv_key CN 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890@#$%^_+-().'.
       /mbtools/cx_exception=>raise( 'Invalid registry key'(007) ).
     ENDIF.
 
@@ -555,7 +555,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
     IMPORT values = lt_values sub_entries = lt_sub_entries
       FROM DATABASE /mbtools/regs(zr) ID c_registry_root.
-    IF sy-subrc NE 0.
+    IF sy-subrc <> 0.
 *>>>INS
       ls_regs-chdate = sy-datum.
       ls_regs-chtime = sy-uzeit.
@@ -610,7 +610,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
     ENDIF.
 
 * Search global index of registry entry instances
-    READ TABLE gt_registry_entries INTO ls_ko WITH KEY key =  ls_kv-value.
+    READ TABLE gt_registry_entries INTO ls_ko WITH KEY key = ls_kv-value.
     IF sy-subrc = 0.
 * Reference already exists; return that
       ro_entry = ls_ko-value.
@@ -746,7 +746,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 *--------------------------------------------------------------------*
     IMPORT values = mt_values sub_entries = mt_sub_entries parent = mv_parent_key entry_id = mv_entry_id
       FROM DATABASE /mbtools/regs(zr) ID mv_internal_key.
-    IF sy-subrc NE 0.
+    IF sy-subrc <> 0.
       /mbtools/cx_exception=>raise( 'Registry entry does not exist'(006) ).
     ENDIF.
 *>>>INS
@@ -795,7 +795,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
 * Read internal store of sub-entries
     READ TABLE mt_sub_entries INTO ls_kv WITH KEY key = iv_key.
-    IF sy-subrc NE 0.
+    IF sy-subrc <> 0.
 * Entry does not exist; exit with error
       /mbtools/cx_exception=>raise( 'Registry entry does not exist'(006) ).
     ENDIF.
@@ -877,7 +877,7 @@ CLASS /MBTOOLS/CL_REGISTRY IMPLEMENTATION.
 
 * Add the value to set of values if not existing or change if it does exist
     READ TABLE mt_values INTO ls_kv WITH KEY key = iv_key.
-    IF sy-subrc NE 0.
+    IF sy-subrc <> 0.
       ls_kv-key   = iv_key.
       ls_kv-value = iv_value.
       INSERT ls_kv INTO TABLE mt_values.

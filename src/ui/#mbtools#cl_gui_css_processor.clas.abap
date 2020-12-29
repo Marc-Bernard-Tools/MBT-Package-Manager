@@ -53,7 +53,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_GUI_CSS_PROCESSOR IMPLEMENTATION.
+CLASS /mbtools/cl_gui_css_processor IMPLEMENTATION.
 
 
   METHOD add_file.
@@ -158,9 +158,11 @@ CLASS /MBTOOLS/CL_GUI_CSS_PROCESSOR IMPLEMENTATION.
           resolve_var_recursively( EXPORTING iv_variable_name = lv_variable_name
                                    CHANGING  ct_variables     = ct_variables ).
           READ TABLE ct_variables WITH TABLE KEY name = lv_variable_name ASSIGNING <ls_other_variable>.
-          REPLACE FIRST OCCURRENCE OF |var(--{ lv_variable_name })|
-                  IN <ls_variable>-value
-                  WITH <ls_other_variable>-value.
+          IF sy-subrc = 0.
+            REPLACE FIRST OCCURRENCE OF |var(--{ lv_variable_name })|
+                    IN <ls_variable>-value
+                    WITH <ls_other_variable>-value.
+          ENDIF.
         ELSE.
           EXIT.
         ENDIF.

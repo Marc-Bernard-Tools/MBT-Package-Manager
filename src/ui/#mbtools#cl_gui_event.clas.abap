@@ -30,7 +30,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_GUI_EVENT IMPLEMENTATION.
+CLASS /mbtools/cl_gui_event IMPLEMENTATION.
 
 
   METHOD /mbtools/if_gui_event~form_data.
@@ -90,7 +90,7 @@ CLASS /MBTOOLS/CL_GUI_EVENT IMPLEMENTATION.
 
     " Combine get and post data
     lv_buffer = iv_getdata.
-    IF NOT iv_getdata IS INITIAL AND NOT it_postdata IS INITIAL.
+    IF iv_getdata IS NOT INITIAL AND it_postdata IS NOT INITIAL.
       CONCATENATE lv_buffer '&' INTO lv_buffer.
     ENDIF.
     LOOP AT it_postdata REFERENCE INTO lo_data.

@@ -76,7 +76,7 @@ CLASS /mbtools/cl_http DEFINITION
       BEGIN OF c_login,
         user TYPE string VALUE 'LoginUser',
       END OF c_login .
-    CLASS-DATA mo_settings TYPE REF TO /mbtools/cl_registry .
+    CLASS-DATA go_settings TYPE REF TO /mbtools/cl_registry .
 ENDCLASS.
 
 
@@ -92,7 +92,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
           lo_digest       TYPE REF TO /mbtools/cl_http_digest.
 
 
-    lv_default_user = mo_settings->get_value( c_login-user ).
+    lv_default_user = go_settings->get_value( c_login-user ).
     lv_user         = lv_default_user.
 
     /mbtools/cl_password_dialog=>popup(
@@ -108,9 +108,9 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
 
     IF lv_user <> lv_default_user.
       TRY.
-          mo_settings->set_value( iv_key = c_login-user
+          go_settings->set_value( iv_key = c_login-user
                                   iv_value = lv_user ).
-          mo_settings->save( ).
+          go_settings->save( ).
         CATCH cx_root ##NO_HANDLER.
           " Ignore
       ENDTRY.
@@ -154,7 +154,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
 
   METHOD class_constructor.
 
-    mo_settings = /mbtools/cl_tools=>factory( )->get_settings( ).
+    go_settings = /mbtools/cl_tools=>factory( )->get_settings( ).
 
   ENDMETHOD.
 
@@ -209,12 +209,12 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
     li_client->request->set_header_field(
         name  = '~request_uri'
         value = iv_path ).
-    IF NOT iv_accept IS INITIAL.
+    IF iv_accept IS NOT INITIAL.
       li_client->request->set_header_field(
           name  = 'Accept'
           value = iv_accept ).
     ENDIF.
-    IF NOT iv_content IS INITIAL.
+    IF iv_content IS NOT INITIAL.
       li_client->request->set_header_field(
           name  = 'Content-type'
           value = iv_content ).                             "#EC NOTEXT
@@ -287,7 +287,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
     li_client->request->set_header_field(
         name  = '~request_uri'
         value = iv_url ).
-    IF NOT iv_content IS INITIAL.
+    IF iv_content IS NOT INITIAL.
       li_client->request->set_header_field(
           name  = 'Content-type'
           value = iv_content ).                             "#EC NOTEXT

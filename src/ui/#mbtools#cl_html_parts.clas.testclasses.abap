@@ -61,10 +61,12 @@ CLASS ltcl_part_collections IMPLEMENTATION.
       act = lines( lt_parts_act )
       exp = 2 ).
     READ TABLE lt_parts_act INTO lo_html_tmp INDEX 1.
+    cl_abap_unit_assert=>assert_subrc( 0 ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_html_tmp
       exp = lo_html1 ).
     READ TABLE lt_parts_act INTO lo_html_tmp INDEX 2.
+    cl_abap_unit_assert=>assert_subrc( 0 ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_html_tmp
       exp = lo_html2 ).
@@ -74,6 +76,7 @@ CLASS ltcl_part_collections IMPLEMENTATION.
       act = lines( lt_parts_act )
       exp = 1 ).
     READ TABLE lt_parts_act INTO lo_html_tmp INDEX 1.
+    cl_abap_unit_assert=>assert_subrc( 0 ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_html_tmp
       exp = lo_html3 ).

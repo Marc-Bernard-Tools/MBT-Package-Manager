@@ -9,9 +9,6 @@ INTERFACE /mbtools/if_html
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
 
-  TYPES:
-    ty_table_of TYPE STANDARD TABLE OF REF TO /mbtools/if_html WITH DEFAULT KEY .
-
   CONSTANTS:
     BEGIN OF c_action_type,
       sapevent  TYPE c VALUE 'E',

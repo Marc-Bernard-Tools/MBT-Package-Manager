@@ -70,11 +70,6 @@ CLASS /mbtools/cl_gui_page DEFINITION
     METHODS footer
       RETURNING
         VALUE(ri_html) TYPE REF TO /mbtools/if_html .
-    METHODS render_link_hints
-      IMPORTING
-        !ii_html TYPE REF TO /mbtools/if_html   ##NEEDED
-      RAISING
-        /mbtools/cx_exception .
     METHODS render_command_palettes
       IMPORTING
         !ii_html TYPE REF TO /mbtools/if_html
@@ -99,7 +94,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
+CLASS /mbtools/cl_gui_page IMPLEMENTATION.
 
 
   METHOD /mbtools/if_gui_error_handler~handle_error.
@@ -377,13 +372,6 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD render_link_hints.
-
-* Not implemented
-
-  ENDMETHOD.
-
-
   METHOD scripts.
 
     ri_html = /mbtools/cl_html=>create( ).
@@ -392,7 +380,6 @@ CLASS /MBTOOLS/CL_GUI_PAGE IMPLEMENTATION.
       ii_html          = ri_html
       iv_part_category = c_html_parts-scripts ).
 
-    render_link_hints( ri_html ).
     render_command_palettes( ri_html ).
 
   ENDMETHOD.

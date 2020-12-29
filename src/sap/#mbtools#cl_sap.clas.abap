@@ -125,7 +125,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
+CLASS /mbtools/cl_sap IMPLEMENTATION.
 
 
   METHOD class_constructor.
@@ -357,7 +357,7 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
         SELECT (lv_columns) FROM (lv_tables)
           INTO (ls_value-domvalue_l, ls_value-ddtext)
           WHERE (lv_where) ORDER BY (lv_order).
-          ADD 1 TO lv_valpos.
+          lv_valpos = lv_valpos + 1.
           ls_value-valpos = lv_valpos.
           APPEND ls_value TO rt_values.
         ENDSELECT.
@@ -441,12 +441,8 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
   METHOD is_sap_note.
 
     " Interpret any number between 1 and 4999999 as an SAP Note
-    IF iv_input CO '0123456789'  AND strlen( iv_input ) <= 10 AND
-       iv_input BETWEEN c_note_min AND c_note_max.
-      rv_result = abap_true.
-    ELSE.
-      rv_result = abap_false.
-    ENDIF.
+    rv_result = boolc( iv_input CO '0123456789'  AND strlen( iv_input ) <= 10 AND
+                       iv_input BETWEEN c_note_min AND c_note_max ).
 
   ENDMETHOD.
 
@@ -598,7 +594,7 @@ CLASS /MBTOOLS/CL_SAP IMPLEMENTATION.
           cl_sabe=>auth_check_progname(
             i_scenario_name = 'BC_GENERIC_REPORT_START'
             i_program_name  = lc_icon_browser
-            i_action        = 'SUBMIT'  ).
+            i_action        = 'SUBMIT' ).
         CATCH cx_sabe.
           MESSAGE i149(00) WITH lc_icon_browser.
           RETURN.

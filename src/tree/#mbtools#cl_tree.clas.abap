@@ -1,19 +1,13 @@
 CLASS /mbtools/cl_tree DEFINITION
   PUBLIC
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT Tree
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-
   PUBLIC SECTION.
-    TYPE-POOLS icon .
-    TYPE-POOLS rsrqt .
-
-    DATA mv_container_name TYPE char25 VALUE 'GO_TREE_CONTAINER' ##NO_TEXT.
-    DATA mo_custom_container TYPE REF TO cl_gui_custom_container .
-    DATA mo_tree TYPE REF TO cl_gui_alv_tree .
 
     METHODS handle_node_double_click
         FOR EVENT node_double_click OF cl_gui_alv_tree
@@ -74,6 +68,9 @@ CLASS /mbtools/cl_tree DEFINITION
 
   PRIVATE SECTION.
 
+    DATA mv_container_name TYPE char25 VALUE 'GO_TREE_CONTAINER' ##NO_TEXT.
+    DATA mo_custom_container TYPE REF TO cl_gui_custom_container .
+    DATA mo_tree TYPE REF TO cl_gui_alv_tree .
     DATA mv_tree_structure TYPE tabname VALUE '/MBTOOLS/TREE_CONTROL' ##NO_TEXT.
     DATA ms_outtab TYPE /mbtools/tree_control .
     DATA:
@@ -110,7 +107,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
+CLASS /mbtools/cl_tree IMPLEMENTATION.
 
 
   METHOD add.
@@ -157,7 +154,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD add_detail .
+  METHOD add_detail.
 
     add( iv_icon   = iv_icon
          iv_title  = iv_title
@@ -192,7 +189,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     IF iv_sign = abap_true.
       LOOP AT mt_fieldcat ASSIGNING <ls_fieldcat> FROM 4.
         ASSIGN COMPONENT <ls_fieldcat>-fieldname OF STRUCTURE ms_outtab TO <lv_field>.
-        IF sy-subrc = 0 AND NOT <lv_field> IS INITIAL.
+        IF sy-subrc = 0 AND <lv_field> IS NOT INITIAL.
           CONCATENATE '- (' <lv_field> ')' INTO <lv_field> SEPARATED BY space.
         ENDIF.
       ENDLOOP.
@@ -280,7 +277,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD add_sub_node .
+  METHOD add_sub_node.
 
     add( iv_icon   = iv_icon
          iv_title  = iv_title
@@ -295,7 +292,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD add_top_node .
+  METHOD add_top_node.
 
     " Link to root
     CLEAR mv_relat_key.
@@ -325,10 +322,10 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD destroy .
+  METHOD destroy.
 
     " Destroy tree control
-    IF NOT mo_tree IS INITIAL.
+    IF mo_tree IS NOT INITIAL.
 
       mo_tree->free( ).
       CLEAR mo_tree.
@@ -336,7 +333,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     ENDIF.
 
     " Destroy tree container
-    IF NOT mo_custom_container IS INITIAL.
+    IF mo_custom_container IS NOT INITIAL.
 
       mo_custom_container->free( ).
       CLEAR mo_custom_container.
@@ -346,7 +343,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD display .
+  METHOD display.
 
     DATA:
       lv_root TYPE lvc_nkey.
@@ -405,7 +402,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD download .
+  METHOD download.
 
     MESSAGE i000 WITH 'Download the View Using "System > List > Save"'(t01).
 
@@ -436,7 +433,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD find_node .
+  METHOD find_node.
 
     mo_tree->set_function_code(
       EXPORTING
@@ -589,7 +586,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD init .
+  METHOD init.
 
     CONSTANTS: lc_width_header TYPE i VALUE 60.
 
@@ -684,7 +681,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
     ENDIF.
 
     " Build column layout
-    REFRESH mt_item_layout.
+    CLEAR mt_item_layout.
     LOOP AT mt_fieldcat ASSIGNING <ls_fieldcat>.
       " Hide the key columns and level
       IF sy-tabix <= 3 OR <ls_fieldcat>-fieldname = 'TREE_LEVEL'.
@@ -779,7 +776,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD pick_node .
+  METHOD pick_node.
 
     DATA:
       ls_selected_nodes TYPE lvc_s_nkey,
@@ -823,8 +820,9 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
       WHEN 1.
         " Exactly one node selected
         READ TABLE lt_selected_nodes INTO ls_selected_nodes INDEX 1.
-
-        handle_node_double_click( node_key = ls_selected_nodes-node_key ).
+        IF sy-subrc = 0.
+          handle_node_double_click( node_key = ls_selected_nodes-node_key ).
+        ENDIF.
 
       WHEN OTHERS.
         " Too many nodes selected
@@ -835,7 +833,7 @@ CLASS /MBTOOLS/CL_TREE IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD print .
+  METHOD print.
 
     mo_tree->set_function_code(
       EXPORTING

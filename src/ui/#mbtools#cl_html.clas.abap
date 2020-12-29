@@ -75,7 +75,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_HTML IMPLEMENTATION.
+CLASS /mbtools/cl_html IMPLEMENTATION.
 
 
   METHOD /mbtools/if_html~a.
@@ -154,6 +154,7 @@ CLASS /MBTOOLS/CL_HTML IMPLEMENTATION.
         APPEND ig_chunk TO mt_buffer.
       WHEN 'h'.         " Table
         ASSIGN ig_chunk TO <lt_tab>. " Assuming table of strings ! Will dump otherwise
+        ASSERT sy-subrc = 0.
         APPEND LINES OF <lt_tab> TO mt_buffer.
       WHEN 'r'.         " Object ref
         ASSERT ig_chunk IS BOUND. " Dev mistake
@@ -200,7 +201,7 @@ CLASS /MBTOOLS/CL_HTML IMPLEMENTATION.
       iv_name    = iv_name
       iv_class   = iv_class
       iv_hint    = iv_hint
-      iv_onclick = iv_onclick  ) ).
+      iv_onclick = iv_onclick ) ).
 
   ENDMETHOD.
 

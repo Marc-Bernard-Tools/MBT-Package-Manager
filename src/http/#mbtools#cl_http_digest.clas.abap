@@ -61,7 +61,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_HTTP_DIGEST IMPLEMENTATION.
+CLASS /mbtools/cl_http_digest IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -81,7 +81,7 @@ CLASS /MBTOOLS/CL_HTTP_DIGEST IMPLEMENTATION.
 
     lv_ha2 = md5( |{ iv_method }:{ iv_uri }| ).
 
-    ASSERT NOT iv_cnonse IS INITIAL.
+    ASSERT iv_cnonse IS NOT INITIAL.
 
     rv_response = md5( |{ mv_ha1 }:{ iv_nonce }:{ gv_nc }:{ iv_cnonse }:{ iv_qop }:{ lv_ha2 }| ).
 
@@ -137,7 +137,7 @@ CLASS /MBTOOLS/CL_HTTP_DIGEST IMPLEMENTATION.
           lv_uri      TYPE string,
           lv_auth     TYPE string.
 
-    ASSERT NOT mv_nonce IS INITIAL.
+    ASSERT mv_nonce IS NOT INITIAL.
 
     lv_method = ii_client->request->get_header_field( '~request_method' ).
     lv_uri = ii_client->request->get_header_field( '~request_uri' ).

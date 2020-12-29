@@ -59,7 +59,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_LOGIN_MANAGER IMPLEMENTATION.
+CLASS /mbtools/cl_login_manager IMPLEMENTATION.
 
 
   METHOD append.
@@ -93,7 +93,7 @@ CLASS /MBTOOLS/CL_LOGIN_MANAGER IMPLEMENTATION.
     IF sy-subrc = 0.
       rv_authorization = ls_auth-authorization.
 
-      IF NOT ii_client IS INITIAL.
+      IF ii_client IS NOT INITIAL.
         ii_client->request->set_header_field(
           name  = 'authorization'
           value = ls_auth-authorization ).                  "#EC NOTEXT
@@ -110,7 +110,7 @@ CLASS /MBTOOLS/CL_LOGIN_MANAGER IMPLEMENTATION.
 
     lv_auth = ii_client->request->get_header_field( 'authorization' ). "#EC NOTEXT
 
-    IF NOT lv_auth IS INITIAL.
+    IF lv_auth IS NOT INITIAL.
       append( iv_uri  = iv_uri
               iv_auth = lv_auth ).
     ENDIF.
@@ -122,7 +122,7 @@ CLASS /MBTOOLS/CL_LOGIN_MANAGER IMPLEMENTATION.
 
     DATA: lv_concat TYPE string.
 
-    ASSERT NOT iv_uri IS INITIAL.
+    ASSERT iv_uri IS NOT INITIAL.
 
     IF iv_username IS INITIAL OR iv_password IS INITIAL.
       RETURN.

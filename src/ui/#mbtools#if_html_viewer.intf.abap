@@ -1,15 +1,8 @@
 INTERFACE /mbtools/if_html_viewer
   PUBLIC .
-************************************************************************
-* MBT HTML Viewer
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
-  CONSTANTS m_id_sapevent TYPE i VALUE 1 ##NO_TEXT.
+
+  CONSTANTS c_id_sapevent TYPE i VALUE 1 ##NO_TEXT.
 
   EVENTS sapevent
     EXPORTING
@@ -53,6 +46,6 @@ INTERFACE /mbtools/if_html_viewer
   METHODS close_document .
   METHODS get_url
     RETURNING
-      VALUE(rv_url) TYPE w3url.
+      VALUE(rv_url) TYPE w3url .
   METHODS back .
 ENDINTERFACE.

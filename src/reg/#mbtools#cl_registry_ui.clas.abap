@@ -1,7 +1,8 @@
 CLASS /mbtools/cl_registry_ui DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
+
 ************************************************************************
 * MBT Registry
 *
@@ -15,47 +16,48 @@ CLASS /mbtools/cl_registry_ui DEFINITION
 *
 * Ported to namespace and enhanced by Marc Bernard Tools
 ************************************************************************
-
   PUBLIC SECTION.
-    TYPE-POOLS icon .
-
-    CONSTANTS: c_root TYPE lvc_nkey VALUE '          1'.
 
     TYPES:
       " Table for registry entries on tree
       BEGIN OF ty_tab,
         key       TYPE string,
         reg_entry TYPE REF TO /mbtools/cl_registry,
-      END OF ty_tab .
+      END OF ty_tab.
 
+    CONSTANTS c_root TYPE lvc_nkey VALUE '          1' ##NO_TEXT.
     " For tree control:
-    CLASS-DATA gr_tree TYPE REF TO cl_gui_alv_tree .
-    CLASS-DATA gr_tree_toolbar TYPE REF TO cl_gui_toolbar .
+    CLASS-DATA gr_tree TYPE REF TO cl_gui_alv_tree.
+    CLASS-DATA gr_tree_toolbar TYPE REF TO cl_gui_toolbar.
     CLASS-DATA:
       " Container for ALV tree data:
-      gt_tab TYPE TABLE OF ty_tab .
+      gt_tab TYPE TABLE OF ty_tab.
     " For maintaining registry values in an an entry (ALV control):
-    CLASS-DATA gr_table TYPE REF TO cl_gui_alv_grid .
+    CLASS-DATA gr_table TYPE REF TO cl_gui_alv_grid.
     CLASS-DATA:
-      gt_value   TYPE STANDARD TABLE OF /mbtools/cl_registry=>ty_keyval .
+      gt_value   TYPE STANDARD TABLE OF /mbtools/cl_registry=>ty_keyval.
     CLASS-DATA:
-      gt_value_ori TYPE STANDARD TABLE OF /mbtools/cl_registry=>ty_keyval .            "Original data
+      gt_value_ori TYPE STANDARD TABLE OF /mbtools/cl_registry=>ty_keyval.            "Original data
     " For splitter container
-    CLASS-DATA gr_splitter TYPE REF TO cl_gui_easy_splitter_container .
+    CLASS-DATA gr_splitter TYPE REF TO cl_gui_easy_splitter_container.
     " For registry access:
-    CLASS-DATA gr_reg_root TYPE REF TO /mbtools/cl_registry .
-    CLASS-DATA gr_sel_reg_entry TYPE REF TO /mbtools/cl_registry .   "Selected reg. entry
-    CLASS-DATA gv_sel_node_key TYPE lvc_nkey .   "Tree node key of currently selected node
+    CLASS-DATA gr_reg_root TYPE REF TO /mbtools/cl_registry.
+    CLASS-DATA gr_sel_reg_entry TYPE REF TO /mbtools/cl_registry.   "Selected reg. entry
+    CLASS-DATA gv_sel_node_key TYPE lvc_nkey.   "Tree node key of currently selected node
     " Read-only flag
-    CLASS-DATA gv_read_only TYPE abap_bool .
+    CLASS-DATA gv_read_only TYPE abap_bool.
 
     CLASS-METHODS create_tree
       IMPORTING
-        ir_splitter TYPE REF TO cl_gui_easy_splitter_container.
+        !ir_splitter TYPE REF TO cl_gui_easy_splitter_container.
   PROTECTED SECTION.
 
   PRIVATE SECTION.
 
+    CLASS-METHODS command_copy.
+    CLASS-METHODS command_delete.
+    CLASS-METHODS command_export.
+    CLASS-METHODS command_insert.
     CLASS-METHODS handle_node_expand
         FOR EVENT expand_nc OF cl_gui_alv_tree
       IMPORTING
@@ -68,37 +70,37 @@ CLASS /mbtools/cl_registry_ui DEFINITION
     CLASS-METHODS handle_table_command
         FOR EVENT user_command OF cl_gui_alv_grid
       IMPORTING
-        !e_ucomm .
+        !e_ucomm.
     CLASS-METHODS handle_node_selected
         FOR EVENT selection_changed OF cl_gui_alv_tree
       IMPORTING
-        !node_key .
+        !node_key.
     CLASS-METHODS handle_tree_command
         FOR EVENT function_selected OF cl_gui_toolbar
       IMPORTING
-        !fcode .
+        !fcode.
     CLASS-METHODS create_table
       RAISING
-        cx_salv_msg .
+        cx_salv_msg.
     CLASS-METHODS refresh_subnodes
       IMPORTING
-        !iv_nkey TYPE lvc_nkey .
-    CLASS-METHODS save_values .
+        !iv_nkey TYPE lvc_nkey.
+    CLASS-METHODS save_values.
     CLASS-METHODS add_node
       IMPORTING
         !iv_nkey     TYPE lvc_nkey
-        !io_regentry TYPE REF TO /mbtools/cl_registry .
+        !io_regentry TYPE REF TO /mbtools/cl_registry.
     CLASS-METHODS value_input_dialog
       IMPORTING
         !iv_title      TYPE csequence
       EXPORTING
         !ev_value      TYPE string
-        !ev_returncode TYPE c .
+        !ev_returncode TYPE c.
 ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
+CLASS /mbtools/cl_registry_ui IMPLEMENTATION.
 
 
   METHOD add_node.
@@ -118,11 +120,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
     ls_node_layout-isfolder = abap_true.
 
     " Add expander only if there are more sub-entries
-    IF lines( io_regentry->get_subentry_keys( ) ) > 0.
-      ls_node_layout-expander = abap_true.
-    ELSE.
-      ls_node_layout-expander = abap_false.
-    ENDIF.
+    ls_node_layout-expander = boolc( lines( io_regentry->get_subentry_keys( ) ) > 0 ).
 
     lv_node_text = io_regentry->mv_entry_id.
 
@@ -142,6 +140,271 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.                    "add_node
+
+
+  METHOD command_copy.
+
+    DATA:
+      lv_new_key  TYPE string,
+      lv_node_key TYPE lvc_nkey,
+      lv_rc       TYPE char1,
+      lx_exc      TYPE REF TO /mbtools/cx_exception,
+      lr_parent   TYPE REF TO /mbtools/cl_registry,
+      lv_msg      TYPE string.
+
+    " Dialog to capture name of new node
+    value_input_dialog(
+      EXPORTING
+        iv_title      = 'Target registry entry key'(006)
+      IMPORTING
+        ev_value      = lv_new_key
+        ev_returncode = lv_rc ).
+
+    " deep copy of source to target node
+    IF lv_rc = space.
+      TRY.
+          lr_parent = gr_sel_reg_entry->get_parent( ).
+          lr_parent->copy_subentry( iv_source_key = gr_sel_reg_entry->mv_entry_id
+                                    iv_target_key = lv_new_key ).
+
+          " Get the parent node in the tree to refresh it
+          gr_tree->get_parent(
+            EXPORTING
+              i_node_key        = gv_sel_node_key
+            IMPORTING
+              e_parent_node_key = lv_node_key ).
+
+          " Refresh the parent node
+          refresh_subnodes( lv_node_key ).
+
+        CATCH /mbtools/cx_exception INTO lx_exc.
+          lv_msg = lx_exc->get_text( ).
+          MESSAGE lv_msg TYPE 'I'.
+          RETURN.
+      ENDTRY.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD command_delete.
+
+    DATA:
+      lr_reg_entry TYPE REF TO /mbtools/cl_registry,
+      lv_node_key  TYPE lvc_nkey,
+      lv_rc        TYPE char1,
+      lx_exc       TYPE REF TO /mbtools/cx_exception,
+      lv_msg       TYPE string.
+
+    " Prevent deleting of the root entity, which would fail anyway when we try get its parent
+    IF gr_sel_reg_entry->mv_internal_key = /mbtools/cl_registry=>c_registry_root.
+      MESSAGE 'Root node cannot be deleted'(012) TYPE 'I'. "<<<CHG
+      RETURN.
+    ENDIF.
+
+    CALL FUNCTION 'POPUP_TO_CONFIRM'
+      EXPORTING
+        titlebar              = 'Confirm deletion'(009)
+        text_question         = 'Are you sure you want to delete the selected entry?'(010)
+        display_cancel_button = abap_false
+      IMPORTING
+        answer                = lv_rc
+      EXCEPTIONS
+        text_not_found        = 1
+        OTHERS                = 2.
+    IF sy-subrc <> 0.
+      BREAK-POINT ID /mbtools/bc.
+    ENDIF.
+
+    " Check that the user selected OK on the confirmation
+    CHECK lv_rc = '1'.
+
+    TRY.
+        lr_reg_entry = gr_sel_reg_entry->get_parent( ).
+
+        CHECK lr_reg_entry IS BOUND.
+
+        lr_reg_entry->remove_subentry( gr_sel_reg_entry->mv_entry_id ).
+      CATCH /mbtools/cx_exception INTO lx_exc.
+        lv_msg = lx_exc->get_text( ).
+        MESSAGE lv_msg TYPE 'I'.
+        RETURN.
+    ENDTRY.
+
+    " Get the parent node in the tree to refresh it
+    gr_tree->get_parent(
+      EXPORTING
+        i_node_key        = gv_sel_node_key
+      IMPORTING
+        e_parent_node_key = lv_node_key ).
+
+    " Refresh the parent node
+    refresh_subnodes( lv_node_key ).
+
+  ENDMETHOD.
+
+
+  METHOD command_export.
+
+    CONSTANTS:
+      lc_registry_title TYPE string VALUE 'MBT Registry 1.0' ##NO_TEXT.
+    CONSTANTS:
+      lc_tab TYPE c VALUE cl_abap_char_utilities=>horizontal_tab.
+
+    DATA:
+      lx_exc       TYPE REF TO /mbtools/cx_exception,
+      lv_msg       TYPE string,
+      lv_answer    TYPE c,
+      lv_extension TYPE string,
+      lv_file      TYPE string,
+      lv_path      TYPE string,
+      lv_fullpath  TYPE string,
+      lv_action    TYPE i,
+      lt_file      TYPE string_table.
+
+    CALL FUNCTION 'POPUP_TO_CONFIRM'
+      EXPORTING
+        titlebar       = 'Registry Export'
+        text_question  = 'Select file format for the export'
+        text_button_1  = 'Registry'
+        icon_button_1  = 'ICON_BIW_INFO_CUBE'
+        text_button_2  = 'Table'
+        icon_button_2  = 'ICON_XLS'
+      IMPORTING
+        answer         = lv_answer
+      EXCEPTIONS
+        text_not_found = 1
+        OTHERS         = 2.
+    IF sy-subrc <> 0 OR lv_answer = 'A'.
+      RETURN.
+    ENDIF.
+
+    CLEAR lt_file.
+
+    IF lv_answer = '1'.
+      APPEND lc_registry_title TO lt_file.
+      APPEND '' TO lt_file.
+    ELSE.
+      lv_msg = 'Node' && lc_tab && 'Parent Key' && lc_tab && 'Internal Key'
+        && lc_tab && 'Key' && lc_tab && 'Value'.
+      APPEND lv_msg TO lt_file.
+    ENDIF.
+
+    TRY.
+        IF lv_answer = '1'.
+          gr_sel_reg_entry->export(
+            EXPORTING
+              iv_internal_keys = abap_false
+              iv_table         = abap_false
+            CHANGING
+              ct_file          = lt_file ).
+
+          lv_extension = 'reg'.
+        ELSE.
+          gr_sel_reg_entry->export(
+            EXPORTING
+              iv_internal_keys = abap_true
+              iv_table         = abap_true
+            CHANGING
+              ct_file          = lt_file ).
+
+          lv_extension = 'tab'.
+        ENDIF.
+      CATCH /mbtools/cx_exception INTO lx_exc.
+        lv_msg = lx_exc->get_text( ).
+        MESSAGE lv_msg TYPE 'S' DISPLAY LIKE 'E'.
+        RETURN.
+    ENDTRY.
+
+    cl_gui_frontend_services=>file_save_dialog(
+      EXPORTING
+        window_title              = |Registry Export|
+        default_extension         = lv_extension
+        default_file_name         = 'mbt_registry'
+      CHANGING
+        filename                  = lv_file
+        path                      = lv_path
+        fullpath                  = lv_fullpath
+        user_action               = lv_action
+      EXCEPTIONS
+        cntl_error                = 1
+        error_no_gui              = 2
+        not_supported_by_gui      = 3
+        invalid_default_file_name = 4
+        OTHERS                    = 5 ).
+    IF sy-subrc <> 0 OR lv_action = cl_gui_frontend_services=>action_cancel.
+      RETURN.
+    ENDIF.
+
+    cl_gui_frontend_services=>gui_download(
+      EXPORTING
+        filename                = lv_fullpath
+      CHANGING
+        data_tab                = lt_file
+      EXCEPTIONS
+        file_write_error        = 1
+        no_batch                = 2
+        gui_refuse_filetransfer = 3
+        invalid_type            = 4
+        no_authority            = 5
+        unknown_error           = 6
+        header_not_allowed      = 7
+        separator_not_allowed   = 8
+        filesize_not_allowed    = 9
+        header_too_long         = 10
+        dp_error_create         = 11
+        dp_error_send           = 12
+        dp_error_write          = 13
+        unknown_dp_error        = 14
+        access_denied           = 15
+        dp_out_of_memory        = 16
+        disk_full               = 17
+        dp_timeout              = 18
+        file_not_found          = 19
+        dataprovider_exception  = 20
+        control_flush_error     = 21
+        not_supported_by_gui    = 22
+        error_no_gui            = 23
+        OTHERS                  = 24 ).
+    IF sy-subrc <> 0.
+      MESSAGE e000(/mbtools/bc) DISPLAY LIKE 'I'
+        WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD command_insert.
+
+    DATA:
+      lv_new_key TYPE string,
+      lv_rc      TYPE char1,
+      lx_exc     TYPE REF TO /mbtools/cx_exception,
+      lv_msg     TYPE string.
+
+    " Dialog to capture name of new node
+    value_input_dialog(
+      EXPORTING
+        iv_title      = 'New registry entry key'(007)
+      IMPORTING
+        ev_value      = lv_new_key
+        ev_returncode = lv_rc ).
+
+    " Add the new key to the current registry entry if the user accepts
+    IF lv_rc = space.
+      TRY.
+          " Update the tree by adding the new node
+          gr_sel_reg_entry->add_subentry( lv_new_key ).
+          refresh_subnodes( gv_sel_node_key ).
+
+        CATCH /mbtools/cx_exception INTO lx_exc.
+          lv_msg = lx_exc->get_text( ).
+          MESSAGE lv_msg TYPE 'I'.
+          RETURN.
+      ENDTRY.
+    ENDIF.
+
+  ENDMETHOD.
 
 
   METHOD create_table.
@@ -210,6 +473,8 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
           ls_event TYPE cntl_simple_event.
     DATA: lx_exc TYPE REF TO /mbtools/cx_exception.
     DATA: lv_msg TYPE string.
+    DATA: lt_ttb TYPE ttb_button.
+    DATA: ls_ttb TYPE stb_button.
 
     gr_splitter = ir_splitter.
 
@@ -254,8 +519,6 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
         it_fieldcatalog = lt_fcat ).
 
     " Get handle on tree toolbar
-    DATA: lt_ttb TYPE ttb_button.
-    DATA: ls_ttb TYPE stb_button.
     gr_tree->get_toolbar_object( IMPORTING er_toolbar = gr_tree_toolbar ).
     gr_tree_toolbar->delete_all_buttons( ).
 
@@ -401,7 +664,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
       " Refresh data in local table (GT_VALUE)
       gr_table->check_changed_data( ).
 
-      IF gt_value NE gt_value_ori.
+      IF gt_value <> gt_value_ori.
         CALL FUNCTION 'POPUP_TO_CONFIRM'
           EXPORTING
             titlebar              = 'Confirm data loss'(017)
@@ -426,7 +689,9 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
       TRY.
           create_table( ).
         CATCH cx_salv_msg.
-          BREAK-POINT ##NO_BREAK.
+          MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+                     WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+          RETURN.
       ENDTRY.
     ENDIF.
 
@@ -444,7 +709,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
     ENDIF.
 
     " Read the values of the selected registry entry
-    gt_value =  ls_tab-reg_entry->get_values( ).
+    gt_value = ls_tab-reg_entry->get_values( ).
     gt_value_ori = gt_value. "Store last values
 
 *>>>INS
@@ -489,7 +754,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
 
     " Keep only the local editing features
     LOOP AT e_object->mt_toolbar INTO ls_tbe.
-      IF ls_tbe-function(7) NE '&LOCAL&'.
+      IF ls_tbe-function(7) <> '&LOCAL&'.
         DELETE e_object->mt_toolbar.
       ENDIF.
     ENDLOOP.
@@ -509,19 +774,6 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
 
   METHOD handle_tree_command.
 
-    CONSTANTS:
-      lc_tab TYPE c VALUE cl_abap_char_utilities=>horizontal_tab.
-
-    " Handle commands to the tree toolbar
-    DATA:
-      lv_new_key   TYPE string,
-      lr_reg_entry TYPE REF TO /mbtools/cl_registry,
-      lv_node_key  TYPE lvc_nkey,
-      lv_rc        TYPE char1,
-      lx_exc       TYPE REF TO /mbtools/cx_exception,
-      lr_parent    TYPE REF TO /mbtools/cl_registry,
-      lv_msg       TYPE string.
-
     IF gr_sel_reg_entry IS NOT BOUND.
       MESSAGE 'Select a node from the tree first'(003) TYPE 'I'. "<<<CHG
       RETURN.
@@ -530,236 +782,20 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
     CASE fcode.
       WHEN 'INSE'.
         " Create a new node under selected node, or copy a registry node on the same level
-
-        " Dialog to capture name of new node
-        value_input_dialog(
-          EXPORTING
-            iv_title      = 'New registry entry key'(007)
-          IMPORTING
-            ev_value      = lv_new_key
-            ev_returncode = lv_rc ).
-
-        " Add the new key to the current registry entry if the user accepts
-        IF lv_rc = space.
-          TRY.
-              " Update the tree by adding the new node
-              gr_sel_reg_entry->add_subentry( lv_new_key ).
-              refresh_subnodes( gv_sel_node_key ).
-
-            CATCH /mbtools/cx_exception INTO lx_exc.
-              lv_msg = lx_exc->get_text( ).
-              MESSAGE lv_msg TYPE 'I'.
-              RETURN.
-          ENDTRY.
-        ENDIF.
+        command_insert( ).
 
       WHEN 'COPY'.
         " Copy the selected node at the same level
-
-        " Dialog to capture name of new node
-        value_input_dialog(
-          EXPORTING
-            iv_title      = 'Target registry entry key'(006)
-          IMPORTING
-            ev_value      = lv_new_key
-            ev_returncode = lv_rc ).
-
-        " deep copy of source to target node
-        IF lv_rc = space.
-          TRY.
-              lr_parent = gr_sel_reg_entry->get_parent( ).
-              lr_parent->copy_subentry( iv_source_key = gr_sel_reg_entry->mv_entry_id
-                                        iv_target_key = lv_new_key ).
-
-              " Get the parent node in the tree to refresh it
-              gr_tree->get_parent(
-                EXPORTING
-                  i_node_key        = gv_sel_node_key
-                IMPORTING
-                  e_parent_node_key = lv_node_key ).
-
-              " Refresh the parent node
-              refresh_subnodes( lv_node_key ).
-
-            CATCH /mbtools/cx_exception INTO lx_exc.
-              lv_msg = lx_exc->get_text( ).
-              MESSAGE lv_msg TYPE 'I'.
-              RETURN.
-          ENDTRY.
-        ENDIF.
+        command_copy( ).
 
       WHEN 'DELE'.
         " Delete the selected node from the registry
-
-        " Prevent deleting of the root entity, which would fail anyway when we try get its parent
-        IF gr_sel_reg_entry->mv_internal_key = /mbtools/cl_registry=>c_registry_root.
-          MESSAGE 'Root node cannot be deleted'(012) TYPE 'I'. "<<<CHG
-          RETURN.
-        ENDIF.
-
-        CALL FUNCTION 'POPUP_TO_CONFIRM'
-          EXPORTING
-            titlebar              = 'Confirm deletion'(009)
-            text_question         = 'Are you sure you want to delete the selected entry?'(010)
-            display_cancel_button = abap_false
-          IMPORTING
-            answer                = lv_rc
-          EXCEPTIONS
-            text_not_found        = 1
-            OTHERS                = 2.
-        IF sy-subrc <> 0.
-          BREAK-POINT ID /mbtools/bc.
-        ENDIF.
-
-        " Check that the user selected OK on the confirmation
-        CHECK lv_rc = '1'.
-
-        TRY.
-            lr_reg_entry = gr_sel_reg_entry->get_parent( ).
-
-            CHECK lr_reg_entry IS BOUND.
-
-            lr_reg_entry->remove_subentry( gr_sel_reg_entry->mv_entry_id ).
-          CATCH /mbtools/cx_exception INTO lx_exc.
-            lv_msg = lx_exc->get_text( ).
-            MESSAGE lv_msg TYPE 'I'.
-            RETURN.
-        ENDTRY.
-
-        " Get the parent node in the tree to refresh it
-        gr_tree->get_parent(
-          EXPORTING
-            i_node_key        = gv_sel_node_key
-          IMPORTING
-            e_parent_node_key = lv_node_key ).
-
-        " Refresh the parent node
-        refresh_subnodes( lv_node_key ).
+        command_delete( ).
 
 *>>>INS
       WHEN 'EXPORT'.
-        "   Export registry branch to file
-
-        CONSTANTS:
-          lc_registry_title TYPE string VALUE 'MBT Registry 1.0' ##NO_TEXT.
-
-        DATA:
-          lv_answer    TYPE c,
-          lv_extension TYPE string,
-          lv_file      TYPE string,
-          lv_path      TYPE string,
-          lv_fullpath  TYPE string,
-          lv_action    TYPE i,
-          lt_file      TYPE string_table.
-
-        CALL FUNCTION 'POPUP_TO_CONFIRM'
-          EXPORTING
-            titlebar       = 'Registry Export'
-            text_question  = 'Select file format for the export'
-            text_button_1  = 'Registry'
-            icon_button_1  = 'ICON_BIW_INFO_CUBE'
-            text_button_2  = 'Table'
-            icon_button_2  = 'ICON_XLS'
-          IMPORTING
-            answer         = lv_answer
-          EXCEPTIONS
-            text_not_found = 1
-            OTHERS         = 2.
-        IF sy-subrc <> 0 OR lv_answer = 'A'.
-          RETURN.
-        ENDIF.
-
-        CLEAR lt_file.
-
-        IF lv_answer = '1'.
-          APPEND lc_registry_title TO lt_file.
-          APPEND '' TO lt_file.
-        ELSE.
-          lv_msg = 'Node' && lc_tab && 'Parent Key' && lc_tab && 'Internal Key'
-            && lc_tab && 'Key' && lc_tab && 'Value'.
-          APPEND lv_msg TO lt_file.
-        ENDIF.
-
-        TRY.
-            IF lv_answer = '1'.
-              gr_sel_reg_entry->export(
-                EXPORTING
-                  iv_internal_keys = abap_false
-                  iv_table         = abap_false
-                CHANGING
-                  ct_file          = lt_file ).
-
-              lv_extension = 'reg'.
-            ELSE.
-              gr_sel_reg_entry->export(
-                EXPORTING
-                  iv_internal_keys = abap_true
-                  iv_table         = abap_true
-                CHANGING
-                  ct_file          = lt_file ).
-
-              lv_extension = 'tab'.
-            ENDIF.
-          CATCH /mbtools/cx_exception INTO lx_exc.
-            lv_msg = lx_exc->get_text( ).
-            MESSAGE lv_msg TYPE 'S' DISPLAY LIKE 'E'.
-            RETURN.
-        ENDTRY.
-
-        cl_gui_frontend_services=>file_save_dialog(
-          EXPORTING
-            window_title              = |Registry Export|
-            default_extension         = lv_extension
-            default_file_name         = 'mbt_registry'
-          CHANGING
-            filename                  = lv_file
-            path                      = lv_path
-            fullpath                  = lv_fullpath
-            user_action               = lv_action
-          EXCEPTIONS
-            cntl_error                = 1
-            error_no_gui              = 2
-            not_supported_by_gui      = 3
-            invalid_default_file_name = 4
-            OTHERS                    = 5 ).
-        IF sy-subrc <> 0 OR lv_action = cl_gui_frontend_services=>action_cancel.
-          RETURN.
-        ENDIF.
-
-        cl_gui_frontend_services=>gui_download(
-          EXPORTING
-            filename                = lv_fullpath
-          CHANGING
-            data_tab                = lt_file
-          EXCEPTIONS
-            file_write_error        = 1
-            no_batch                = 2
-            gui_refuse_filetransfer = 3
-            invalid_type            = 4
-            no_authority            = 5
-            unknown_error           = 6
-            header_not_allowed      = 7
-            separator_not_allowed   = 8
-            filesize_not_allowed    = 9
-            header_too_long         = 10
-            dp_error_create         = 11
-            dp_error_send           = 12
-            dp_error_write          = 13
-            unknown_dp_error        = 14
-            access_denied           = 15
-            dp_out_of_memory        = 16
-            disk_full               = 17
-            dp_timeout              = 18
-            file_not_found          = 19
-            dataprovider_exception  = 20
-            control_flush_error     = 21
-            not_supported_by_gui    = 22
-            error_no_gui            = 23
-            OTHERS                  = 24 ).
-        IF sy-subrc <> 0.
-          MESSAGE e000(/mbtools/bc) DISPLAY LIKE 'I'
-            WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
-        ENDIF.
+        " Export registry branch to file
+        command_export( ).
 
       WHEN 'INFO'.
         " Show last changed at, on, by
@@ -830,7 +866,7 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
       EXCEPTIONS
         node_not_found = 1
         OTHERS         = 2 ).
-    IF sy-subrc NE 0.
+    IF sy-subrc <> 0.
       MESSAGE 'Error building tree'(014) TYPE 'E'.
     ENDIF.
 
@@ -933,7 +969,9 @@ CLASS /MBTOOLS/CL_REGISTRY_UI IMPLEMENTATION.
     ENDIF.
 
     READ TABLE lt_fld INTO ls_fld INDEX 1.
-    ev_value = ls_fld-value.
+    IF sy-subrc = 0.
+      ev_value = ls_fld-value.
+    ENDIF.
 
-  ENDMETHOD.                    "value_input_dialog
+  ENDMETHOD.
 ENDCLASS.

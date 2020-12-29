@@ -25,10 +25,10 @@ INTERFACE /mbtools/if_popups
       !iv_icon_button_1         TYPE icon-name DEFAULT space
       !iv_text_button_2         TYPE clike DEFAULT 'No'
       !iv_icon_button_2         TYPE icon-name DEFAULT space
-      !iv_default_button        TYPE char1 DEFAULT '1'
-      !iv_display_cancel_button TYPE char1 DEFAULT abap_true
+      !iv_default_button        TYPE c DEFAULT '1'
+      !iv_display_cancel_button TYPE c DEFAULT abap_true
     RETURNING
-      VALUE(rv_answer)          TYPE char1
+      VALUE(rv_answer)          TYPE sy-input
     RAISING
       /mbtools/cx_exception .
   METHODS popup_to_inform

@@ -74,7 +74,7 @@ CLASS /mbtools/cl_edd DEFINITION
 
   PRIVATE SECTION.
 
-    CLASS-DATA mi_log TYPE REF TO /mbtools/if_logger .
+    CLASS-DATA gi_log TYPE REF TO /mbtools/if_logger .
 
     CLASS-METHODS get_data
       IMPORTING
@@ -140,7 +140,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     CLEAR: ev_valid, ev_expire.
 
-    mi_log->i( |EDD API ActivateLicense for ID { iv_id }| ).
+    gi_log->i( |EDD API ActivateLicense for ID { iv_id }| ).
 
     lv_endpoint = get_endpoint( iv_action  = c_edd_action-activate
                                 iv_id      = iv_id
@@ -225,7 +225,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     CLEAR: ev_valid, ev_expire.
 
-    mi_log->i( |EDD API CheckLicense for ID { iv_id }| ).
+    gi_log->i( |EDD API CheckLicense for ID { iv_id }| ).
 
     lv_endpoint = get_endpoint( iv_action  = c_edd_action-check
                                 iv_id      = iv_id
@@ -263,7 +263,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
   METHOD class_constructor.
 
-    mi_log = /mbtools/cl_logger_factory=>create_log( 'EDD' ).
+    gi_log = /mbtools/cl_logger_factory=>create_log( 'EDD' ).
 
   ENDMETHOD.
 
@@ -277,7 +277,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
-    mi_log->i( |EDD API DeactivateLicense for ID { iv_id }| ).
+    gi_log->i( |EDD API DeactivateLicense for ID { iv_id }| ).
 
     lv_endpoint = get_endpoint( iv_action  = c_edd_action-deactivate
                                 iv_id      = iv_id
@@ -303,9 +303,9 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
       lo_client    TYPE REF TO /mbtools/cl_http_client,
       lx_exception TYPE REF TO /mbtools/cx_exception.
 
-    mi_log->timer_start( ).
+    gi_log->timer_start( ).
 
-    mi_log->i( |Endpoint { iv_url }| ).
+    gi_log->i( |Endpoint { iv_url }| ).
 
     TRY.
         lo_client = /mbtools/cl_http=>create_by_url(
@@ -324,11 +324,11 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
         IF lo_client IS BOUND.
           lo_client->close( ).
         ENDIF.
-        mi_log->e( lx_exception ).
+        gi_log->e( lx_exception ).
         /mbtools/cx_exception=>raise( lx_exception->get_text( ) ).
     ENDTRY.
 
-    mi_log->timer_end( ).
+    gi_log->timer_end( ).
 
   ENDMETHOD.
 
@@ -350,7 +350,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     SHIFT lv_system_no LEFT DELETING LEADING '0'.
 
-    IF lv_system_no CS'INITIAL' OR lv_system_no NA '0123456789'.
+    IF lv_system_no CS 'INITIAL' OR lv_system_no NA '0123456789'.
       /mbtools/cx_exception=>raise( 'Initial system number (transaction SLICENSE)' ) ##NO_TEXT.
     ENDIF.
 
@@ -404,7 +404,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     CLEAR: ev_version, ev_description, ev_changelog_url, ev_changelog, ev_download_url.
 
-    mi_log->i( |EDD API GetVersion for ID { iv_id }| ).
+    gi_log->i( |EDD API GetVersion for ID { iv_id }| ).
 
     lv_endpoint = get_endpoint( iv_action  = c_edd_action-version
                                 iv_id      = iv_id

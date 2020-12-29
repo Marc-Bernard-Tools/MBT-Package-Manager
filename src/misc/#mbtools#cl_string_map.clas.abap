@@ -14,10 +14,7 @@ CLASS /mbtools/cl_string_map DEFINITION
 *
 * Last update: 2020-11-30
 ************************************************************************
-
   PUBLIC SECTION.
-
-    CONSTANTS version TYPE string VALUE 'v1.0.2' ##NEEDED.
 
     TYPES:
       BEGIN OF ty_entry,
@@ -29,7 +26,8 @@ CLASS /mbtools/cl_string_map DEFINITION
     TYPES:
       ty_entries_ts TYPE SORTED TABLE OF ty_entry WITH UNIQUE KEY k .
 
-    DATA mt_entries TYPE ty_entries_ts READ-ONLY.
+    CONSTANTS c_version TYPE string VALUE 'v1.0.2' ##NO_TEXT.
+    DATA mt_entries TYPE ty_entries_ts READ-ONLY .
 
     CLASS-METHODS create
       IMPORTING
@@ -40,8 +38,7 @@ CLASS /mbtools/cl_string_map DEFINITION
     METHODS constructor
       IMPORTING
         !iv_case_insensitive TYPE abap_bool DEFAULT abap_false
-        !iv_from             TYPE any OPTIONAL.
-
+        !iv_from             TYPE any OPTIONAL .
     METHODS get
       IMPORTING
         !iv_key       TYPE string
@@ -57,7 +54,7 @@ CLASS /mbtools/cl_string_map DEFINITION
         !iv_key       TYPE string
         !iv_val       TYPE string
       RETURNING
-        VALUE(ro_map) TYPE REF TO /mbtools/cl_string_map.
+        VALUE(ro_map) TYPE REF TO /mbtools/cl_string_map .
     METHODS size
       RETURNING
         VALUE(rv_size) TYPE i .
@@ -73,22 +70,22 @@ CLASS /mbtools/cl_string_map DEFINITION
     METHODS values
       RETURNING
         VALUE(rt_values) TYPE string_table .
-    METHODS clear.
+    METHODS clear .
     METHODS to_struc
       CHANGING
-        !cs_container TYPE any.
+        !cs_container TYPE any .
     METHODS from_struc
       IMPORTING
-        !is_container TYPE any.
+        !is_container TYPE any .
     METHODS from_entries
       IMPORTING
-        !it_entries TYPE ANY TABLE.
+        !it_entries TYPE ANY TABLE .
     METHODS strict
       IMPORTING
         !iv_strict         TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(ro_instance) TYPE REF TO /mbtools/cl_string_map .
-    METHODS freeze.
+    METHODS freeze .
   PROTECTED SECTION.
   PRIVATE SECTION.
     DATA mv_is_strict TYPE abap_bool.
@@ -113,11 +110,13 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
 
 
   METHOD constructor.
+    DATA lo_type TYPE REF TO cl_abap_typedescr.
+    DATA lo_from TYPE REF TO /mbtools/cl_string_map.
+
     mv_is_strict = abap_true.
     mv_case_insensitive = iv_case_insensitive.
 
     IF iv_from IS NOT INITIAL.
-      DATA lo_type TYPE REF TO cl_abap_typedescr.
       lo_type = cl_abap_typedescr=>describe_by_data( iv_from ).
 
       CASE lo_type->type_kind.
@@ -125,7 +124,6 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
           from_struc( iv_from ).
 
         WHEN cl_abap_typedescr=>typekind_oref.
-          DATA lo_from TYPE REF TO /mbtools/cl_string_map.
           TRY.
               lo_from ?= iv_from.
             CATCH cx_sy_move_cast_error.

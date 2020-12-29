@@ -51,7 +51,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_DATETIME IMPLEMENTATION.
+CLASS /mbtools/cl_datetime IMPLEMENTATION.
 
 
   METHOD get_long_date.
@@ -172,7 +172,7 @@ CLASS /MBTOOLS/CL_DATETIME IMPLEMENTATION.
 
   METHOD print.
 
-    data: lv_number TYPE c LENGTH 40.
+    DATA: lv_number TYPE c LENGTH 40.
 
     WRITE iv_number TO lv_number LEFT-JUSTIFIED.
 

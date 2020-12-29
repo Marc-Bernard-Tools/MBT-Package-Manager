@@ -68,12 +68,6 @@
      <LANGU>E</LANGU>
      <DESCRIPT>Used to remotely retrieve the latest version information for</DESCRIPT>
     </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
-     <CMPNAME>MI_LOG</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>MBT Logger Interface</DESCRIPT>
-    </SEOCOMPOTX>
    </DESCRIPTIONS>
   </asx:values>
  </asx:abap>

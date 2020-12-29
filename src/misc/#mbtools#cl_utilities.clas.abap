@@ -2,12 +2,12 @@ CLASS /mbtools/cl_utilities DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT Utilities
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-
   PUBLIC SECTION.
 
     TYPES:
@@ -80,9 +80,11 @@ CLASS /mbtools/cl_utilities DEFINITION
       RETURNING
         VALUE(rv_value) TYPE string .
     CLASS-METHODS get_db_release
-      EXPORTING
-        !es_dbinfo       TYPE dbrelinfo
-        !es_hana_release TYPE ty_strv_release_patch .
+      RETURNING
+        VALUE(rs_dbinfo) TYPE dbrelinfo .
+    CLASS-METHODS get_hana_release
+      RETURNING
+        VALUE(rs_hana_release) TYPE ty_strv_release_patch .
     CLASS-METHODS get_spam_release
       RETURNING
         VALUE(rs_details) TYPE ty_strv_release_patch .
@@ -143,52 +145,60 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
 
   METHOD get_db_release.
 
+    CALL FUNCTION 'DB_DBRELINFO'
+      IMPORTING
+        dbinfo = rs_dbinfo.
+
+  ENDMETHOD.                    "get_db_release
+
+
+  METHOD get_hana_release.
+
     DATA:
+      ls_dbinfo   TYPE dbrelinfo,
       lv_release  TYPE n LENGTH 3,
       lv_text_1   TYPE string,
       lv_text_2   TYPE string,
       lv_hana_rel TYPE i,
       lv_hana_sps TYPE i.
 
-    CLEAR: es_dbinfo, es_hana_release.
-
     CALL FUNCTION 'DB_DBRELINFO'
       IMPORTING
-        dbinfo = es_dbinfo.
+        dbinfo = ls_dbinfo.
 
-    IF es_dbinfo-dbsys = 'HDB'.
-*     First number in version is release, third one is revision level
-      FIND FIRST OCCURRENCE OF REGEX '(\d+)\.(\d+)\.(\d+)\.(\d*)\.\d*' IN es_dbinfo-srvrel
-        SUBMATCHES lv_text_1 lv_text_2 es_hana_release-version es_hana_release-patch.
+    IF ls_dbinfo-dbsys = 'HDB'.
+      " First number in version is release, third one is revision level
+      FIND FIRST OCCURRENCE OF REGEX '(\d+)\.(\d+)\.(\d+)\.(\d*)\.\d*' IN ls_dbinfo-srvrel
+        SUBMATCHES lv_text_1 lv_text_2 rs_hana_release-version rs_hana_release-patch.
       IF sy-subrc = 0.
         lv_hana_rel = lv_text_1.
         lv_hana_sps = lv_text_2. "= 0 (except SAP-internally)
 
         CASE lv_hana_rel.
           WHEN 1.
-            IF es_hana_release-version = 0.
+            IF rs_hana_release-version = 0.
               lv_hana_sps = 0.
-            ELSEIF es_hana_release-version BETWEEN 1 AND 10. "#EC NUMBER_OK
+            ELSEIF rs_hana_release-version BETWEEN 1 AND 10. "#EC NUMBER_OK
               lv_hana_sps = 1.
-            ELSEIF es_hana_release-version BETWEEN 11 AND 18. "#EC NUMBER_OK
+            ELSEIF rs_hana_release-version BETWEEN 11 AND 18. "#EC NUMBER_OK
               lv_hana_sps = 2.
-            ELSEIF es_hana_release-version BETWEEN 19 AND 27. "#EC NUMBER_OK
+            ELSEIF rs_hana_release-version BETWEEN 19 AND 27. "#EC NUMBER_OK
               lv_hana_sps = 3.
-            ELSEIF es_hana_release-version BETWEEN 28 AND 44. "#EC NUMBER_OK
+            ELSEIF rs_hana_release-version BETWEEN 28 AND 44. "#EC NUMBER_OK
               lv_hana_sps = 4.
-            ELSEIF es_hana_release-version BETWEEN 45 AND 59. "#EC NUMBER_OK
+            ELSEIF rs_hana_release-version BETWEEN 45 AND 59. "#EC NUMBER_OK
               lv_hana_sps = 5.
             ELSE.
-              lv_hana_sps = es_hana_release-version DIV 10.
+              lv_hana_sps = rs_hana_release-version DIV 10.
             ENDIF.
           WHEN OTHERS.
-            lv_hana_sps = es_hana_release-version DIV 10.
+            lv_hana_sps = rs_hana_release-version DIV 10.
         ENDCASE.
 
         lv_release = 100 * lv_hana_rel + lv_hana_sps.
-        es_hana_release-release = lv_release.
-        IF es_hana_release-patch > 1000. "it s the changelog for old revisions
-          es_hana_release-patch = 0.
+        rs_hana_release-release = lv_release.
+        IF rs_hana_release-patch > 1000. " it's the changelog for old revisions
+          rs_hana_release-patch = 0.
         ENDIF.
       ENDIF.
     ENDIF.
@@ -214,14 +224,18 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
                    ID 'TABLE' FIELD lt_kernel_info.       "#EC CI_CCALL
 
     READ TABLE lt_kernel_info REFERENCE INTO lo_kernel_info INDEX 12.
-    rs_details-release = lo_kernel_info->data.
+    IF sy-subrc = 0.
+      rs_details-release = lo_kernel_info->data.
+    ENDIF.
 
     READ TABLE lt_kernel_info REFERENCE INTO lo_kernel_info INDEX 15.
-    rs_details-patch = lo_kernel_info->data.
+    IF sy-subrc = 0.
+      rs_details-patch = lo_kernel_info->data.
+    ENDIF.
 
 *   32- or 64-bit Kernel
     READ TABLE lt_kernel_info REFERENCE INTO lo_kernel_info INDEX 3.
-    IF lo_kernel_info->data CS '64'.
+    IF sy-subrc = 0 AND lo_kernel_info->data CS '64'.
       rs_details-version = 64.
     ELSE.
       rs_details-version = 32.
@@ -249,7 +263,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
     READ TABLE lt_parameters ASSIGNING <ls_parameter>
       WITH KEY name = iv_parameter BINARY SEARCH.
     IF sy-subrc = 0.
-      IF NOT <ls_parameter>-user_value IS INITIAL.
+      IF <ls_parameter>-user_value IS NOT INITIAL.
         rv_value = <ls_parameter>-user_value.
       ELSE.
         rv_value = <ls_parameter>-default_value.
@@ -263,13 +277,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
 
   METHOD get_property.
 
-    DATA:
-      lv_property       TYPE string,
-      lv_version        TYPE string,
-      ls_dbinfo         TYPE dbrelinfo,
-      ls_hana_release   TYPE ty_strv_release_patch,
-      ls_kernel_release TYPE ty_strv_release_patch,
-      ls_spam_release   TYPE ty_strv_release_patch.
+    DATA lv_property TYPE string.
 
     CLEAR: ev_value, ev_value_float, ev_value_integer, ev_subrc.
 
@@ -290,60 +298,38 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
             ev_value = sy-uzeit+2(2).
           WHEN c_property-second.
             ev_value = sy-uzeit+4(2).
-          WHEN c_property-database OR c_property-database_release OR c_property-database_patch
-            OR c_property-dbsl_release OR c_property-dbsl_patch.
-            get_db_release( IMPORTING es_dbinfo = ls_dbinfo ).
-            IF lv_property = c_property-database.
-              lv_version = ls_dbinfo-srvrel.
-            ELSEIF lv_property = c_property-database_release.
-              FIND FIRST OCCURRENCE OF REGEX '(\d+)\.\d+\.*' IN ls_dbinfo-srvrel
-                SUBMATCHES lv_version.
-            ELSEIF lv_property = c_property-database_patch.
-              FIND FIRST OCCURRENCE OF REGEX '\d+\.(\d+)\.*' IN ls_dbinfo-srvrel
-                SUBMATCHES lv_version.
-            ELSEIF lv_property = c_property-dbsl_release.
-              SPLIT ls_dbinfo-dbsl_vers AT '.' INTO lv_version sy-lisel.
-            ELSE.
-              SPLIT ls_dbinfo-dbsl_vers AT '.' INTO sy-lisel lv_version.
-            ENDIF.
-            IF sy-subrc = 0.
-              ev_value = lv_version.
-            ELSE.
-              ev_subrc = 2.
-            ENDIF.
-          WHEN c_property-hana OR c_property-hana_release OR c_property-hana_sp
-            OR c_property-hana_revision OR c_property-hana_patch.
-            get_db_release( IMPORTING es_hana_release = ls_hana_release ).
-            IF lv_property = c_property-hana.
-              ev_value = ls_hana_release-release.
-            ELSEIF lv_property = c_property-hana_release.
-              ev_value = ls_hana_release-release DIV 100.
-            ELSEIF lv_property = c_property-hana_sp.
-              ev_value = ls_hana_release-release MOD 100.
-            ELSEIF lv_property = c_property-hana_revision.
-              ev_value = ls_hana_release-version.
-            ELSE.
-              ev_value = ls_hana_release-patch.
-            ENDIF.
-          WHEN c_property-spam_release OR c_property-spam_version.
-            ls_spam_release = get_spam_release( ).
-            IF lv_property = c_property-spam_release.
-              ev_value = ls_spam_release-release.
-            ELSE.
-              ev_value = ls_spam_release-version.
-            ENDIF.
-          WHEN c_property-kernel OR c_property-kernel_release OR c_property-kernel_patch
-            OR c_property-kernel_bits.
-            ls_kernel_release = get_kernel_release( ).
-            IF lv_property = c_property-kernel.
-              ev_value = ls_kernel_release.
-            ELSEIF lv_property = c_property-kernel_release.
-              ev_value = ls_kernel_release-release.
-            ELSEIF lv_property = c_property-kernel_patch.
-              ev_value = ls_kernel_release-patch.
-            ELSE.
-              ev_value = ls_kernel_release-version.
-            ENDIF.
+          WHEN c_property-database.
+            ev_value = get_db_release( )-srvrel.
+          WHEN c_property-database_release.
+            FIND FIRST OCCURRENCE OF REGEX '(\d+)\.\d+\.*' IN get_db_release( )-srvrel SUBMATCHES ev_value.
+          WHEN c_property-database_patch.
+            FIND FIRST OCCURRENCE OF REGEX '\d+\.(\d+)\.*' IN get_db_release( )-srvrel SUBMATCHES ev_value.
+          WHEN c_property-dbsl_release.
+            SPLIT get_db_release( )-dbsl_vers AT '.' INTO ev_value sy-lisel.
+          WHEN c_property-dbsl_patch.
+            SPLIT get_db_release( )-dbsl_vers AT '.' INTO sy-lisel ev_value.
+          WHEN c_property-hana.
+            ev_value = get_hana_release( )-release.
+          WHEN c_property-hana_release.
+            ev_value = get_hana_release( )-release DIV 100.
+          WHEN c_property-hana_sp.
+            ev_value = get_hana_release( )-release MOD 100.
+          WHEN c_property-hana_revision.
+            ev_value = get_hana_release( )-version.
+          WHEN c_property-hana_patch.
+            ev_value = get_hana_release( )-patch.
+          WHEN c_property-spam_release.
+            ev_value = get_spam_release( )-release.
+          WHEN c_property-spam_version.
+            ev_value = get_spam_release( )-version.
+          WHEN c_property-kernel.
+            ev_value = get_kernel_release( ).
+          WHEN c_property-kernel_release.
+            ev_value = get_kernel_release( )-release.
+          WHEN c_property-kernel_patch.
+            ev_value = get_kernel_release( )-patch.
+          WHEN c_property-kernel_bits.
+            ev_value = get_kernel_release( )-version.
           WHEN c_property-unicode.
             IF cl_abap_char_utilities=>charsize = 1.
               ev_value = 0.
@@ -372,6 +358,10 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       CATCH cx_root.
         ev_subrc = 8.
     ENDTRY.
+
+    IF sy-subrc <> 0.
+      ev_subrc = 2.
+    ENDIF.
 
     IF ev_subrc = 0.
       SHIFT ev_value LEFT DELETING LEADING space.
@@ -488,11 +478,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
 
   METHOD is_batch.
 
-    IF sy-binpt = abap_true OR sy-batch = abap_true.
-      rv_batch = abap_true.
-    ELSE.
-      rv_batch = abap_false.
-    ENDIF.
+    rv_batch = boolc( sy-binpt = abap_true OR sy-batch = abap_true ).
 
   ENDMETHOD.
 
@@ -540,11 +526,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
         no_systemname = 1
         no_systemtype = 2
         OTHERS        = 3.
-    IF sy-subrc <> 0 OR lv_systemedit = 'N'. "not modifiable
-      rv_modifiable = abap_false.
-    ELSE.
-      rv_modifiable = abap_true.
-    ENDIF.
+    rv_modifiable = boolc( sy-subrc <> 0 OR lv_systemedit = 'N' ). "not modifiable
 
   ENDMETHOD.                    "is_system_modifiable
 
@@ -561,11 +543,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
         no_systemname      = 1
         no_systemtype      = 2
         OTHERS             = 3.
-    IF sy-subrc <> 0 OR lv_client_role CA 'PTS'. "prod/test/sap reference
-      rv_test_prod = abap_true.
-    ELSE.
-      rv_test_prod = abap_false.
-    ENDIF.
+    rv_test_prod = boolc( sy-subrc <> 0 OR lv_client_role CA 'PTS' ). "prod/test/sap reference
 
   ENDMETHOD.                    "is_system_test_or_prod
 

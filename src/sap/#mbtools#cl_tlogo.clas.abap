@@ -114,7 +114,7 @@ CLASS /mbtools/cl_tlogo IMPLEMENTATION.
     CASE iv_tlogo.
       WHEN 'BIMO'.
         " BI Meta (Transport) Object Type
-        SELECT SINGLE txtlg FROM  rsobjs_obj_typet INTO lv_txtlg
+        SELECT SINGLE txtlg FROM rsobjs_obj_typet INTO lv_txtlg
           WHERE langu = sy-langu AND obj_type = iv_object.
 
       WHEN 'DSAA'.

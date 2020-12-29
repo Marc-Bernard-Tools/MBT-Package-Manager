@@ -24,18 +24,23 @@ CLASS ltcl_gui_mock IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD /mbtools/if_gui_services~cache_all_assets.
+    "...
   ENDMETHOD.
 
   METHOD /mbtools/if_gui_services~register_event_handler.
+    "...
   ENDMETHOD.
 
   METHOD /mbtools/if_gui_services~get_current_page_name.
+    "...
   ENDMETHOD.
 
   METHOD /mbtools/if_gui_services~get_hotkeys_ctl.
+    "...
   ENDMETHOD.
 
   METHOD /mbtools/if_gui_services~get_html_parts.
+    "...
   ENDMETHOD.
 
   METHOD get_asset.
