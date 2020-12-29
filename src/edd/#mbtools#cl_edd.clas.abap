@@ -186,8 +186,6 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
   METHOD adjust_html.
 
-    DATA lv_text TYPE string.
-
     rv_result = iv_html.
 
     REPLACE ALL OCCURRENCES OF 'href="/' IN rv_result WITH 'href="' && /mbtools/if_definitions=>c_www_home.

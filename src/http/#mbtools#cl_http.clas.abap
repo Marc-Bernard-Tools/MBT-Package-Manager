@@ -24,8 +24,19 @@ CLASS /mbtools/cl_http DEFINITION
     CLASS-METHODS create_by_url
       IMPORTING
         !iv_url          TYPE string
-        !iv_request      TYPE string DEFAULT 'GET'
+        !iv_request      TYPE string DEFAULT if_http_request=>co_request_method_get
         !iv_content      TYPE string OPTIONAL
+      RETURNING
+        VALUE(ro_client) TYPE REF TO /mbtools/cl_http_client
+      RAISING
+        /mbtools/cx_exception .
+    CLASS-METHODS create_by_destination
+      IMPORTING
+        !iv_destination  TYPE rfcdest
+        !iv_path         TYPE string
+        !iv_request      TYPE string DEFAULT if_http_request=>co_request_method_get
+        !iv_content      TYPE string OPTIONAL
+        !iv_accept       TYPE string OPTIONAL
       RETURNING
         VALUE(ro_client) TYPE REF TO /mbtools/cl_http_client
       RAISING
@@ -144,6 +155,77 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
   METHOD class_constructor.
 
     mo_settings = /mbtools/cl_tools=>factory( )->get_settings( ).
+
+  ENDMETHOD.
+
+
+  METHOD create_by_destination.
+
+    DATA: lv_scheme              TYPE string,
+          li_client              TYPE REF TO if_http_client,
+          lo_proxy_configuration TYPE REF TO /mbtools/cl_proxy_config,
+          lv_text                TYPE string.
+
+    CREATE OBJECT lo_proxy_configuration.
+
+    cl_http_client=>create_by_destination(
+      EXPORTING
+        destination              = iv_destination
+      IMPORTING
+        client                   = li_client
+      EXCEPTIONS
+        argument_not_found       = 1
+        destination_not_found    = 2
+        destination_no_authority = 3
+        plugin_not_active        = 4
+        internal_error           = 5
+        OTHERS                   = 6 ).
+    IF sy-subrc <> 0.
+      CASE sy-subrc.
+        WHEN 1.
+          lv_text = |Check RFC destination { iv_destination } in transaction SM59|.
+        WHEN 2.
+          lv_text = |RFC destination { iv_destination } not found|.
+        WHEN 3.
+          lv_text = |No authorization to use RFC destination { iv_destination }|.
+        WHEN OTHERS.
+          lv_text = |RFC destination { iv_destination }, Error { sy-subrc }|.
+      ENDCASE.
+      /mbtools/cx_exception=>raise( 'Error creating connection.' && lv_text ).
+    ENDIF.
+
+    CREATE OBJECT ro_client
+      EXPORTING
+        ii_client = li_client.
+
+    li_client->request->set_compression( ).
+    li_client->request->set_cdata( '' ).
+    li_client->request->set_header_field(
+        name  = '~request_method'
+        value = iv_request ).
+    li_client->request->set_header_field(
+        name  = 'user-agent'
+        value = get_agent( ) ).                             "#EC NOTEXT
+    li_client->request->set_header_field(
+        name  = '~request_uri'
+        value = iv_path ).
+    IF NOT iv_accept IS INITIAL.
+      li_client->request->set_header_field(
+          name  = 'Accept'
+          value = iv_accept ).
+    ENDIF.
+    IF NOT iv_content IS INITIAL.
+      li_client->request->set_header_field(
+          name  = 'Content-type'
+          value = iv_content ).                             "#EC NOTEXT
+    ENDIF.
+
+    " Disable internal auth dialog (due to its unclarity)
+    li_client->propertytype_logon_popup = if_http_client=>co_disabled.
+
+    ro_client->send_receive( ).
+
+    ro_client->check_http_200( ).
 
   ENDMETHOD.
 

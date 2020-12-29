@@ -80,7 +80,9 @@ CLASS lcl_main IMPLEMENTATION.
 
   METHOD main_run.
 
-    DATA: lx_error TYPE REF TO cx_root.
+    DATA:
+      lx_error TYPE REF TO cx_root,
+      lv_msg   TYPE string.
 
     TRY.
         /mbtools/cl_gui_factory=>get_gui( )->go_home( ).
@@ -88,7 +90,8 @@ CLASS lcl_main IMPLEMENTATION.
         CALL SELECTION-SCREEN c_dynnr-main. " trigger screen
       CATCH cx_root INTO lx_error.
         " unexpected
-        BREAK-POINT.                                       "#EC NOBREAK
+        lv_msg = lx_error->get_text( ).
+        MESSAGE lv_msg TYPE 'I' DISPLAY LIKE 'E'.
     ENDTRY.
 
   ENDMETHOD.
@@ -247,6 +250,8 @@ AT SELECTION-SCREEN.
   CASE sy-dynnr.
     WHEN lcl_main=>c_dynnr-password.
       lcl_main=>password_screen_event( sscrfields-ucomm ).
+    WHEN OTHERS.
+      ASSERT 0 = 0.
   ENDCASE.
 
 AT SELECTION-SCREEN OUTPUT.
@@ -256,6 +261,8 @@ AT SELECTION-SCREEN OUTPUT.
       lcl_main=>main_screen_output( ).
     WHEN lcl_main=>c_dynnr-password.
       lcl_main=>password_screen_output( ).
+    WHEN OTHERS.
+      ASSERT 0 = 0.
   ENDCASE.
 
 AT SELECTION-SCREEN ON EXIT-COMMAND.
@@ -263,6 +270,8 @@ AT SELECTION-SCREEN ON EXIT-COMMAND.
   CASE sy-dynnr.
     WHEN lcl_main=>c_dynnr-main.
       lcl_main=>main_screen_exit( ).
+    WHEN OTHERS.
+      ASSERT 0 = 0.
   ENDCASE.
 
 START-OF-SELECTION.

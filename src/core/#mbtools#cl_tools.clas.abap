@@ -309,7 +309,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     " Is tool already registered?
     lo_reg_tool = get_reg_tool( mv_name ).
-    IF NOT lo_reg_tool IS BOUND.
+    IF lo_reg_tool IS NOT BOUND.
       rv_result = abap_false.
       RETURN.
     ENDIF.
@@ -507,7 +507,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     " Is tool already registered?
     lo_reg_tool = get_reg_tool( mv_name ).
-    IF NOT lo_reg_tool IS BOUND.
+    IF lo_reg_tool IS NOT BOUND.
       rv_result = abap_false.
       RETURN.
     ENDIF.
@@ -684,7 +684,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   METHOD get_id.
 
     " Upper case, Underscore, Namespaced
-    rv_id =  to_upper( /mbtools/if_definitions=>c_namespace && mv_title ).
+    rv_id = to_upper( /mbtools/if_definitions=>c_namespace && mv_title ).
 
     REPLACE ALL OCCURRENCES OF ` ` IN rv_id WITH '_'.
 
@@ -718,7 +718,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     TRY.
         " Is tool already registered?
         lo_reg_tool = get_reg_tool( mv_name ).
-        IF NOT lo_reg_tool IS BOUND.
+        IF lo_reg_tool IS NOT BOUND.
           RETURN.
         ENDIF.
 
@@ -838,7 +838,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         rv_result = lo_reg_entry->get_value( c_reg-key_new_version ).
 
         " If current version is same or newer, then reset registry value
-        IF NOT rv_result IS INITIAL AND
+        IF rv_result IS NOT INITIAL AND
           /mbtools/cl_version=>compare( iv_current = get_version( )
                                         iv_compare = rv_result ) >= 0.
 
@@ -1021,7 +1021,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
           ENDIF.
 
           " Filter by pattern
-          IF NOT iv_pattern IS INITIAL AND NOT lo_tool->get_title( ) CP iv_pattern.
+          IF iv_pattern IS NOT INITIAL AND NOT lo_tool->get_title( ) CP iv_pattern.
             CONTINUE.
           ENDIF.
 
@@ -1453,8 +1453,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
             lo_reg_entry = lo_reg_tool->add_subentry( c_reg-switches ).
             IF lo_reg_entry IS BOUND.
               lo_reg_entry->set_value( c_reg-key_active ).
-              lo_reg_entry->set_value( c_reg-key_debug  ).
-              lo_reg_entry->set_value( c_reg-key_trace  ).
+              lo_reg_entry->set_value( c_reg-key_debug ).
+              lo_reg_entry->set_value( c_reg-key_trace ).
               lo_reg_entry->save( ).
             ENDIF.
           ENDIF.
@@ -1577,14 +1577,14 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         ELSE.
           lo_reg_tool = go_reg_root->get_subentry( mv_name ).
         ENDIF.
-        IF NOT lo_reg_tool IS BOUND.
+        IF lo_reg_tool IS NOT BOUND.
           rv_result = abap_true.
           RETURN.
         ENDIF.
 
         " Get bundle
         lo_reg_bundle = get_reg_bundle( mv_bundle_id ).
-        IF NOT lo_reg_bundle IS BOUND.
+        IF lo_reg_bundle IS NOT BOUND.
           RETURN. ">>>
         ENDIF.
 
@@ -1613,9 +1613,10 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD UPDATE ##todo.
+  METHOD update ##todo.
 
     " call zcl_abapinst_installer=>install with same parameters
+    ASSERT 0 = 0.
 
   ENDMETHOD.
 ENDCLASS.
