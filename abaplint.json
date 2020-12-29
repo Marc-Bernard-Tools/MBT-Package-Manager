@@ -3,6 +3,11 @@
         {
             "files": "/**/*.*",
             "folder": "/deps",
+            "url": false
+        },
+        {
+            "files": "",
+            "folder": "",
             "url": "https://github.com/abaplint/deps"
         }
     ],
