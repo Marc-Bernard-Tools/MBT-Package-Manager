@@ -80,3 +80,10 @@ REPORT /mbtools/mbt_template.
 * @@require intf zif_abapgit_version
 * @@require clas zcl_abapgit_xml*
 * @@require intf zif_abapgit_xml*
+
+INCLUDE /mbtools/mbt_template_1_defs.
+INCLUDE /mbtools/mbt_template_2_banner.
+INCLUDE /mbtools/mbt_template_3_screen.
+INCLUDE /mbtools/mbt_template_4_init.
+INCLUDE /mbtools/mbt_template_5_at.
+INCLUDE /mbtools/mbt_template_6_start.

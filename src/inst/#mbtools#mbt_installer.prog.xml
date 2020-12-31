@@ -17,6 +17,168 @@
      <ENTRY>MBT Installer</ENTRY>
      <LENGTH>13</LENGTH>
     </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_CONN_O</KEY>
+     <ENTRY>Internet Server</ENTRY>
+     <LENGTH>23</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_CONN_P</KEY>
+     <ENTRY>Password</ENTRY>
+     <LENGTH>16</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_CONN_U</KEY>
+     <ENTRY>User</ENTRY>
+     <LENGTH>12</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_FILE_F</KEY>
+     <ENTRY>Your Computer</ENTRY>
+     <LENGTH>21</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_FILE_I</KEY>
+     <ENTRY>Internet</ENTRY>
+     <LENGTH>16</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_FILE_S</KEY>
+     <ENTRY>Application Server</ENTRY>
+     <LENGTH>26</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_FOLD_D</KEY>
+     <ENTRY>Default (from abapGit Package)</ENTRY>
+     <LENGTH>38</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_FOLD_F</KEY>
+     <ENTRY>Full</ENTRY>
+     <LENGTH>12</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_FOLD_P</KEY>
+     <ENTRY>Prefix</ENTRY>
+     <LENGTH>14</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_LAYR_T</KEY>
+     <ENTRY>Transport Layer</ENTRY>
+     <LENGTH>23</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_PACK_L</KEY>
+     <ENTRY>Local Package</ENTRY>
+     <LENGTH>21</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_PACK_T</KEY>
+     <ENTRY>Transportable Package</ENTRY>
+     <LENGTH>29</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_PROX_H</KEY>
+     <ENTRY>Host</ENTRY>
+     <LENGTH>12</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_PROX_O</KEY>
+     <ENTRY>Internet Proxy</ENTRY>
+     <LENGTH>22</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_PROX_P</KEY>
+     <ENTRY>Password</ENTRY>
+     <LENGTH>16</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_PROX_S</KEY>
+     <ENTRY>Port</ENTRY>
+     <LENGTH>12</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_PROX_U</KEY>
+     <ENTRY>User</ENTRY>
+     <LENGTH>12</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_REQ_E</KEY>
+     <ENTRY>Transport Request</ENTRY>
+     <LENGTH>25</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_SAP_D</KEY>
+     <ENTRY>Default (from abapGit Package)</ENTRY>
+     <LENGTH>38</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_SAP_L</KEY>
+     <ENTRY>Local Package</ENTRY>
+     <LENGTH>21</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_SAP_T</KEY>
+     <ENTRY>Transportable Package</ENTRY>
+     <LENGTH>29</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_SOFT_T</KEY>
+     <ENTRY>Software Component</ENTRY>
+     <LENGTH>26</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_TSP_E</KEY>
+     <ENTRY>Use Existing Transport</ENTRY>
+     <LENGTH>30</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_TSP_N</KEY>
+     <ENTRY>Create New Transport</ENTRY>
+     <LENGTH>28</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_ZIP_F</KEY>
+     <ENTRY>Local File</ENTRY>
+     <LENGTH>18</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_ZIP_I</KEY>
+     <ENTRY>Internet</ENTRY>
+     <LENGTH>16</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_ZIP_S</KEY>
+     <ENTRY>Application Server</ENTRY>
+     <LENGTH>26</LENGTH>
+    </item>
    </TPOOL>
   </asx:values>
  </asx:abap>

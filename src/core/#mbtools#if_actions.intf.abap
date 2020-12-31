@@ -42,6 +42,7 @@ INTERFACE /mbtools/if_actions
   CONSTANTS tool_install TYPE string VALUE 'tool_install' ##NO_TEXT.
   CONSTANTS tool_uninstall TYPE string VALUE 'tool_uninstall' ##NO_TEXT.
   CONSTANTS tool_license TYPE string VALUE 'tool_license' ##NO_TEXT.
+  CONSTANTS tool_sync TYPE string VALUE 'tool_sync' ##NO_TEXT.
   CONSTANTS license_add TYPE string VALUE 'license_add' ##NO_TEXT.
   CONSTANTS license_remove TYPE string VALUE 'license_remove' ##NO_TEXT.
 ENDINTERFACE.

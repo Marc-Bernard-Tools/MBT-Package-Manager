@@ -28,6 +28,7 @@ SELECTION-SCREEN:
   BEGIN OF BLOCK b220 WITH FRAME.
 PARAMETERS:
   p_show   RADIOBUTTON GROUP g1 DEFAULT 'X',
+  p_sync   RADIOBUTTON GROUP g1,
   p_reg    RADIOBUTTON GROUP g1,
   p_unreg  RADIOBUTTON GROUP g1,
   p_act    RADIOBUTTON GROUP g1,
@@ -119,7 +120,7 @@ INITIALIZATION.
     iv_icon = icon_tools
     iv_text = 'Tools' ).
 
-  scr_t200 = 'Select "All Tools" or one particular tool and the'.
+  scr_t200 = 'Select all bundles, all tools, or one particular tool and the'.
   scr_t201 = 'action you want to perform'.
 
 *-----------------------------------------------------------------------
@@ -183,6 +184,13 @@ START-OF-SELECTION.
       SUBMIT /mbtools/registry VIA SELECTION-SCREEN AND RETURN. "#EC CI_SUBMIT
 
       RETURN.
+
+    WHEN p_sync.
+
+      gv_tool = 'Registry and Installer were'.
+      gv_action = 'synchronized'.
+
+      gv_flag = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_sync ).
 
     WHEN p_bund.
 

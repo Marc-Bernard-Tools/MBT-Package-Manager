@@ -24,6 +24,9 @@ INTERFACE /mbtools/if_html
       crossout TYPE c VALUE 'X',
     END OF c_html_opt .
 
+  TYPES:
+    ty_table_of TYPE STANDARD TABLE OF REF TO /mbtools/if_html WITH DEFAULT KEY.
+
   DATA mv_chunk_title TYPE string READ-ONLY . " Primarily for debug of posponed html parts
 
   METHODS a

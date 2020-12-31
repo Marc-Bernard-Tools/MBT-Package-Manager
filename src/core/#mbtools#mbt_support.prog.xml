@@ -15,7 +15,7 @@
     <item>
      <ID>R</ID>
      <ENTRY>MBT Support</ENTRY>
-     <LENGTH>18</LENGTH>
+     <LENGTH>11</LENGTH>
     </item>
     <item>
      <ID>S</ID>
@@ -64,6 +64,12 @@
      <KEY>P_SHOW</KEY>
      <ENTRY>Show Registry</ENTRY>
      <LENGTH>21</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_SYNC</KEY>
+     <ENTRY>Sync with Installer</ENTRY>
+     <LENGTH>27</LENGTH>
     </item>
     <item>
      <ID>S</ID>

@@ -681,9 +681,13 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
         IF lo_tool->is_bundle( ) = abap_false.
           IF lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_valid ) = abap_true.
             lv_expire = lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_expire ).
-            lv_details = /mbtools/cl_datetime=>get_long_date( lv_expire ).
-            lv_details = |<span class="has-mbt-green-color">{ lv_details }</span>|.
-            lv_details = |Your license key expires { lv_details }|.
+            IF lv_expire IS NOT INITIAL.
+              lv_details = /mbtools/cl_datetime=>get_long_date( lv_expire ).
+              lv_details = |expires <span class="has-mbt-green-color">{ lv_details }</span>|.
+            ELSE.
+              lv_details = |<span class="has-mbt-green-color">does not expire</span>|.
+            ENDIF.
+            lv_details = |Your license key { lv_details }|.
           ELSEIF NOT lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_key ) IS INITIAL.
             lv_details = |<span class="has-mbt-red-color">expired</span>|.
             lv_details = |Your license key has { lv_details }. Please enter a valid key.|.

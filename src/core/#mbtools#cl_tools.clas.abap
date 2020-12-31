@@ -117,6 +117,11 @@ CLASS /mbtools/cl_tools DEFINITION
         !io_tool         TYPE REF TO /mbtools/cl_tools
       RETURNING
         VALUE(rv_result) TYPE abap_bool .
+    CLASS-METHODS sync
+      IMPORTING
+        !io_tool         TYPE REF TO /mbtools/cl_tools
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool .
     " Tool Manifest
     METHODS build_manifest
       RETURNING
@@ -1134,10 +1139,10 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD install ##todo.
+  METHOD install.
 
-    " call zcl_abapinst_installer=>install.
-    MESSAGE 'This feature is not implemented, yet' TYPE 'I'.
+    SUBMIT /mbtools/mbt_installer
+      VIA SELECTION-SCREEN AND RETURN.
 
   ENDMETHOD.
 
@@ -1536,6 +1541,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
               lv_result = install( ls_tool-name ).
             WHEN /mbtools/if_actions=>tool_uninstall.
               lv_result = uninstall( factory( ls_tool-name ) ).
+            WHEN /mbtools/if_actions=>tool_sync.
+              lv_result = sync( factory( ls_tool-name ) ).
             WHEN OTHERS.
               " unknow action
               ASSERT 0 = 1.
@@ -1554,10 +1561,90 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD uninstall ##todo.
+  METHOD sync.
 
-    " call zcl_abapinst_installer=>uninstall
-    MESSAGE 'This feature is not implemented, yet' TYPE 'I'.
+    " Installer persistence
+    CONSTANTS c_tabname TYPE tabname VALUE 'ZMBTINST'.
+
+    " Sync with zif_abapinst_definitions
+    CONSTANTS gc_name_length TYPE i VALUE 90 ##NO_TEXT.
+
+    TYPES:
+      ty_name TYPE c LENGTH gc_name_length.
+    TYPES:
+      ty_pack TYPE devclass.
+    TYPES:
+      BEGIN OF ty_content,
+        name TYPE ty_name,
+        pack TYPE ty_pack,
+        json TYPE string,
+      END OF ty_content.
+    TYPES:
+      ty_contents TYPE SORTED TABLE OF ty_content WITH UNIQUE KEY name pack.
+    TYPES:
+      BEGIN OF ty_version,
+        major           TYPE i,
+        minor           TYPE i,
+        patch           TYPE i,
+        prerelase       TYPE string,
+        prerelase_patch TYPE i,
+      END OF ty_version.
+    TYPES:
+      BEGIN OF ty_inst,
+        name            TYPE ty_name,
+        pack            TYPE devclass,
+        version         TYPE string,
+        sem_version     TYPE ty_version,
+        description     TYPE string,
+        source_type     TYPE string,
+        source_name     TYPE string,
+        transport	      TYPE trkorr,
+        folder_logic    TYPE string,
+        installed_langu	TYPE sy-langu,
+        installed_by    TYPE xubname,
+        installed_at    TYPE timestamp,
+        updated_by      TYPE xubname,
+        updated_at      TYPE timestamp,
+        status          TYPE sy-msgty,
+      END OF ty_inst.
+
+    DATA:
+      lv_name TYPE string,
+      ls_inst TYPE ty_inst.
+
+    lv_name = io_tool->get_name( ).
+    SELECT SINGLE * FROM (c_tabname) INTO ls_inst WHERE name = lv_name.
+    IF sy-subrc = 0.
+      " Update
+    ELSE.
+      " Insert
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD uninstall.
+
+    DATA:
+      lo_popup  TYPE REF TO /mbtools/if_popups,
+      lv_answer TYPE sy-input.
+
+    lo_popup = /mbtools/cl_gui_factory=>get_popups( ).
+
+    TRY.
+        lv_answer = lo_popup->popup_to_confirm(
+          iv_titlebar       = 'Marc Bernard Tools - Uninstall'
+          iv_text_question  = |Are you sure, you want to uninstall { io_tool->get_name( ) }?|
+          iv_default_button = '2' ).
+
+        IF lv_answer = '1'.
+          CALL METHOD ('\PROGRAM=/MBTOOLS/MBT_INSTALLER\CLASS=ZCL_ABAPINST_INSTALLER')=>('UNINSTALL')
+            EXPORTING
+              iv_name = |{ io_tool->get_title( ) }|
+              iv_pack = |{ io_tool->get_package( ) }|.
+        ENDIF.
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -1613,10 +1700,25 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD update ##todo.
+  METHOD update.
 
-    " call zcl_abapinst_installer=>install with same parameters
-    ASSERT 0 = 0.
+    DATA lv_url TYPE string.
+
+    lv_url = io_tool->get_url_download( ).
+
+    IF lv_url IS NOT INITIAL.
+      SUBMIT /mbtools/mbt_installer
+        WITH p_file_f = ''
+        WITH p_file_i = lv_url
+        WITH p_file_s = ''
+        WITH p_zip_f  = abap_false
+        WITH p_zip_i  = abap_true
+        WITH p_zip_s  = abap_false
+        VIA SELECTION-SCREEN AND RETURN.
+    ELSE.
+      SUBMIT /mbtools/mbt_installer
+        VIA SELECTION-SCREEN AND RETURN.
+    ENDIF.
 
   ENDMETHOD.
 ENDCLASS.

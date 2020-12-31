@@ -1763,10 +1763,10 @@ INTERFACE zif_abapgit_log
 
   TYPES:
     BEGIN OF ty_log_out,
-      type      TYPE symsgty,
+      type      TYPE sy-msgty,
       text      TYPE string,
-      obj_type  TYPE trobjtype,
-      obj_name  TYPE sobj_name,
+      obj_type  TYPE tadir-object,
+      obj_name  TYPE tadir-obj_name,
       exception TYPE REF TO cx_root,
     END OF ty_log_out .
   TYPES:
@@ -1775,7 +1775,7 @@ INTERFACE zif_abapgit_log
   TYPES:
     BEGIN OF ty_msg,
       text TYPE string,
-      type TYPE symsgty,
+      type TYPE sy-msgty,
     END OF ty_msg .
   TYPES:
     ty_msgs TYPE STANDARD TABLE OF ty_msg
@@ -1783,7 +1783,7 @@ INTERFACE zif_abapgit_log
   TYPES:
     BEGIN OF ty_item_status_out,
       item     TYPE zif_abapgit_definitions=>ty_item,
-      status   TYPE symsgty,
+      status   TYPE sy-msgty,
       messages TYPE ty_msgs,
     END OF ty_item_status_out .
   TYPES:
@@ -1793,8 +1793,8 @@ INTERFACE zif_abapgit_log
   METHODS add
     IMPORTING
       !iv_msg  TYPE csequence
-      !iv_type TYPE symsgty DEFAULT 'E'
-      !iv_rc   TYPE balsort OPTIONAL
+      !iv_type TYPE sy-msgty DEFAULT 'E'
+      !iv_rc   TYPE sy-subrc OPTIONAL
       !is_item TYPE zif_abapgit_definitions=>ty_item OPTIONAL
       !ix_exc  TYPE REF TO cx_root OPTIONAL .
   METHODS add_error
@@ -1823,7 +1823,7 @@ INTERFACE zif_abapgit_log
       VALUE(rv_count) TYPE i .
   METHODS has_rc
     IMPORTING
-      !iv_rc        TYPE balsort
+      !iv_rc        TYPE sy-subrc
     RETURNING
       VALUE(rv_yes) TYPE abap_bool .
   METHODS get_messages
@@ -1834,7 +1834,7 @@ INTERFACE zif_abapgit_log
       VALUE(rt_item_status) TYPE ty_item_status_outs .
   METHODS get_status
     RETURNING
-      VALUE(rv_status) TYPE symsgty .
+      VALUE(rv_status) TYPE sy-msgty .
   METHODS get_title
     RETURNING
       VALUE(rv_title) TYPE string .
@@ -2511,7 +2511,7 @@ INTERFACE zif_abapgit_version
    .
 
   CONSTANTS gc_xml_version TYPE string VALUE 'v1.0.0' ##NO_TEXT.
-  CONSTANTS gc_abap_version TYPE string VALUE '1.103.0' ##NO_TEXT.
+  CONSTANTS gc_abap_version TYPE string VALUE '1.104.0' ##NO_TEXT.
 
 ENDINTERFACE.
 CLASS zcl_abapgit_adt_link DEFINITION
@@ -3059,18 +3059,17 @@ CLASS zcl_abapgit_log DEFINITION
   PUBLIC SECTION.
 
     INTERFACES zif_abapgit_log .
-
   PROTECTED SECTION.
 
     TYPES:
       BEGIN OF ty_msg,
         text TYPE string,
-        type TYPE symsgty,
+        type TYPE sy-msgty,
       END OF ty_msg .
     TYPES:
       BEGIN OF ty_log, "in order of occurrence
         msg       TYPE ty_msg,
-        rc        TYPE balsort,
+        rc        TYPE sy-subrc,
         item      TYPE zif_abapgit_definitions=>ty_item,
         exception TYPE REF TO cx_root,
       END OF ty_log .
@@ -3083,7 +3082,7 @@ CLASS zcl_abapgit_log DEFINITION
       IMPORTING
         !it_msg          TYPE zif_abapgit_log=>ty_msgs
       RETURNING
-        VALUE(rv_status) TYPE symsgty .
+        VALUE(rv_status) TYPE sy-msgty .
   PRIVATE SECTION.
 ENDCLASS.
 CLASS zcl_abapgit_longtexts DEFINITION
@@ -3445,8 +3444,7 @@ CLASS zcl_abapgit_objects_files DEFINITION
         VALUE(rt_files) TYPE zif_abapgit_definitions=>ty_files_tt .
     METHODS set_files
       IMPORTING
-        !it_files TYPE zif_abapgit_definitions=>ty_files_tt
-        !iv_path  TYPE string OPTIONAL .
+        !it_files TYPE zif_abapgit_definitions=>ty_files_tt .
     METHODS get_accessed_files
       RETURNING
         VALUE(rt_files) TYPE zif_abapgit_definitions=>ty_file_signatures_tt .
@@ -5538,7 +5536,12 @@ CLASS zcl_abapinst_installer DEFINITION
         full    TYPE i VALUE 2,
       END OF ty_enum_folder_logic .
 
-    CLASS-METHODS class_constructor .
+    CLASS-METHODS init
+      IMPORTING
+        !iv_tabname TYPE tabname OPTIONAL
+        !iv_lock    TYPE viewname OPTIONAL
+        !iv_name    TYPE string OPTIONAL
+        !iv_names   TYPE string OPTIONAL .
     CLASS-METHODS install
       IMPORTING
         !iv_enum_zip          TYPE i OPTIONAL
@@ -5586,6 +5589,8 @@ CLASS zcl_abapinst_installer DEFINITION
     CLASS-DATA go_dot TYPE REF TO zcl_abapgit_dot_abapgit .
     CLASS-DATA gi_log TYPE REF TO zif_abapgit_log .
     CLASS-DATA gs_packaging TYPE zif_abapgit_dot_abapgit=>ty_packaging .
+    CLASS-DATA gv_name TYPE string .
+    CLASS-DATA gv_names TYPE string .
 
     CLASS-METHODS _log_end
       RAISING
@@ -5885,7 +5890,14 @@ CLASS zcl_abapinst_persistence DEFINITION
 
   PUBLIC SECTION.
 
+    METHODS constructor
+      IMPORTING
+        !iv_tabname TYPE tabname DEFAULT zif_abapinst_definitions=>gc_tabname
+        !iv_lock    TYPE viewname DEFAULT zif_abapinst_definitions=>gc_lock .
     CLASS-METHODS get_instance
+      IMPORTING
+        !iv_tabname  TYPE tabname DEFAULT zif_abapinst_definitions=>gc_tabname
+        !iv_lock     TYPE viewname DEFAULT zif_abapinst_definitions=>gc_lock
       RETURNING
         VALUE(ro_db) TYPE REF TO zcl_abapinst_persistence .
     METHODS select
@@ -5930,6 +5942,8 @@ CLASS zcl_abapinst_persistence DEFINITION
 
     CLASS-DATA go_db TYPE REF TO zcl_abapinst_persistence .
     DATA mv_update_function TYPE funcname .
+    DATA mv_tabname TYPE tabname .
+    DATA mv_lock TYPE viewname .
 
     METHODS _update_function
       RETURNING
@@ -6069,7 +6083,8 @@ CLASS zcl_abapinst_screen DEFINITION
         !iv_sap_t   TYPE abap_bool
         !iv_tsp_e   TYPE abap_bool
         !iv_conn_o  TYPE abap_bool
-        !iv_prox_o  TYPE abap_bool .
+        !iv_prox_o  TYPE abap_bool
+        !iv_mbt     TYPE abap_bool DEFAULT abap_false .
     CLASS-METHODS header
       IMPORTING
         !iv_icon         TYPE icon_d
@@ -6123,12 +6138,18 @@ CLASS zcl_abapinst_setup DEFINITION
   PUBLIC SECTION.
 
     CLASS-METHODS run
+      IMPORTING
+        !iv_tabname TYPE tabname DEFAULT zif_abapinst_definitions=>gc_tabname
+        !iv_lock    TYPE viewname DEFAULT zif_abapinst_definitions=>gc_lock
+        !iv_text    TYPE ddtext DEFAULT 'Generated by abapinst'
       RAISING
         zcx_abapinst_exception .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    CONSTANTS gc_text TYPE string VALUE 'Generated by abapInst' ##NO_TEXT.
+    CLASS-DATA gv_text TYPE string VALUE 'Generated by abapInst' ##NO_TEXT.
+    CLASS-DATA gv_tabname TYPE tabname .
+    CLASS-DATA gv_lock TYPE viewname .
 
     CLASS-METHODS _table_create
       RAISING
@@ -9813,7 +9834,7 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD GET_FILE_PATTERN.
+  METHOD get_file_pattern.
     rv_pattern = filename( iv_ext = '*' ).
   ENDMETHOD.
 
@@ -9926,17 +9947,21 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
 
 
   METHOD set_files.
+
     FIELD-SYMBOLS: <ls_file> LIKE LINE OF it_files.
 
-    IF iv_path IS INITIAL.
-      mt_files = it_files.
-    ELSE.
-      " Only files in given path and matching pattern for this object
-      CLEAR mt_files.
-      LOOP AT it_files ASSIGNING <ls_file> WHERE path = iv_path AND filename CP get_file_pattern( ).
+    CLEAR mt_files.
+
+    " Set only files matching the pattern for this object
+    " If a path has been defined in the constructor, then the path has to match, too
+    LOOP AT it_files ASSIGNING <ls_file> WHERE filename CP get_file_pattern( ).
+      IF mv_path IS INITIAL.
         INSERT <ls_file> INTO TABLE mt_files.
-      ENDLOOP.
-    ENDIF.
+      ELSEIF mv_path = <ls_file>-path.
+        INSERT <ls_file> INTO TABLE mt_files.
+      ENDIF.
+    ENDLOOP.
+
   ENDMETHOD.
 ENDCLASS.
 
@@ -13362,7 +13387,7 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
 
   METHOD zif_abapgit_object~get_deserialize_steps.
     APPEND zif_abapgit_object=>gc_step_id-abap TO rt_steps.
-    APPEND zif_abapgit_object=>gc_step_id-lead TO rt_steps.
+*    APPEND zif_abapgit_object=>gc_step_id-lead TO rt_steps.
   ENDMETHOD.
 
 
@@ -14195,7 +14220,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_ENHC IMPLEMENTATION.
+CLASS zcl_abapgit_object_enhc IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -14225,8 +14250,8 @@ CLASS ZCL_ABAPGIT_OBJECT_ENHC IMPLEMENTATION.
           name = mv_composite_id
           lock = abap_true ).
 
-        li_enh_object->delete( ).
-        li_enh_object->save( ).
+        li_enh_object->delete( nevertheless_delete = abap_true
+                               run_dark            = abap_true ).
         li_enh_object->unlock( ).
 
       CATCH cx_enh_root INTO lx_error.
@@ -15234,7 +15259,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_ENHO IMPLEMENTATION.
+CLASS zcl_abapgit_object_enho IMPLEMENTATION.
 
 
   METHOD factory.
@@ -15335,8 +15360,8 @@ CLASS ZCL_ABAPGIT_OBJECT_ENHO IMPLEMENTATION.
         li_enh_object = cl_enh_factory=>get_enhancement(
           enhancement_id = lv_enh_id
           lock           = abap_true ).
-        li_enh_object->delete( ).
-        li_enh_object->save( run_dark = abap_true ).
+        li_enh_object->delete( nevertheless_delete = abap_true
+                               run_dark            = abap_true ).
         li_enh_object->unlock( ).
       CATCH cx_enh_root.
         zcx_abapgit_exception=>raise( 'Error deleting ENHO' ).
@@ -18286,7 +18311,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_object_prog IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_OBJECT_PROG IMPLEMENTATION.
 
 
   METHOD deserialize_texts.
@@ -18367,15 +18392,21 @@ CLASS zcl_abapgit_object_prog IMPLEMENTATION.
 
   METHOD zif_abapgit_object~delete.
 
-    DATA: lv_program  LIKE sy-repid,
-          lv_obj_name TYPE e071-obj_name.
+    DATA:
+      lv_program    LIKE sy-repid,
+      lv_obj_name   TYPE e071-obj_name,
+      lv_corrnumber TYPE e071-trkorr.
 
     lv_program = ms_item-obj_name.
+    lv_corrnumber = zcl_abapgit_default_transport=>get_instance( )->get( )-ordernum.
 
     CALL FUNCTION 'RS_DELETE_PROGRAM'
       EXPORTING
+        corrnumber                 = lv_corrnumber
         program                    = lv_program
         suppress_popup             = abap_true
+        mass_delete_call           = abap_true
+        tadir_devclass             = iv_package
         force_delete_used_includes = abap_true
       EXCEPTIONS
         enqueue_lock               = 1
@@ -18637,6 +18668,8 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL_COMPAR IMPLEMENTATION.
           ls_item                  TYPE zif_abapgit_definitions=>ty_item,
           lv_inconsistent          TYPE abap_bool.
 
+    FIELD-SYMBOLS <lv_is_gtt> TYPE abap_bool.
+
     ii_remote_version->read(
       EXPORTING
         iv_name = 'DD02V'
@@ -18645,6 +18678,12 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL_COMPAR IMPLEMENTATION.
 
     " We only want to compare transparent tables, or structures used in transparent tables
     IF ls_dd02v-tabclass <> 'TRANSP' AND is_structure_used_in_db_table( ls_dd02v-tabname ) = abap_false.
+      RETURN.
+    ENDIF.
+
+    " No comparison for global temporary tables
+    ASSIGN COMPONENT 'IS_GTT' OF STRUCTURE ls_dd02v TO <lv_is_gtt>.
+    IF sy-subrc = 0 AND <lv_is_gtt> = abap_true.
       RETURN.
     ENDIF.
 
@@ -24041,6 +24080,8 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       ls_vers TYPE zif_abapgit_definitions=>ty_version,
       lv_comp TYPE i.
 
+    init( ).
+
     IF iv_name IS SUPPLIED AND iv_pack IS SUPPLIED.
       ls_inst = go_db->select( iv_name = iv_name
                                iv_pack = iv_pack ).
@@ -24067,9 +24108,22 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD class_constructor.
+  METHOD init.
 
-    go_db = zcl_abapinst_persistence=>get_instance( ).
+    IF go_db IS NOT BOUND.
+      IF iv_tabname IS INITIAL AND iv_lock IS INITIAL.
+        go_db = zcl_abapinst_persistence=>get_instance( ).
+      ELSE.
+        go_db = zcl_abapinst_persistence=>get_instance(
+          iv_tabname = iv_tabname
+          iv_lock    = iv_lock ).
+      ENDIF.
+    ENDIF.
+
+    IF iv_name IS NOT INITIAL OR iv_names IS NOT INITIAL.
+      gv_name  = iv_name.
+      gv_names = iv_names.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -24081,6 +24135,8 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       lv_msg   TYPE string.
 
     CLEAR: gs_inst, gs_packaging, go_dot.
+
+    init( ).
 
     TRY.
         _log_start( ).
@@ -24128,10 +24184,10 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
         _save( ).
 
         IF gs_inst-status <> 'E'.
-          lv_msg = |Installation of abapGit package { gs_inst-name } successfully completed|.
+          lv_msg = |Installation of { gs_inst-name } successfully completed|.
           MESSAGE lv_msg TYPE 'S'.
         ELSE.
-          lv_msg = |Installation of abapGit package { gs_inst-name } finshed with errors|.
+          lv_msg = |Installation of { gs_inst-name } finshed with errors|.
           MESSAGE lv_msg TYPE 'S' DISPLAY LIKE 'E'.
         ENDIF.
 
@@ -24145,6 +24201,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
   METHOD list.
 
     DATA:
+      lv_msg TYPE string,
       lt_list                TYPE zif_abapinst_definitions=>ty_list,
       lo_list                TYPE REF TO cl_salv_table,
       lo_functions           TYPE REF TO cl_salv_functions,
@@ -24157,10 +24214,13 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       lr_column              TYPE REF TO cl_salv_column_table,
       lx_error               TYPE REF TO cx_salv_error.
 
+    init( ).
+
     lt_list = go_db->list( ).
 
     IF lt_list IS INITIAL.
-      MESSAGE 'No abapGit packages found' TYPE 'S'.
+      lv_msg = |No { gv_names } found|.
+      MESSAGE lv_msg TYPE 'S'.
       RETURN.
     ENDIF.
 
@@ -24263,6 +24323,8 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
     CLEAR: gs_inst.
 
+    init( ).
+
     TRY.
         _log_start( ).
 
@@ -24285,10 +24347,10 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
           iv_pack = gs_inst-pack ).
 
         IF gs_inst-status <> 'E'.
-          lv_msg = |Uninstall of abapGit package { gs_inst-name } successfully completed|.
+          lv_msg = |Uninstall of { gs_inst-name } successfully completed|.
           MESSAGE lv_msg TYPE 'S'.
         ELSE.
-          lv_msg = |Uninstall of abapGit package { gs_inst-name } finshed with errors|.
+          lv_msg = |Uninstall of { gs_inst-name } finshed with errors|.
           MESSAGE lv_msg TYPE 'S' DISPLAY LIKE 'E'.
         ENDIF.
 
@@ -24304,9 +24366,9 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
     IF check( iv_name        = gs_inst-name
               iv_pack        = gs_inst-pack
               is_sem_version = gs_inst-sem_version ) = abap_true.
-      zcx_abapinst_exception=>raise( |abapGit package is already installed (with same or newer version)| ).
+      zcx_abapinst_exception=>raise( |{ gv_name } is already installed (with same or newer version)| ).
     ELSEIF check( iv_pack = gs_inst-pack ) = abap_true.
-      zcx_abapinst_exception=>raise( |SAP package { gs_inst-pack } already contains a different abapGit package| ).
+      zcx_abapinst_exception=>raise( |SAP package { gs_inst-pack } already contains a different { gv_name }| ).
     ENDIF.
 
   ENDMETHOD.
@@ -24396,7 +24458,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
         gs_inst-source_type = 'DATA'.
         lv_xstr = iv_data.
       WHEN OTHERS.
-        zcx_abapinst_exception=>raise( |Unknown source for abapGit package| ).
+        zcx_abapinst_exception=>raise( |Unknown source for { gv_name }| ).
     ENDCASE.
 
     " Scan for viruses and unzip
@@ -24421,7 +24483,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
           zcx_abapinst_exception=>raise( |Error decoding .abapgit.xml| ).
       ENDTRY.
     ELSE.
-      zcx_abapinst_exception=>raise( |Error finding .abapgit.xml - Is this an abapGit repo?| ).
+      zcx_abapinst_exception=>raise( |Error finding .abapgit.xml - Is this an { gv_name }?| ).
     ENDIF.
 
   ENDMETHOD.
@@ -24435,7 +24497,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       path     = zif_abapgit_definitions=>c_root_dir
       filename = '.apack-manifest.xml'.
     IF sy-subrc = 0.
-      zcx_abapinst_exception=>raise( |Please migrate APACK to abapGit package setting| ).
+      zcx_abapinst_exception=>raise( |Please migrate APACK to { gv_name } setting| ).
     ENDIF.
 
   ENDMETHOD.
@@ -24478,7 +24540,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
   METHOD _log_start.
     CREATE OBJECT gi_log TYPE zcl_abapgit_log.
-    gi_log->set_title( 'abapInst Log' ).
+    gi_log->set_title( |{ sy-title } Log| ).
   ENDMETHOD.
 
 
@@ -25755,12 +25817,18 @@ ENDCLASS.
 CLASS zcl_abapinst_persistence IMPLEMENTATION.
 
 
+  METHOD constructor.
+    mv_tabname = iv_tabname.
+    mv_lock    = iv_lock.
+  ENDMETHOD.
+
+
   METHOD delete.
 
     _lock( iv_name = iv_name
            iv_pack = iv_pack ).
 
-    DELETE FROM (zif_abapinst_definitions=>gc_tabname)
+    DELETE FROM (mv_tabname)
       WHERE name = iv_name AND pack = iv_pack.
     IF sy-subrc <> 0.
       zcx_abapinst_exception=>raise( 'DB delete failed' ).
@@ -25774,7 +25842,10 @@ CLASS zcl_abapinst_persistence IMPLEMENTATION.
   METHOD get_instance.
 
     IF go_db IS NOT BOUND.
-      CREATE OBJECT go_db.
+      CREATE OBJECT go_db
+        EXPORTING
+          iv_tabname = iv_tabname
+          iv_lock    = iv_lock.
     ENDIF.
     ro_db = go_db.
 
@@ -25785,9 +25856,12 @@ CLASS zcl_abapinst_persistence IMPLEMENTATION.
 
     DATA ls_content TYPE zif_abapinst_definitions=>ty_content.
 
+    _lock( iv_name = is_inst-name
+           iv_pack = is_inst-pack ).
+
     ls_content = _list_to_content( is_inst ).
 
-    INSERT (zif_abapinst_definitions=>gc_tabname) FROM ls_content.
+    INSERT (mv_tabname) FROM ls_content.
     IF sy-subrc <> 0.
       zcx_abapinst_exception=>raise( 'DB insert failed' ).
     ENDIF.
@@ -25801,7 +25875,7 @@ CLASS zcl_abapinst_persistence IMPLEMENTATION.
 
     DATA lt_content TYPE zif_abapinst_definitions=>ty_contents.
 
-    SELECT * FROM (zif_abapinst_definitions=>gc_tabname) INTO TABLE lt_content
+    SELECT * FROM (mv_tabname) INTO TABLE lt_content
       ORDER BY PRIMARY KEY.
 
     rt_list = _content_to_list( lt_content ).
@@ -25814,11 +25888,11 @@ CLASS zcl_abapinst_persistence IMPLEMENTATION.
     DATA lt_content TYPE zif_abapinst_definitions=>ty_contents.
 
     IF iv_pack IS SUPPLIED.
-      SELECT * FROM (zif_abapinst_definitions=>gc_tabname) INTO TABLE lt_content
+      SELECT * FROM (mv_tabname) INTO TABLE lt_content
         WHERE name = iv_name AND pack = iv_pack
         ORDER BY PRIMARY KEY.
     ELSE.
-      SELECT * FROM (zif_abapinst_definitions=>gc_tabname) INTO TABLE lt_content
+      SELECT * FROM (mv_tabname) INTO TABLE lt_content
         WHERE name = iv_name
         ORDER BY PRIMARY KEY.
     ENDIF.
@@ -25833,13 +25907,13 @@ CLASS zcl_abapinst_persistence IMPLEMENTATION.
     DATA ls_content TYPE zif_abapinst_definitions=>ty_content.
 
     IF iv_name IS SUPPLIED AND iv_pack IS SUPPLIED.
-      SELECT SINGLE * FROM (zif_abapinst_definitions=>gc_tabname) INTO ls_content
+      SELECT SINGLE * FROM (mv_tabname) INTO ls_content
         WHERE name = iv_name AND pack = iv_pack.
     ELSEIF iv_name IS SUPPLIED.
-      SELECT SINGLE * FROM (zif_abapinst_definitions=>gc_tabname) INTO ls_content
+      SELECT SINGLE * FROM (mv_tabname) INTO ls_content
         WHERE name = iv_name.
     ELSE.
-      SELECT SINGLE * FROM (zif_abapinst_definitions=>gc_tabname) INTO ls_content
+      SELECT SINGLE * FROM (mv_tabname) INTO ls_content
         WHERE pack = iv_pack.
     ENDIF.
     IF sy-subrc = 0.
@@ -25858,7 +25932,7 @@ CLASS zcl_abapinst_persistence IMPLEMENTATION.
 
     ls_content = _list_to_content( is_inst ).
 
-    MODIFY (zif_abapinst_definitions=>gc_tabname) FROM ls_content.
+    MODIFY (mv_tabname) FROM ls_content.
     IF sy-subrc <> 0.
       zcx_abapinst_exception=>raise( 'DB modify failed' ).
     ENDIF.
@@ -25923,9 +25997,13 @@ CLASS zcl_abapinst_persistence IMPLEMENTATION.
 
   METHOD _lock.
 
-    DATA: lv_dummy_update_function TYPE funcname.
+    DATA:
+      lv_lock_function         TYPE funcname,
+      lv_dummy_update_function TYPE funcname.
 
-    CALL FUNCTION 'ENQUEUE_EZABAPINST'
+    lv_lock_function = 'ENQUEUE_' && mv_lock.
+
+    CALL FUNCTION lv_lock_function
       EXPORTING
         mode_zabapinst = iv_mode
         name           = iv_name
@@ -26817,13 +26895,13 @@ CLASS zcl_abapinst_screen IMPLEMENTATION.
 
       CASE screen-group1.
         WHEN 'T02'.
-          lv_show = boolc( iv_options = abap_true ).
+          lv_show = boolc( iv_options = abap_true AND NOT iv_mbt = abap_true ).
         WHEN 'T03'.
-          lv_show = boolc( iv_options = abap_true ).
+          lv_show = boolc( iv_options = abap_true AND NOT iv_mbt = abap_true ).
         WHEN 'T04'.
           lv_show = boolc( iv_options = abap_true ).
         WHEN 'T08'.
-          lv_show = boolc( iv_options = abap_true ).
+          lv_show = boolc( iv_options = abap_true AND NOT iv_mbt = abap_true ).
         WHEN 'C11'.
           lv_input = boolc( iv_zip_i = abap_true ).
         WHEN 'C12'.
@@ -26849,10 +26927,10 @@ CLASS zcl_abapinst_screen IMPLEMENTATION.
       ENDCASE.
 
       IF lv_show = abap_true.
-        screen-active = '1'.
+        screen-active    = '1'.
         screen-invisible = '0'.
       ELSE.
-        screen-active = '0'.
+        screen-active    = '0'.
         screen-invisible = '1'.
       ENDIF.
 
@@ -26863,7 +26941,7 @@ CLASS zcl_abapinst_screen IMPLEMENTATION.
       ENDIF.
 
       IF lv_password = abap_true.
-        screen-invisible   = '1'.
+        screen-invisible = '1'.
       ENDIF.
 
       MODIFY SCREEN.
@@ -26879,6 +26957,10 @@ CLASS zcl_abapinst_setup IMPLEMENTATION.
 
   METHOD run.
 
+    gv_tabname = iv_tabname.
+    gv_lock    = iv_lock.
+    gv_text    = iv_text.
+
     IF _table_exists( ) = abap_false.
       _table_create( ).
     ENDIF.
@@ -26892,11 +26974,16 @@ CLASS zcl_abapinst_setup IMPLEMENTATION.
 
   METHOD _get_package.
 
-    " Get package of main program
-    SELECT SINGLE devclass FROM tadir INTO rv_package
-      WHERE pgmid = 'R3TR' AND object = 'PROG' AND obj_name = sy-cprog.
-    IF sy-subrc <> 0.
-      rv_package = '$TMP'. " Fallback
+    IF sy-cprog CA '/'.
+      " Fallback for namespaced installer
+      rv_package = '$TMP'.
+    ELSE.
+      " Get package of main program
+      SELECT SINGLE devclass FROM tadir INTO rv_package
+        WHERE pgmid = 'R3TR' AND object = 'PROG' AND obj_name = sy-cprog.
+      IF sy-subrc <> 0.
+        rv_package = '$TMP'. " Fallback
+      ENDIF.
     ENDIF.
 
   ENDMETHOD.
@@ -26915,11 +27002,11 @@ CLASS zcl_abapinst_setup IMPLEMENTATION.
       <ls_dd26e> LIKE LINE OF lt_dd26e,
       <ls_dd27p> LIKE LINE OF lt_dd27p.
 
-    ls_dd25v-viewname   = zif_abapinst_definitions=>gc_lock.
+    ls_dd25v-viewname   = gv_lock.
     ls_dd25v-aggtype    = 'E'.
-    ls_dd25v-roottab    = zif_abapinst_definitions=>gc_tabname.
+    ls_dd25v-roottab    = gv_tabname.
     ls_dd25v-ddlanguage = zif_abapinst_definitions=>gc_english.
-    ls_dd25v-ddtext     = 'abapinst - Lock'.
+    ls_dd25v-ddtext     = gv_text && ' - Lock'.
 
     APPEND INITIAL LINE TO lt_dd26e ASSIGNING <ls_dd26e>.
     <ls_dd26e>-viewname   = ls_dd25v-viewname.
@@ -26997,8 +27084,7 @@ CLASS zcl_abapinst_setup IMPLEMENTATION.
 
     DATA: lv_viewname TYPE dd25l-viewname.
 
-    SELECT SINGLE viewname FROM dd25l INTO lv_viewname
-      WHERE viewname = zif_abapinst_definitions=>gc_lock.
+    SELECT SINGLE viewname FROM dd25l INTO lv_viewname WHERE viewname = gv_lock.
     rv_exists = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
@@ -27017,10 +27103,10 @@ CLASS zcl_abapinst_setup IMPLEMENTATION.
     FIELD-SYMBOLS:
       <ls_dd03p> LIKE LINE OF lt_dd03p.
 
-    ls_dd02v-tabname    = zif_abapinst_definitions=>gc_tabname.
+    ls_dd02v-tabname    = gv_tabname.
     ls_dd02v-ddlanguage = zif_abapinst_definitions=>gc_english.
     ls_dd02v-tabclass   = 'TRANSP'.
-    ls_dd02v-ddtext     = 'abapinst - Persistence'.
+    ls_dd02v-ddtext     = gv_text && ' - Persistence'.
     ls_dd02v-contflag   = 'A'.
     ls_dd02v-exclass    = '1'.
 
@@ -27110,8 +27196,7 @@ CLASS zcl_abapinst_setup IMPLEMENTATION.
 
     DATA: lv_tabname TYPE dd02l-tabname.
 
-    SELECT SINGLE tabname FROM dd02l INTO lv_tabname
-      WHERE tabname = zif_abapinst_definitions=>gc_tabname.
+    SELECT SINGLE tabname FROM dd02l INTO lv_tabname WHERE tabname = gv_tabname.
     rv_exists = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
@@ -29065,3 +29150,639 @@ ENDCLASS.
 
 
 
+
+*&---------------------------------------------------------------------*
+*&  Include           /MBTOOLS/MBT_TEMPLATE_1_DEFS
+*&---------------------------------------------------------------------*
+
+TABLES:
+  sscrfields.
+
+DATA:
+  gv_options  TYPE abap_bool,
+  gx_error    TYPE REF TO zcx_abapinst_exception,
+  go_textpool TYPE REF TO zcl_abapinst_textpool,
+  gs_inst     TYPE zif_abapinst_definitions=>ty_inst,
+  gt_banner   TYPE zif_abapinst_definitions=>ty_base_tab.
+*&---------------------------------------------------------------------*
+*&  Include           /MBTOOLS/MBT_TEMPLATE_2_BANNER
+*&---------------------------------------------------------------------*
+
+CONSTANTS:
+  c_banner_id   TYPE string VALUE '/MBTOOLS/MBT_INSTALLER',
+  c_title       TYPE string VALUE 'MBT Installer',
+  c_url_docs    TYPE string VALUE 'https://marcbernardtools.com/docs/marc-bernard-tools/installation/',
+  c_url_license TYPE string VALUE 'https://marcbernardtools.com/company/terms-software/',
+  c_url_repo    TYPE string VALUE 'https://marcbernardtools.com/'.
+
+CONSTANTS:
+  c_tabname TYPE tabname  VALUE 'ZMBTINST',
+  c_lock    TYPE viewname VALUE 'EZMBTINST'.
+
+FORM banner.
+  INSERT 'iVBORw0KGgoAAAANSUhEUgAAAMgAAAAdCAIAAABgybRVAAAALHRFWHRDcmVhdGlvbiBUaW1lAEZyaSAy' INTO TABLE gt_banner.
+  INSERT 'NyBOb3YgMjAyMCAyMDoyNjoxOCAtMDUwMAhjuEsAAAAHdElNRQfkCxwBHSIH0G3NAAAACXBIWXMAAAsS' INTO TABLE gt_banner.
+  INSERT 'AAALEgHS3X78AAAABGdBTUEAALGPC/xhBQAAAAZ0Uk5TAO4A7gDuHYxM+gAABeBJREFUeNrtmzFM41YY' INTO TABLE gt_banner.
+  INSERT 'x30IxMJwMFCdmJwERYroUKVeUjFhEXFZDql4QrK6BC8kZIhOsuhEFXHKEI4shgVZuslLuqQnX8MU3S1u' INTO TABLE gt_banner.
+  INSERT 'VIYoUtoknhiOISwsLLR+thM/J3Gwk5dLAv4NyHnv8fdnv4/v+94HvPD5fLVaDUPK8fHx4uIiWs2ZmZmH' INTO TABLE gt_banner.
+  INSERT 'hweEgoqFJEmiNdKlzSxyr8LUPUOuqXhVNBpFKHh+fo7cSJc2M+M2wOVp4jqWy0hwHctlJMyO24Bnj1zg' INTO TABLE gt_banner.
+  INSERT 'TvNVcOWPxBgSR6uFUt0RFo4Vip4cJuNbPu1T7eN7+vXBl1D0D/4MGkv/dnD+xfadbi4/XPx1bTW78mNk' INTO TABLE gt_banner.
+  INSERT '8/u15WVHxt/+fXlZv7WxcDH488aA71TmEkyuol4GkmJmBMfIWo7nJXBB+JWtR62FUt0JvRwrdPLv57gP' INTO TABLE gt_banner.
+  INSERT 'GvBtxT//FzcvUsbOtiKBn1YPbPvWdaPRsJprNLJFwbO+/3Z3zYn5t81m08ayoQ6pFUlSdwYLDKPy3Oiu' INTO TABLE gt_banner.
+  INSERT 'sUInvMmr+uGL8ychdMY0itl3lzfjfiUuKOiKWNHDtluBbPd7JfDGyIlg8P1eGhrzxQ+jB68ddoQ8nvWV' INTO TABLE gt_banner.
+  INSERT 'FdPIdbGoBbOG8Km8YTtqvfR6vVA0ur2t6wFsackL99KWXo7j3T5rOh0rFFjVr2pqXaVcnJexdmr8uLd6' INTO TABLE gt_banner.
+  INSERT 'cG4eWw0oMct+qQVYiex2+s7mq3e/CqpvFa/Ku2v2PGsR/8FUOsmX9T81x1oMbgxaVD2GUg6LGAPKFVku' INTO TABLE gt_banner.
+  INSERT 'iKdprQALbCdjYRLvuidYI+ar1c5xfyzD4KCAO61WJH1Myp0mqp1LoPsmmDSvZ2WMoFNJvRhXJkSvaand' INTO TABLE gt_banner.
+  INSERT 'B4EFYUXzY6ofCmI+X+1plwXOToW1f8pDb0xvlr9TQlhjeJ1vQC3HsrkqHajoVbGKJFE8q+wNB710mQsH' INTO TABLE gt_banner.
+  INSERT 'Wam3CB3JYDhWr/I8bwxKsKK+xEJJ4llww5SQrFIUTwvtpfYoJMIUbzatpVgStScAj1n1lSJ5pmMlZFcf' INTO TABLE gt_banner.
+  INSERT 'JqPdcFP+kC/q155Xzo6GY8HsAsYoG8R8Te3oWEhYepUz+vinxFLUQIIUb2GaxAYTrSfAMJ4K8vZ1TYzF' INTO TABLE gt_banner.
+  INSERT 'sYrZvaLV3HpkYwocqw1IIBFfLZ9m9a3iqURE2RiZS7e2hCDoQNeB0u8FX71+mqaNyEfQdKBzicwxrClb' INTO TABLE gt_banner.
+  INSERT 'hZXhupKCWX4wt4UFFUWBi3kx8TTI6uYSqVjPpoRhm2bXY0xGxGrhoY6ctRvGSztvkCQZ9rfiCp8vZEjj' INTO TABLE gt_banner.
+  INSERT '5dN9ul84k8nIXEUvdIjt7upFFnMtL6CFtpDyfdANHQEJtswvJFpeBe7Ro36ihVLGaW91sn6l0xAupqjd' INTO TABLE gt_banner.
+  INSERT 'QGyHjbeNh7cJ/bJSkzHc14o9PLUUhkgkuIJs/x71atuvImb3xJkkPYDRkGAS+JCaF/XnSZV6/QiAGOb8' INTO TABLE gt_banner.
+  INSERT 'IDSWiLW+f7Rpync3ny6yWr/BWbthgiEjNNYqzCUJrvKV+gyqkfsj1yr6FdGdgbx+xZUdxqwOQSgv9g5W' INTO TABLE gt_banner.
+  INSERT 'AzOmiLVsZm33F8qjTxWvRnXy/LaQmVKKsJqUWIazE7eMwNcDI/jYBxasG+cLi2A1BJNVYz0tcEZsMnKh' INTO TABLE gt_banner.
+  INSERT 'UIfGamlK20upqgyDCKFutXkIoh2VpJwoM6a+lnE8cIIhaJwo9WBV4DgvgypqjcWxrr+WzVHp61VeaDWx' INTO TABLE gt_banner.
+  INSERT 'pqLdYANZ1kKS12vKYYGu7GUkTZ4KY+opTQUH7VZQurGS5ghBMNtuijKDNTMMQR0tWAFB0IPIYfZy9KOM' INTO TABLE gt_banner.
+  INSERT 'xbEaQjZrNTdl7QYrlOKl/5kNqpnIWIrg9TgGdY5oAfSTQI3O6uW1EmSC7LCWwYKaaHCJhT9BfawhmKxT' INTO TABLE gt_banner.
+  INSERT '4ZS1GwaHSHFQXFBypkBb1mP9ijWCtv4+S/oLCmiKrYlxLM86tX/09klEq0dQ9q473ZAZsSSkaKLnhiuO' INTO TABLE gt_banner.
+  INSERT 'p06aVIBMU8xkuJRz1wLVX6nTl1VFZH9x9mIUr+7s7GwUssj/S2dnZ2cUdo4SrXLDcXSNAfSKKu6pcLpA' INTO TABLE gt_banner.
+  INSERT '7gAjUFSZmFTo8rRwHctlJLiO5TISZhcWFu7u7tCK3t/fz8/PI7cV7T/Fz83NIbfQpc3/q1uUaEN2fD4A' INTO TABLE gt_banner.
+  INSERT 'AAAASUVORK5CYIIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' INTO TABLE gt_banner.
+  INSERT 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA                    ' INTO TABLE gt_banner.
+ENDFORM.
+*&---------------------------------------------------------------------*
+*&  Include           /MBTOOLS/MBT_TEMPLATE_3_SCREEN
+*&---------------------------------------------------------------------*
+
+" Function Keys
+SELECTION-SCREEN FUNCTION KEY: 1, 2, 3.
+
+*-----------------------------------------------------------------------
+
+" Source Package
+SELECTION-SCREEN BEGIN OF SCREEN 100 AS SUBSCREEN.
+
+SELECTION-SCREEN BEGIN OF BLOCK b100 WITH FRAME.
+SELECTION-SCREEN COMMENT:
+   /1(77) scr_t100,
+   /1(77) scr_t101.
+SELECTION-SCREEN END OF BLOCK b100.
+
+SELECTION-SCREEN BEGIN OF BLOCK b110 WITH FRAME.
+
+PARAMETERS:
+  p_zip_f RADIOBUTTON GROUP g1 DEFAULT 'X' USER-COMMAND c100.
+SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4,
+  COMMENT (22) scr_t103 FOR FIELD p_file_f.
+PARAMETERS:
+  p_file_f TYPE char255 LOWER CASE
+    DEFAULT 'C:\*.zip' MODIF ID c12.
+SELECTION-SCREEN END OF LINE.
+
+SELECTION-SCREEN SKIP 2.
+PARAMETERS:
+  p_zip_i RADIOBUTTON GROUP g1.
+SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4,
+  COMMENT (22) scr_t102 FOR FIELD p_file_i.
+PARAMETERS:
+  p_file_i TYPE char255 LOWER CASE
+    DEFAULT 'https://github.com/*.zip' MODIF ID c11.
+SELECTION-SCREEN END OF LINE.
+
+SELECTION-SCREEN SKIP 2.
+PARAMETERS:
+  p_zip_s RADIOBUTTON GROUP g1.
+SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4,
+  COMMENT (22) scr_t104 FOR FIELD p_file_s.
+PARAMETERS:
+  p_file_s TYPE char255 LOWER CASE
+    DEFAULT '*.zip' MODIF ID c13.
+SELECTION-SCREEN END OF LINE.
+
+SELECTION-SCREEN END OF BLOCK b110.
+
+SELECTION-SCREEN END OF SCREEN 100.
+
+*-----------------------------------------------------------------------
+
+" Target Package
+SELECTION-SCREEN BEGIN OF SCREEN 200 AS SUBSCREEN.
+
+SELECTION-SCREEN BEGIN OF BLOCK b200 WITH FRAME.
+SELECTION-SCREEN COMMENT:
+   /1(77) scr_t200,
+   /1(77) scr_t201.
+SELECTION-SCREEN END OF BLOCK b200.
+
+SELECTION-SCREEN BEGIN OF BLOCK b210 WITH FRAME.
+
+PARAMETERS:
+  p_sap_d RADIOBUTTON GROUP g2 DEFAULT 'X' USER-COMMAND c200.
+
+SELECTION-SCREEN SKIP 2.
+PARAMETERS:
+  p_sap_l RADIOBUTTON GROUP g2.
+SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4.
+PARAMETERS:
+  p_pack_l TYPE devclass DEFAULT '' MODIF ID c21.
+SELECTION-SCREEN END OF LINE.
+
+SELECTION-SCREEN SKIP 2.
+PARAMETERS:
+  p_sap_t RADIOBUTTON GROUP g2.
+SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4.
+PARAMETERS:
+  p_pack_t TYPE pbpackdata-devclass  DEFAULT '' MODIF ID c22,
+  p_soft_t TYPE pbpackdata-dlvunit   DEFAULT '' MODIF ID c22,
+  p_layr_t TYPE pbpackdata-pdevclass DEFAULT '' MODIF ID c22.
+SELECTION-SCREEN END OF LINE.
+
+SELECTION-SCREEN SKIP 2.
+SELECTION-SCREEN END OF BLOCK b210.
+
+SELECTION-SCREEN END OF SCREEN 200.
+
+*-----------------------------------------------------------------------
+
+" Transport
+SELECTION-SCREEN BEGIN OF SCREEN 300 AS SUBSCREEN.
+
+SELECTION-SCREEN BEGIN OF BLOCK b300 WITH FRAME.
+SELECTION-SCREEN COMMENT:
+   /1(77) scr_t300,
+   /1(77) scr_t301.
+SELECTION-SCREEN END OF BLOCK b300.
+
+SELECTION-SCREEN BEGIN OF BLOCK b310 WITH FRAME.
+
+PARAMETERS:
+  p_tsp_n RADIOBUTTON GROUP g3 USER-COMMAND c300.
+
+SELECTION-SCREEN SKIP 2.
+PARAMETERS:
+  p_tsp_e RADIOBUTTON GROUP g3.
+SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4.
+PARAMETERS:
+  p_req_e TYPE trkorr MODIF ID c31.
+SELECTION-SCREEN END OF LINE.
+SELECTION-SCREEN SKIP.
+
+SELECTION-SCREEN SKIP 6.
+SELECTION-SCREEN END OF BLOCK b310.
+
+SELECTION-SCREEN END OF SCREEN 300.
+
+*-----------------------------------------------------------------------
+
+" Authentication
+SELECTION-SCREEN BEGIN OF SCREEN 400 AS SUBSCREEN.
+
+SELECTION-SCREEN BEGIN OF BLOCK b400 WITH FRAME.
+SELECTION-SCREEN COMMENT:
+   /1(77) scr_t400,
+   /1(77) scr_t401.
+SELECTION-SCREEN END OF BLOCK b400.
+
+SELECTION-SCREEN BEGIN OF BLOCK b410 WITH FRAME.
+
+PARAMETERS:
+  p_conn_o AS CHECKBOX USER-COMMAND c400.
+SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4,
+  COMMENT (22) scr_t402 FOR FIELD p_conn_u.
+PARAMETERS:
+  p_conn_u TYPE char255 LOWER CASE MODIF ID c40.
+SELECTION-SCREEN: END OF LINE, BEGIN OF LINE, POSITION 4,
+  COMMENT (22) scr_t403 FOR FIELD p_conn_p.
+PARAMETERS:
+  p_conn_p TYPE char255 LOWER CASE MODIF ID p40.
+SELECTION-SCREEN END OF LINE.
+SELECTION-SCREEN SKIP 2.
+
+PARAMETERS:
+  p_prox_o AS CHECKBOX USER-COMMAND c410.
+SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4,
+  COMMENT (22) scr_t404 FOR FIELD p_prox_h.
+PARAMETERS:
+  p_prox_h TYPE char255 LOWER CASE MODIF ID c41.
+SELECTION-SCREEN: END OF LINE, BEGIN OF LINE, POSITION 4,
+  COMMENT (22) scr_t405 FOR FIELD p_prox_s.
+PARAMETERS:
+  p_prox_s TYPE char5 MODIF ID c41.
+SELECTION-SCREEN: END OF LINE, BEGIN OF LINE, POSITION 4,
+  COMMENT (22) scr_t406 FOR FIELD p_prox_u.
+PARAMETERS:
+  p_prox_u TYPE char255 LOWER CASE MODIF ID c41.
+SELECTION-SCREEN: END OF LINE, BEGIN OF LINE, POSITION 4,
+  COMMENT (22) scr_t407 FOR FIELD p_prox_p.
+PARAMETERS:
+  p_prox_p TYPE char255 LOWER CASE MODIF ID p41.
+SELECTION-SCREEN END OF LINE.
+
+SELECTION-SCREEN SKIP 1.
+SELECTION-SCREEN END OF BLOCK b410.
+
+SELECTION-SCREEN END OF SCREEN 400.
+
+*-----------------------------------------------------------------------
+
+" Options
+SELECTION-SCREEN BEGIN OF SCREEN 800 AS SUBSCREEN.
+
+SELECTION-SCREEN BEGIN OF BLOCK b800 WITH FRAME.
+SELECTION-SCREEN COMMENT:
+      /1(77) scr_t800,
+      /1(77) scr_t801.
+SELECTION-SCREEN END OF BLOCK b800.
+
+SELECTION-SCREEN BEGIN OF BLOCK b810 WITH FRAME.
+
+SELECTION-SCREEN COMMENT:
+   /1(77) scr_t810.
+SELECTION-SCREEN SKIP.
+PARAMETERS:
+  p_fold_d RADIOBUTTON GROUP g8 DEFAULT 'X'.
+SELECTION-SCREEN SKIP.
+PARAMETERS:
+  p_fold_p RADIOBUTTON GROUP g8.
+SELECTION-SCREEN SKIP.
+PARAMETERS:
+  p_fold_f RADIOBUTTON GROUP g8.
+
+SELECTION-SCREEN SKIP 4.
+SELECTION-SCREEN END OF BLOCK b810.
+
+SELECTION-SCREEN END OF SCREEN 800.
+
+*-----------------------------------------------------------------------
+
+" About
+SELECTION-SCREEN:
+  BEGIN OF SCREEN 900 AS SUBSCREEN,
+    BEGIN OF BLOCK b900 WITH FRAME,
+      COMMENT /1(77) scr_t900,
+      COMMENT /1(50) scr_t901,
+      COMMENT 60(25) scr_t902,
+    END OF BLOCK b900,
+    BEGIN OF BLOCK b910 WITH FRAME,
+      PUSHBUTTON /1(55) b_docu USER-COMMAND docu,
+      SKIP,
+      PUSHBUTTON /1(55) b_lice USER-COMMAND lice,
+      SKIP,
+      PUSHBUTTON /1(55) b_repo USER-COMMAND repo,
+    END OF BLOCK b910,
+  END OF SCREEN 900.
+
+*-----------------------------------------------------------------------
+
+" Header
+SELECTION-SCREEN:
+  BEGIN OF BLOCK scr_header,
+    SKIP,
+    SKIP,
+    COMMENT /3(77) scr_t001 FOR FIELD p_zip_f,
+    SKIP,
+  END OF BLOCK scr_header,
+  BEGIN OF TABBED BLOCK scr_tab FOR 19 LINES,
+    TAB (40) scr_tab1 USER-COMMAND scr_push1
+      DEFAULT SCREEN 0100 MODIF ID t01,
+    TAB (40) scr_tab2 USER-COMMAND scr_push2
+      DEFAULT SCREEN 0200 MODIF ID t02,
+    TAB (40) scr_tab3 USER-COMMAND scr_push3
+      DEFAULT SCREEN 0300 MODIF ID t03,
+    TAB (40) scr_tab4 USER-COMMAND scr_push4
+      DEFAULT SCREEN 0400 MODIF ID t04,
+    TAB (40) scr_tab8 USER-COMMAND scr_push8
+      DEFAULT SCREEN 0800 MODIF ID t08,
+    TAB (40) scr_tab9 USER-COMMAND scr_push9
+      DEFAULT SCREEN 0900,
+  END OF BLOCK scr_tab.
+*&---------------------------------------------------------------------*
+*&  Include           /MBTOOLS/MBT_TEMPLATE_4_INIT
+*&---------------------------------------------------------------------*
+
+INITIALIZATION.
+
+* Setup
+  TRY.
+      zcl_abapinst_setup=>run(
+        iv_tabname = c_tabname
+        iv_lock    = c_lock
+        iv_text    = |Generated by { c_title }| ).
+
+      zcl_abapinst_installer=>init(
+        iv_tabname = c_tabname
+        iv_lock    = c_lock
+        iv_name    = 'Marc Bernard Tool'
+        iv_names   = 'Marc Bernard Tools' ).
+    CATCH zcx_abapinst_exception INTO gx_error.
+      MESSAGE gx_error TYPE 'E' DISPLAY LIKE 'I'.
+      STOP.
+  ENDTRY.
+
+* Textpool
+  CREATE OBJECT go_textpool EXPORTING iv_program = sy-cprog.
+
+  go_textpool->set( 'R,,' && c_title ).
+  go_textpool->set( 'S,P_CONN_O,Internet Server' ).
+  go_textpool->set( 'S,P_CONN_P,Password' ).
+  go_textpool->set( 'S,P_CONN_U,User' ).
+  go_textpool->set( 'S,P_FILE_F,Your Computer' ).
+  go_textpool->set( 'S,P_FILE_I,Internet' ).
+  go_textpool->set( 'S,P_FILE_S,Application Server' ).
+  go_textpool->set( 'S,P_FOLD_D,Default (from abapGit Package)' ).
+  go_textpool->set( 'S,P_FOLD_F,Full' ).
+  go_textpool->set( 'S,P_FOLD_P,Prefix' ).
+  go_textpool->set( 'S,P_LAYR_T,Transport Layer' ).
+  go_textpool->set( 'S,P_PACK_L,Local Package' ).
+  go_textpool->set( 'S,P_PACK_T,Transportable Package' ).
+  go_textpool->set( 'S,P_PROX_H,Host' ).
+  go_textpool->set( 'S,P_PROX_O,Internet Proxy' ).
+  go_textpool->set( 'S,P_PROX_P,Password' ).
+  go_textpool->set( 'S,P_PROX_S,Port' ).
+  go_textpool->set( 'S,P_PROX_U,User' ).
+  go_textpool->set( 'S,P_REQ_E,Transport Request' ).
+  go_textpool->set( 'S,P_SAP_D,Default (from abapGit Package)' ).
+  go_textpool->set( 'S,P_SAP_L,Local Package' ).
+  go_textpool->set( 'S,P_SAP_T,Transportable Package' ).
+  go_textpool->set( 'S,P_SOFT_T,Software Component' ).
+  go_textpool->set( 'S,P_TSP_E,Use Existing Transport' ).
+  go_textpool->set( 'S,P_TSP_N,Create New Transport' ).
+  go_textpool->set( 'S,P_ZIP_F,Local File' ).
+  go_textpool->set( 'S,P_ZIP_I,Internet' ).
+  go_textpool->set( 'S,P_ZIP_S,Application Server' ).
+
+  go_textpool->save( ).
+
+*-----------------------------------------------------------------------
+
+* Function Keys
+  sscrfields-functxt_01 = icon_expand && 'Show Options'.
+  sscrfields-functxt_02 = icon_install_package && 'List Packages'.
+  sscrfields-functxt_03 = icon_delete && 'Uninstall Package'.
+
+* Header
+  scr_t001 = 'An Installer for Marc Bernard Tools'.
+
+*-----------------------------------------------------------------------
+
+* Source Tab
+  scr_tab1 = zcl_abapinst_screen=>header( iv_icon = icon_install_package
+                                          iv_text = 'MBT Package' ).
+
+  scr_t100 =
+  'Select the source of your MBT installation package.'.
+  scr_t101 =
+  'The package must be a zip file that contains code and objects of the tool.'.
+
+  scr_t102 = 'URL'.
+  scr_t103 = 'File name'.
+  scr_t104 = 'File name (EPS Inbox)'.
+
+*-----------------------------------------------------------------------
+
+* Authentication Tab
+  scr_tab4 = zcl_abapinst_screen=>header( iv_icon = icon_connect
+                                          iv_text = 'Authentication' ).
+
+  scr_t400 =
+  'When downloading the MBT package from the Internet, you might have to'.
+  scr_t401 =
+  'authenticate yourself at the server and/or your proxy.'.
+
+  scr_t402 = 'User'.
+  scr_t403 = 'Password'.
+  scr_t404 = 'Proxy Host'.
+  scr_t405 = 'Proxy Port'.
+  scr_t406 = 'Proxy User'.
+  scr_t407 = 'Proxy Password'.
+
+*-----------------------------------------------------------------------
+
+* Target Tab
+  scr_tab2 = zcl_abapinst_screen=>header( iv_icon = icon_package_standard
+                                          iv_text = 'SAP Package' ).
+
+  scr_t200 =
+  'Select the target SAP package for your installation.'.
+  scr_t201 =
+  'If the package does not exist, it will be created automatically.'.
+
+*-----------------------------------------------------------------------
+
+* Transport Tab
+  scr_tab3 = zcl_abapinst_screen=>header( iv_icon = icon_transport
+                                          iv_text = 'Transport' ).
+
+  scr_t300 =
+  'When installing into a transportable package, decide if you want to create'.
+  scr_t301 =
+  'a new transport request or select an existing one.'.
+
+*-----------------------------------------------------------------------
+
+* Options Tab
+  scr_tab8 = zcl_abapinst_screen=>header( iv_icon = icon_icon_list
+                                          iv_text = 'Options' ).
+
+  scr_t800 =
+  'You can select the folder logic to be used and whether you want only'.
+  scr_t801 =
+  'the main language of the package to be installed.'.
+
+  scr_t810 = 'Folder Logic:'.
+
+*-----------------------------------------------------------------------
+
+* About Tab
+  scr_tab9 = zcl_abapinst_screen=>header( iv_icon = icon_system_help
+                                          iv_text = 'About' ).
+
+  scr_t900 = |Copyright © { sy-datum(4) } Marc Bernard Tools. All right reserved.|.
+  scr_t901 = 'An Installer for Marc Bernard Tools'.
+  scr_t902 = |Version { zif_abapinst_definitions=>gc_version }|.
+
+  b_docu = zcl_abapinst_screen=>icon( iv_name = icon_system_extended_help
+                                      iv_text = 'Documentation'
+                                      iv_info = '' ).
+  b_lice = zcl_abapinst_screen=>icon( iv_name = icon_legal_reg
+                                      iv_text = 'License'
+                                      iv_info = '' ).
+  b_repo = zcl_abapinst_screen=>icon( iv_name = icon_url
+                                      iv_text = 'Website'
+                                      iv_info = '' ).
+*&---------------------------------------------------------------------*
+*&  Include           /MBTOOLS/MBT_TEMPLATE_5_AT
+*&---------------------------------------------------------------------*
+
+AT SELECTION-SCREEN.
+
+  zcl_abapinst_screen=>modify(
+    iv_options = gv_options
+    iv_zip_i   = p_zip_i
+    iv_zip_f   = p_zip_f
+    iv_zip_s   = p_zip_s
+    iv_sap_l   = p_sap_l
+    iv_sap_t   = p_sap_t
+    iv_tsp_e   = p_tsp_e
+    iv_conn_o  = p_conn_o
+    iv_prox_o  = p_prox_o
+    iv_mbt     = abap_true ).
+
+  CHECK sy-dynnr <> '1000'.
+
+  CASE sscrfields-ucomm.
+
+*   Function Keys
+    WHEN 'FC01'. " Show/Hide Options
+      IF gv_options = abap_false.
+        sscrfields-functxt_01 = icon_collapse && 'Hide Options'.
+      ELSE.
+        sscrfields-functxt_01 = icon_expand && 'Show Options'.
+      ENDIF.
+      gv_options = boolc( gv_options = abap_false ).
+
+    WHEN 'FC02'. " List Packages
+      zcl_abapinst_screen=>banner( iv_show = abap_false ).
+      TRY.
+          zcl_abapinst_installer=>list( ).
+
+        CATCH zcx_abapinst_exception INTO gx_error.
+          MESSAGE gx_error TYPE 'S' DISPLAY LIKE 'E'.
+      ENDTRY.
+
+    WHEN 'FC03'. " Uninstall Package
+      TRY.
+          gs_inst = zcl_abapinst_screen=>f4_inst( ).
+
+          IF gs_inst IS NOT INITIAL.
+            zcl_abapinst_installer=>uninstall(
+              iv_name = gs_inst-name
+              iv_pack = gs_inst-pack ).
+          ENDIF.
+
+        CATCH zcx_abapinst_exception INTO gx_error.
+          MESSAGE gx_error TYPE 'S' DISPLAY LIKE 'E'.
+      ENDTRY.
+
+*   About
+    WHEN 'DOCU'. " Documentation
+      zcl_abapinst_screen=>browser( c_url_docs ).
+
+    WHEN 'LICE'. " License
+      zcl_abapinst_screen=>browser( c_url_license ).
+
+    WHEN 'REPO'. " Repository
+      zcl_abapinst_screen=>browser( c_url_repo ).
+
+  ENDCASE.
+
+AT SELECTION-SCREEN OUTPUT.
+
+  PERFORM banner.
+
+  zcl_abapinst_screen=>banner( it_base = gt_banner ). " iv_id = c_banner_id
+
+  zcl_abapinst_screen=>modify(
+    iv_options = gv_options
+    iv_zip_i   = p_zip_i
+    iv_zip_f   = p_zip_f
+    iv_zip_s   = p_zip_s
+    iv_sap_l   = p_sap_l
+    iv_sap_t   = p_sap_t
+    iv_tsp_e   = p_tsp_e
+    iv_conn_o  = p_conn_o
+    iv_prox_o  = p_prox_o
+    iv_mbt     = abap_true ).
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_file_f.
+
+  p_file_f = zcl_abapinst_screen=>f4_file( ).
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_req_e.
+
+  p_req_e = zcl_abapinst_screen=>f4_transport(
+              iv_package = p_pack_t
+              iv_layer   = p_layr_t ).
+*&---------------------------------------------------------------------*
+*&  Include           /MBTOOLS/MBT_TEMPLATE_6_START
+*&---------------------------------------------------------------------*
+
+START-OF-SELECTION.
+
+  DATA:
+    lv_enum_zip          TYPE i,
+    lv_name              TYPE char255,
+    lv_package           TYPE devclass,
+    lv_enum_package      TYPE i,
+    lv_enum_transport    TYPE i,
+    lv_enum_folder_logic TYPE i.
+
+  CASE abap_true.
+    WHEN p_zip_f.
+      lv_enum_zip = zcl_abapinst_installer=>ty_enum_zip-local.
+      lv_name     = p_file_f.
+    WHEN p_zip_i.
+      lv_enum_zip = zcl_abapinst_installer=>ty_enum_zip-internet.
+      lv_name     = p_file_i.
+    WHEN p_zip_s.
+      lv_enum_zip = zcl_abapinst_installer=>ty_enum_zip-server.
+      lv_name     = p_file_s.
+  ENDCASE.
+
+  CASE abap_true.
+    WHEN p_sap_d.
+      lv_enum_package = zcl_abapinst_installer=>ty_enum_package-default.
+    WHEN p_sap_l.
+      lv_enum_package = zcl_abapinst_installer=>ty_enum_package-local.
+      lv_package      = p_pack_l.
+    WHEN p_sap_t.
+      lv_enum_package = zcl_abapinst_installer=>ty_enum_package-transportable.
+      lv_package      = p_pack_t.
+  ENDCASE.
+
+  CASE abap_true.
+    WHEN p_tsp_n.
+      lv_enum_transport = zcl_abapinst_installer=>ty_enum_transport-prompt.
+    WHEN p_tsp_e.
+      lv_enum_transport = zcl_abapinst_installer=>ty_enum_transport-existing.
+  ENDCASE.
+
+  IF p_conn_o = abap_false.
+    CLEAR: p_conn_u, p_conn_p.
+  ENDIF.
+
+  IF p_prox_o = abap_false.
+    CLEAR: p_prox_h, p_prox_s, p_prox_u, p_prox_p.
+  ENDIF.
+
+  CASE abap_true.
+    WHEN p_fold_d.
+      lv_enum_folder_logic = zcl_abapinst_installer=>ty_enum_folder_logic-default.
+    WHEN p_fold_p.
+      lv_enum_folder_logic = zcl_abapinst_installer=>ty_enum_folder_logic-prefix.
+    WHEN p_fold_f.
+      lv_enum_folder_logic = zcl_abapinst_installer=>ty_enum_folder_logic-full.
+  ENDCASE.
+
+  TRY.
+      zcl_abapinst_installer=>install(
+        iv_enum_zip          = lv_enum_zip
+        iv_name              = lv_name
+        iv_enum_package      = lv_enum_package
+        iv_package           = lv_package
+        iv_dlvunit           = p_soft_t
+        iv_devlayer          = p_layr_t
+        iv_enum_transport    = lv_enum_transport
+        iv_transport         = p_req_e
+        iv_user              = p_conn_u
+        iv_password          = p_conn_p
+        iv_proxy_host        = p_prox_h
+        iv_proxy_service     = p_prox_s
+        iv_proxy_user        = p_prox_u
+        iv_proxy_password    = p_prox_p
+        iv_enum_folder_logic = lv_enum_folder_logic ).
+
+    CATCH zcx_abapinst_exception INTO gx_error.
+      MESSAGE gx_error TYPE 'S' DISPLAY LIKE 'E'.
+  ENDTRY.
