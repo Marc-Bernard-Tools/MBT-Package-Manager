@@ -17,6 +17,13 @@ CLASS /mbtools/cl_http DEFINITION
         digest TYPE string VALUE 'Digest' ##NO_TEXT,
       END OF c_scheme .
 
+    TYPES:
+      BEGIN OF ty_multipart,
+        ctype TYPE string,
+        cdata TYPE string,
+      END OF ty_multipart,
+      ty_multiparts TYPE STANDARD TABLE OF ty_multipart WITH DEFAULT KEY.
+
     CLASS-METHODS class_constructor .
     CLASS-METHODS get_agent
       RETURNING
@@ -37,6 +44,7 @@ CLASS /mbtools/cl_http DEFINITION
         !iv_request      TYPE string DEFAULT if_http_request=>co_request_method_get
         !iv_content      TYPE string OPTIONAL
         !iv_accept       TYPE string OPTIONAL
+        !it_multipart    TYPE ty_multiparts OPTIONAL
       RETURNING
         VALUE(ro_client) TYPE REF TO /mbtools/cl_http_client
       RAISING
@@ -161,10 +169,13 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
 
   METHOD create_by_destination.
 
-    DATA: lv_scheme              TYPE string,
-          li_client              TYPE REF TO if_http_client,
-          lo_proxy_configuration TYPE REF TO /mbtools/cl_proxy_config,
-          lv_text                TYPE string.
+    DATA:
+      lv_scheme              TYPE string,
+      li_client              TYPE REF TO if_http_client,
+      li_part                TYPE REF TO if_http_entity,
+      ls_multipart           TYPE ty_multipart,
+      lo_proxy_configuration TYPE REF TO /mbtools/cl_proxy_config,
+      lv_text                TYPE string.
 
     CREATE OBJECT lo_proxy_configuration.
 
@@ -201,27 +212,50 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
     li_client->request->set_compression( ).
     li_client->request->set_cdata( '' ).
     li_client->request->set_header_field(
-        name  = '~request_method'
-        value = iv_request ).
+      name  = '~request_method'
+      value = iv_request ).
     li_client->request->set_header_field(
-        name  = 'user-agent'
-        value = get_agent( ) ).                             "#EC NOTEXT
+      name  = 'user-agent'
+      value = get_agent( ) ).
     li_client->request->set_header_field(
-        name  = '~request_uri'
-        value = iv_path ).
+      name  = '~request_uri'
+      value = iv_path ).
     IF iv_accept IS NOT INITIAL.
       li_client->request->set_header_field(
-          name  = 'Accept'
-          value = iv_accept ).
+        name  = 'Accept'
+        value = iv_accept ).
+    ELSEIF it_multipart IS NOT INITIAL.
+      li_client->request->set_header_field(
+        name  = 'Accept'
+        value = 'multipart/mixed' ).
     ENDIF.
     IF iv_content IS NOT INITIAL.
       li_client->request->set_header_field(
-          name  = 'Content-type'
-          value = iv_content ).                             "#EC NOTEXT
+        name  = 'Content-type'
+        value = iv_content ).
+    ELSEIF it_multipart IS NOT INITIAL.
+      li_client->request->set_header_field(
+        name  = 'Content-type'
+        value = 'multipart/mixed' ).
     ENDIF.
 
     " Disable internal auth dialog (due to its unclarity)
     li_client->propertytype_logon_popup = if_http_client=>co_disabled.
+
+    " Multiparts
+    LOOP AT it_multipart INTO ls_multipart.
+      li_part = li_client->request->if_http_entity~add_multipart( ).
+*      li_part->set_header_field(
+*        name  = '~request_method'
+*        value = 'GET' ).
+      li_part->set_header_field(
+        name  = 'Content-type'
+        value = 'application/http' ).
+      li_part->set_header_field(
+        name  = 'Accept'
+        value = ls_multipart-ctype ).
+      li_part->append_cdata( ls_multipart-cdata ).
+    ENDLOOP.
 
     ro_client->send_receive( ).
 

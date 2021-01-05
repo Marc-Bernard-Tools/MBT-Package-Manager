@@ -1,6 +1,7 @@
 CLASS /mbtools/cl_http_client DEFINITION
   PUBLIC
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT HTTP Client
 *
@@ -9,7 +10,6 @@ CLASS /mbtools/cl_http_client DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-
   PUBLIC SECTION.
 
     METHODS constructor
@@ -49,6 +49,9 @@ CLASS /mbtools/cl_http_client DEFINITION
         !iv_url TYPE string
       RAISING
         /mbtools/cx_exception .
+    METHODS get_multipart
+      RETURNING
+        VALUE(rt_multipart) TYPE /mbtools/cl_http=>ty_multiparts .
   PROTECTED SECTION.
   PRIVATE SECTION.
     DATA: mi_client TYPE REF TO if_http_client,
@@ -136,6 +139,25 @@ CLASS /mbtools/cl_http_client IMPLEMENTATION.
 
   METHOD get_data.
     rv_value = mi_client->response->get_data( ).
+  ENDMETHOD.
+
+
+  METHOD get_multipart.
+
+    DATA:
+      li_part TYPE REF TO if_http_entity.
+
+    FIELD-SYMBOLS:
+      <ls_multipart> LIKE LINE OF rt_multipart.
+
+    DO mi_client->response->num_multiparts( ) TIMES.
+      li_part = mi_client->response->get_multipart( sy-index ).
+
+      APPEND INITIAL LINE TO rt_multipart ASSIGNING <ls_multipart>.
+      <ls_multipart>-ctype = li_part->get_content_type( ).
+      <ls_multipart>-cdata = li_part->get_cdata( ).
+    ENDDO.
+
   ENDMETHOD.
 
 
