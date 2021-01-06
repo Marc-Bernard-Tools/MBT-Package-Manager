@@ -54,6 +54,7 @@ REPORT /mbtools/mbt_template.
 * @@require clas zcl_abapgit_object_w3*
 
 * @@require clas zcl_abapgit_adt_link
+* @@require clas zcx_abapgit_cancel
 * @@require clas zcl_abapgit_convert
 * @@require clas zcl_abapgit_default_transport
 * @@require intf zif_abapgit_definitions
