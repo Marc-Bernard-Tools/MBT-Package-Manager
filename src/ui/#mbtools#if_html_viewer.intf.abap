@@ -23,25 +23,17 @@ INTERFACE /mbtools/if_html_viewer
     CHANGING
       !ct_data_table   TYPE STANDARD TABLE
     EXCEPTIONS
-      dp_invalid_parameter
-      dp_error_general
-      cntl_error
-      html_syntax_notcorrect .
+      /mbtools/cx_exception.
   METHODS set_registered_events
     IMPORTING
       !it_events TYPE cntl_simple_events
     EXCEPTIONS
-      cntl_error
-      cntl_system_error
-      illegal_event_combination .
+      /mbtools/cx_exception.
   METHODS show_url
     IMPORTING
       !iv_url TYPE c
     EXCEPTIONS
-      cntl_error
-      cnht_error_not_allowed
-      cnht_error_parameter
-      dp_error_general .
+      /mbtools/cx_exception.
   METHODS free .
   METHODS close_document .
   METHODS get_url

@@ -70,28 +70,55 @@ CLASS /mbtools/cl_html_viewer IMPLEMENTATION.
 
     mo_html_viewer->load_data(
       EXPORTING
-        url           = iv_url
-        type          = iv_type
-        subtype       = iv_subtype
-        size          = iv_size
+        url                    = iv_url
+        type                   = iv_type
+        subtype                = iv_subtype
+        size                   = iv_size
       IMPORTING
-        assigned_url  = ev_assigned_url
+        assigned_url           = ev_assigned_url
       CHANGING
-        data_table    = ct_data_table ).
+        data_table             = ct_data_table
+      EXCEPTIONS
+        dp_invalid_parameter   = 1
+        dp_error_general       = 2
+        cntl_error             = 3
+        html_syntax_notcorrect = 4 ).
+    IF sy-subrc <> 0.
+      /mbtools/cx_exception=>raise( 'Error loading data for HTML viewer' ).
+    ENDIF.
 
   ENDMETHOD.
 
 
   METHOD /mbtools/if_html_viewer~set_registered_events.
 
-    mo_html_viewer->set_registered_events( it_events ).
+    mo_html_viewer->set_registered_events(
+      EXPORTING
+        events                    = it_events
+      EXCEPTIONS
+        cntl_error                = 1
+        cntl_system_error         = 2
+        illegal_event_combination = 3 ).
+    IF sy-subrc <> 0.
+      /mbtools/cx_exception=>raise( 'Error registering events for HTML viewer' ).
+    ENDIF.
 
   ENDMETHOD.
 
 
   METHOD /mbtools/if_html_viewer~show_url.
 
-    mo_html_viewer->show_url( iv_url ).
+    mo_html_viewer->show_url(
+      EXPORTING
+        url                    = iv_url
+      EXCEPTIONS
+        cntl_error             = 1
+        cnht_error_not_allowed = 2
+        cnht_error_parameter   = 3
+        dp_error_general       = 4 ).
+    IF sy-subrc <> 0.
+      /mbtools/cx_exception=>raise( 'Error showing URL in HTML viewer' ).
+    ENDIF.
 
   ENDMETHOD.
 

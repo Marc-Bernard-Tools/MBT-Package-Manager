@@ -22025,6 +22025,8 @@ CLASS zcl_abapgit_object_w3xx_super IMPLEMENTATION.
       zcx_abapgit_exception=>raise( 'Cannot delete W3xx params' ).
     ENDIF.
 
+    corr_insert( iv_package ).
+
   ENDMETHOD.
 
 
@@ -24873,6 +24875,9 @@ CLASS zcl_abapinst_file_status IMPLEMENTATION.
       READ TABLE it_local ASSIGNING <ls_local>
         WITH KEY file-filename = <ls_remote>-filename.
       IF sy-subrc = 0 AND <ls_local>-file-sha1 = <ls_remote>-sha1.
+        <ls_result>-match = abap_false.
+        <ls_result>-lstate = zif_abapgit_definitions=>c_state-deleted.
+        <ls_result>-rstate = zif_abapgit_definitions=>c_state-unchanged.
         <ls_result>-packmove = abap_true.
       ELSEIF sy-subrc = 4.
         " Check if file existed before and was deleted locally
