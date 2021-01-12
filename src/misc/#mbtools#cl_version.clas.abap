@@ -45,7 +45,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_VERSION IMPLEMENTATION.
+CLASS /mbtools/cl_version IMPLEMENTATION.
 
 
   METHOD check_dependant_version.
@@ -105,8 +105,8 @@ CLASS /MBTOOLS/CL_VERSION IMPLEMENTATION.
     " current = compare: 0
     " current > compare: +1
 
-    DATA: ls_version_a TYPE zif_abapgit_definitions=>ty_version,
-          ls_version_b TYPE zif_abapgit_definitions=>ty_version.
+    DATA: ls_version_a TYPE /mbtools/if_definitions=>ty_version,
+          ls_version_b TYPE /mbtools/if_definitions=>ty_version.
 
     IF iv_current IS INITIAL OR iv_compare IS INITIAL.
       rv_result = 0.

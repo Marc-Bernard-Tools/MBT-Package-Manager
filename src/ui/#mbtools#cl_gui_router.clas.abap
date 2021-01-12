@@ -60,7 +60,7 @@ CLASS /mbtools/cl_gui_router IMPLEMENTATION.
     ENDIF.
 
     IF rs_handled-state IS INITIAL.
-      rs_handled-state = zcl_abapgit_gui=>c_event_state-not_handled.
+      rs_handled-state = /mbtools/cl_gui=>c_event_state-not_handled.
     ENDIF.
 
   ENDMETHOD.

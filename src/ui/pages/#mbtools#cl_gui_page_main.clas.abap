@@ -465,7 +465,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
         IF io_tool->is_bundle( ) = abap_false.
           ri_html->add_a(
             iv_act = |toggleDisplay('details-{ io_tool->get_name( ) }')|
-            iv_typ = zif_abapgit_html=>c_action_type-onclick
+            iv_typ = /mbtools/if_html=>c_action_type-onclick
             iv_txt = ri_html->icon( iv_name  = 'info/black'
                                     iv_hint  = 'View tool infos' ) ).
 
@@ -656,7 +656,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
         IF lo_tool->is_bundle( ) = abap_false.
           lv_details = |toggleDisplay('details-{ lo_tool->get_name( ) }')|.
           lv_details = ri_html->a( iv_act = lv_details
-                                   iv_typ = zif_abapgit_html=>c_action_type-onclick
+                                   iv_typ = /mbtools/if_html=>c_action_type-onclick
                                    iv_txt = |View details| ).
           lv_details = |Version: { lo_tool->get_version( ) } \| | &&
                        |{ lv_details } \| Last update: { lo_tool->get_last_update( ) }|.
@@ -664,7 +664,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
           IF NOT lo_tool->get_new_version( ) IS INITIAL.
             lv_changelog = |toggleDisplay('changelog-{ lo_tool->get_name( ) }')|.
             lv_changelog = ri_html->a( iv_act = lv_changelog
-                                       iv_typ = zif_abapgit_html=>c_action_type-onclick
+                                       iv_typ = /mbtools/if_html=>c_action_type-onclick
                                        iv_txt = |View version { lo_tool->get_new_version( ) } details| ).
 
             lv_update = ri_html->a(

@@ -15,7 +15,8 @@ CLASS /mbtools/cl_gui_event DEFINITION
         !it_postdata     TYPE cnht_post_data_tab OPTIONAL .
   PROTECTED SECTION.
   PRIVATE SECTION.
-    DATA mo_params TYPE REF TO /mbtools/cl_string_map.
+
+    DATA mo_params TYPE REF TO /mbtools/cl_string_map .
 
     METHODS parse_data
       IMPORTING
@@ -33,13 +34,6 @@ ENDCLASS.
 CLASS /mbtools/cl_gui_event IMPLEMENTATION.
 
 
-  METHOD /mbtools/if_gui_event~form_data.
-
-    ro_string_map = parse_data( it_postdata = /mbtools/if_gui_event~mt_postdata ).
-
-  ENDMETHOD.
-
-
   METHOD /mbtools/if_gui_event~get_param.
 
     rv_value = mo_params->get( iv_key ).
@@ -54,19 +48,16 @@ CLASS /mbtools/cl_gui_event IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD /mbtools/if_gui_event~query.
-
-    ro_string_map = parse_data( iv_getdata = /mbtools/if_gui_event~mv_getdata ).
-
-  ENDMETHOD.
-
-
   METHOD constructor.
 
     /mbtools/if_gui_event~mi_gui_services = ii_gui_services.
     /mbtools/if_gui_event~mv_action       = iv_action.
     /mbtools/if_gui_event~mv_getdata      = iv_getdata.
     /mbtools/if_gui_event~mt_postdata     = it_postdata.
+
+    IF ii_gui_services IS BOUND.
+      /mbtools/if_gui_event~mv_current_page_name = ii_gui_services->get_current_page_name( ).
+    ENDIF.
 
     TRY.
         mo_params = parse_data( iv_getdata  = /mbtools/if_gui_event~mv_getdata

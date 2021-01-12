@@ -31,7 +31,7 @@ CLASS /mbtools/cx_exception DEFINITION
     "! Raise exception with text
     "! @parameter iv_text | Text
     "! @parameter ix_previous | Previous exception
-    "! @raising zcx_abapgit_exception | Exception
+    "! @raising /mbtools/cx_exception | Exception
     CLASS-METHODS raise
       IMPORTING
         !iv_text     TYPE clike
@@ -48,7 +48,7 @@ CLASS /mbtools/cx_exception DEFINITION
     "! @parameter iv_msgv2 | Message variable 2
     "! @parameter iv_msgv3 | Message variable 3
     "! @parameter iv_msgv4 | Message variable 4
-    "! @raising zcx_abapgit_exception | Exception
+    "! @raising /mbtools/cx_exception | Exception
     CLASS-METHODS raise_t100
       IMPORTING
         VALUE(iv_msgid) TYPE symsgid DEFAULT sy-msgid
@@ -367,11 +367,11 @@ CLASS /mbtools/cx_exception IMPLEMENTATION.
       IMPORTING
         callstack = mt_callstack.
 
-    " You should remember that the first lines are from zcx_abapgit_exception
+    " You should remember that the first lines are from /mbtools/cx_exception
     " and are removed so that highest level in the callstack is the position where
     " the exception is raised.
     "
-    " For the merged report it's hard to do that, because zcx_abapgit_exception
+    " For the merged report it's hard to do that, because /mbtools/cx_exception
     " isn't visible in the callstack. Therefore we have to check the Events.
     LOOP AT mt_callstack ASSIGNING <ls_callstack>.
 

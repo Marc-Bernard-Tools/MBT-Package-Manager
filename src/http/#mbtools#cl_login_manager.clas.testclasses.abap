@@ -8,9 +8,9 @@ CLASS ltcl_login_manager DEFINITION FOR TESTING RISK LEVEL HARMLESS DURATION SHO
       setup,
       teardown,
       encoding FOR TESTING
-        RAISING zcx_abapgit_exception,
+        RAISING /mbtools/cx_exception,
       same_server FOR TESTING
-        RAISING zcx_abapgit_exception.
+        RAISING /mbtools/cx_exception.
 
 ENDCLASS.
 
