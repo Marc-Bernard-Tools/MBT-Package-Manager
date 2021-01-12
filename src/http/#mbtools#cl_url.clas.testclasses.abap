@@ -48,7 +48,7 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_name = /mbtools/cl_url=>name( 'https://github.com/larshp/Foobar.git' ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = 'Foobar'
+        exp = 'Foobar.git'
         act = lv_name ).
 
   ENDMETHOD.

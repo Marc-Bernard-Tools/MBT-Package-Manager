@@ -29,6 +29,8 @@ INTERFACE /mbtools/if_actions
   CONSTANTS goto_message TYPE string VALUE 'goto_message' ##NO_TEXT.
   CONSTANTS goto_source TYPE string VALUE 'goto_source' ##NO_TEXT.
   CONSTANTS show_callstack TYPE string VALUE 'show_callstack' ##NO_TEXT.
+  CONSTANTS tools_check TYPE string VALUE 'tools_check' ##NO_TEXT.
+  CONSTANTS tools_update TYPE string VALUE 'tools_update' ##NO_TEXT.
   CONSTANTS tool_check TYPE string VALUE 'tool_check' ##NO_TEXT.
   CONSTANTS tool_update TYPE string VALUE 'tool_update' ##NO_TEXT.
   CONSTANTS tool_docs TYPE string VALUE 'tool_docs' ##NO_TEXT.

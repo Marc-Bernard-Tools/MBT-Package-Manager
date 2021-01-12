@@ -1141,7 +1141,18 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
   METHOD install.
 
+    DATA lv_file TYPE string.
+
+    lv_file = iv_title && '-1.0.0.zip'.
+    REPLACE ALL OCCURRENCES OF ` ` IN lv_file WITH '_'.
+
     SUBMIT /mbtools/mbt_installer
+      WITH p_zip_f = abap_true
+      WITH p_zip_s = abap_false
+      WITH p_zip_i = abap_false
+      WITH p_file_f = lv_file
+      WITH p_file_s = ''
+      WITH p_file_i = ''
       VIA SELECTION-SCREEN AND RETURN.
 
   ENDMETHOD.
@@ -1537,8 +1548,10 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
               lv_result = factory( ls_tool-name )->deactivate( ).
             WHEN /mbtools/if_actions=>tool_check.
               lv_result = factory( ls_tool-name )->check_version( ).
-            WHEN /mbtools/if_actions=>tool_update.
+            WHEN /mbtools/if_actions=>tool_install.
               lv_result = install( ls_tool-name ).
+            WHEN /mbtools/if_actions=>tool_update.
+              lv_result = update( factory( ls_tool-name ) ).
             WHEN /mbtools/if_actions=>tool_uninstall.
               lv_result = uninstall( factory( ls_tool-name ) ).
             WHEN /mbtools/if_actions=>tool_sync.
@@ -1642,6 +1655,9 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
             EXPORTING
               iv_name = |{ io_tool->get_title( ) }|
               iv_pack = |{ io_tool->get_package( ) }|.
+
+          " Unregister tool ##TODO
+          io_tool->unregister( ).
         ENDIF.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
@@ -1702,23 +1718,42 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
   METHOD update.
 
-    DATA lv_url TYPE string.
+    DATA:
+      lv_url  TYPE string,
+      lv_file TYPE string.
 
-    lv_url = io_tool->get_url_download( ).
+    IF io_tool->get_new_version( ) IS NOT INITIAL.
+      lv_url = io_tool->get_url_download( ).
+      TRY.
+          lv_file = /mbtools/cl_url=>name( lv_url ).
+        CATCH /mbtools/cx_exception.
+      ENDTRY.
+    ENDIF.
 
-    IF lv_url IS NOT INITIAL.
+    IF /mbtools/cl_mbt=>is_online( ).
+      " URL and no selection screen
       SUBMIT /mbtools/mbt_installer
-        WITH p_file_f = ''
+        WITH p_file_f = lv_file
         WITH p_file_i = lv_url
-        WITH p_file_s = ''
+        WITH p_file_s = lv_file
         WITH p_zip_f  = abap_false
         WITH p_zip_i  = abap_true
         WITH p_zip_s  = abap_false
-        VIA SELECTION-SCREEN AND RETURN.
+        AND RETURN.
     ELSE.
+      " Local file and via selection screen
       SUBMIT /mbtools/mbt_installer
+        WITH p_file_f = lv_file
+        WITH p_file_i = lv_url
+        WITH p_file_s = lv_file
+        WITH p_zip_f  = abap_true
+        WITH p_zip_i  = abap_false
+        WITH p_zip_s  = abap_false
         VIA SELECTION-SCREEN AND RETURN.
     ENDIF.
+
+    " Register tool
+    io_tool->register( ).
 
   ENDMETHOD.
 ENDCLASS.

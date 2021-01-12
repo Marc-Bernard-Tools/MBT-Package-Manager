@@ -25,10 +25,6 @@ CLASS /mbtools/cl_gui DEFINITION
         go_back_to_bookmark TYPE i VALUE 6,
         new_page_replacing  TYPE i VALUE 7,
       END OF c_event_state .
-    CONSTANTS:
-      BEGIN OF c_action,
-        go_home TYPE string VALUE 'go_home',
-      END OF c_action .
 
     METHODS go_home
       RAISING
@@ -333,12 +329,24 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
 
   METHOD go_home.
 
-    DATA ls_stack LIKE LINE OF mt_stack.
+    DATA:
+      ls_stack LIKE LINE OF mt_stack,
+      lv_mode  TYPE c LENGTH 20.
 
     IF mi_router IS BOUND.
       CLEAR: mt_stack, mt_event_handlers.
       APPEND mi_router TO mt_event_handlers.
-      on_event( action = |{ c_action-go_home }| ). " doesn't accept strings directly
+
+      GET PARAMETER ID '/MBTOOLS/MODE' FIELD lv_mode.
+      lv_mode = to_lower( lv_mode ).
+
+      IF lv_mode = /mbtools/if_actions=>go_admin.
+        " doesn't accept strings directly
+        on_event( action = |{ /mbtools/if_actions=>go_admin }| ).
+      ELSE.
+        " doesn't accept strings directly
+        on_event( action = |{ /mbtools/if_actions=>go_home }| ).
+      ENDIF.
     ELSE.
       IF lines( mt_stack ) > 0.
         READ TABLE mt_stack INTO ls_stack INDEX 1.
@@ -447,18 +455,16 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
   METHOD on_event.
 
     handle_action(
-      iv_action      = action
-      iv_getdata     = getdata
-      it_postdata    = postdata ).
+      iv_action   = action
+      iv_getdata  = getdata
+      it_postdata = postdata ).
 
   ENDMETHOD.
 
 
   METHOD ping.
 
-    mv_online = /mbtools/cl_http=>ping( iv_url   = /mbtools/if_definitions=>c_www_home
-                                                && /mbtools/if_definitions=>c_www_ping
-                                        iv_regex = 'Marc Bernard Tools' ).
+    mv_online = /mbtools/cl_mbt=>is_online( ).
 
   ENDMETHOD.
 

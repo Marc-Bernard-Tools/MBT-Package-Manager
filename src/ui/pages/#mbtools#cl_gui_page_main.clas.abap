@@ -43,6 +43,7 @@ CLASS /mbtools/cl_gui_page_main DEFINITION
     DATA mv_mode TYPE c .
     DATA mo_asset_manager TYPE REF TO /mbtools/if_gui_asset_manager .
 
+    METHODS restart .
     METHODS get_tool_from_param
       IMPORTING
         !iv_name       TYPE string
@@ -127,15 +128,16 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     CASE ii_event->mv_action.
 
-      WHEN /mbtools/if_actions=>tool_check.
+      WHEN /mbtools/if_actions=>tools_check.
         IF /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_check ) = abap_true.
           MESSAGE 'Check for latest versions completed' TYPE 'S'.
         ENDIF.
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
-      WHEN /mbtools/if_actions=>tool_update.
+      WHEN /mbtools/if_actions=>tools_update.
         IF /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_update ) = abap_true.
           MESSAGE 'Update to latest versions completed' TYPE 'S'.
+          restart( ).
         ENDIF.
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
@@ -161,15 +163,22 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
       WHEN /mbtools/if_actions=>tool_install.
         IF /mbtools/cl_tools=>install( ii_event->get_param( 'name' ) ) = abap_true.
-          lo_tool->register( abap_true ).
           MESSAGE 'Tool successfully installed' TYPE 'S'.
+          restart( ).
+        ENDIF.
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
+
+      WHEN /mbtools/if_actions=>tool_update.
+        IF /mbtools/cl_tools=>update( lo_tool ) = abap_true.
+          MESSAGE 'Tool successfully updated' TYPE 'S'.
+          restart( ).
         ENDIF.
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_uninstall.
         IF /mbtools/cl_tools=>uninstall( lo_tool ) = abap_true.
-          lo_tool->unregister( ).
           MESSAGE 'Tool successfully uninstalled' TYPE 'S'.
+          restart( ).
         ENDIF.
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
@@ -301,10 +310,10 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
           iv_act = /mbtools/if_actions=>tool_install
         )->add(
           iv_txt = 'Check for Updates'
-          iv_act = /mbtools/if_actions=>tool_check
+          iv_act = /mbtools/if_actions=>tools_check
         )->add(
           iv_txt = 'Update All Tools'
-          iv_act = /mbtools/if_actions=>tool_update
+          iv_act = /mbtools/if_actions=>tools_update
         )->add(
           iv_txt = 'Edit License Keys'
           iv_act = /mbtools/if_actions=>go_license ).
@@ -348,6 +357,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
 
   METHOD constructor.
+
     super->constructor( ).
 
     mo_asset_manager = /mbtools/cl_gui_factory=>get_asset_manager( ).
@@ -355,6 +365,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
     register_header( ).
 
     mv_mode = iv_mode.
+
   ENDMETHOD.
 
 
@@ -802,6 +813,18 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
       ENDIF.
 
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD restart.
+
+    DATA lv_mode TYPE c LENGTH 20.
+
+    lv_mode = /mbtools/if_actions=>go_admin.
+    SET PARAMETER ID '/MBTOOLS/MODE' FIELD lv_mode.
+
+    SUBMIT /mbtools/mbt.
 
   ENDMETHOD.
 

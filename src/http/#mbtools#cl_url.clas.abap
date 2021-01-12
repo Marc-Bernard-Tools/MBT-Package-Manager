@@ -62,7 +62,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_URL IMPLEMENTATION.
+CLASS /mbtools/cl_url IMPLEMENTATION.
 
 
   METHOD host.
@@ -127,7 +127,11 @@ CLASS /MBTOOLS/CL_URL IMPLEMENTATION.
         FIND REGEX '(https?://[^/]*)(.*/)(.*)\?(.*)' IN iv_url
           SUBMATCHES ev_host ev_path ev_name ev_query.
         IF sy-subrc <> 0.
-          /mbtools/cx_exception=>raise( 'Malformed URL' ) ##NO_TEXT.
+          FIND REGEX '(https?://[^/]*)(.*/)(.*)' IN iv_url
+            SUBMATCHES ev_host ev_path ev_name.
+          IF sy-subrc <> 0.
+            /mbtools/cx_exception=>raise( 'Malformed URL' ) ##NO_TEXT.
+          ENDIF.
         ENDIF.
       CATCH cx_root INTO lx_exception.
         /mbtools/cx_exception=>raise( 'Error checking URL:' && lx_exception->get_text( ) ).
