@@ -18903,7 +18903,7 @@ CLASS zcl_abapgit_object_nspc IMPLEMENTATION.
       MODIFY trnspacet FROM ls_trnspacet.
     ELSE.
       MOVE-CORRESPONDING ls_nspc TO ls_trnspacet.
-      ls_trnspacet-role       = 'C'.
+      ls_trnspacet-role       = 'C'. " customer repair license
       ls_trnspacet-changeuser = sy-uname.
       ls_trnspacet-changedate = sy-datum.
       INSERT trnspacet FROM ls_trnspacet.
