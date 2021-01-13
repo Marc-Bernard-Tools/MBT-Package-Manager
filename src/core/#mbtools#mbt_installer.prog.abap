@@ -13627,7 +13627,6 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
     DATA: li_package      TYPE REF TO if_package,
-          lv_transport    TYPE trkorr,
           ls_package_data TYPE scompkdtln,
           ls_data_sign    TYPE scompksign,
           lt_usage_data   TYPE scomppdata,
@@ -13775,7 +13774,6 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
     ls_save_sign-pack = ls_save_sign-permis = ls_save_sign-elems = ls_save_sign-interf = abap_true.
     li_package->save_generic(
       EXPORTING
-        i_transport_request   = lv_transport
         i_save_sign           = ls_save_sign
       EXCEPTIONS
         cancelled_in_corr     = 1

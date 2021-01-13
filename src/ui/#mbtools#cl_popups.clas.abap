@@ -434,6 +434,7 @@ CLASS /mbtools/cl_popups IMPLEMENTATION.
 
     CREATE DATA lr_exporting LIKE LINE OF et_list.
     ASSIGN lr_exporting->* TO <lg_exporting>.
+    ASSERT sy-subrc = 0.
 
     LOOP AT <lt_table> ASSIGNING <lg_line> WHERE (lv_condition).
       CLEAR <lg_exporting>.
