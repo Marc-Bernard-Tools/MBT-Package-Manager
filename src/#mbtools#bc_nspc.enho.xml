@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <abapGit version="v1.0.0" serializer="LCL_OBJECT_ENHO" serializer_version="v1.0.0">
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
@@ -18,7 +18,7 @@
      <ENHMODE>D</ENHMODE>
      <FULL_NAME>\FU:NAMESPACE_KEY_CHECK\SE:BEGIN\EI</FULL_NAME>
      <SOURCE>
-      <item>  IF iv_namespace = '/MBTOOLS/'.</item>
+      <item>  IF iv_namespace = &apos;/MBTOOLS/&apos;.</item>
       <item>    EXIT.</item>
       <item>  ENDIF.</item>
      </SOURCE>
