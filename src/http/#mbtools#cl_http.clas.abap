@@ -170,14 +170,11 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
   METHOD create_by_destination.
 
     DATA:
-      lv_scheme              TYPE string,
-      li_client              TYPE REF TO if_http_client,
-      li_part                TYPE REF TO if_http_entity,
-      ls_multipart           TYPE ty_multipart,
-      lo_proxy_configuration TYPE REF TO /mbtools/cl_proxy_config,
-      lv_text                TYPE string.
-
-    CREATE OBJECT lo_proxy_configuration.
+      lv_scheme    TYPE string,
+      li_client    TYPE REF TO if_http_client,
+      li_part      TYPE REF TO if_http_entity,
+      ls_multipart TYPE ty_multipart,
+      lv_text      TYPE string.
 
     cl_http_client=>create_by_destination(
       EXPORTING
@@ -266,19 +263,20 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
 
   METHOD create_by_url.
 
-    DATA: lv_scheme              TYPE string,
-          li_client              TYPE REF TO if_http_client,
-          lo_proxy_configuration TYPE REF TO /mbtools/cl_proxy_config,
-          lv_text                TYPE string.
+    DATA:
+      lv_scheme       TYPE string,
+      li_client       TYPE REF TO if_http_client,
+      lo_proxy_config TYPE REF TO /mbtools/cl_proxy_config,
+      lv_text         TYPE string.
 
-    CREATE OBJECT lo_proxy_configuration.
+    CREATE OBJECT lo_proxy_config.
 
     cl_http_client=>create_by_url(
       EXPORTING
         url                = iv_url
         ssl_id             = 'ANONYM'
-        proxy_host         = lo_proxy_configuration->get_proxy_host( )
-        proxy_service      = lo_proxy_configuration->get_proxy_port( )
+        proxy_host         = lo_proxy_config->get_proxy_host( )
+        proxy_service      = lo_proxy_config->get_proxy_port( )
       IMPORTING
         client             = li_client
       EXCEPTIONS
@@ -298,7 +296,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
       /mbtools/cx_exception=>raise( lv_text ).
     ENDIF.
 
-    IF lo_proxy_configuration->get_proxy_authentication( ) = abap_true.
+    IF lo_proxy_config->get_proxy_authentication( ) = abap_true.
       /mbtools/cl_proxy_auth=>run( li_client ).
     ENDIF.
 

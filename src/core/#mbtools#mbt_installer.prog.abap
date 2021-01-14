@@ -6000,13 +6000,18 @@ CLASS zcl_abapinst_objects DEFINITION
       BEGIN OF ty_obj_serializer_item,
         item     TYPE zif_abapgit_definitions=>ty_item,
         metadata TYPE zif_abapgit_definitions=>ty_metadata,
-      END OF ty_obj_serializer_item.
+      END OF ty_obj_serializer_item .
     TYPES:
       ty_obj_serializer_map
-              TYPE SORTED TABLE OF ty_obj_serializer_item WITH UNIQUE KEY item.
+                TYPE SORTED TABLE OF ty_obj_serializer_item WITH UNIQUE KEY item .
 
-    CLASS-DATA gt_obj_serializer_map TYPE ty_obj_serializer_map.
+    CLASS-DATA gt_obj_serializer_map TYPE ty_obj_serializer_map .
 
+    CLASS-METHODS create_tadir_for_namespace
+      IMPORTING
+        !is_item TYPE zif_abapgit_definitions=>ty_item
+      RAISING
+        zcx_abapgit_exception .
     CLASS-METHODS files_to_deserialize
       IMPORTING
         !iv_package         TYPE devclass
@@ -6018,26 +6023,26 @@ CLASS zcl_abapinst_objects DEFINITION
       RETURNING
         VALUE(rt_results)   TYPE zif_abapgit_definitions=>ty_results_tt
       RAISING
-        zcx_abapgit_exception.
+        zcx_abapgit_exception .
     CLASS-METHODS prioritize_deser
       IMPORTING
         !it_results       TYPE zif_abapgit_definitions=>ty_results_tt
       RETURNING
-        VALUE(rt_results) TYPE zif_abapgit_definitions=>ty_results_tt.
+        VALUE(rt_results) TYPE zif_abapgit_definitions=>ty_results_tt .
     CLASS-METHODS class_name
       IMPORTING
         !is_item             TYPE zif_abapgit_definitions=>ty_item
       RETURNING
-        VALUE(rv_class_name) TYPE string.
+        VALUE(rv_class_name) TYPE string .
     CLASS-METHODS update_package_tree
       IMPORTING
-        !iv_package TYPE devclass.
+        !iv_package TYPE devclass .
     CLASS-METHODS delete_obj
       IMPORTING
         !iv_package TYPE devclass
         !is_item    TYPE zif_abapgit_definitions=>ty_item
       RAISING
-        zcx_abapgit_exception.
+        zcx_abapgit_exception .
     CLASS-METHODS compare_remote_to_local
       IMPORTING
         !ii_object TYPE REF TO zif_abapgit_object
@@ -6045,7 +6050,7 @@ CLASS zcl_abapinst_objects DEFINITION
         !is_result TYPE zif_abapgit_definitions=>ty_result
         !ii_log    TYPE REF TO zif_abapgit_log
       RAISING
-        zcx_abapgit_exception.
+        zcx_abapgit_exception .
     CLASS-METHODS deserialize_objects
       IMPORTING
         !is_step  TYPE zif_abapgit_objects=>ty_step_data
@@ -6053,13 +6058,13 @@ CLASS zcl_abapinst_objects DEFINITION
       CHANGING
         !ct_files TYPE zif_abapgit_definitions=>ty_file_signatures_tt
       RAISING
-        zcx_abapgit_exception.
+        zcx_abapgit_exception .
     CLASS-METHODS check_objects_locked
       IMPORTING
         !iv_language TYPE spras
         !it_items    TYPE zif_abapgit_definitions=>ty_items_tt
       RAISING
-        zcx_abapgit_exception.
+        zcx_abapgit_exception .
     CLASS-METHODS create_object
       IMPORTING
         !is_item        TYPE zif_abapgit_definitions=>ty_item
@@ -6069,37 +6074,37 @@ CLASS zcl_abapinst_objects DEFINITION
       RETURNING
         VALUE(ri_obj)   TYPE REF TO zif_abapgit_object
       RAISING
-        zcx_abapgit_exception.
+        zcx_abapgit_exception .
     CLASS-METHODS map_tadir_to_items
       IMPORTING
         !it_tadir       TYPE zif_abapgit_definitions=>ty_tadir_tt
       RETURNING
-        VALUE(rt_items) TYPE zif_abapgit_definitions=>ty_items_tt.
+        VALUE(rt_items) TYPE zif_abapgit_definitions=>ty_items_tt .
     CLASS-METHODS map_results_to_items
       IMPORTING
         !it_results     TYPE zif_abapgit_definitions=>ty_results_tt
       RETURNING
-        VALUE(rt_items) TYPE zif_abapgit_definitions=>ty_items_tt.
+        VALUE(rt_items) TYPE zif_abapgit_definitions=>ty_items_tt .
     CLASS-METHODS filter_files_to_deserialize
       IMPORTING
         !it_results       TYPE zif_abapgit_definitions=>ty_results_tt
         !ii_log           TYPE REF TO zif_abapgit_log OPTIONAL
       RETURNING
-        VALUE(rt_results) TYPE zif_abapgit_definitions=>ty_results_tt.
+        VALUE(rt_results) TYPE zif_abapgit_definitions=>ty_results_tt .
     CLASS-METHODS adjust_namespaces
       IMPORTING
         !it_results       TYPE zif_abapgit_definitions=>ty_results_tt
       RETURNING
-        VALUE(rt_results) TYPE zif_abapgit_definitions=>ty_results_tt.
+        VALUE(rt_results) TYPE zif_abapgit_definitions=>ty_results_tt .
     CLASS-METHODS get_deserialize_steps
       RETURNING
-        VALUE(rt_steps) TYPE zif_abapgit_objects=>ty_step_data_tt.
+        VALUE(rt_steps) TYPE zif_abapgit_objects=>ty_step_data_tt .
     CLASS-METHODS check_main_package
       IMPORTING
         !iv_package  TYPE devclass
         !iv_obj_type TYPE tadir-object
       RAISING
-        zcx_abapgit_exception.
+        zcx_abapgit_exception .
 ENDCLASS.
 CLASS zcl_abapinst_persistence DEFINITION
 
@@ -6223,16 +6228,16 @@ CLASS zcl_abapinst_popups DEFINITION
         zcx_abapinst_exception .
     METHODS popup_to_confirm
       IMPORTING
-        !iv_title                 TYPE clike
-        !iv_question              TYPE clike
-        !iv_text_button_1         TYPE clike DEFAULT 'Yes'
+        !iv_title                 TYPE csequence
+        !iv_question              TYPE csequence
+        !iv_text_button_1         TYPE csequence DEFAULT 'Yes'
         !iv_icon_button_1         TYPE icon-name DEFAULT space
-        !iv_text_button_2         TYPE clike DEFAULT 'No'
+        !iv_text_button_2         TYPE csequence DEFAULT 'No'
         !iv_icon_button_2         TYPE icon-name DEFAULT space
-        !iv_default_button        TYPE char1 DEFAULT '1'
-        !iv_display_cancel_button TYPE char1 DEFAULT abap_true
+        !iv_default_button        TYPE sy-input DEFAULT '1'
+        !iv_display_cancel_button TYPE sy-input DEFAULT abap_true
       RETURNING
-        VALUE(rv_answer)          TYPE char1
+        VALUE(rv_answer)          TYPE sy-input
       RAISING
         zcx_abapinst_exception .
     METHODS popup_to_select_from_list
@@ -7199,6 +7204,9 @@ CLASS zcl_abapgit_dependencies IMPLEMENTATION.
           ELSE.
             <ls_tadir>-korrnum = '750000'.
           ENDIF.
+        WHEN 'ENQU'.
+          " ENQU before TABL
+          <ls_tadir>-korrnum = '725000'.
         WHEN 'DDLS'.
           " DDLS after DCLS but before other DDIC
           <ls_tadir>-korrnum = '720000'.
@@ -11477,7 +11485,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_AVAR IMPLEMENTATION.
+CLASS zcl_abapgit_object_avar IMPLEMENTATION.
 
 
   METHOD create_object.
@@ -11630,6 +11638,7 @@ CLASS ZCL_ABAPGIT_OBJECT_AVAR IMPLEMENTATION.
 
   METHOD zif_abapgit_object~get_metadata.
     rs_metadata = get_metadata( ).
+    rs_metadata-delete_tadir = abap_true.
   ENDMETHOD.
 
 
@@ -18826,7 +18835,7 @@ CLASS zcl_abapgit_object_nspc IMPLEMENTATION.
     ENDIF.
 
     " Collect additional languages, skip main lang - it was serialized already
-    SELECT DISTINCT spras AS langu  FROM trnspacett INTO TABLE lt_i18n_langs
+    SELECT DISTINCT spras AS langu FROM trnspacett INTO TABLE lt_i18n_langs
       WHERE namespace = ms_item-obj_name AND spras <> mv_language. "#EC CI_SUBRC
 
     LOOP AT lt_i18n_langs ASSIGNING <lv_lang>.
@@ -18910,8 +18919,17 @@ CLASS zcl_abapgit_object_nspc IMPLEMENTATION.
       zcx_abapgit_exception=>raise( |Error upserting namespace| ).
     ENDIF.
 
-    MOVE-CORRESPONDING ls_nspc_text TO ls_trnspacett.
-    MODIFY trnspacett FROM ls_trnspacett.
+    SELECT SINGLE * FROM trnspacett INTO ls_trnspacett
+      WHERE namespace = ls_nspc-namespace AND spras = mv_language.
+    IF sy-subrc = 0.
+      ls_trnspacett-descriptn = ls_nspc_text-descriptn.
+      ls_trnspacett-owner     = ls_nspc_text-owner.
+      MODIFY trnspacett FROM ls_trnspacett.
+    ELSE.
+      MOVE-CORRESPONDING ls_nspc_text TO ls_trnspacett.
+      ls_trnspacett-namespace = ls_nspc-namespace.
+      INSERT trnspacett FROM ls_trnspacett.
+    ENDIF.
     IF sy-subrc <> 0.
       zcx_abapgit_exception=>raise( |Error upserting text for namespace| ).
     ENDIF.
@@ -18919,6 +18937,7 @@ CLASS zcl_abapgit_object_nspc IMPLEMENTATION.
     deserialize_texts( ii_xml       = io_xml
                        iv_namespace = ls_nspc-namespace ).
 
+    " Fill trnspace and trnspacel tables
     CALL FUNCTION 'TR_ACTIVATE_NAMESPACE'
       EXPORTING
         iv_namespace         = ls_nspc-namespace
@@ -19019,7 +19038,7 @@ CLASS zcl_abapgit_object_nspc IMPLEMENTATION.
       WHERE namespace = ms_item-obj_name.
 
     SELECT SINGLE * FROM trnspacett INTO CORRESPONDING FIELDS OF ls_nspc_text
-      WHERE namespace = ms_item-obj_name.
+      WHERE namespace = ms_item-obj_name AND spras = mv_language.
 
     io_xml->add( iv_name = 'NSPC'
                  ig_data = ls_nspc ).
@@ -23007,9 +23026,10 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
 
   METHOD zif_abapgit_sap_package~create.
 
-    DATA: lv_err     TYPE string,
-          li_package TYPE REF TO if_package,
-          ls_package LIKE is_package.
+    DATA: lv_err      TYPE string,
+          li_package  TYPE REF TO if_package,
+          lv_devlayer TYPE devlayer,
+          ls_package  LIKE is_package.
 
 
     ASSERT NOT is_package-devclass IS INITIAL.
@@ -23035,6 +23055,25 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
     " Otherwise SOFTWARE_COMPONENT_INVALID will be raised.
     IF ls_package-dlvunit IS INITIAL.
       ls_package-dlvunit = 'HOME'.
+    ENDIF.
+
+    " Set transport layer to default
+    IF ls_package-devclass(1) <> '$' AND ls_package-pdevclass IS INITIAL.
+      CALL FUNCTION 'TR_GET_TRANSPORT_TARGET'
+        EXPORTING
+          iv_use_default             = abap_true
+          iv_get_layer_only          = abap_true
+        IMPORTING
+          ev_layer                   = lv_devlayer
+        EXCEPTIONS
+          wrong_call                 = 1
+          invalid_input              = 2
+          cts_initialization_failure = 3
+          OTHERS                     = 4.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise( |Error getting transport layer| ).
+      ENDIF.
+      ls_package-pdevclass = lv_devlayer.
     ENDIF.
 
     cl_package_factory=>create_new_package(
@@ -25175,11 +25214,11 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
           iv_enum_transport = iv_enum_transport
           iv_transport      = iv_transport ).
 
-        _namespaces( ).
+*        _namespaces( ).
 
-        _devclass(
-          iv_dlvunit  = iv_dlvunit
-          iv_devlayer = iv_devlayer ).
+*        _devclass(
+*          iv_dlvunit  = iv_dlvunit
+*          iv_devlayer = iv_devlayer ).
 
         zcl_abapinst_objects=>deserialize(
           iv_package   = gs_inst-pack
@@ -25352,11 +25391,11 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
         _log_end( ).
 
-        _delete(
-          iv_name = gs_inst-name
-          iv_pack = gs_inst-pack ).
-
         IF gs_inst-status <> 'E'.
+          _delete(
+            iv_name = gs_inst-name
+            iv_pack = gs_inst-pack ).
+
           lv_msg = |Uninstall of { gs_inst-name } successfully completed|.
           MESSAGE lv_msg TYPE 'S'.
         ELSE.
@@ -25395,7 +25434,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
   METHOD _devclass.
 
     DATA:
-      lv_devlayer TYPE tdevc-pdevclass,
+      lv_devlayer TYPE devlayer,
       ls_package  TYPE scompkdtln.
 
     IF gs_inst-pack(1) = '$'.
@@ -26167,6 +26206,35 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD create_tadir_for_namespace.
+
+    DATA ls_tadir TYPE tadir.
+
+    IF is_item-obj_name(1) = '/'.
+      " For namespace object that do not exist yet, insert a TADIR entry
+      " Direct update to avoid namespace check or setting repair flag
+      SELECT SINGLE * FROM tadir INTO ls_tadir
+        WHERE pgmid = 'R3TR' AND object = is_item-obj_type AND obj_name = is_item-obj_name.
+      IF sy-subrc <> 0.
+        UPDATE tadir SET srcsystem = sy-sysid
+          WHERE pgmid = 'R3TR' AND object = is_item-obj_type AND obj_name = is_item-obj_name.
+      ELSE.
+        ls_tadir-pgmid      = 'R3TR'.
+        ls_tadir-object     = is_item-obj_type.
+        ls_tadir-obj_name   = is_item-obj_name.
+        ls_tadir-srcsystem  = sy-sysid.
+        ls_tadir-author     = sy-uname.
+        ls_tadir-devclass   = is_item-devclass.
+        ls_tadir-cproject   = ' L'.
+        ls_tadir-masterlang = sy-langu.
+        ls_tadir-created_on = sy-datum.
+        INSERT tadir FROM ls_tadir.
+      ENDIF.
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD delete.
 
     DATA: ls_item     TYPE zif_abapgit_definitions=>ty_item,
@@ -26447,6 +26515,8 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
         iv_text    = |Deserialize { is_step-descr } - { <ls_obj>-item-obj_name }| ).
 
       TRY.
+*          create_tadir_for_namespace( <ls_obj>-item ).
+
           <ls_obj>-obj->deserialize( iv_package = <ls_obj>-package
                                      io_xml     = <ls_obj>-xml
                                      iv_step    = is_step-step_id
@@ -27730,7 +27800,8 @@ CLASS zcl_abapinst_screen IMPLEMENTATION.
       lt_selected LIKE lt_list,
       lo_popup    TYPE REF TO zcl_abapinst_popups,
       lt_columns  TYPE zcl_abapinst_popups=>ty_alv_column_tt,
-      lv_answer   TYPE c LENGTH 1,
+      lv_question TYPE string,
+      lv_answer   TYPE sy-input,
       lx_error    TYPE REF TO zcx_abapinst_exception.
 
     FIELD-SYMBOLS:
@@ -27773,7 +27844,7 @@ CLASS zcl_abapinst_screen IMPLEMENTATION.
         lo_popup->popup_to_select_from_list(
           EXPORTING
             it_list               = lt_list
-            iv_title              = 'abapInst - Uninstall'
+            iv_title              = 'abapinst - Uninstall'
             iv_header_text        = |Select the abapGit package that you want to uninstall.|
             iv_end_column         = 150
             iv_striped_pattern    = abap_true
@@ -27794,9 +27865,11 @@ CLASS zcl_abapinst_screen IMPLEMENTATION.
     ASSERT sy-subrc = 0.
 
     TRY.
+        lv_question = |Are you sure, you want to uninstall { rs_inst-description } ({ rs_inst-name })?|.
+
         lv_answer = lo_popup->popup_to_confirm(
-          iv_title          = 'abapInst - Uninstall'
-          iv_question       = |Are you sure, you want to uninstall { rs_inst-name }?|
+          iv_title          = 'abapinst - Uninstall'
+          iv_question       = lv_question
           iv_default_button = '2' ).
 
         IF lv_answer <> '1'.

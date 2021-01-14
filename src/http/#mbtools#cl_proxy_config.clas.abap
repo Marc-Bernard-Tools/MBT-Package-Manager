@@ -50,6 +50,8 @@ CLASS /mbtools/cl_proxy_config IMPLEMENTATION.
 
   METHOD get_proxy_authentication.
 
+    CHECK mo_settings IS BOUND.
+
     rv_auth = mo_settings->get_value( c_proxy-auth ).
 
   ENDMETHOD.
@@ -57,12 +59,16 @@ CLASS /mbtools/cl_proxy_config IMPLEMENTATION.
 
   METHOD get_proxy_host.
 
+    CHECK mo_settings IS BOUND.
+
     rv_proxy_host = mo_settings->get_value( c_proxy-host ).
 
   ENDMETHOD.
 
 
   METHOD get_proxy_port.
+
+    CHECK mo_settings IS BOUND.
 
     rv_port = mo_settings->get_value( c_proxy-port ).
 
