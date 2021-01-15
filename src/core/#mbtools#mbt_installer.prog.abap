@@ -4051,6 +4051,11 @@ CLASS zcl_abapgit_object_devc DEFINITION
 
     DATA mv_local_devclass TYPE devclass .
 
+    METHODS get_transport_layer
+      RETURNING
+        VALUE(rv_devlayer) TYPE devlayer
+      RAISING
+        zcx_abapgit_exception .
     METHODS get_package
       RETURNING
         VALUE(ri_package) TYPE REF TO if_package
@@ -13259,6 +13264,29 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_transport_layer.
+
+    " Get default transport layer
+    IF mv_local_devclass(1) <> '$'.
+      CALL FUNCTION 'TR_GET_TRANSPORT_TARGET'
+        EXPORTING
+          iv_use_default             = abap_true
+          iv_get_layer_only          = abap_true
+        IMPORTING
+          ev_layer                   = rv_devlayer
+        EXCEPTIONS
+          wrong_call                 = 1
+          invalid_input              = 2
+          cts_initialization_failure = 3
+          OTHERS                     = 4.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise( |Error getting transport layer| ).
+      ENDIF.
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD is_empty.
 
     DATA: lv_object_name TYPE tadir-obj_name,
@@ -13658,6 +13686,8 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
     ls_package_data-devclass = mv_local_devclass.
     IF li_package IS BOUND.
       ls_package_data-pdevclass = li_package->transport_layer.
+    ELSE.
+      ls_package_data-pdevclass = get_transport_layer( ).
     ENDIF.
 
     " Parent package is not changed. Assume the folder logic already created the package and set
@@ -23055,25 +23085,6 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
     " Otherwise SOFTWARE_COMPONENT_INVALID will be raised.
     IF ls_package-dlvunit IS INITIAL.
       ls_package-dlvunit = 'HOME'.
-    ENDIF.
-
-    " Set transport layer to default
-    IF ls_package-devclass(1) <> '$' AND ls_package-pdevclass IS INITIAL.
-      CALL FUNCTION 'TR_GET_TRANSPORT_TARGET'
-        EXPORTING
-          iv_use_default             = abap_true
-          iv_get_layer_only          = abap_true
-        IMPORTING
-          ev_layer                   = lv_devlayer
-        EXCEPTIONS
-          wrong_call                 = 1
-          invalid_input              = 2
-          cts_initialization_failure = 3
-          OTHERS                     = 4.
-      IF sy-subrc <> 0.
-        zcx_abapgit_exception=>raise( |Error getting transport layer| ).
-      ENDIF.
-      ls_package-pdevclass = lv_devlayer.
     ENDIF.
 
     cl_package_factory=>create_new_package(
