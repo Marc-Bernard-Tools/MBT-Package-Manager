@@ -86,7 +86,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_HOTKEYS IMPLEMENTATION.
+CLASS /mbtools/cl_hotkeys IMPLEMENTATION.
 
 
   METHOD /mbtools/if_gui_hotkeys~get_hotkey_actions.
@@ -152,7 +152,7 @@ CLASS /MBTOOLS/CL_HOTKEYS IMPLEMENTATION.
     ri_html = /mbtools/cl_html=>create( ).
 
     lt_registered_hotkeys = /mbtools/if_gui_hotkey_ctl~get_registered_hotkeys( ).
-    SORT lt_registered_hotkeys BY ui_component description.
+    SORT lt_registered_hotkeys BY hotkey.
 
     register_deferred_script( render_scripts( lt_registered_hotkeys ) ).
 

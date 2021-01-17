@@ -241,7 +241,17 @@ ENDFORM.
 
 INITIALIZATION.
 
-  /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_register ).
+  DATA lo_tool TYPE REF TO /mbtools/cl_tools.
+
+  " Register all installed bundles and tools
+  /mbtools/cl_tools=>action_bundles( /mbtools/if_actions=>tool_register ).
+  /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_register ).
+
+  " Activate MBT Base if it's the only installed tool
+  IF /mbtools/cl_tools=>is_base_only( ) = abap_true.
+    lo_tool = /mbtools/cl_tools=>factory( /mbtools/cl_tool_bc=>c_tool-title ).
+    lo_tool->activate( ).
+  ENDIF.
 
   lcl_main=>main_screen_init( ).
 

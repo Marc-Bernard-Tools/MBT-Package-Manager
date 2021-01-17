@@ -10,6 +10,11 @@ TABLES:
 
 *-----------------------------------------------------------------------
 
+" Function Keys
+SELECTION-SCREEN FUNCTION KEY: 1.
+
+*-----------------------------------------------------------------------
+
 * Main
 SELECTION-SCREEN:
   BEGIN OF SCREEN 200 AS SUBSCREEN,
@@ -27,8 +32,7 @@ SELECTION-SCREEN:
   END OF BLOCK b210,
   BEGIN OF BLOCK b220 WITH FRAME.
 PARAMETERS:
-  p_show   RADIOBUTTON GROUP g1 DEFAULT 'X',
-  p_sync   RADIOBUTTON GROUP g1,
+  p_sync   RADIOBUTTON GROUP g1 DEFAULT 'X',
   p_reg    RADIOBUTTON GROUP g1,
   p_unreg  RADIOBUTTON GROUP g1,
   p_act    RADIOBUTTON GROUP g1,
@@ -116,6 +120,13 @@ INITIALIZATION.
       ev_tool      = b_tool
       ev_home      = b_home ).
 
+*-----------------------------------------------------------------------
+
+* Function Keys
+  sscrfields-functxt_01 = icon_biw_info_cube && 'Registry'.
+
+*-----------------------------------------------------------------------
+
   scr_tab2 = go_screen->header(
     iv_icon = icon_tools
     iv_text = 'Tools' ).
@@ -130,17 +141,24 @@ AT SELECTION-SCREEN.
   IF p_bund = abap_true.
     IF p_act = abap_true.
       p_act  = abap_false.
-      p_show = abap_true.
     ENDIF.
     IF p_deact = abap_true.
       p_deact = abap_false.
-      p_show  = abap_true.
     ENDIF.
   ENDIF.
 
   go_app->screen( ).
 
   go_screen->ucomm( sscrfields-ucomm ).
+
+  CASE sscrfields-ucomm.
+
+*   Function Keys
+    WHEN 'FC01'. " Registry
+      SUBMIT /mbtools/registry VIA SELECTION-SCREEN AND RETURN. "#EC CI_SUBMIT
+      CLEAR sscrfields-ucomm.
+
+  ENDCASE.
 
 *-----------------------------------------------------------------------
 
@@ -179,49 +197,29 @@ START-OF-SELECTION.
 
   CASE abap_true.
 
-    WHEN p_show.
-
-      SUBMIT /mbtools/registry VIA SELECTION-SCREEN AND RETURN. "#EC CI_SUBMIT
-
-      RETURN.
-
     WHEN p_sync.
 
       gv_tool = 'Registry and Installer were'.
       gv_action = 'synchronized'.
 
-      gv_flag = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_sync ).
+      gv_flag = /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_sync ).
 
     WHEN p_bund.
 
       gv_tool = 'Bundles were'.
 
-      DO 3 TIMES.
-        CASE sy-index.
-          WHEN 1.
-            go_tool = /mbtools/cl_tools=>factory( /mbtools/cl_bundle_free=>c_tool-title ).
-          WHEN 2.
-            go_tool = /mbtools/cl_tools=>factory( /mbtools/cl_bundle_prem_basis=>c_tool-title ).
-          WHEN 3.
-            go_tool = /mbtools/cl_tools=>factory( /mbtools/cl_bundle_prem_bw=>c_tool-title ).
-        ENDCASE.
+      CASE abap_true.
+        WHEN p_reg.
 
-        CASE abap_true.
-          WHEN p_reg.
+          gv_flag   = /mbtools/cl_tools=>action_bundles( /mbtools/if_actions=>tool_register ).
+          gv_action = 'registered'.
 
-            gv_flag   = go_tool->register( ).
-            gv_action = 'registered'.
+        WHEN p_unreg.
 
-          WHEN p_unreg.
+          gv_flag   = /mbtools/cl_tools=>action_bundles( /mbtools/if_actions=>tool_unregister ).
+          gv_action = 'unregistered'.
 
-            gv_flag   = go_tool->unregister( ).
-            gv_action = 'unregistered'.
-        ENDCASE.
-
-        IF gv_flag = abap_false.
-          EXIT.
-        ENDIF.
-      ENDDO.
+      ENDCASE.
 
     WHEN p_all.
 
@@ -230,37 +228,37 @@ START-OF-SELECTION.
       CASE abap_true.
         WHEN p_reg.
 
-          gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_register ).
+          gv_flag   = /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_register ).
           gv_action = 'registered'.
 
         WHEN p_unreg.
 
-          gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_unregister ).
+          gv_flag   = /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_unregister ).
           gv_action = 'unregistered'.
 
         WHEN p_act.
 
-          gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_activate ).
+          gv_flag   = /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_activate ).
           gv_action = 'activated'.
 
         WHEN p_deact.
 
-          gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_deactivate ).
+          gv_flag   = /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_deactivate ).
           gv_action = 'deactivated'.
 
         WHEN p_check.
 
-          gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_check ).
+          gv_flag   = /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_check ).
           gv_action = 'version checked'.
 
         WHEN p_update.
 
-          gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_update ).
+          gv_flag   = /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_update ).
           gv_action = 'updated ##TODO'.
 
         WHEN p_uninst.
 
-          gv_flag   = /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_uninstall ).
+          gv_flag   = /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_uninstall ).
           gv_action = 'uninstalled ##TODO'.
 
       ENDCASE.

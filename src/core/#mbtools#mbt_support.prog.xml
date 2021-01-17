@@ -56,7 +56,7 @@
     <item>
      <ID>S</ID>
      <KEY>P_SEL</KEY>
-     <ENTRY>Selected Tools</ENTRY>
+     <ENTRY>Select</ENTRY>
      <LENGTH>22</LENGTH>
     </item>
     <item>
@@ -74,8 +74,8 @@
     <item>
      <ID>S</ID>
      <KEY>P_TITLE</KEY>
-     <ENTRY>Tool</ENTRY>
-     <LENGTH>12</LENGTH>
+     <ENTRY>Tool / Bundle</ENTRY>
+     <LENGTH>21</LENGTH>
     </item>
     <item>
      <ID>S</ID>

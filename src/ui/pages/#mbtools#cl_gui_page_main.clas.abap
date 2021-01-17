@@ -129,13 +129,13 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
     CASE ii_event->mv_action.
 
       WHEN /mbtools/if_actions=>tools_check.
-        IF /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_check ) = abap_true.
+        IF /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_check ) = abap_true.
           MESSAGE 'Check for latest versions completed' TYPE 'S'.
         ENDIF.
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tools_update.
-        IF /mbtools/cl_tools=>run_action( /mbtools/if_actions=>tool_update ) = abap_true.
+        IF /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_update ) = abap_true.
           MESSAGE 'Update to latest versions completed' TYPE 'S'.
           restart( ).
         ENDIF.
@@ -207,37 +207,37 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     ls_hotkey_action-ui_component = 'Main'.
 
-    ls_hotkey_action-description = |Add New Tool|.
+    ls_hotkey_action-description = |Add <u>N</u>ew Tool|.
     ls_hotkey_action-action      = /mbtools/if_actions=>tool_install.
     ls_hotkey_action-hotkey      = |n|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
-    ls_hotkey_action-description = |Check for Updates|.
+    ls_hotkey_action-description = |<u>C</u>heck for Updates|.
     ls_hotkey_action-action      = /mbtools/if_actions=>tool_check.
     ls_hotkey_action-hotkey      = |c|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
-    ls_hotkey_action-description = |Update All Tools|.
+    ls_hotkey_action-description = |<u>U</u>pdate All Tools|.
     ls_hotkey_action-action      = /mbtools/if_actions=>tool_update.
     ls_hotkey_action-hotkey      = |u|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
-    ls_hotkey_action-description = |Edit License Keys|.
+    ls_hotkey_action-description = |Edit <u>L</u>icense Keys|.
     ls_hotkey_action-action      = /mbtools/if_actions=>go_license.
     ls_hotkey_action-hotkey      = |l|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
-    ls_hotkey_action-description = |Administration|.
+    ls_hotkey_action-description = |<u>A</u>dministration|.
     ls_hotkey_action-action      = /mbtools/if_actions=>go_admin.
     ls_hotkey_action-hotkey      = |a|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
-    ls_hotkey_action-description = |Quit|.
+    ls_hotkey_action-description = |<u>Q</u>uit|.
     ls_hotkey_action-action      = /mbtools/if_actions=>quit.
     ls_hotkey_action-hotkey      = |q|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.
 
-    ls_hotkey_action-description = |Exit Admin|.
+    ls_hotkey_action-description = |<u>E</u>xit Admin|.
     ls_hotkey_action-action      = /mbtools/if_actions=>go_home.
     ls_hotkey_action-hotkey      = |x|.
     INSERT ls_hotkey_action INTO TABLE rt_hotkey_actions.

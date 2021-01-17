@@ -96,8 +96,12 @@ CLASS /mbtools/cl_tools DEFINITION
         VALUE(iv_admin)       TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(rv_title)       TYPE string .
-    " Class Actions
-    CLASS-METHODS run_action
+    CLASS-METHODS action_tools
+      IMPORTING
+        !iv_action       TYPE string
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool .
+    CLASS-METHODS action_bundles
       IMPORTING
         !iv_action       TYPE string
       RETURNING
@@ -120,6 +124,9 @@ CLASS /mbtools/cl_tools DEFINITION
     CLASS-METHODS sync
       IMPORTING
         !io_tool         TYPE REF TO /mbtools/cl_tools
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool .
+    CLASS-METHODS is_base_only
       RETURNING
         VALUE(rv_result) TYPE abap_bool .
     " Tool Manifest
@@ -302,6 +309,107 @@ ENDCLASS.
 
 
 CLASS /mbtools/cl_tools IMPLEMENTATION.
+
+
+  METHOD action_bundles.
+
+    DATA:
+      ls_tool     TYPE /mbtools/tool_with_text,
+      lt_tools    TYPE TABLE OF /mbtools/tool_with_text,
+      li_progress TYPE REF TO /mbtools/if_progress,
+      lv_result   TYPE abap_bool.
+
+    " Just bundles
+    lt_tools = get_tools( iv_get_bundles = abap_true
+                          iv_get_tools   = abap_false ).
+
+    rv_result = abap_true.
+
+    li_progress = /mbtools/cl_progress=>get_instance( lines( lt_tools ) ).
+
+    LOOP AT lt_tools INTO ls_tool.
+      li_progress->show( iv_current = sy-tabix
+                         iv_text    = |Run action for { ls_tool-name }| ).
+
+      " Register, unregister
+      TRY.
+          CASE iv_action.
+            WHEN /mbtools/if_actions=>tool_register.
+              lv_result = factory( ls_tool-name )->register( ).
+            WHEN /mbtools/if_actions=>tool_unregister.
+              lv_result = factory( ls_tool-name )->unregister( ).
+            WHEN OTHERS.
+              " unknow action
+              ASSERT 0 = 1.
+          ENDCASE.
+        CATCH /mbtools/cx_exception.
+      ENDTRY.
+
+      IF lv_result = abap_false.
+        rv_result = abap_false.
+      ENDIF.
+
+    ENDLOOP.
+
+    li_progress->hide( ).
+
+  ENDMETHOD.
+
+
+  METHOD action_tools.
+
+    DATA:
+      ls_tool     TYPE /mbtools/tool_with_text,
+      lt_tools    TYPE TABLE OF /mbtools/tool_with_text,
+      li_progress TYPE REF TO /mbtools/if_progress,
+      lv_result   TYPE abap_bool.
+
+    lt_tools = get_tools( iv_admin = abap_true ).
+
+    rv_result = abap_true.
+
+    li_progress = /mbtools/cl_progress=>get_instance( lines( lt_tools ) ).
+
+    LOOP AT lt_tools INTO ls_tool.
+      li_progress->show( iv_current = sy-tabix
+                         iv_text    = |Run action for { ls_tool-name }| ).
+
+      TRY.
+          CASE iv_action.
+            WHEN /mbtools/if_actions=>tool_register.
+              lv_result = factory( ls_tool-name )->register( ).
+            WHEN /mbtools/if_actions=>tool_unregister.
+              lv_result = factory( ls_tool-name )->unregister( ).
+            WHEN /mbtools/if_actions=>tool_activate.
+              lv_result = factory( ls_tool-name )->activate( ).
+            WHEN /mbtools/if_actions=>tool_deactivate.
+              lv_result = factory( ls_tool-name )->deactivate( ).
+            WHEN /mbtools/if_actions=>tool_check.
+              lv_result = factory( ls_tool-name )->check_version( ).
+            WHEN /mbtools/if_actions=>tool_install.
+              lv_result = install( ls_tool-name ).
+            WHEN /mbtools/if_actions=>tool_update.
+              lv_result = update( factory( ls_tool-name ) ).
+            WHEN /mbtools/if_actions=>tool_uninstall.
+              lv_result = uninstall( factory( ls_tool-name ) ).
+            WHEN /mbtools/if_actions=>tool_sync.
+              lv_result = sync( factory( ls_tool-name ) ).
+            WHEN OTHERS.
+              " unknow action
+              ASSERT 0 = 1.
+          ENDCASE.
+        CATCH /mbtools/cx_exception.
+      ENDTRY.
+
+      IF lv_result = abap_false.
+        rv_result = abap_false.
+      ENDIF.
+
+    ENDLOOP.
+
+    li_progress->hide( ).
+
+  ENDMETHOD.
 
 
   METHOD activate.
@@ -1175,6 +1283,21 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD is_base_only.
+
+    DATA: lt_tools TYPE TABLE OF /mbtools/tool_with_text.
+
+    " Get all installed and active tools
+    lt_tools = get_tools( ).
+
+    IF lt_tools IS INITIAL.
+      " This means there's only MBT Base left as the last tool
+      rv_result = abap_true.
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD is_bundle.
 
     rv_result = boolc( mv_is_bundle = abap_true ).
@@ -1191,15 +1314,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
   METHOD is_last_tool.
 
-    DATA: lt_tools TYPE TABLE OF /mbtools/tool_with_text.
-
-    " Get all installed and active tools
-    lt_tools = get_tools( ).
-
-    IF lt_tools IS INITIAL.
-      " This means there's only MBT Base left as the last tool
-      rv_result = abap_true.
-    ENDIF.
+    rv_result = is_base_only( ).
 
   ENDMETHOD.
 
@@ -1514,62 +1629,6 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       CATCH cx_root.
         rv_result = abap_false.
     ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD run_action.
-
-    DATA:
-      ls_tool     TYPE /mbtools/tool_with_text,
-      lt_tools    TYPE TABLE OF /mbtools/tool_with_text,
-      li_progress TYPE REF TO /mbtools/if_progress,
-      lv_result   TYPE abap_bool.
-
-    lt_tools = get_tools( iv_admin = abap_true ).
-
-    rv_result = abap_true.
-
-    li_progress = /mbtools/cl_progress=>get_instance( lines( lt_tools ) ).
-
-    LOOP AT lt_tools INTO ls_tool.
-      li_progress->show( iv_current = sy-tabix
-                         iv_text    = |Run action for { ls_tool-name }| ).
-
-      TRY.
-          CASE iv_action.
-            WHEN /mbtools/if_actions=>tool_register.
-              lv_result = factory( ls_tool-name )->register( ).
-            WHEN /mbtools/if_actions=>tool_unregister.
-              lv_result = factory( ls_tool-name )->unregister( ).
-            WHEN /mbtools/if_actions=>tool_activate.
-              lv_result = factory( ls_tool-name )->activate( ).
-            WHEN /mbtools/if_actions=>tool_deactivate.
-              lv_result = factory( ls_tool-name )->deactivate( ).
-            WHEN /mbtools/if_actions=>tool_check.
-              lv_result = factory( ls_tool-name )->check_version( ).
-            WHEN /mbtools/if_actions=>tool_install.
-              lv_result = install( ls_tool-name ).
-            WHEN /mbtools/if_actions=>tool_update.
-              lv_result = update( factory( ls_tool-name ) ).
-            WHEN /mbtools/if_actions=>tool_uninstall.
-              lv_result = uninstall( factory( ls_tool-name ) ).
-            WHEN /mbtools/if_actions=>tool_sync.
-              lv_result = sync( factory( ls_tool-name ) ).
-            WHEN OTHERS.
-              " unknow action
-              ASSERT 0 = 1.
-          ENDCASE.
-        CATCH /mbtools/cx_exception.
-      ENDTRY.
-
-      IF lv_result = abap_false.
-        rv_result = abap_false.
-      ENDIF.
-
-    ENDLOOP.
-
-    li_progress->hide( ).
 
   ENDMETHOD.
 
