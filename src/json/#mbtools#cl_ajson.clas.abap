@@ -9,62 +9,61 @@ CLASS /mbtools/cl_ajson DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 *
-* Last update: 2020-11-30
+* Last update: 2021-01-17
 ************************************************************************
 
-  public section.
+  PUBLIC SECTION.
 
-    interfaces /mbtools/if_ajson_reader .
-    interfaces /mbtools/if_ajson_writer .
-    interfaces /mbtools/if_ajson .
+    INTERFACES /mbtools/if_ajson_reader .
+    INTERFACES /mbtools/if_ajson_writer .
+    INTERFACES /mbtools/if_ajson .
 
-    aliases:
-      exists for /mbtools/if_ajson_reader~exists,
-      members for /mbtools/if_ajson_reader~members,
-      get for /mbtools/if_ajson_reader~get,
-      get_boolean for /mbtools/if_ajson_reader~get_boolean,
-      get_integer for /mbtools/if_ajson_reader~get_integer,
-      get_number for /mbtools/if_ajson_reader~get_number,
-      get_date for /mbtools/if_ajson_reader~get_date,
-      get_string for /mbtools/if_ajson_reader~get_string,
-      slice for /mbtools/if_ajson_reader~slice,
-      to_abap for /mbtools/if_ajson_reader~to_abap,
-      array_to_string_table for /mbtools/if_ajson_reader~array_to_string_table.
+    ALIASES:
+      exists FOR /mbtools/if_ajson_reader~exists,
+      members FOR /mbtools/if_ajson_reader~members,
+      get FOR /mbtools/if_ajson_reader~get,
+      get_boolean FOR /mbtools/if_ajson_reader~get_boolean,
+      get_integer FOR /mbtools/if_ajson_reader~get_integer,
+      get_number FOR /mbtools/if_ajson_reader~get_number,
+      get_date FOR /mbtools/if_ajson_reader~get_date,
+      get_string FOR /mbtools/if_ajson_reader~get_string,
+      slice FOR /mbtools/if_ajson_reader~slice,
+      to_abap FOR /mbtools/if_ajson_reader~to_abap,
+      array_to_string_table FOR /mbtools/if_ajson_reader~array_to_string_table.
 
-    aliases:
-      clear for /mbtools/if_ajson_writer~clear,
-      set for /mbtools/if_ajson_writer~set,
-      set_boolean for /mbtools/if_ajson_writer~set_boolean,
-      set_string for /mbtools/if_ajson_writer~set_string,
-      set_integer for /mbtools/if_ajson_writer~set_integer,
-      set_date for /mbtools/if_ajson_writer~set_date,
-      set_null for /mbtools/if_ajson_writer~set_null,
-      delete for /mbtools/if_ajson_writer~delete,
-      touch_array for /mbtools/if_ajson_writer~touch_array,
-      push for /mbtools/if_ajson_writer~push,
-      stringify for /mbtools/if_ajson_writer~stringify.
+    ALIASES:
+      clear FOR /mbtools/if_ajson_writer~clear,
+      set FOR /mbtools/if_ajson_writer~set,
+      set_boolean FOR /mbtools/if_ajson_writer~set_boolean,
+      set_string FOR /mbtools/if_ajson_writer~set_string,
+      set_integer FOR /mbtools/if_ajson_writer~set_integer,
+      set_date FOR /mbtools/if_ajson_writer~set_date,
+      set_null FOR /mbtools/if_ajson_writer~set_null,
+      delete FOR /mbtools/if_ajson_writer~delete,
+      touch_array FOR /mbtools/if_ajson_writer~touch_array,
+      push FOR /mbtools/if_ajson_writer~push,
+      stringify FOR /mbtools/if_ajson_writer~stringify.
 
-    aliases:
-      mt_json_tree for /mbtools/if_ajson~mt_json_tree,
-      keep_item_order for /mbtools/if_ajson~keep_item_order,
-      freeze for /mbtools/if_ajson~freeze.
+    ALIASES:
+      mt_json_tree FOR /mbtools/if_ajson~mt_json_tree,
+      keep_item_order FOR /mbtools/if_ajson~keep_item_order,
+      freeze FOR /mbtools/if_ajson~freeze.
 
-    class-methods parse
-      importing
-        !iv_json           type string
-        !iv_freeze         type abap_bool default abap_false
-        !ii_custom_mapping type ref to /mbtools/if_ajson_mapping optional
-      returning
-        value(ro_instance) type ref to /mbtools/cl_ajson
-      raising
+    CLASS-METHODS parse
+      IMPORTING
+        !iv_json           TYPE string
+        !iv_freeze         TYPE abap_bool DEFAULT abap_false
+        !ii_custom_mapping TYPE REF TO /mbtools/if_ajson_mapping OPTIONAL
+      RETURNING
+        VALUE(ro_instance) TYPE REF TO /mbtools/cl_ajson
+      RAISING
         /mbtools/cx_ajson_error .
 
-    class-methods create_empty
-      importing
-        !ii_custom_mapping type ref to /mbtools/if_ajson_mapping optional
-      returning
-        value(ro_instance) type ref to /mbtools/cl_ajson.
-
+    CLASS-METHODS create_empty
+      IMPORTING
+        !ii_custom_mapping TYPE REF TO /mbtools/if_ajson_mapping OPTIONAL
+      RETURNING
+        VALUE(ro_instance) TYPE REF TO /mbtools/cl_ajson.
   protected section.
 
   private section.

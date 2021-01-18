@@ -609,7 +609,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
                       ' Use the "Tools" menu to add a new tool or update any of your exsting tools.' ).
       WHEN c_mode-license.
         ri_html->add( 'Enter your license keys to receive updates for purchased tools.' &&
-                      ' If your license key has expired, please renew your license.' ) ##TODO.
+                      ' If your license key has expired, please renew your license.' ). "##TODO
     ENDCASE.
     ri_html->add( '</div>' ).
 

@@ -22,18 +22,18 @@ INTERFACE /mbtools/if_html_viewer
       !ev_assigned_url TYPE w3url
     CHANGING
       !ct_data_table   TYPE STANDARD TABLE
-    EXCEPTIONS
-      /mbtools/cx_exception.
+    RAISING
+      /mbtools/cx_exception .
   METHODS set_registered_events
     IMPORTING
       !it_events TYPE cntl_simple_events
-    EXCEPTIONS
-      /mbtools/cx_exception.
+    RAISING
+      /mbtools/cx_exception .
   METHODS show_url
     IMPORTING
       !iv_url TYPE c
-    EXCEPTIONS
-      /mbtools/cx_exception.
+    RAISING
+      /mbtools/cx_exception .
   METHODS free .
   METHODS close_document .
   METHODS get_url
