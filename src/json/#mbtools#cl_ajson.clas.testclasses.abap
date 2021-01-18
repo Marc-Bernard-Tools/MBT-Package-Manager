@@ -3,75 +3,78 @@
 **********************************************************************
 * UTIL
 **********************************************************************
-CLASS lcl_nodes_helper DEFINITION FINAL.
-  PUBLIC SECTION.
+class lcl_nodes_helper definition final.
+  public section.
 
-    DATA mt_nodes TYPE /mbtools/cl_ajson=>ty_nodes_tt.
-    METHODS add
-      IMPORTING
-        iv_str TYPE string.
-    METHODS sorted
-      RETURNING
-        VALUE(rt_nodes) TYPE /mbtools/cl_ajson=>ty_nodes_ts.
+    data mt_nodes type /mbtools/if_ajson=>ty_nodes_tt.
+    methods add
+      importing
+        iv_str type string.
+    methods sorted
+      returning
+        value(rt_nodes) type /mbtools/if_ajson=>ty_nodes_ts.
 
-ENDCLASS.
+endclass.
 
-CLASS lcl_nodes_helper IMPLEMENTATION.
-  METHOD add.
+class lcl_nodes_helper implementation.
+  method add.
 
-    FIELD-SYMBOLS <n> LIKE LINE OF mt_nodes.
-    DATA lv_children TYPE string.
-    DATA lv_index TYPE string.
+    field-symbols <n> like line of mt_nodes.
+    data lv_children type string.
+    data lv_index type string.
+    data lv_order type string.
 
-    APPEND INITIAL LINE TO mt_nodes ASSIGNING <n>.
+    append initial line to mt_nodes assigning <n>.
 
-    SPLIT iv_str AT '|' INTO
+    split iv_str at '|' into
       <n>-path
       <n>-name
       <n>-type
       <n>-value
       lv_index
-      lv_children.
-    CONDENSE <n>-path.
-    CONDENSE <n>-name.
-    CONDENSE <n>-type.
-    CONDENSE <n>-value.
+      lv_children
+      lv_order.
+    condense <n>-path.
+    condense <n>-name.
+    condense <n>-type.
+    condense <n>-value.
     <n>-index = lv_index.
     <n>-children = lv_children.
+    <n>-order = lv_order.
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD sorted.
+  method sorted.
     rt_nodes = mt_nodes.
-  ENDMETHOD.
-ENDCLASS.
+  endmethod.
+endclass.
 
 **********************************************************************
 * PARSER
 **********************************************************************
 
-CLASS ltcl_parser_test DEFINITION FINAL
-  FOR TESTING
-  RISK LEVEL HARMLESS
-  DURATION SHORT.
+class ltcl_parser_test definition final
+  for testing
+  risk level harmless
+  duration short.
 
-  PUBLIC SECTION.
+  public section.
 
-    CLASS-METHODS sample_json
-      IMPORTING
-        iv_separator   TYPE string OPTIONAL
-      RETURNING
-        VALUE(rv_json) TYPE string.
+    class-methods sample_json
+      importing
+        iv_separator type string optional
+      returning
+        value(rv_json) type string.
 
-  PRIVATE SECTION.
+  private section.
 
-    METHODS parse FOR TESTING RAISING /mbtools/cx_ajson_error.
+    methods parse for testing raising /mbtools/cx_ajson_error.
 
-ENDCLASS.
+endclass.
 
-CLASS ltcl_parser_test IMPLEMENTATION.
+class ltcl_parser_test implementation.
 
-  METHOD sample_json.
+  method sample_json.
 
     rv_json =
       '{\n' &&
@@ -112,100 +115,101 @@ CLASS ltcl_parser_test IMPLEMENTATION.
       '  ]\n' &&
       '}'.
 
-    REPLACE ALL OCCURRENCES OF '\n' IN rv_json WITH iv_separator.
+    replace all occurrences of '\n' in rv_json with iv_separator.
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD parse.
+  method parse.
 
-    DATA lo_cut TYPE REF TO lcl_json_parser.
-    DATA lt_act TYPE /mbtools/cl_ajson=>ty_nodes_tt.
-    DATA nodes TYPE REF TO lcl_nodes_helper.
+    data lo_cut type ref to lcl_json_parser.
+    data lt_act type /mbtools/if_ajson=>ty_nodes_tt.
+    data lo_nodes type ref to lcl_nodes_helper.
 
-    CREATE OBJECT nodes.
-    nodes->add( '                 |         |object |                        |  |8' ).
-    nodes->add( '/                |string   |str    |abc                     |  |0' ).
-    nodes->add( '/                |number   |num    |123                     |  |0' ).
-    nodes->add( '/                |float    |num    |123.45                  |  |0' ).
-    nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
-    nodes->add( '/                |false    |bool   |false                   |  |0' ).
-    nodes->add( '/                |null     |null   |                        |  |0' ).
-    nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
-    nodes->add( '/                |issues   |array  |                        |  |2' ).
-    nodes->add( '/issues/         |1        |object |                        |1 |5' ).
-    nodes->add( '/issues/1/       |message  |str    |Indentation problem ... |  |0' ).
-    nodes->add( '/issues/1/       |key      |str    |indentation             |  |0' ).
-    nodes->add( '/issues/1/       |start    |object |                        |  |2' ).
-    nodes->add( '/issues/1/start/ |row      |num    |4                       |  |0' ).
-    nodes->add( '/issues/1/start/ |col      |num    |3                       |  |0' ).
-    nodes->add( '/issues/1/       |end      |object |                        |  |2' ).
-    nodes->add( '/issues/1/end/   |row      |num    |4                       |  |0' ).
-    nodes->add( '/issues/1/end/   |col      |num    |26                      |  |0' ).
-    nodes->add( '/issues/1/       |filename |str    |./zxxx.prog.abap        |  |0' ).
-    nodes->add( '/issues/         |2        |object |                        |2 |5' ).
-    nodes->add( '/issues/2/       |message  |str    |Remove space before XXX |  |0' ).
-    nodes->add( '/issues/2/       |key      |str    |space_before_dot        |  |0' ).
-    nodes->add( '/issues/2/       |start    |object |                        |  |2' ).
-    nodes->add( '/issues/2/start/ |row      |num    |3                       |  |0' ).
-    nodes->add( '/issues/2/start/ |col      |num    |21                      |  |0' ).
-    nodes->add( '/issues/2/       |end      |object |                        |  |2' ).
-    nodes->add( '/issues/2/end/   |row      |num    |3                       |  |0' ).
-    nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
-    nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
+    create object lo_nodes.
+    lo_nodes->add( '                 |         |object |                        |  |8' ).
+    lo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
+    lo_nodes->add( '/                |number   |num    |123                     |  |0' ).
+    lo_nodes->add( '/                |float    |num    |123.45                  |  |0' ).
+    lo_nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
+    lo_nodes->add( '/                |false    |bool   |false                   |  |0' ).
+    lo_nodes->add( '/                |null     |null   |                        |  |0' ).
+    lo_nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
+    lo_nodes->add( '/                |issues   |array  |                        |  |2' ).
+    lo_nodes->add( '/issues/         |1        |object |                        |1 |5' ).
+    lo_nodes->add( '/issues/1/       |message  |str    |Indentation problem ... |  |0' ).
+    lo_nodes->add( '/issues/1/       |key      |str    |indentation             |  |0' ).
+    lo_nodes->add( '/issues/1/       |start    |object |                        |  |2' ).
+    lo_nodes->add( '/issues/1/start/ |row      |num    |4                       |  |0' ).
+    lo_nodes->add( '/issues/1/start/ |col      |num    |3                       |  |0' ).
+    lo_nodes->add( '/issues/1/       |end      |object |                        |  |2' ).
+    lo_nodes->add( '/issues/1/end/   |row      |num    |4                       |  |0' ).
+    lo_nodes->add( '/issues/1/end/   |col      |num    |26                      |  |0' ).
+    lo_nodes->add( '/issues/1/       |filename |str    |./zxxx.prog.abap        |  |0' ).
+    lo_nodes->add( '/issues/         |2        |object |                        |2 |5' ).
+    lo_nodes->add( '/issues/2/       |message  |str    |Remove space before XXX |  |0' ).
+    lo_nodes->add( '/issues/2/       |key      |str    |space_before_dot        |  |0' ).
+    lo_nodes->add( '/issues/2/       |start    |object |                        |  |2' ).
+    lo_nodes->add( '/issues/2/start/ |row      |num    |3                       |  |0' ).
+    lo_nodes->add( '/issues/2/start/ |col      |num    |21                      |  |0' ).
+    lo_nodes->add( '/issues/2/       |end      |object |                        |  |2' ).
+    lo_nodes->add( '/issues/2/end/   |row      |num    |3                       |  |0' ).
+    lo_nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
+    lo_nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
 
-    CREATE OBJECT lo_cut.
+    create object lo_cut.
     lt_act = lo_cut->parse( sample_json( ) ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
-      exp = nodes->mt_nodes ).
+      exp = lo_nodes->mt_nodes ).
 
     lt_act = lo_cut->parse( sample_json( |{ cl_abap_char_utilities=>newline }| ) ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
-      exp = nodes->mt_nodes ).
+      exp = lo_nodes->mt_nodes ).
 
     lt_act = lo_cut->parse( sample_json( |{ cl_abap_char_utilities=>cr_lf }| ) ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
-      exp = nodes->mt_nodes ).
+      exp = lo_nodes->mt_nodes ).
 
-  ENDMETHOD.
+  endmethod.
 
-ENDCLASS.
+endclass.
 
 **********************************************************************
 * SERIALIZER
 **********************************************************************
 
-CLASS ltcl_serializer_test DEFINITION FINAL
-  FOR TESTING
-  RISK LEVEL HARMLESS
-  DURATION SHORT.
+class ltcl_serializer_test definition final
+  for testing
+  risk level harmless
+  duration short.
 
-  PUBLIC SECTION.
+  public section.
 
-    CLASS-METHODS sample_json
-      RETURNING
-        VALUE(rv_json) TYPE string.
-    CLASS-METHODS sample_nodes
-      RETURNING
-        VALUE(rt_nodes) TYPE /mbtools/cl_ajson=>ty_nodes_ts.
+    class-methods sample_json
+      returning
+        value(rv_json) type string.
+    class-methods sample_nodes
+      returning
+        value(rt_nodes) type /mbtools/if_ajson=>ty_nodes_ts.
 
-  PRIVATE SECTION.
+  private section.
 
-    METHODS stringify_condensed FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS stringify_indented FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS array_index FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS simple_indented FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS empty_set FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS escape FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS empty FOR TESTING RAISING /mbtools/cx_ajson_error.
+    methods stringify_condensed for testing raising /mbtools/cx_ajson_error.
+    methods stringify_indented for testing raising /mbtools/cx_ajson_error.
+    methods array_index for testing raising /mbtools/cx_ajson_error.
+    methods item_order for testing raising /mbtools/cx_ajson_error.
+    methods simple_indented for testing raising /mbtools/cx_ajson_error.
+    methods empty_set for testing raising /mbtools/cx_ajson_error.
+    methods escape for testing raising /mbtools/cx_ajson_error.
+    methods empty for testing raising /mbtools/cx_ajson_error.
 
-ENDCLASS.
+endclass.
 
-CLASS ltcl_serializer_test IMPLEMENTATION.
+class ltcl_serializer_test implementation.
 
-  METHOD sample_json.
+  method sample_json.
 
     rv_json =
       '{\n' &&
@@ -252,51 +256,51 @@ CLASS ltcl_serializer_test IMPLEMENTATION.
       with = cl_abap_char_utilities=>newline
       occ = 0 ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD sample_nodes.
+  method sample_nodes.
 
-    DATA nodes TYPE REF TO lcl_nodes_helper.
+    data lo_nodes type ref to lcl_nodes_helper.
 
-    CREATE OBJECT nodes.
-    nodes->add( '                 |         |object |                        |  |8' ).
-    nodes->add( '/                |string   |str    |abc                     |  |0' ).
-    nodes->add( '/                |number   |num    |123                     |  |0' ).
-    nodes->add( '/                |float    |num    |123.45                  |  |0' ).
-    nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
-    nodes->add( '/                |false    |bool   |false                   |  |0' ).
-    nodes->add( '/                |null     |null   |                        |  |0' ).
-    nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
-    nodes->add( '/                |issues   |array  |                        |  |2' ).
-    nodes->add( '/issues/         |1        |object |                        |1 |5' ).
-    nodes->add( '/issues/1/       |message  |str    |Indentation problem ... |  |0' ).
-    nodes->add( '/issues/1/       |key      |str    |indentation             |  |0' ).
-    nodes->add( '/issues/1/       |start    |object |                        |  |2' ).
-    nodes->add( '/issues/1/start/ |row      |num    |4                       |  |0' ).
-    nodes->add( '/issues/1/start/ |col      |num    |3                       |  |0' ).
-    nodes->add( '/issues/1/       |end      |object |                        |  |2' ).
-    nodes->add( '/issues/1/end/   |row      |num    |4                       |  |0' ).
-    nodes->add( '/issues/1/end/   |col      |num    |26                      |  |0' ).
-    nodes->add( '/issues/1/       |filename |str    |./zxxx.prog.abap        |  |0' ).
-    nodes->add( '/issues/         |2        |object |                        |2 |5' ).
-    nodes->add( '/issues/2/       |message  |str    |Remove space before XXX |  |0' ).
-    nodes->add( '/issues/2/       |key      |str    |space_before_dot        |  |0' ).
-    nodes->add( '/issues/2/       |start    |object |                        |  |2' ).
-    nodes->add( '/issues/2/start/ |row      |num    |3                       |  |0' ).
-    nodes->add( '/issues/2/start/ |col      |num    |21                      |  |0' ).
-    nodes->add( '/issues/2/       |end      |object |                        |  |2' ).
-    nodes->add( '/issues/2/end/   |row      |num    |3                       |  |0' ).
-    nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
-    nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
+    create object lo_nodes.
+    lo_nodes->add( '                 |         |object |                        |  |8' ).
+    lo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
+    lo_nodes->add( '/                |number   |num    |123                     |  |0' ).
+    lo_nodes->add( '/                |float    |num    |123.45                  |  |0' ).
+    lo_nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
+    lo_nodes->add( '/                |false    |bool   |false                   |  |0' ).
+    lo_nodes->add( '/                |null     |null   |                        |  |0' ).
+    lo_nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
+    lo_nodes->add( '/                |issues   |array  |                        |  |2' ).
+    lo_nodes->add( '/issues/         |1        |object |                        |1 |5' ).
+    lo_nodes->add( '/issues/1/       |message  |str    |Indentation problem ... |  |0' ).
+    lo_nodes->add( '/issues/1/       |key      |str    |indentation             |  |0' ).
+    lo_nodes->add( '/issues/1/       |start    |object |                        |  |2' ).
+    lo_nodes->add( '/issues/1/start/ |row      |num    |4                       |  |0' ).
+    lo_nodes->add( '/issues/1/start/ |col      |num    |3                       |  |0' ).
+    lo_nodes->add( '/issues/1/       |end      |object |                        |  |2' ).
+    lo_nodes->add( '/issues/1/end/   |row      |num    |4                       |  |0' ).
+    lo_nodes->add( '/issues/1/end/   |col      |num    |26                      |  |0' ).
+    lo_nodes->add( '/issues/1/       |filename |str    |./zxxx.prog.abap        |  |0' ).
+    lo_nodes->add( '/issues/         |2        |object |                        |2 |5' ).
+    lo_nodes->add( '/issues/2/       |message  |str    |Remove space before XXX |  |0' ).
+    lo_nodes->add( '/issues/2/       |key      |str    |space_before_dot        |  |0' ).
+    lo_nodes->add( '/issues/2/       |start    |object |                        |  |2' ).
+    lo_nodes->add( '/issues/2/start/ |row      |num    |3                       |  |0' ).
+    lo_nodes->add( '/issues/2/start/ |col      |num    |21                      |  |0' ).
+    lo_nodes->add( '/issues/2/       |end      |object |                        |  |2' ).
+    lo_nodes->add( '/issues/2/end/   |row      |num    |3                       |  |0' ).
+    lo_nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
+    lo_nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
 
-    rt_nodes = nodes->sorted( ).
+    rt_nodes = lo_nodes->sorted( ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD stringify_condensed.
+  method stringify_condensed.
 
-    DATA lv_act TYPE string.
-    DATA lv_exp TYPE string.
+    data lv_act type string.
+    data lv_exp type string.
 
     lv_act = lcl_json_serializer=>stringify( sample_nodes( ) ).
     lv_exp = sample_json( ).
@@ -306,7 +310,7 @@ CLASS ltcl_serializer_test IMPLEMENTATION.
       sub = cl_abap_char_utilities=>newline
       with = ''
       occ = 0 ).
-    CONDENSE lv_exp.
+    condense lv_exp.
     lv_exp = replace(
       val = lv_exp
       sub = `: `
@@ -342,12 +346,12 @@ CLASS ltcl_serializer_test IMPLEMENTATION.
       act = lv_act
       exp = lv_exp ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD stringify_indented.
+  method stringify_indented.
 
-    DATA lv_act TYPE string.
-    DATA lv_exp TYPE string.
+    data lv_act type string.
+    data lv_exp type string.
 
     lv_act = lcl_json_serializer=>stringify(
       it_json_tree = sample_nodes( )
@@ -358,45 +362,75 @@ CLASS ltcl_serializer_test IMPLEMENTATION.
       act = lv_act
       exp = lv_exp ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD array_index.
+  method array_index.
 
-    DATA lv_act TYPE string.
-    DATA lv_exp TYPE string.
-    DATA nodes TYPE REF TO lcl_nodes_helper.
+    data lv_act type string.
+    data lv_exp type string.
+    data lo_nodes type ref to lcl_nodes_helper.
 
-    CREATE OBJECT nodes.
-    nodes->add( '                |    |array  |                        |  |3' ).
-    nodes->add( '/               |1   |str    |abc                     |2 |0' ).
-    nodes->add( '/               |2   |num    |123                     |1 |0' ).
-    nodes->add( '/               |3   |num    |123.45                  |3 |0' ).
+    create object lo_nodes.
+    lo_nodes->add( '                |    |array  |                        |  |3' ).
+    lo_nodes->add( '/               |1   |str    |abc                     |2 |0' ).
+    lo_nodes->add( '/               |2   |num    |123                     |1 |0' ).
+    lo_nodes->add( '/               |3   |num    |123.45                  |3 |0' ).
 
-    lv_act = lcl_json_serializer=>stringify( nodes->sorted( ) ).
+    lv_act = lcl_json_serializer=>stringify( lo_nodes->sorted( ) ).
     lv_exp = '[123,"abc",123.45]'.
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_act
       exp = lv_exp ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD simple_indented.
+  method item_order.
 
-    DATA lv_act TYPE string.
-    DATA lv_exp TYPE string.
-    DATA nodes TYPE REF TO lcl_nodes_helper.
+    data lv_act type string.
+    data lv_exp type string.
+    data lo_nodes type ref to lcl_nodes_helper.
 
-    CREATE OBJECT nodes.
-    nodes->add( '                |    |array  |                        |  |3' ).
-    nodes->add( '/               |1   |object |                        |2 |2' ).
-    nodes->add( '/1/             |a   |num    |1                       |  |0' ).
-    nodes->add( '/1/             |b   |num    |2                       |  |0' ).
-    nodes->add( '/               |2   |num    |123                     |1 |0' ).
-    nodes->add( '/               |3   |num    |123.45                  |3 |0' ).
+    create object lo_nodes.
+    lo_nodes->add( '                |       |object |                   |  |3 |0' ).
+    lo_nodes->add( '/               |beta   |str    |b                  |  |0 |3' ).
+    lo_nodes->add( '/               |zulu   |str    |z                  |  |0 |1' ).
+    lo_nodes->add( '/               |alpha  |str    |a                  |  |0 |2' ).
+
+    lv_act = lcl_json_serializer=>stringify( lo_nodes->sorted( ) ).
+    lv_exp = '{"alpha":"a","beta":"b","zulu":"z"}'. " NAME order ! (it is also a UT)
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = lv_exp ).
 
     lv_act = lcl_json_serializer=>stringify(
-      it_json_tree = nodes->sorted( )
+      it_json_tree = lo_nodes->sorted( )
+      iv_keep_item_order = abap_true ).
+    lv_exp = '{"zulu":"z","alpha":"a","beta":"b"}'.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = lv_exp ).
+
+  endmethod.
+
+  method simple_indented.
+
+    data lv_act type string.
+    data lv_exp type string.
+    data lo_nodes type ref to lcl_nodes_helper.
+
+    create object lo_nodes.
+    lo_nodes->add( '                |    |array  |                        |  |3' ).
+    lo_nodes->add( '/               |1   |object |                        |2 |2' ).
+    lo_nodes->add( '/1/             |a   |num    |1                       |  |0' ).
+    lo_nodes->add( '/1/             |b   |num    |2                       |  |0' ).
+    lo_nodes->add( '/               |2   |num    |123                     |1 |0' ).
+    lo_nodes->add( '/               |3   |num    |123.45                  |3 |0' ).
+
+    lv_act = lcl_json_serializer=>stringify(
+      it_json_tree = lo_nodes->sorted( )
       iv_indent    = 2 ).
     lv_exp = '[\n' &&
     '  123,\n' &&
@@ -416,19 +450,19 @@ CLASS ltcl_serializer_test IMPLEMENTATION.
       act = lv_act
       exp = lv_exp ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD empty_set.
+  method empty_set.
 
-    DATA lv_act TYPE string.
-    DATA lv_exp TYPE string.
-    DATA nodes TYPE REF TO lcl_nodes_helper.
+    data lv_act type string.
+    data lv_exp type string.
+    data lo_nodes type ref to lcl_nodes_helper.
 
-    CREATE OBJECT nodes.
-    nodes->add( '                |    |array  |                        |  |0' ).
+    create object lo_nodes.
+    lo_nodes->add( '                |    |array  |                        |  |0' ).
 
     lv_act = lcl_json_serializer=>stringify(
-      it_json_tree = nodes->sorted( )
+      it_json_tree = lo_nodes->sorted( )
       iv_indent    = 0 ).
     lv_exp = '[]'.
 
@@ -437,7 +471,7 @@ CLASS ltcl_serializer_test IMPLEMENTATION.
       exp = lv_exp ).
 
     lv_act = lcl_json_serializer=>stringify(
-      it_json_tree = nodes->sorted( )
+      it_json_tree = lo_nodes->sorted( )
       iv_indent    = 2 ).
     lv_exp = '[]'.
 
@@ -445,92 +479,89 @@ CLASS ltcl_serializer_test IMPLEMENTATION.
       act = lv_act
       exp = lv_exp ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD escape.
+  method escape.
 
-    DATA lv_act TYPE string.
-    DATA lv_exp TYPE string.
-    DATA lv_val TYPE string.
-    DATA nodes TYPE REF TO lcl_nodes_helper.
+    data lv_act type string.
+    data lv_exp type string.
+    data lv_val type string.
+    data lo_nodes type ref to lcl_nodes_helper.
 
-    CREATE OBJECT nodes.
+    create object lo_nodes.
     lv_val = 'a' && '"' && '\' && cl_abap_char_utilities=>horizontal_tab && cl_abap_char_utilities=>cr_lf.
-    nodes->add( | \| \|str \|{ lv_val }\| \|0| ).
+    lo_nodes->add( | \| \|str \|{ lv_val }\| \|0| ).
 
-    lv_act = lcl_json_serializer=>stringify( nodes->sorted( ) ).
+    lv_act = lcl_json_serializer=>stringify( lo_nodes->sorted( ) ).
     lv_exp = '"a\"\\\t\r\n"'.
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_act
       exp = lv_exp ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD empty.
+  method empty.
 
-    DATA lv_act TYPE string.
-    DATA lv_exp TYPE string.
-    DATA nodes TYPE REF TO lcl_nodes_helper.
+    data lv_act type string.
+    data lv_exp type string.
+    data lo_nodes type ref to lcl_nodes_helper.
 
-    CREATE OBJECT nodes.
+    create object lo_nodes.
 
-    lv_act = lcl_json_serializer=>stringify( nodes->sorted( ) ).
+    lv_act = lcl_json_serializer=>stringify( lo_nodes->sorted( ) ).
     lv_exp = ''.
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_act
       exp = lv_exp ).
 
-  ENDMETHOD.
+  endmethod.
 
-ENDCLASS.
+endclass.
 
 **********************************************************************
 * UTILS
 **********************************************************************
 
-CLASS ltcl_utils_test DEFINITION FINAL
-  FOR TESTING
-  RISK LEVEL HARMLESS
-  DURATION SHORT.
+class ltcl_utils_test definition final
+  for testing
+  risk level harmless
+  duration short.
 
-  PRIVATE SECTION.
+  private section.
 
-    METHODS normalize_path FOR TESTING.
-    METHODS split_path FOR TESTING.
-    METHODS validate_array_index FOR TESTING RAISING /mbtools/cx_ajson_error.
+    methods normalize_path for testing.
+    methods split_path for testing.
+    methods validate_array_index for testing raising /mbtools/cx_ajson_error.
 
-ENDCLASS.
+endclass.
 
-CLASS /mbtools/cl_ajson DEFINITION LOCAL FRIENDS ltcl_utils_test.
+class /mbtools/cl_ajson definition local friends ltcl_utils_test.
 
-CLASS ltcl_utils_test IMPLEMENTATION.
+class ltcl_utils_test implementation.
 
-  METHOD validate_array_index.
+  method validate_array_index.
 
     cl_abap_unit_assert=>assert_equals(
-      act = lcl_utils=>validate_array_index( iv_path = 'x'
-                                             iv_index = '123' )
+      act = lcl_utils=>validate_array_index( iv_path = 'x' iv_index = '123' )
       exp = 123 ).
 
-    TRY.
-        lcl_utils=>validate_array_index( iv_path = 'x'
-                                         iv_index = 'a' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error.
-    ENDTRY.
+    try.
+      lcl_utils=>validate_array_index( iv_path = 'x' iv_index = 'a' ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error.
+    endtry.
 
-    TRY.
-        lcl_utils=>validate_array_index( iv_path = 'x'
-                                         iv_index = '0' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error.
-    ENDTRY.
+    try.
+      lcl_utils=>validate_array_index( iv_path = 'x' iv_index = '0' ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error.
+    endtry.
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD normalize_path.
+  method normalize_path.
 
     cl_abap_unit_assert=>assert_equals(
       act = lcl_utils=>normalize_path( '' )
@@ -551,12 +582,12 @@ CLASS ltcl_utils_test IMPLEMENTATION.
       act = lcl_utils=>normalize_path( '/abc/' )
       exp = '/abc/' ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD split_path.
+  method split_path.
 
-    DATA ls_exp TYPE /mbtools/cl_ajson=>ty_path_name.
-    DATA lv_path TYPE string.
+    data ls_exp type /mbtools/if_ajson=>ty_path_name.
+    data lv_path type string.
 
     lv_path     = ''. " alias to root
     ls_exp-path = ''.
@@ -614,131 +645,131 @@ CLASS ltcl_utils_test IMPLEMENTATION.
       act = lcl_utils=>split_path( lv_path )
       exp = ls_exp ).
 
-  ENDMETHOD.
+  endmethod.
 
-ENDCLASS.
+endclass.
 
 **********************************************************************
 * READER
 **********************************************************************
 
-CLASS ltcl_reader_test DEFINITION FINAL
-  FOR TESTING
-  RISK LEVEL HARMLESS
-  DURATION SHORT.
+class ltcl_reader_test definition final
+  for testing
+  risk level harmless
+  duration short.
 
-  PRIVATE SECTION.
+  private section.
 
-    METHODS get_value FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS get_node_type FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS exists FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS value_integer FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS value_number FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS value_boolean FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS value_string FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS members FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS slice FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS array_to_string_table FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS get_date FOR TESTING RAISING /mbtools/cx_ajson_error.
+    methods get_value for testing raising /mbtools/cx_ajson_error.
+    methods get_node_type for testing raising /mbtools/cx_ajson_error.
+    methods exists for testing raising /mbtools/cx_ajson_error.
+    methods value_integer for testing raising /mbtools/cx_ajson_error.
+    methods value_number for testing raising /mbtools/cx_ajson_error.
+    methods value_boolean for testing raising /mbtools/cx_ajson_error.
+    methods value_string for testing raising /mbtools/cx_ajson_error.
+    methods members for testing raising /mbtools/cx_ajson_error.
+    methods slice for testing raising /mbtools/cx_ajson_error.
+    methods array_to_string_table for testing raising /mbtools/cx_ajson_error.
+    methods get_date for testing raising /mbtools/cx_ajson_error.
 
-ENDCLASS.
+endclass.
 
-CLASS /mbtools/cl_ajson DEFINITION LOCAL FRIENDS ltcl_reader_test.
+class /mbtools/cl_ajson definition local friends ltcl_reader_test.
 
-CLASS ltcl_reader_test IMPLEMENTATION.
+class ltcl_reader_test implementation.
 
-  METHOD slice.
+  method slice.
 
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA nodes TYPE REF TO lcl_nodes_helper.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data lo_nodes type ref to lcl_nodes_helper.
 
-    CREATE OBJECT nodes.
-    nodes->add( '          |         |array  |                        |  |2' ).
-    nodes->add( '/         |1        |object |                        |1 |5' ).
-    nodes->add( '/1/       |message  |str    |Indentation problem ... |  |0' ).
-    nodes->add( '/1/       |key      |str    |indentation             |  |0' ).
-    nodes->add( '/1/       |start    |object |                        |  |2' ).
-    nodes->add( '/1/start/ |row      |num    |4                       |  |0' ).
-    nodes->add( '/1/start/ |col      |num    |3                       |  |0' ).
-    nodes->add( '/1/       |end      |object |                        |  |2' ).
-    nodes->add( '/1/end/   |row      |num    |4                       |  |0' ).
-    nodes->add( '/1/end/   |col      |num    |26                      |  |0' ).
-    nodes->add( '/1/       |filename |str    |./zxxx.prog.abap        |  |0' ).
-    nodes->add( '/         |2        |object |                        |2 |5' ).
-    nodes->add( '/2/       |message  |str    |Remove space before XXX |  |0' ).
-    nodes->add( '/2/       |key      |str    |space_before_dot        |  |0' ).
-    nodes->add( '/2/       |start    |object |                        |  |2' ).
-    nodes->add( '/2/start/ |row      |num    |3                       |  |0' ).
-    nodes->add( '/2/start/ |col      |num    |21                      |  |0' ).
-    nodes->add( '/2/       |end      |object |                        |  |2' ).
-    nodes->add( '/2/end/   |row      |num    |3                       |  |0' ).
-    nodes->add( '/2/end/   |col      |num    |22                      |  |0' ).
-    nodes->add( '/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
+    create object lo_nodes.
+    lo_nodes->add( '          |         |array  |                        |  |2' ).
+    lo_nodes->add( '/         |1        |object |                        |1 |5' ).
+    lo_nodes->add( '/1/       |message  |str    |Indentation problem ... |  |0' ).
+    lo_nodes->add( '/1/       |key      |str    |indentation             |  |0' ).
+    lo_nodes->add( '/1/       |start    |object |                        |  |2' ).
+    lo_nodes->add( '/1/start/ |row      |num    |4                       |  |0' ).
+    lo_nodes->add( '/1/start/ |col      |num    |3                       |  |0' ).
+    lo_nodes->add( '/1/       |end      |object |                        |  |2' ).
+    lo_nodes->add( '/1/end/   |row      |num    |4                       |  |0' ).
+    lo_nodes->add( '/1/end/   |col      |num    |26                      |  |0' ).
+    lo_nodes->add( '/1/       |filename |str    |./zxxx.prog.abap        |  |0' ).
+    lo_nodes->add( '/         |2        |object |                        |2 |5' ).
+    lo_nodes->add( '/2/       |message  |str    |Remove space before XXX |  |0' ).
+    lo_nodes->add( '/2/       |key      |str    |space_before_dot        |  |0' ).
+    lo_nodes->add( '/2/       |start    |object |                        |  |2' ).
+    lo_nodes->add( '/2/start/ |row      |num    |3                       |  |0' ).
+    lo_nodes->add( '/2/start/ |col      |num    |21                      |  |0' ).
+    lo_nodes->add( '/2/       |end      |object |                        |  |2' ).
+    lo_nodes->add( '/2/end/   |row      |num    |3                       |  |0' ).
+    lo_nodes->add( '/2/end/   |col      |num    |22                      |  |0' ).
+    lo_nodes->add( '/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
 
 
     lo_cut = /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
     lo_cut ?= lo_cut->/mbtools/if_ajson_reader~slice( '/issues' ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes->sorted( ) ).
+      exp = lo_nodes->sorted( ) ).
 
     " **********************************************************************
 
-    CREATE OBJECT nodes.
-    nodes->add( '                 |         |object |                        |  |8' ).
-    nodes->add( '/                |string   |str    |abc                     |  |0' ).
-    nodes->add( '/                |number   |num    |123                     |  |0' ).
-    nodes->add( '/                |float    |num    |123.45                  |  |0' ).
-    nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
-    nodes->add( '/                |false    |bool   |false                   |  |0' ).
-    nodes->add( '/                |null     |null   |                        |  |0' ).
-    nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
-    nodes->add( '/                |issues   |array  |                        |  |2' ).
-    nodes->add( '/issues/         |1        |object |                        |1 |5' ).
-    nodes->add( '/issues/1/       |message  |str    |Indentation problem ... |  |0' ).
-    nodes->add( '/issues/1/       |key      |str    |indentation             |  |0' ).
-    nodes->add( '/issues/1/       |start    |object |                        |  |2' ).
-    nodes->add( '/issues/1/start/ |row      |num    |4                       |  |0' ).
-    nodes->add( '/issues/1/start/ |col      |num    |3                       |  |0' ).
-    nodes->add( '/issues/1/       |end      |object |                        |  |2' ).
-    nodes->add( '/issues/1/end/   |row      |num    |4                       |  |0' ).
-    nodes->add( '/issues/1/end/   |col      |num    |26                      |  |0' ).
-    nodes->add( '/issues/1/       |filename |str    |./zxxx.prog.abap        |  |0' ).
-    nodes->add( '/issues/         |2        |object |                        |2 |5' ).
-    nodes->add( '/issues/2/       |message  |str    |Remove space before XXX |  |0' ).
-    nodes->add( '/issues/2/       |key      |str    |space_before_dot        |  |0' ).
-    nodes->add( '/issues/2/       |start    |object |                        |  |2' ).
-    nodes->add( '/issues/2/start/ |row      |num    |3                       |  |0' ).
-    nodes->add( '/issues/2/start/ |col      |num    |21                      |  |0' ).
-    nodes->add( '/issues/2/       |end      |object |                        |  |2' ).
-    nodes->add( '/issues/2/end/   |row      |num    |3                       |  |0' ).
-    nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
-    nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
+    create object lo_nodes.
+    lo_nodes->add( '                 |         |object |                        |  |8' ).
+    lo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
+    lo_nodes->add( '/                |number   |num    |123                     |  |0' ).
+    lo_nodes->add( '/                |float    |num    |123.45                  |  |0' ).
+    lo_nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
+    lo_nodes->add( '/                |false    |bool   |false                   |  |0' ).
+    lo_nodes->add( '/                |null     |null   |                        |  |0' ).
+    lo_nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
+    lo_nodes->add( '/                |issues   |array  |                        |  |2' ).
+    lo_nodes->add( '/issues/         |1        |object |                        |1 |5' ).
+    lo_nodes->add( '/issues/1/       |message  |str    |Indentation problem ... |  |0' ).
+    lo_nodes->add( '/issues/1/       |key      |str    |indentation             |  |0' ).
+    lo_nodes->add( '/issues/1/       |start    |object |                        |  |2' ).
+    lo_nodes->add( '/issues/1/start/ |row      |num    |4                       |  |0' ).
+    lo_nodes->add( '/issues/1/start/ |col      |num    |3                       |  |0' ).
+    lo_nodes->add( '/issues/1/       |end      |object |                        |  |2' ).
+    lo_nodes->add( '/issues/1/end/   |row      |num    |4                       |  |0' ).
+    lo_nodes->add( '/issues/1/end/   |col      |num    |26                      |  |0' ).
+    lo_nodes->add( '/issues/1/       |filename |str    |./zxxx.prog.abap        |  |0' ).
+    lo_nodes->add( '/issues/         |2        |object |                        |2 |5' ).
+    lo_nodes->add( '/issues/2/       |message  |str    |Remove space before XXX |  |0' ).
+    lo_nodes->add( '/issues/2/       |key      |str    |space_before_dot        |  |0' ).
+    lo_nodes->add( '/issues/2/       |start    |object |                        |  |2' ).
+    lo_nodes->add( '/issues/2/start/ |row      |num    |3                       |  |0' ).
+    lo_nodes->add( '/issues/2/start/ |col      |num    |21                      |  |0' ).
+    lo_nodes->add( '/issues/2/       |end      |object |                        |  |2' ).
+    lo_nodes->add( '/issues/2/end/   |row      |num    |3                       |  |0' ).
+    lo_nodes->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
+    lo_nodes->add( '/issues/2/       |filename |str    |./zxxx.prog.abap        |  |0' ).
 
     lo_cut = /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
     lo_cut ?= lo_cut->/mbtools/if_ajson_reader~slice( '/' ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes->sorted( ) ).
+      exp = lo_nodes->sorted( ) ).
 
     " **********************************************************************
 
-    CREATE OBJECT nodes.
-    nodes->add( '  |         |object |                        | |2' ).
-    nodes->add( '/ |row      |num    |3                       | |0' ).
-    nodes->add( '/ |col      |num    |21                      | |0' ).
+    create object lo_nodes.
+    lo_nodes->add( '  |         |object |                        | |2' ).
+    lo_nodes->add( '/ |row      |num    |3                       | |0' ).
+    lo_nodes->add( '/ |col      |num    |21                      | |0' ).
 
     lo_cut = /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
     lo_cut ?= lo_cut->/mbtools/if_ajson_reader~slice( '/issues/2/start/' ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes->sorted( ) ).
+      exp = lo_nodes->sorted( ) ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD get_value.
+  method get_value.
 
-    DATA lo_cut TYPE REF TO /mbtools/if_ajson_reader.
+    data lo_cut type ref to /mbtools/if_ajson_reader.
     lo_cut ?= /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -757,11 +788,11 @@ CLASS ltcl_reader_test IMPLEMENTATION.
       act = lo_cut->get( '/issues/2/start/row' )
       exp = '3' ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD get_node_type.
+  method get_node_type.
 
-    DATA li_cut TYPE REF TO /mbtools/if_ajson_reader.
+    data li_cut type ref to /mbtools/if_ajson_reader.
     li_cut = /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -792,49 +823,49 @@ CLASS ltcl_reader_test IMPLEMENTATION.
       act = li_cut->get_node_type( '/issues' )
       exp = 'array' ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD get_date.
+  method get_date.
 
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA nodes TYPE REF TO lcl_nodes_helper.
-    DATA lv_exp TYPE d.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lv_exp type d.
 
-    CREATE OBJECT lo_cut.
+    create object lo_cut.
     lv_exp = '20200728'.
 
-    CREATE OBJECT nodes.
-    nodes->add( '  |         |object |                        | |1' ).
-    nodes->add( '/ |date1    |str    |2020-07-28              | |0' ).
-    lo_cut->mt_json_tree = nodes->mt_nodes.
+    create object lo_nodes.
+    lo_nodes->add( '  |         |object |                        | |1' ).
+    lo_nodes->add( '/ |date1    |str    |2020-07-28              | |0' ).
+    lo_cut->mt_json_tree = lo_nodes->mt_nodes.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->/mbtools/if_ajson_reader~get_date( '/date1' )
       exp = lv_exp ).
 
-    CREATE OBJECT nodes.
-    nodes->add( '  |         |object |                        | |1' ).
-    nodes->add( '/ |date1    |str    |2020-07-28T01:00:00Z    | |0' ).
-    lo_cut->mt_json_tree = nodes->mt_nodes.
+    create object lo_nodes.
+    lo_nodes->add( '  |         |object |                        | |1' ).
+    lo_nodes->add( '/ |date1    |str    |2020-07-28T01:00:00Z    | |0' ).
+    lo_cut->mt_json_tree = lo_nodes->mt_nodes.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->/mbtools/if_ajson_reader~get_date( '/date1' )
       exp = lv_exp ).
 
-    CREATE OBJECT nodes.
-    nodes->add( '  |         |object |                        | |1' ).
-    nodes->add( '/ |date1    |str    |20200728                | |0' ).
-    lo_cut->mt_json_tree = nodes->mt_nodes.
+    create object lo_nodes.
+    lo_nodes->add( '  |         |object |                        | |1' ).
+    lo_nodes->add( '/ |date1    |str    |20200728                | |0' ).
+    lo_cut->mt_json_tree = lo_nodes->mt_nodes.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->/mbtools/if_ajson_reader~get_date( '/date1' )
       exp = '' ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD exists.
+  method exists.
 
-    DATA lo_cut TYPE REF TO /mbtools/if_ajson_reader.
+    data lo_cut type ref to /mbtools/if_ajson_reader.
     lo_cut ?= /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
 
@@ -854,11 +885,11 @@ CLASS ltcl_reader_test IMPLEMENTATION.
       act = lo_cut->exists( '/issues/2/start/row' )
       exp = abap_true ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD value_integer.
+  method value_integer.
 
-    DATA lo_cut TYPE REF TO /mbtools/if_ajson_reader.
+    data lo_cut type ref to /mbtools/if_ajson_reader.
     lo_cut ?= /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -873,11 +904,11 @@ CLASS ltcl_reader_test IMPLEMENTATION.
       act = lo_cut->get_integer( '/float' )
       exp = 123 ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD value_number.
+  method value_number.
 
-    DATA lo_cut TYPE REF TO /mbtools/if_ajson_reader.
+    data lo_cut type ref to /mbtools/if_ajson_reader.
     lo_cut ?= /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -892,11 +923,11 @@ CLASS ltcl_reader_test IMPLEMENTATION.
       act = lo_cut->get_number( '/float' )
       exp = +'123.45' ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD value_boolean.
+  method value_boolean.
 
-    DATA lo_cut TYPE REF TO /mbtools/if_ajson_reader.
+    data lo_cut type ref to /mbtools/if_ajson_reader.
     lo_cut ?= /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -915,11 +946,11 @@ CLASS ltcl_reader_test IMPLEMENTATION.
       act = lo_cut->get_boolean( '/boolean' )
       exp = abap_true ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD value_string.
+  method value_string.
 
-    DATA lo_cut TYPE REF TO /mbtools/if_ajson_reader.
+    data lo_cut type ref to /mbtools/if_ajson_reader.
     lo_cut ?= /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -938,55 +969,55 @@ CLASS ltcl_reader_test IMPLEMENTATION.
       act = lo_cut->get_string( '/boolean' )
       exp = 'true' ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD members.
+  method members.
 
-    DATA lt_exp TYPE string_table.
-    DATA lo_cut TYPE REF TO /mbtools/if_ajson_reader.
+    data lt_exp type string_table.
+    data lo_cut type ref to /mbtools/if_ajson_reader.
     lo_cut ?= /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
-    CLEAR lt_exp.
-    APPEND '1' TO lt_exp.
-    APPEND '2' TO lt_exp.
+    clear lt_exp.
+    append '1' to lt_exp.
+    append '2' to lt_exp.
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->members( '/issues' )
       exp = lt_exp ).
 
-    CLEAR lt_exp.
-    APPEND 'col' TO lt_exp.
-    APPEND 'row' TO lt_exp.
+    clear lt_exp.
+    append 'col' to lt_exp.
+    append 'row' to lt_exp.
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->members( '/issues/1/start/' )
       exp = lt_exp ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD array_to_string_table.
+  method array_to_string_table.
 
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA nodes TYPE REF TO lcl_nodes_helper.
-    DATA lt_act TYPE string_table.
-    DATA lt_exp TYPE string_table.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lt_act type string_table.
+    data lt_exp type string_table.
 
-    CREATE OBJECT nodes.
-    nodes->add( '  |         |array  |                        | |6' ).
-    nodes->add( '/ |1        |num    |123                     |1|0' ).
-    nodes->add( '/ |2        |num    |234                     |2|0' ).
-    nodes->add( '/ |3        |str    |abc                     |3|0' ).
-    nodes->add( '/ |4        |bool   |true                    |4|0' ).
-    nodes->add( '/ |5        |bool   |false                   |5|0' ).
-    nodes->add( '/ |6        |null   |null                    |6|0' ).
+    create object lo_nodes.
+    lo_nodes->add( '  |         |array  |                        | |6' ).
+    lo_nodes->add( '/ |1        |num    |123                     |1|0' ).
+    lo_nodes->add( '/ |2        |num    |234                     |2|0' ).
+    lo_nodes->add( '/ |3        |str    |abc                     |3|0' ).
+    lo_nodes->add( '/ |4        |bool   |true                    |4|0' ).
+    lo_nodes->add( '/ |5        |bool   |false                   |5|0' ).
+    lo_nodes->add( '/ |6        |null   |null                    |6|0' ).
 
-    APPEND '123' TO lt_exp.
-    APPEND '234' TO lt_exp.
-    APPEND 'abc' TO lt_exp.
-    APPEND 'X' TO lt_exp.
-    APPEND '' TO lt_exp.
-    APPEND '' TO lt_exp.
+    append '123' to lt_exp.
+    append '234' to lt_exp.
+    append 'abc' to lt_exp.
+    append 'X' to lt_exp.
+    append '' to lt_exp.
+    append '' to lt_exp.
 
-    CREATE OBJECT lo_cut.
-    lo_cut->mt_json_tree = nodes->mt_nodes.
+    create object lo_cut.
+    lo_cut->mt_json_tree = lo_nodes->mt_nodes.
 
     lt_act = lo_cut->/mbtools/if_ajson_reader~array_to_string_table( '/' ).
     cl_abap_unit_assert=>assert_equals(
@@ -994,528 +1025,526 @@ CLASS ltcl_reader_test IMPLEMENTATION.
       exp = lt_exp ).
 
     " negative
-    DATA lx TYPE REF TO /mbtools/cx_ajson_error.
+    data lx type ref to /mbtools/cx_ajson_error.
 
-    CREATE OBJECT nodes.
-    nodes->add( '  |         |object |                        | |1' ).
-    nodes->add( '/ |a        |str    |abc                     | |0' ).
-    lo_cut->mt_json_tree = nodes->mt_nodes.
+    create object lo_nodes.
+    lo_nodes->add( '  |         |object |                        | |1' ).
+    lo_nodes->add( '/ |a        |str    |abc                     | |0' ).
+    lo_cut->mt_json_tree = lo_nodes->mt_nodes.
 
-    TRY.
-        lo_cut->/mbtools/if_ajson_reader~array_to_string_table( '/x' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Path not found: /x' ).
-    ENDTRY.
+    try.
+      lo_cut->/mbtools/if_ajson_reader~array_to_string_table( '/x' ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Path not found: /x' ).
+    endtry.
 
-    TRY.
-        lo_cut->/mbtools/if_ajson_reader~array_to_string_table( '/' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Array expected at: /' ).
-    ENDTRY.
+    try.
+      lo_cut->/mbtools/if_ajson_reader~array_to_string_table( '/' ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Array expected at: /' ).
+    endtry.
 
-    TRY.
-        lo_cut->/mbtools/if_ajson_reader~array_to_string_table( '/a' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Array expected at: /a' ).
-    ENDTRY.
+    try.
+      lo_cut->/mbtools/if_ajson_reader~array_to_string_table( '/a' ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Array expected at: /a' ).
+    endtry.
 
-    CREATE OBJECT nodes.
-    nodes->add( '  |         |array  |                        | |1' ).
-    nodes->add( '/ |1        |object |                        |1|0' ).
-    lo_cut->mt_json_tree = nodes->mt_nodes.
+    create object lo_nodes.
+    lo_nodes->add( '  |         |array  |                        | |1' ).
+    lo_nodes->add( '/ |1        |object |                        |1|0' ).
+    lo_cut->mt_json_tree = lo_nodes->mt_nodes.
 
-    TRY.
-        lo_cut->/mbtools/if_ajson_reader~array_to_string_table( '/' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Cannot convert [object] to string at [/1]' ).
-    ENDTRY.
+    try.
+      lo_cut->/mbtools/if_ajson_reader~array_to_string_table( '/' ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Cannot convert [object] to string at [/1]' ).
+    endtry.
 
-  ENDMETHOD.
+  endmethod.
 
-ENDCLASS.
+endclass.
 
 
 **********************************************************************
 * JSON TO ABAP
 **********************************************************************
 
-CLASS ltcl_json_to_abap DEFINITION
-  FOR TESTING
-  RISK LEVEL HARMLESS
-  DURATION SHORT
-  FINAL.
+class ltcl_json_to_abap definition
+  for testing
+  risk level harmless
+  duration short
+  final.
 
-  PRIVATE SECTION.
+  private section.
 
-    TYPES:
-      BEGIN OF ty_struc,
-        a TYPE string,
-        b TYPE i,
-      END OF ty_struc,
-      ty_strucs TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
-      BEGIN OF ty_complex,
-        str   TYPE string,
-        int   TYPE i,
-        float TYPE f,
-        bool  TYPE abap_bool,
-        obj   TYPE ty_struc,
-        tab   TYPE ty_strucs,
-        oref  TYPE REF TO object,
-        date1 TYPE d,
-        date2 TYPE d,
-      END OF ty_complex.
+    types:
+      begin of ty_struc,
+        a type string,
+        b type i,
+      end of ty_struc,
+      tty_struc type standard table of ty_struc with default key,
+      begin of ty_complex,
+        str   type string,
+        int   type i,
+        float type f,
+        bool  type abap_bool,
+        obj   type ty_struc,
+        tab   type tty_struc,
+        oref  type ref to object,
+        date1 type d,
+        date2 type d,
+      end of ty_complex.
 
-    METHODS find_loc FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS find_loc_negative FOR TESTING.
-    METHODS find_loc_append FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS to_abap FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS to_abap_negative FOR TESTING.
+    methods find_loc for testing raising /mbtools/cx_ajson_error.
+    methods find_loc_negative for testing.
+    methods find_loc_append for testing raising /mbtools/cx_ajson_error.
+    methods to_abap for testing raising /mbtools/cx_ajson_error.
+    methods to_abap_negative for testing.
 
-    METHODS prepare_cut
-      EXPORTING
-        eo_cut TYPE REF TO lcl_json_to_abap
-        e_elem TYPE ty_struc
-        e_mock TYPE ty_complex.
+    methods prepare_cut
+      exporting
+        eo_cut type ref to lcl_json_to_abap
+        e_elem type ty_struc
+        e_mock type ty_complex.
 
-ENDCLASS.
+endclass.
 
-CLASS ltcl_json_to_abap IMPLEMENTATION.
+class ltcl_json_to_abap implementation.
 
-  METHOD prepare_cut.
+  method prepare_cut.
 
     e_mock-str = 'Hello'.
     e_mock-int = 10.
     e_mock-obj-a = 'World'.
     e_elem-a = 'One'.
     e_elem-b = 1.
-    APPEND e_elem TO e_mock-tab.
+    append e_elem to e_mock-tab.
     e_elem-a = 'two'.
     e_elem-b = 2.
-    APPEND e_elem TO e_mock-tab.
+    append e_elem to e_mock-tab.
 
     lcl_json_to_abap=>bind(
-      CHANGING
+      changing
         c_obj = e_mock
         co_instance = eo_cut ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD find_loc.
+  method find_loc.
 
-    DATA last_elem TYPE ty_struc.
-    DATA mock TYPE ty_complex.
-    DATA lo_cut TYPE REF TO lcl_json_to_abap.
+    data last_elem type ty_struc.
+    data ls_mock type ty_complex.
+    data lo_cut type ref to lcl_json_to_abap.
 
     prepare_cut(
-      IMPORTING
+      importing
         eo_cut = lo_cut
-        e_mock = mock
+        e_mock = ls_mock
         e_elem = last_elem ).
 
-    DATA ref TYPE REF TO data.
-    FIELD-SYMBOLS <val> TYPE any.
+    data lr_ref type ref to data.
+    field-symbols <val> type any.
 
-    ref = lo_cut->find_loc( 'str' ). " Relative also works but from root
-    ASSIGN ref->* TO <val>.
+    lr_ref = lo_cut->find_loc( 'str' ). " Relative also works but from root
+    assign lr_ref->* to <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
       exp = 'Hello' ).
 
-    ref = lo_cut->find_loc( '/str' ).
-    ASSIGN ref->* TO <val>.
+    lr_ref = lo_cut->find_loc( '/str' ).
+    assign lr_ref->* to <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
       exp = 'Hello' ).
 
-    ref = lo_cut->find_loc( '/int' ).
-    ASSIGN ref->* TO <val>.
+    lr_ref = lo_cut->find_loc( '/int' ).
+    assign lr_ref->* to <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
       exp = 10 ).
 
-    ref = lo_cut->find_loc( '/obj/a' ).
-    ASSIGN ref->* TO <val>.
+    lr_ref = lo_cut->find_loc( '/obj/a' ).
+    assign lr_ref->* to <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
       exp = 'World' ).
 
-    ref = lo_cut->find_loc( iv_path = '/obj'
-                            iv_name = 'a' ).
-    ASSIGN ref->* TO <val>.
+    lr_ref = lo_cut->find_loc( iv_path = '/obj' iv_name = 'a' ).
+    assign lr_ref->* to <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
       exp = 'World' ).
 
-    ref = lo_cut->find_loc( '/obj' ).
-    ASSIGN ref->* TO <val>.
+    lr_ref = lo_cut->find_loc( '/obj' ).
+    assign lr_ref->* to <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
-      exp = mock-obj ).
+      exp = ls_mock-obj ).
 
-    ref = lo_cut->find_loc( '/' ).
-    ASSIGN ref->* TO <val>.
+    lr_ref = lo_cut->find_loc( '/' ).
+    assign lr_ref->* to <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
-      exp = mock ).
+      exp = ls_mock ).
 
-    ref = lo_cut->find_loc( '/tab/2' ).
-    ASSIGN ref->* TO <val>.
+    lr_ref = lo_cut->find_loc( '/tab/2' ).
+    assign lr_ref->* to <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
       exp = last_elem ).
 
-    ref = lo_cut->find_loc( '/tab/1/a' ).
-    ASSIGN ref->* TO <val>.
+    lr_ref = lo_cut->find_loc( '/tab/1/a' ).
+    assign lr_ref->* to <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
       exp = 'One' ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD find_loc_append.
+  method find_loc_append.
 
-    DATA last_elem TYPE ty_struc.
-    DATA mock TYPE ty_complex.
-    DATA lo_cut TYPE REF TO lcl_json_to_abap.
-    DATA lx TYPE REF TO /mbtools/cx_ajson_error.
+    data last_elem type ty_struc.
+    data ls_mock type ty_complex.
+    data lo_cut type ref to lcl_json_to_abap.
+    data lx type ref to /mbtools/cx_ajson_error.
 
     prepare_cut(
-      IMPORTING
+      importing
         eo_cut = lo_cut
-        e_mock = mock
+        e_mock = ls_mock
         e_elem = last_elem ).
 
-    DATA ref TYPE REF TO data.
-    FIELD-SYMBOLS <val> TYPE any.
+    data lr_ref type ref to data.
+    field-symbols <val> type any.
 
-    ref = lo_cut->find_loc( '/tab/1/a' ).
-    ASSIGN ref->* TO <val>.
+    lr_ref = lo_cut->find_loc( '/tab/1/a' ).
+    assign lr_ref->* to <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
       exp = 'One' ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = lines( mock-tab )
+      act = lines( ls_mock-tab )
       exp = 2 ).
 
-    TRY.
-        lo_cut->find_loc( '/tab/3/a' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Index not found in table' ).
-    ENDTRY.
+    try.
+      lo_cut->find_loc( '/tab/3/a' ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Index not found in table' ).
+    endtry.
 
-    ref = lo_cut->find_loc( iv_path = '/tab/3/a'
-                            iv_append_tables = abap_true ).
-    ASSIGN ref->* TO <val>.
+    lr_ref = lo_cut->find_loc( iv_path = '/tab/3/a' iv_append_tables = abap_true ).
+    assign lr_ref->* to <val>.
     cl_abap_unit_assert=>assert_equals(
       act = <val>
       exp = '' ).
     cl_abap_unit_assert=>assert_equals(
-      act = lines( mock-tab )
+      act = lines( ls_mock-tab )
       exp = 3 ).
 
-    TRY.
-        lo_cut->find_loc( '/tab/5/a' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Index not found in table' ).
-    ENDTRY.
+    try.
+      lo_cut->find_loc( '/tab/5/a' ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Index not found in table' ).
+    endtry.
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD find_loc_negative.
+  method find_loc_negative.
 
-    DATA lo_cut TYPE REF TO lcl_json_to_abap.
-    DATA lx TYPE REF TO /mbtools/cx_ajson_error.
-    DATA mock TYPE ty_complex.
+    data lo_cut type ref to lcl_json_to_abap.
+    data lx type ref to /mbtools/cx_ajson_error.
+    data ls_mock type ty_complex.
 
     prepare_cut(
-      IMPORTING
-        e_mock = mock " Must be here to keep reference alive
+      importing
+        e_mock = ls_mock " Must be here to keep reference alive
         eo_cut = lo_cut ).
 
-    TRY.
-        lo_cut->find_loc( '/xyz' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Path not found' ).
-    ENDTRY.
+    try.
+      lo_cut->find_loc( '/xyz' ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Path not found' ).
+    endtry.
 
-    TRY.
-        lo_cut->find_loc( '/oref/xyz' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Cannot assign to ref' ).
-    ENDTRY.
+    try.
+      lo_cut->find_loc( '/oref/xyz' ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Cannot assign to ref' ).
+    endtry.
 
-    TRY.
-        lo_cut->find_loc( '/tab/xyz' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Need index to access tables' ).
-    ENDTRY.
+    try.
+      lo_cut->find_loc( '/tab/xyz' ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Need index to access tables' ).
+    endtry.
 
-    TRY.
-        lo_cut->find_loc( '/tab/5' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Index not found in table' ).
-    ENDTRY.
+    try.
+      lo_cut->find_loc( '/tab/5' ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Index not found in table' ).
+    endtry.
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD to_abap.
+  method to_abap.
 
-    DATA lo_cut TYPE REF TO lcl_json_to_abap.
-    DATA mock TYPE ty_complex.
-    DATA lv_exp_date TYPE d VALUE '20200728'.
+    data lo_cut type ref to lcl_json_to_abap.
+    data ls_mock type ty_complex.
+    data lv_exp_date type d value '20200728'.
     lcl_json_to_abap=>bind(
-      CHANGING
-        c_obj = mock
+      changing
+        c_obj = ls_mock
         co_instance = lo_cut ).
 
-    DATA nodes TYPE REF TO lcl_nodes_helper.
-    CREATE OBJECT nodes.
-    nodes->add( '/      |      |object |       | ' ).
-    nodes->add( '/      |str   |str    |hello  | ' ).
-    nodes->add( '/      |int   |num    |5      | ' ).
-    nodes->add( '/      |float |num    |5.5    | ' ).
-    nodes->add( '/      |bool  |bool   |true   | ' ).
-    nodes->add( '/      |obj   |object |       | ' ).
-    nodes->add( '/obj   |a     |str    |world  | ' ).
-    nodes->add( '/      |tab   |array  |       | ' ).
-    nodes->add( '/tab   |1     |object |       |1' ).
-    nodes->add( '/tab/1 |a     |str    | One   | ' ).
-    nodes->add( '/tab   |2     |object |       |2' ).
-    nodes->add( '/tab/2 |a     |str    | Two   | ' ).
-    nodes->add( '/      |date1 |str    |2020-07-28 | ' ).
-    nodes->add( '/      |date2 |str    |2020-07-28T00:00:00Z | ' ).
+    data lo_nodes type ref to lcl_nodes_helper.
+    create object lo_nodes.
+    lo_nodes->add( '/      |      |object |       | ' ).
+    lo_nodes->add( '/      |str   |str    |hello  | ' ).
+    lo_nodes->add( '/      |int   |num    |5      | ' ).
+    lo_nodes->add( '/      |float |num    |5.5    | ' ).
+    lo_nodes->add( '/      |bool  |bool   |true   | ' ).
+    lo_nodes->add( '/      |obj   |object |       | ' ).
+    lo_nodes->add( '/obj   |a     |str    |world  | ' ).
+    lo_nodes->add( '/      |tab   |array  |       | ' ).
+    lo_nodes->add( '/tab   |1     |object |       |1' ).
+    lo_nodes->add( '/tab/1 |a     |str    | One   | ' ).
+    lo_nodes->add( '/tab   |2     |object |       |2' ).
+    lo_nodes->add( '/tab/2 |a     |str    | Two   | ' ).
+    lo_nodes->add( '/      |date1 |str    |2020-07-28 | ' ).
+    lo_nodes->add( '/      |date2 |str    |2020-07-28T00:00:00Z | ' ).
 
-    lo_cut->to_abap( nodes->sorted( ) ).
+    lo_cut->to_abap( lo_nodes->sorted( ) ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = mock-str
+      act = ls_mock-str
       exp = 'hello' ).
     cl_abap_unit_assert=>assert_equals(
-      act = mock-int
+      act = ls_mock-int
       exp = 5 ).
     cl_abap_unit_assert=>assert_equals(
-      act = mock-float
+      act = ls_mock-float
       exp = '5.5' ).
     cl_abap_unit_assert=>assert_equals(
-      act = mock-bool
+      act = ls_mock-bool
       exp = abap_true ).
     cl_abap_unit_assert=>assert_equals(
-      act = mock-obj-a
+      act = ls_mock-obj-a
       exp = 'world' ).
     cl_abap_unit_assert=>assert_equals(
-      act = mock-date1
+      act = ls_mock-date1
       exp = lv_exp_date ).
     cl_abap_unit_assert=>assert_equals(
-      act = mock-date2
+      act = ls_mock-date2
       exp = lv_exp_date ).
 
-    DATA elem LIKE LINE OF mock-tab.
+    data ls_elem like line of ls_mock-tab.
     cl_abap_unit_assert=>assert_equals(
-      act = lines( mock-tab )
+      act = lines( ls_mock-tab )
       exp = 2 ).
 
-    READ TABLE mock-tab INTO elem INDEX 1.
+    read table ls_mock-tab into ls_elem index 1.
     cl_abap_unit_assert=>assert_equals(
-      act = elem-a
+      act = ls_elem-a
       exp = 'One' ).
-    READ TABLE mock-tab INTO elem INDEX 2.
+    read table ls_mock-tab into ls_elem index 2.
     cl_abap_unit_assert=>assert_equals(
-      act = elem-a
+      act = ls_elem-a
       exp = 'Two' ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD to_abap_negative.
+  method to_abap_negative.
 
-    DATA lo_cut TYPE REF TO lcl_json_to_abap.
-    DATA lx TYPE REF TO /mbtools/cx_ajson_error.
-    DATA mock TYPE ty_complex.
+    data lo_cut type ref to lcl_json_to_abap.
+    data lx type ref to /mbtools/cx_ajson_error.
+    data ls_mock type ty_complex.
     lcl_json_to_abap=>bind(
-      CHANGING
-        c_obj = mock
+      changing
+        c_obj = ls_mock
         co_instance = lo_cut ).
 
-    DATA nodes TYPE REF TO lcl_nodes_helper.
+    data lo_nodes type ref to lcl_nodes_helper.
 
-    TRY.
-        CREATE OBJECT nodes.
-        nodes->add( '/    |      |object | ' ).
-        nodes->add( '/    |str   |object | ' ).
+    try.
+      create object lo_nodes.
+      lo_nodes->add( '/    |      |object | ' ).
+      lo_nodes->add( '/    |str   |object | ' ).
 
-        lo_cut->to_abap( nodes->sorted( ) ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Expected structure' ).
-    ENDTRY.
+      lo_cut->to_abap( lo_nodes->sorted( ) ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Expected structure' ).
+    endtry.
 
-    TRY.
-        CREATE OBJECT nodes.
-        nodes->add( '/    |      |object | ' ).
-        nodes->add( '/    |str   |array  | ' ).
+    try.
+      create object lo_nodes.
+      lo_nodes->add( '/    |      |object | ' ).
+      lo_nodes->add( '/    |str   |array  | ' ).
 
-        lo_cut->to_abap( nodes->sorted( ) ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Expected table' ).
-    ENDTRY.
+      lo_cut->to_abap( lo_nodes->sorted( ) ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Expected table' ).
+    endtry.
 
-    TRY.
-        CREATE OBJECT nodes.
-        nodes->add( '/    |      |object |      ' ).
-        nodes->add( '/    |int   |str    |hello ' ).
+    try.
+      create object lo_nodes.
+      lo_nodes->add( '/    |      |object |      ' ).
+      lo_nodes->add( '/    |int   |str    |hello ' ).
 
-        lo_cut->to_abap( nodes->sorted( ) ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Source is not a number' ).
-    ENDTRY.
+      lo_cut->to_abap( lo_nodes->sorted( ) ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Source is not a number' ).
+    endtry.
 
-    TRY.
-        CREATE OBJECT nodes.
-        nodes->add( '/    |      |object |        ' ).
-        nodes->add( '/    |date1 |str    |baddate ' ).
+    try.
+      create object lo_nodes.
+      lo_nodes->add( '/    |      |object |        ' ).
+      lo_nodes->add( '/    |date1 |str    |baddate ' ).
 
-        lo_cut->to_abap( nodes->sorted( ) ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Unexpected date format' ).
-    ENDTRY.
+      lo_cut->to_abap( lo_nodes->sorted( ) ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Unexpected date format' ).
+    endtry.
 
-  ENDMETHOD.
+  endmethod.
 
-ENDCLASS.
+endclass.
 
 **********************************************************************
 * WRITER
 **********************************************************************
 
-CLASS ltcl_writer_test DEFINITION FINAL
-  FOR TESTING
-  RISK LEVEL HARMLESS
-  DURATION SHORT.
+class ltcl_writer_test definition final
+  for testing
+  risk level harmless
+  duration short.
 
-  PRIVATE SECTION.
+  private section.
 
-    METHODS set_ajson FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS set_value FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS ignore_empty FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS set_obj FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS set_tab FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS prove_path_exists FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS delete_subtree FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS delete FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS arrays FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS arrays_negative FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS root_assignment FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS set_bool FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS set_str FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS set_int FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS set_date FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS read_only FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS set_array_obj FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS set_with_type FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS set_with_type_slice
-      IMPORTING
-        io_json_in  TYPE REF TO /mbtools/cl_ajson
-        io_json_out TYPE REF TO /mbtools/if_ajson_writer
-        iv_path     TYPE string
-      RAISING
+    methods set_ajson for testing raising /mbtools/cx_ajson_error.
+    methods set_value for testing raising /mbtools/cx_ajson_error.
+    methods ignore_empty for testing raising /mbtools/cx_ajson_error.
+    methods set_obj for testing raising /mbtools/cx_ajson_error.
+    methods set_tab for testing raising /mbtools/cx_ajson_error.
+    methods prove_path_exists for testing raising /mbtools/cx_ajson_error.
+    methods delete_subtree for testing raising /mbtools/cx_ajson_error.
+    methods delete for testing raising /mbtools/cx_ajson_error.
+    methods arrays for testing raising /mbtools/cx_ajson_error.
+    methods arrays_negative for testing raising /mbtools/cx_ajson_error.
+    methods root_assignment for testing raising /mbtools/cx_ajson_error.
+    methods set_bool for testing raising /mbtools/cx_ajson_error.
+    methods set_str for testing raising /mbtools/cx_ajson_error.
+    methods set_int for testing raising /mbtools/cx_ajson_error.
+    methods set_date for testing raising /mbtools/cx_ajson_error.
+    methods read_only for testing raising /mbtools/cx_ajson_error.
+    methods set_array_obj for testing raising /mbtools/cx_ajson_error.
+    methods set_with_type for testing raising /mbtools/cx_ajson_error.
+    methods set_with_type_slice
+      importing
+        io_json_in type ref to /mbtools/cl_ajson
+        io_json_out type ref to /mbtools/if_ajson_writer
+        iv_path type string
+      raising
         /mbtools/cx_ajson_error.
 
-ENDCLASS.
+endclass.
 
-CLASS /mbtools/cl_ajson DEFINITION LOCAL FRIENDS ltcl_writer_test.
+class /mbtools/cl_ajson definition local friends ltcl_writer_test.
 
-CLASS ltcl_writer_test IMPLEMENTATION.
+class ltcl_writer_test implementation.
 
-  METHOD prove_path_exists.
+  method prove_path_exists.
 
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
 
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
 
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |     ||1' ).
-    nodes_exp->add( '/       |a     |object |     ||1' ).
-    nodes_exp->add( '/a/     |b     |object |     ||1' ).
-    nodes_exp->add( '/a/b/   |c     |object |     ||1' ).
-    nodes_exp->add( '/a/b/c/ |d     |object |     ||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |     ||1' ).
+    lo_nodes_exp->add( '/       |a     |object |     ||1' ).
+    lo_nodes_exp->add( '/a/     |b     |object |     ||1' ).
+    lo_nodes_exp->add( '/a/b/   |c     |object |     ||1' ).
+    lo_nodes_exp->add( '/a/b/c/ |d     |object |     ||0' ).
 
     lo_cut->prove_path_exists( '/a/b/c/d/' ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '         |      |object |     ||1' ).
-    nodes_exp->add( '/        |a     |object |     ||1' ).
-    nodes_exp->add( '/a/      |b     |object |     ||1' ).
-    nodes_exp->add( '/a/b/    |c     |object |     ||1' ).
-    nodes_exp->add( '/a/b/c/  |d     |object |     ||1' ).
-    nodes_exp->add( '/a/b/c/d |e     |object |     ||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '         |      |object |     ||1' ).
+    lo_nodes_exp->add( '/        |a     |object |     ||1' ).
+    lo_nodes_exp->add( '/a/      |b     |object |     ||1' ).
+    lo_nodes_exp->add( '/a/b/    |c     |object |     ||1' ).
+    lo_nodes_exp->add( '/a/b/c/  |d     |object |     ||1' ).
+    lo_nodes_exp->add( '/a/b/c/d |e     |object |     ||0' ).
     lo_cut->prove_path_exists( '/a/b/c/d/e/' ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD delete_subtree.
+  method delete_subtree.
 
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
 
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
 
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |     ||1' ).
-    nodes_exp->add( '/       |a     |object |     ||1' ).
-    nodes_exp->add( '/a/     |b     |object |     ||1' ).
-    nodes_exp->add( '/a/b/   |c     |object |     ||1' ).
-    nodes_exp->add( '/a/b/c/ |d     |object |     ||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |     ||1' ).
+    lo_nodes_exp->add( '/       |a     |object |     ||1' ).
+    lo_nodes_exp->add( '/a/     |b     |object |     ||1' ).
+    lo_nodes_exp->add( '/a/b/   |c     |object |     ||1' ).
+    lo_nodes_exp->add( '/a/b/c/ |d     |object |     ||0' ).
 
-    lo_cut->mt_json_tree = nodes_exp->mt_nodes.
+    lo_cut->mt_json_tree = lo_nodes_exp->mt_nodes.
 
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |     ||1' ).
-    nodes_exp->add( '/       |a     |object |     ||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |     ||1' ).
+    lo_nodes_exp->add( '/       |a     |object |     ||0' ).
 
     lo_cut->delete_subtree(
       iv_path = '/a/'
@@ -1523,75 +1552,75 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD delete.
+  method delete.
 
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
 
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
 
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |     ||1' ).
-    nodes_exp->add( '/       |a     |object |     ||1' ).
-    nodes_exp->add( '/a/     |b     |object |     ||1' ).
-    nodes_exp->add( '/a/b/   |c     |object |     ||1' ).
-    nodes_exp->add( '/a/b/c/ |d     |object |     ||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |     ||1' ).
+    lo_nodes_exp->add( '/       |a     |object |     ||1' ).
+    lo_nodes_exp->add( '/a/     |b     |object |     ||1' ).
+    lo_nodes_exp->add( '/a/b/   |c     |object |     ||1' ).
+    lo_nodes_exp->add( '/a/b/c/ |d     |object |     ||0' ).
 
-    lo_cut->mt_json_tree = nodes_exp->mt_nodes.
+    lo_cut->mt_json_tree = lo_nodes_exp->mt_nodes.
 
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |     ||1' ).
-    nodes_exp->add( '/       |a     |object |     ||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |     ||1' ).
+    lo_nodes_exp->add( '/       |a     |object |     ||0' ).
 
     lo_cut->/mbtools/if_ajson_writer~delete( iv_path = '/a/b' ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |     ||1' ).
-    nodes_exp->add( '/       |a     |object |     ||1' ).
-    nodes_exp->add( '/a/     |b     |object |     ||1' ).
-    nodes_exp->add( '/a/b/   |c     |object |     ||1' ).
-    nodes_exp->add( '/a/b/c/ |d     |object |     ||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |     ||1' ).
+    lo_nodes_exp->add( '/       |a     |object |     ||1' ).
+    lo_nodes_exp->add( '/a/     |b     |object |     ||1' ).
+    lo_nodes_exp->add( '/a/b/   |c     |object |     ||1' ).
+    lo_nodes_exp->add( '/a/b/c/ |d     |object |     ||0' ).
 
-    lo_cut->mt_json_tree = nodes_exp->mt_nodes.
+    lo_cut->mt_json_tree = lo_nodes_exp->mt_nodes.
 
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |     ||1' ).
-    nodes_exp->add( '/       |a     |object |     ||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |     ||1' ).
+    lo_nodes_exp->add( '/       |a     |object |     ||0' ).
 
     lo_cut->/mbtools/if_ajson_writer~delete( iv_path = '/a/b/' ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD set_ajson.
+  method set_ajson.
 
-    DATA nodes TYPE REF TO lcl_nodes_helper.
-    DATA lo_src TYPE REF TO /mbtools/cl_ajson.
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lo_src type ref to /mbtools/cl_ajson.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data li_writer type ref to /mbtools/if_ajson_writer.
 
     lo_src = /mbtools/cl_ajson=>create_empty( ).
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
 
     " Prepare source
-    CREATE OBJECT nodes.
-    nodes->add( '        |      |object |     ||1' ).
-    nodes->add( '/       |x     |object |     ||2' ).
-    nodes->add( '/x/     |b     |str    |abc  ||0' ).
-    nodes->add( '/x/     |c     |num    |10   ||0' ).
-    lo_src->mt_json_tree = nodes->mt_nodes.
+    create object lo_nodes.
+    lo_nodes->add( '        |      |object |     ||1' ).
+    lo_nodes->add( '/       |x     |object |     ||2' ).
+    lo_nodes->add( '/x/     |b     |str    |abc  ||0' ).
+    lo_nodes->add( '/x/     |c     |num    |10   ||0' ).
+    lo_src->mt_json_tree = lo_nodes->mt_nodes.
 
     " Test 1 - assign root
     li_writer->set(
@@ -1599,24 +1628,24 @@ CLASS ltcl_writer_test IMPLEMENTATION.
       iv_val  = lo_src ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes->sorted( ) ).
+      exp = lo_nodes->sorted( ) ).
 
     li_writer->set(
       iv_path = '/'
       iv_val  = lo_src ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes->sorted( ) ).
+      exp = lo_nodes->sorted( ) ).
 
     " Test 2 - assign deep
-    CREATE OBJECT nodes.
-    nodes->add( '        |      |object |     ||1' ).
-    nodes->add( '/       |a     |object |     ||1' ).
-    nodes->add( '/a/     |b     |object |     ||1' ).
-    nodes->add( '/a/b/     |c     |object |     ||1' ).
-    nodes->add( '/a/b/c/   |x     |object |     ||2' ).
-    nodes->add( '/a/b/c/x/ |b     |str    |abc  ||0' ).
-    nodes->add( '/a/b/c/x/ |c     |num    |10   ||0' ).
+    create object lo_nodes.
+    lo_nodes->add( '        |      |object |     ||1' ).
+    lo_nodes->add( '/       |a     |object |     ||1' ).
+    lo_nodes->add( '/a/     |b     |object |     ||1' ).
+    lo_nodes->add( '/a/b/     |c     |object |     ||1' ).
+    lo_nodes->add( '/a/b/c/   |x     |object |     ||2' ).
+    lo_nodes->add( '/a/b/c/x/ |b     |str    |abc  ||0' ).
+    lo_nodes->add( '/a/b/c/x/ |c     |num    |10   ||0' ).
 
     li_writer->clear( ).
     li_writer->set(
@@ -1624,41 +1653,41 @@ CLASS ltcl_writer_test IMPLEMENTATION.
       iv_val  = lo_src ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes->sorted( ) ).
+      exp = lo_nodes->sorted( ) ).
 
     " Test 3 - assign rewrite
-    CREATE OBJECT nodes.
-    nodes->add( '        |      |object |     ||1' ).
-    nodes->add( '/       |a     |object |     ||1' ).
-    nodes->add( '/a/       |b     |object |     ||1' ).
-    nodes->add( '/a/b/     |x     |object |     ||2' ).
-    nodes->add( '/a/b/x/   |b     |str    |abc  ||0' ).
-    nodes->add( '/a/b/x/   |c     |num    |10   ||0' ).
+    create object lo_nodes.
+    lo_nodes->add( '        |      |object |     ||1' ).
+    lo_nodes->add( '/       |a     |object |     ||1' ).
+    lo_nodes->add( '/a/       |b     |object |     ||1' ).
+    lo_nodes->add( '/a/b/     |x     |object |     ||2' ).
+    lo_nodes->add( '/a/b/x/   |b     |str    |abc  ||0' ).
+    lo_nodes->add( '/a/b/x/   |c     |num    |10   ||0' ).
 
     li_writer->set(
       iv_path = '/a/b'
       iv_val  = lo_src ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes->sorted( ) ).
+      exp = lo_nodes->sorted( ) ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD set_value.
+  method set_value.
 
-    DATA nodes TYPE REF TO lcl_nodes_helper.
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data li_writer type ref to /mbtools/if_ajson_writer.
 
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
 
     " Prepare source
-    CREATE OBJECT nodes.
-    nodes->add( '        |      |object |     ||1' ).
-    nodes->add( '/       |x     |object |     ||2' ).
-    nodes->add( '/x/     |b     |str    |abc  ||0' ).
-    nodes->add( '/x/     |c     |num    |10   ||0' ).
+    create object lo_nodes.
+    lo_nodes->add( '        |      |object |     ||1' ).
+    lo_nodes->add( '/       |x     |object |     ||2' ).
+    lo_nodes->add( '/x/     |b     |str    |abc  ||0' ).
+    lo_nodes->add( '/x/     |c     |num    |10   ||0' ).
 
     li_writer->set(
       iv_path = '/x/b'
@@ -1671,22 +1700,22 @@ CLASS ltcl_writer_test IMPLEMENTATION.
       iv_val  = 0 ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes->sorted( ) ).
+      exp = lo_nodes->sorted( ) ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD ignore_empty.
+  method ignore_empty.
 
-    DATA nodes TYPE REF TO lcl_nodes_helper.
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data li_writer type ref to /mbtools/if_ajson_writer.
 
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
 
-    CREATE OBJECT nodes.
-    nodes->add( '        |      |object |     ||1' ).
-    nodes->add( '/       |a     |num    |1    ||0' ).
+    create object lo_nodes.
+    lo_nodes->add( '        |      |object |     ||1' ).
+    lo_nodes->add( '/       |a     |num    |1    ||0' ).
 
     li_writer->set(
       iv_path = '/a'
@@ -1696,12 +1725,12 @@ CLASS ltcl_writer_test IMPLEMENTATION.
       iv_val  = 0 ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes->sorted( ) ).
+      exp = lo_nodes->sorted( ) ).
 
-    CREATE OBJECT nodes.
-    nodes->add( '        |      |object |     ||2' ).
-    nodes->add( '/       |a     |num    |1    ||0' ).
-    nodes->add( '/       |b     |num    |0    ||0' ).
+    create object lo_nodes.
+    lo_nodes->add( '        |      |object |     ||2' ).
+    lo_nodes->add( '/       |a     |num    |1    ||0' ).
+    lo_nodes->add( '/       |b     |num    |0    ||0' ).
 
     li_writer->set(
       iv_ignore_empty = abap_false
@@ -1709,95 +1738,95 @@ CLASS ltcl_writer_test IMPLEMENTATION.
       iv_val  = 0 ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes->sorted( ) ).
+      exp = lo_nodes->sorted( ) ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD set_obj.
+  method set_obj.
 
-    DATA nodes TYPE REF TO lcl_nodes_helper.
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data li_writer type ref to /mbtools/if_ajson_writer.
 
-    DATA:
-      BEGIN OF ls_struc,
-        b TYPE string VALUE 'abc',
-        c TYPE i VALUE 10,
-      END OF ls_struc.
+    data:
+      begin of ls_struc,
+        b type string value 'abc',
+        c type i value 10,
+      end of ls_struc.
 
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
 
     " Prepare source
-    CREATE OBJECT nodes.
-    nodes->add( '        |      |object |     ||1' ).
-    nodes->add( '/       |x     |object |     ||2' ).
-    nodes->add( '/x/     |b     |str    |abc  ||0' ).
-    nodes->add( '/x/     |c     |num    |10   ||0' ).
+    create object lo_nodes.
+    lo_nodes->add( '        |      |object |     ||1' ).
+    lo_nodes->add( '/       |x     |object |     ||2' ).
+    lo_nodes->add( '/x/     |b     |str    |abc  ||0' ).
+    lo_nodes->add( '/x/     |c     |num    |10   ||0' ).
 
     li_writer->set(
       iv_path = '/x'
       iv_val  = ls_struc ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes->sorted( ) ).
+      exp = lo_nodes->sorted( ) ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD set_tab.
+  method set_tab.
 
-    DATA nodes TYPE REF TO lcl_nodes_helper.
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
-    DATA lt_tab TYPE string_table.
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data li_writer type ref to /mbtools/if_ajson_writer.
+    data lt_tab type string_table.
 
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
 
-    APPEND 'hello' TO lt_tab.
-    APPEND 'world' TO lt_tab.
+    append 'hello' to lt_tab.
+    append 'world' to lt_tab.
 
     " Prepare source
-    CREATE OBJECT nodes.
-    nodes->add( '        |      |object |     | |1' ).
-    nodes->add( '/       |x     |array  |     | |2' ).
-    nodes->add( '/x/     |1     |str    |hello|1|0' ).
-    nodes->add( '/x/     |2     |str    |world|2|0' ).
+    create object lo_nodes.
+    lo_nodes->add( '        |      |object |     | |1' ).
+    lo_nodes->add( '/       |x     |array  |     | |2' ).
+    lo_nodes->add( '/x/     |1     |str    |hello|1|0' ).
+    lo_nodes->add( '/x/     |2     |str    |world|2|0' ).
 
     li_writer->set(
       iv_path = '/x'
       iv_val  = lt_tab ).
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes->sorted( ) ).
+      exp = lo_nodes->sorted( ) ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD arrays.
+  method arrays.
 
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to /mbtools/if_ajson_writer.
 
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
 
     " touch
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |     | |1' ).
-    nodes_exp->add( '/       |a     |array  |     | |0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |     | |1' ).
+    lo_nodes_exp->add( '/       |a     |array  |     | |0' ).
 
     li_writer->touch_array( iv_path = '/a' ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
     " add string
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |     | |1' ).
-    nodes_exp->add( '/       |a     |array  |     | |1' ).
-    nodes_exp->add( '/a/     |1     |str    |hello|1|0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |     | |1' ).
+    lo_nodes_exp->add( '/       |a     |array  |     | |1' ).
+    lo_nodes_exp->add( '/a/     |1     |str    |hello|1|0' ).
 
     li_writer->push(
       iv_path = '/a'
@@ -1805,20 +1834,20 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
     " add obj
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |     | |1' ).
-    nodes_exp->add( '/       |a     |array  |     | |2' ).
-    nodes_exp->add( '/a/     |1     |str    |hello|1|0' ).
-    nodes_exp->add( '/a/     |2     |object |     |2|1' ).
-    nodes_exp->add( '/a/2/   |x     |str    |world| |0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |     | |1' ).
+    lo_nodes_exp->add( '/       |a     |array  |     | |2' ).
+    lo_nodes_exp->add( '/a/     |1     |str    |hello|1|0' ).
+    lo_nodes_exp->add( '/a/     |2     |object |     |2|1' ).
+    lo_nodes_exp->add( '/a/2/   |x     |str    |world| |0' ).
 
-    DATA:
-      BEGIN OF ls_dummy,
-        x TYPE string VALUE 'world',
-      END OF ls_dummy.
+    data:
+      begin of ls_dummy,
+        x type string value 'world',
+      end of ls_dummy.
 
     li_writer->push(
       iv_path = '/a'
@@ -1826,19 +1855,19 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
     " re-touch
     li_writer->touch_array( iv_path = '/a' ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
     " re-touch with clear
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |     | |1' ).
-    nodes_exp->add( '/       |a     |array  |     | |0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |     | |1' ).
+    lo_nodes_exp->add( '/       |a     |array  |     | |0' ).
 
     li_writer->touch_array(
       iv_path = '/a'
@@ -1846,15 +1875,15 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
     " free-add array item (index must be updated)
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |     | |1' ).
-    nodes_exp->add( '/       |a     |array  |     | |2' ).
-    nodes_exp->add( '/a/     |1     |object |     |1|1' ).
-    nodes_exp->add( '/a/1/   |x     |num    |123  | |0' ).
-    nodes_exp->add( '/a/     |2     |num    |234  |2|0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |     | |1' ).
+    lo_nodes_exp->add( '/       |a     |array  |     | |2' ).
+    lo_nodes_exp->add( '/a/     |1     |object |     |1|1' ).
+    lo_nodes_exp->add( '/a/1/   |x     |num    |123  | |0' ).
+    lo_nodes_exp->add( '/a/     |2     |num    |234  |2|0' ).
 
     li_writer->set(
       iv_path = '/a/1/x'
@@ -1865,14 +1894,14 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD arrays_negative.
+  method arrays_negative.
 
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data li_writer type ref to /mbtools/if_ajson_writer.
 
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
@@ -1883,95 +1912,95 @@ CLASS ltcl_writer_test IMPLEMENTATION.
       iv_val = 123 ).
 
     " touch another node
-    DATA lx TYPE REF TO /mbtools/cx_ajson_error.
-    TRY.
-        li_writer->touch_array( iv_path = '/a/1' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Path [/a/1] already used and is not array' ).
-    ENDTRY.
+    data lx type ref to /mbtools/cx_ajson_error.
+    try.
+      li_writer->touch_array( iv_path = '/a/1' ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Path [/a/1] already used and is not array' ).
+    endtry.
 
     " push to not array
-    TRY.
-        li_writer->push(
-          iv_path = '/a/1'
-          iv_val  = 123 ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Path [/a/1] is not array' ).
-    ENDTRY.
+    try.
+      li_writer->push(
+        iv_path = '/a/1'
+        iv_val  = 123 ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Path [/a/1] is not array' ).
+    endtry.
 
     " push to not array
-    TRY.
-        li_writer->push(
-          iv_path = '/x'
-          iv_val  = 123 ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Path [/x] does not exist' ).
-    ENDTRY.
+    try.
+      li_writer->push(
+        iv_path = '/x'
+        iv_val  = 123 ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Path [/x] does not exist' ).
+    endtry.
 
     " set array item with non-numeric key
-    TRY.
-        li_writer->set(
-          iv_path = '/a/abc/x'
-          iv_val  = 123 ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Cannot add non-numeric key [abc] to array [/a/]' ).
-    ENDTRY.
+    try.
+      li_writer->set(
+        iv_path = '/a/abc/x'
+        iv_val  = 123 ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Cannot add non-numeric key [abc] to array [/a/]' ).
+    endtry.
 
-    TRY.
-        li_writer->set(
-          iv_path = '/a/abc'
-          iv_val  = 123 ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Cannot add non-numeric key [abc] to array [/a/]' ).
-    ENDTRY.
+    try.
+      li_writer->set(
+        iv_path = '/a/abc'
+        iv_val  = 123 ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Cannot add non-numeric key [abc] to array [/a/]' ).
+    endtry.
 
     " set array item with zero key
-    TRY.
-        li_writer->set(
-          iv_path = '/a/0'
-          iv_val  = 123 ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Cannot add zero key to array [/a/]' ).
-    ENDTRY.
+    try.
+      li_writer->set(
+        iv_path = '/a/0'
+        iv_val  = 123 ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Cannot add zero key to array [/a/]' ).
+    endtry.
 
-  ENDMETHOD.
+  endmethod.
 
 
-  METHOD root_assignment.
+  method root_assignment.
 
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
-    DATA:
-      BEGIN OF ls_dummy,
-        x TYPE string VALUE 'hello',
-      END OF ls_dummy.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to /mbtools/if_ajson_writer.
+    data:
+      begin of ls_dummy,
+        x type string value 'hello',
+      end of ls_dummy.
 
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
 
     " object
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |     ||1' ).
-    nodes_exp->add( '/       |x     |str    |hello||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |     ||1' ).
+    lo_nodes_exp->add( '/       |x     |str    |hello||0' ).
 
     li_writer->set(
       iv_path = '/'
@@ -1979,12 +2008,12 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
     " object empty path
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |     ||1' ).
-    nodes_exp->add( '/       |x     |str    |hello||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |     ||1' ).
+    lo_nodes_exp->add( '/       |x     |str    |hello||0' ).
 
     li_writer->clear( ).
     li_writer->set(
@@ -1993,12 +2022,12 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
     " array
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |array  |     | |1' ).
-    nodes_exp->add( '/       |1     |str    |hello|1|0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |array  |     | |1' ).
+    lo_nodes_exp->add( '/       |1     |str    |hello|1|0' ).
 
     li_writer->clear( ).
     li_writer->touch_array( iv_path = '' ).
@@ -2008,11 +2037,11 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
     " value
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |str    |hello||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |str    |hello||0' ).
 
     li_writer->clear( ).
     li_writer->set(
@@ -2021,24 +2050,24 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD set_bool.
+  method set_bool.
 
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
-    DATA lt_tab TYPE string_table.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to /mbtools/if_ajson_writer.
+    data lt_tab type string_table.
 
     " abap_bool
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |      ||2' ).
-    nodes_exp->add( '/       |a     |bool   |true  ||0' ).
-    nodes_exp->add( '/       |b     |bool   |false ||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |      ||2' ).
+    lo_nodes_exp->add( '/       |a     |bool   |true  ||0' ).
+    lo_nodes_exp->add( '/       |b     |bool   |false ||0' ).
 
     li_writer->set_boolean(
       iv_path = '/a'
@@ -2049,15 +2078,15 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
     " int
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |      ||2' ).
-    nodes_exp->add( '/       |a     |bool   |true  ||0' ).
-    nodes_exp->add( '/       |b     |bool   |false ||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |      ||2' ).
+    lo_nodes_exp->add( '/       |a     |bool   |true  ||0' ).
+    lo_nodes_exp->add( '/       |b     |bool   |false ||0' ).
 
     li_writer->set_boolean(
       iv_path = '/a'
@@ -2068,45 +2097,45 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
     " tab
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |      ||2' ).
-    nodes_exp->add( '/       |a     |bool   |true  ||0' ).
-    nodes_exp->add( '/       |b     |bool   |false ||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |      ||2' ).
+    lo_nodes_exp->add( '/       |a     |bool   |true  ||0' ).
+    lo_nodes_exp->add( '/       |b     |bool   |false ||0' ).
 
-    APPEND 'hello' TO lt_tab.
+    append 'hello' to lt_tab.
     li_writer->set_boolean(
       iv_path = '/a'
       iv_val  = lt_tab ).
-    CLEAR lt_tab.
+    clear lt_tab.
     li_writer->set_boolean(
       iv_path = '/b'
       iv_val  = lt_tab ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD set_str.
+  method set_str.
 
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
-    DATA lv_date TYPE d.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to /mbtools/if_ajson_writer.
+    data lv_date type d.
 
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |         ||3' ).
-    nodes_exp->add( '/       |a     |str    |123      ||0' ).
-    nodes_exp->add( '/       |b     |str    |X        ||0' ).
-    nodes_exp->add( '/       |c     |str    |20200705 ||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |         ||3' ).
+    lo_nodes_exp->add( '/       |a     |str    |123      ||0' ).
+    lo_nodes_exp->add( '/       |b     |str    |X        ||0' ).
+    lo_nodes_exp->add( '/       |c     |str    |20200705 ||0' ).
 
     li_writer->set_string(
       iv_path = '/a'
@@ -2121,21 +2150,21 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD set_int.
+  method set_int.
 
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to /mbtools/if_ajson_writer.
 
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |         ||1' ).
-    nodes_exp->add( '/       |a     |num    |123      ||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |         ||1' ).
+    lo_nodes_exp->add( '/       |a     |num    |123      ||0' ).
 
     li_writer->set_integer(
       iv_path = '/a'
@@ -2143,22 +2172,22 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD set_date.
+  method set_date.
 
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
-    DATA lv_date TYPE d.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to /mbtools/if_ajson_writer.
+    data lv_date type d.
 
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |object |           ||1' ).
-    nodes_exp->add( '/       |a     |str    |2020-07-05 ||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |object |           ||1' ).
+    lo_nodes_exp->add( '/       |a     |str    |2020-07-05 ||0' ).
 
     lv_date = '20200705'.
     li_writer->set_date(
@@ -2167,14 +2196,14 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD read_only.
+  method read_only.
 
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data li_writer type ref to /mbtools/if_ajson_writer.
 
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
@@ -2190,59 +2219,59 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     lo_cut->freeze( ).
 
-    TRY.
-        li_writer->set(
-          iv_path = '/c'
-          iv_val  = 'abc' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error.
-    ENDTRY.
+    try.
+      li_writer->set(
+        iv_path = '/c'
+        iv_val  = 'abc' ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error.
+    endtry.
 
-    TRY.
-        li_writer->touch_array( iv_path = '/d' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error.
-    ENDTRY.
+    try.
+      li_writer->touch_array( iv_path = '/d' ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error.
+    endtry.
 
-    TRY.
-        li_writer->push(
-          iv_path = '/b'
-          iv_val  = 'xyz' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error.
-    ENDTRY.
+    try.
+      li_writer->push(
+        iv_path = '/b'
+        iv_val  = 'xyz' ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error.
+    endtry.
 
-    TRY.
-        li_writer->delete( iv_path = '/a' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error.
-    ENDTRY.
+    try.
+      li_writer->delete( iv_path = '/a' ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error.
+    endtry.
 
-    TRY.
-        li_writer->clear( ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH /mbtools/cx_ajson_error.
-    ENDTRY.
+    try.
+      li_writer->clear( ).
+      cl_abap_unit_assert=>fail( ).
+    catch /mbtools/cx_ajson_error.
+    endtry.
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD set_array_obj.
+  method set_array_obj.
 
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data li_writer type ref to /mbtools/if_ajson_writer.
 
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '                 |         |object |                        |  |1' ).
-    nodes_exp->add( '/                |issues   |array  |                        |  |2' ).
-    nodes_exp->add( '/issues/         |1        |object |                        |1 |1' ).
-    nodes_exp->add( '/issues/         |2        |object |                        |2 |1' ).
-    nodes_exp->add( '/issues/1/       |end      |object |                        |  |2' ).
-    nodes_exp->add( '/issues/1/end/   |col      |num    |26                      |  |0' ).
-    nodes_exp->add( '/issues/1/end/   |row      |num    |4                       |  |0' ).
-    nodes_exp->add( '/issues/2/       |end      |object |                        |  |2' ).
-    nodes_exp->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
-    nodes_exp->add( '/issues/2/end/   |row      |num    |3                       |  |0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '                 |         |object |                        |  |1' ).
+    lo_nodes_exp->add( '/                |issues   |array  |                        |  |2' ).
+    lo_nodes_exp->add( '/issues/         |1        |object |                        |1 |1' ).
+    lo_nodes_exp->add( '/issues/         |2        |object |                        |2 |1' ).
+    lo_nodes_exp->add( '/issues/1/       |end      |object |                        |  |2' ).
+    lo_nodes_exp->add( '/issues/1/end/   |col      |num    |26                      |  |0' ).
+    lo_nodes_exp->add( '/issues/1/end/   |row      |num    |4                       |  |0' ).
+    lo_nodes_exp->add( '/issues/2/       |end      |object |                        |  |2' ).
+    lo_nodes_exp->add( '/issues/2/end/   |col      |num    |22                      |  |0' ).
+    lo_nodes_exp->add( '/issues/2/end/   |row      |num    |3                       |  |0' ).
 
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
@@ -2263,15 +2292,15 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
-      exp = nodes_exp->sorted( ) ).
+      exp = lo_nodes_exp->sorted( ) ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD set_with_type.
+  method set_with_type.
 
-    DATA lo_sample TYPE REF TO /mbtools/cl_ajson.
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
+    data lo_sample type ref to /mbtools/cl_ajson.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data li_writer type ref to /mbtools/if_ajson_writer.
 
     lo_sample = /mbtools/cl_ajson=>parse( ltcl_parser_test=>sample_json( ) ).
 
@@ -2286,141 +2315,143 @@ CLASS ltcl_writer_test IMPLEMENTATION.
       act = lo_cut->mt_json_tree
       exp = lo_sample->mt_json_tree ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD set_with_type_slice.
+  method set_with_type_slice.
 
-    DATA lv_path TYPE string.
+    data lv_path type string.
 
-    FIELD-SYMBOLS <ls_node> TYPE /mbtools/cl_ajson=>ty_node.
+    field-symbols <node> type /mbtools/if_ajson=>ty_node.
 
-    LOOP AT io_json_in->mt_json_tree ASSIGNING <ls_node> WHERE path = iv_path.
-      lv_path = <ls_node>-path && <ls_node>-name && '/'.
-      CASE <ls_node>-type.
-        WHEN 'array'.
+    loop at io_json_in->mt_json_tree assigning <node> where path = iv_path.
+      lv_path = <node>-path && <node>-name && '/'.
+      case <node>-type.
+        when 'array'.
           io_json_out->touch_array( lv_path ).
           set_with_type_slice( io_json_in  = io_json_in
                                io_json_out = io_json_out
                                iv_path     = lv_path ).
-        WHEN 'object'.
+        when 'object'.
           set_with_type_slice( io_json_in  = io_json_in
                                io_json_out = io_json_out
                                iv_path     = lv_path ).
-        WHEN OTHERS.
-          io_json_out->set_with_type( iv_path = lv_path
-                                      iv_val  = <ls_node>-value
-                                      iv_type = <ls_node>-type ).
-      ENDCASE.
-    ENDLOOP.
+        when others.
+          io_json_out->set(
+            iv_path      = lv_path
+            iv_val       = <node>-value
+            iv_node_type = <node>-type ).
+      endcase.
+    endloop.
 
-  ENDMETHOD.
-ENDCLASS.
+  endmethod.
+endclass.
 
 
 **********************************************************************
 * INTEGRATED
 **********************************************************************
-CLASS ltcl_integrated DEFINITION
-  FOR TESTING
-  RISK LEVEL HARMLESS
-  DURATION SHORT
-  FINAL.
+class ltcl_integrated definition
+  for testing
+  risk level harmless
+  duration short
+  final.
 
-  PRIVATE SECTION.
+  private section.
 
-    TYPES:
-      BEGIN OF ty_loc,
-        row TYPE i,
-        col TYPE i,
-      END OF ty_loc,
-      BEGIN OF ty_issue,
-        message  TYPE string,
-        key      TYPE string,
-        filename TYPE string,
-        start    TYPE ty_loc,
-        end      TYPE ty_loc,
-      END OF ty_issue,
-      ty_issues TYPE STANDARD TABLE OF ty_issue WITH DEFAULT KEY,
-      BEGIN OF ty_target,
-        string  TYPE string,
-        number  TYPE i,
-        float   TYPE f,
-        boolean TYPE abap_bool,
-        false   TYPE abap_bool,
-        null    TYPE string,
-        date    TYPE string, " ??? TODO
-        issues  TYPE ty_issues,
-      END OF ty_target.
+    types:
+      begin of ty_loc,
+        row type i,
+        col type i,
+      end of ty_loc,
+      begin of ty_issue,
+        message type string,
+        key type string,
+        filename type string,
+        start type ty_loc,
+        end type ty_loc,
+      end of ty_issue,
+      tt_issues type standard table of ty_issue with default key,
+      begin of ty_target,
+        string type string,
+        number type i,
+        float type f,
+        boolean type abap_bool,
+        false type abap_bool,
+        null type string,
+        date type string, " ??? TODO
+        issues type tt_issues,
+      end of ty_target.
 
-    METHODS reader FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS array_index FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS array_simple FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS stringify FOR TESTING RAISING /mbtools/cx_ajson_error.
+    methods reader for testing raising /mbtools/cx_ajson_error.
+    methods array_index for testing raising /mbtools/cx_ajson_error.
+    methods array_simple for testing raising /mbtools/cx_ajson_error.
+    methods stringify for testing raising /mbtools/cx_ajson_error.
+    methods item_order_integrated for testing raising /mbtools/cx_ajson_error.
 
-ENDCLASS.
+endclass.
 
-CLASS ltcl_integrated IMPLEMENTATION.
+class ltcl_integrated implementation.
 
-  METHOD array_simple.
+  method array_simple.
 
-    DATA lt_act TYPE string_table.
-    DATA lt_exp TYPE string_table.
-    DATA exp TYPE string.
+    data lt_act type string_table.
+    data lt_exp type string_table.
+    data lv_exp type string.
 
-    DATA lv_src TYPE string.
+    data lv_src type string.
     lv_src = '['.
-    DO 10 TIMES.
-      IF sy-index <> 1.
+    do 10 times.
+      if sy-index <> 1.
         lv_src = lv_src && `, `.
-      ENDIF.
+      endif.
       lv_src = lv_src && |"{ sy-index }"|.
-      exp = |{ sy-index }|.
-      APPEND exp TO lt_exp.
-    ENDDO.
+      lv_exp = |{ sy-index }|.
+      append lv_exp to lt_exp.
+    enddo.
     lv_src = lv_src && ']'.
 
-    DATA li_reader TYPE REF TO /mbtools/if_ajson_reader.
+    data li_reader type ref to /mbtools/if_ajson_reader.
     li_reader = /mbtools/cl_ajson=>parse( lv_src ).
-    li_reader->to_abap( IMPORTING ev_container = lt_act ).
+    li_reader->to_abap( importing ev_container = lt_act ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
       exp = lt_exp ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD array_index.
+  method array_index.
 
-    DATA lt_act TYPE TABLE OF ty_loc.
-    DATA lt_exp TYPE TABLE OF ty_loc.
-    DATA exp TYPE ty_loc.
+    data lt_act type table of ty_loc.
+    data lt_exp type table of ty_loc.
+    data ls_exp type ty_loc.
 
-    DATA lv_src TYPE string.
+    data lv_src type string.
     lv_src = '['.
-    DO 10 TIMES.
-      IF sy-index <> 1.
+    do 10 times.
+      if sy-index <> 1.
         lv_src = lv_src && `, `.
-      ENDIF.
+      endif.
       lv_src = lv_src && |\{ "row": { sy-index } \}|.
-      exp-row = sy-index.
-      APPEND exp TO lt_exp.
-    ENDDO.
+      ls_exp-row = sy-index.
+      append ls_exp to lt_exp.
+    enddo.
     lv_src = lv_src && ']'.
 
-    DATA li_reader TYPE REF TO /mbtools/if_ajson_reader.
+    data li_reader type ref to /mbtools/if_ajson_reader.
     li_reader = /mbtools/cl_ajson=>parse( lv_src ).
-    li_reader->to_abap( IMPORTING ev_container = lt_act ).
+    li_reader->to_abap( importing ev_container = lt_act ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
       exp = lt_exp ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD reader.
+  method reader.
 
-    DATA lv_source TYPE string.
-    DATA li_reader TYPE REF TO /mbtools/if_ajson_reader.
+    data lv_source type string.
+    data li_reader type ref to /mbtools/if_ajson_reader.
 
     lv_source = ltcl_parser_test=>sample_json( ).
     li_reader = /mbtools/cl_ajson=>parse( lv_source ).
@@ -2429,9 +2460,9 @@ CLASS ltcl_integrated IMPLEMENTATION.
       act = li_reader->get( '/string' )
       exp = 'abc' ).
 
-    DATA ls_act TYPE ty_target.
-    DATA ls_exp TYPE ty_target.
-    FIELD-SYMBOLS <i> LIKE LINE OF ls_exp-issues.
+    data ls_act type ty_target.
+    data ls_exp type ty_target.
+    field-symbols <i> like line of ls_exp-issues.
 
     ls_exp-string = 'abc'.
     ls_exp-number = 123.
@@ -2440,7 +2471,7 @@ CLASS ltcl_integrated IMPLEMENTATION.
     ls_exp-false = abap_false.
     ls_exp-date = '2020-03-15'.
 
-    APPEND INITIAL LINE TO ls_exp-issues ASSIGNING <i>.
+    append initial line to ls_exp-issues assigning <i>.
     <i>-message  = 'Indentation problem ...'.
     <i>-key      = 'indentation'.
     <i>-filename = './zxxx.prog.abap'.
@@ -2449,7 +2480,7 @@ CLASS ltcl_integrated IMPLEMENTATION.
     <i>-end-row   = 4.
     <i>-end-col   = 26.
 
-    APPEND INITIAL LINE TO ls_exp-issues ASSIGNING <i>.
+    append initial line to ls_exp-issues assigning <i>.
     <i>-message  = 'Remove space before XXX'.
     <i>-key      = 'space_before_dot'.
     <i>-filename = './zxxx.prog.abap'.
@@ -2458,20 +2489,20 @@ CLASS ltcl_integrated IMPLEMENTATION.
     <i>-end-row   = 3.
     <i>-end-col   = 22.
 
-    li_reader->to_abap( IMPORTING ev_container = ls_act ).
+    li_reader->to_abap( importing ev_container = ls_act ).
 
     cl_abap_unit_assert=>assert_equals(
       act = ls_act
       exp = ls_exp ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD stringify.
+  method stringify.
 
-    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
-    DATA li_writer TYPE REF TO /mbtools/if_ajson_writer.
-    DATA lv_exp TYPE string.
-    DATA: BEGIN OF ls_dummy, x TYPE i, END OF ls_dummy.
+    data lo_cut type ref to /mbtools/cl_ajson.
+    data li_writer type ref to /mbtools/if_ajson_writer.
+    data lv_exp type string.
+    data: begin of ls_dummy, x type i, end of ls_dummy.
 
     ls_dummy-x = 1.
     lo_cut    = /mbtools/cl_ajson=>create_empty( ).
@@ -2539,161 +2570,207 @@ CLASS ltcl_integrated IMPLEMENTATION.
       act = lo_cut->stringify( iv_indent = 2 )
       exp = lv_exp ).
 
-  ENDMETHOD.
+  endmethod.
 
-ENDCLASS.
+  method item_order_integrated.
+
+    data:
+      begin of ls_dummy,
+        zulu type string,
+        alpha type string,
+        beta type string,
+      end of ls_dummy.
+
+    data lv_act type string.
+    data lv_exp type string.
+    data li_cut type ref to /mbtools/if_ajson.
+
+    ls_dummy-alpha = 'a'.
+    ls_dummy-beta  = 'b'.
+    ls_dummy-zulu  = 'z'.
+
+    " NAME order
+    li_cut = /mbtools/cl_ajson=>create_empty( ).
+    li_cut->set(
+      iv_path = '/'
+      iv_val  = ls_dummy ).
+
+    lv_act = li_cut->stringify( ).
+    lv_exp = '{"alpha":"a","beta":"b","zulu":"z"}'.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = lv_exp ).
+
+    " STRUC order (keep)
+    li_cut = /mbtools/cl_ajson=>create_empty( ).
+    li_cut->keep_item_order( ).
+    li_cut->set(
+      iv_path = '/'
+      iv_val  = ls_dummy ).
+
+    lv_act = li_cut->stringify( ).
+    lv_exp = '{"zulu":"z","alpha":"a","beta":"b"}'.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = lv_exp ).
+
+  endmethod.
+
+endclass.
 
 **********************************************************************
 * ABAP TO JSON
 **********************************************************************
-CLASS ltcl_abap_to_json DEFINITION
-  FOR TESTING
-  RISK LEVEL HARMLESS
-  DURATION SHORT
-  FINAL.
+class ltcl_abap_to_json definition
+  for testing
+  risk level harmless
+  duration short
+  final.
 
-  PRIVATE SECTION.
+  private section.
 
-    TYPES:
-      BEGIN OF ty_struc,
-        a TYPE string,
-        b TYPE i,
-        c TYPE abap_bool,
-        d TYPE xfeld,
-      END OF ty_struc,
-      ty_strucs TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
-      BEGIN OF ty_struc_complex.
-        INCLUDE TYPE ty_struc.
-      TYPES:
-        el    TYPE string,
-        struc TYPE ty_struc,
-        tab   TYPE ty_strucs,
-        stab  TYPE string_table,
-      END OF ty_struc_complex.
+    types:
+      begin of ty_struc,
+        a type string,
+        b type i,
+        c type abap_bool,
+        d type xfeld,
+      end of ty_struc,
+      tt_struc type standard table of ty_struc with default key,
+      begin of ty_struc_complex.
+        include type ty_struc.
+    types:
+        el type string,
+        struc type ty_struc,
+        tab type tt_struc,
+        stab type string_table,
+      end of ty_struc_complex.
 
-    METHODS set_ajson FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS set_value FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS set_null FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS set_obj FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS set_array FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS set_complex_obj FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS prefix FOR TESTING RAISING /mbtools/cx_ajson_error.
+    methods set_ajson for testing raising /mbtools/cx_ajson_error.
+    methods set_value for testing raising /mbtools/cx_ajson_error.
+    methods set_null for testing raising /mbtools/cx_ajson_error.
+    methods set_obj for testing raising /mbtools/cx_ajson_error.
+    methods set_array for testing raising /mbtools/cx_ajson_error.
+    methods set_complex_obj for testing raising /mbtools/cx_ajson_error.
+    methods prefix for testing raising /mbtools/cx_ajson_error.
 
-ENDCLASS.
+endclass.
 
-CLASS /mbtools/cl_ajson DEFINITION LOCAL FRIENDS ltcl_abap_to_json.
+class /mbtools/cl_ajson definition local friends ltcl_abap_to_json.
 
-CLASS ltcl_abap_to_json IMPLEMENTATION.
+class ltcl_abap_to_json implementation.
 
-  METHOD set_ajson.
+  method set_ajson.
 
-    DATA nodes TYPE REF TO lcl_nodes_helper.
-    DATA lo_src TYPE REF TO /mbtools/cl_ajson.
+    data lo_nodes type ref to lcl_nodes_helper.
+    data lo_src type ref to /mbtools/cl_ajson.
     lo_src = /mbtools/cl_ajson=>create_empty( ).
 
-    CREATE OBJECT nodes.
-    nodes->add( '        |      |object |     ||1' ).
-    nodes->add( '/       |a     |object |     ||1' ).
-    nodes->add( '/a/     |b     |object |     ||1' ).
-    nodes->add( '/a/b/   |c     |object |     ||0' ).
-    lo_src->mt_json_tree = nodes->mt_nodes.
+    create object lo_nodes.
+    lo_nodes->add( '        |      |object |     ||1' ).
+    lo_nodes->add( '/       |a     |object |     ||1' ).
+    lo_nodes->add( '/a/     |b     |object |     ||1' ).
+    lo_nodes->add( '/a/b/   |c     |object |     ||0' ).
+    lo_src->mt_json_tree = lo_nodes->mt_nodes.
 
-    DATA lt_nodes TYPE /mbtools/cl_ajson=>ty_nodes_tt.
+    data lt_nodes type /mbtools/if_ajson=>ty_nodes_tt.
     lt_nodes = lcl_abap_to_json=>convert( iv_data = lo_src ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
-      exp = nodes->mt_nodes ).
+      exp = lo_nodes->mt_nodes ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD set_value.
+  method set_value.
 
-    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA lt_nodes TYPE /mbtools/cl_ajson=>ty_nodes_tt.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data lt_nodes type /mbtools/if_ajson=>ty_nodes_tt.
 
     " number
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |num |1     ||' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |num |1     ||' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = 1 ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
-      exp = nodes_exp->mt_nodes ).
+      exp = lo_nodes_exp->mt_nodes ).
 
     " string
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |str |abc     ||' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |str |abc     ||' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = 'abc' ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
-      exp = nodes_exp->mt_nodes ).
+      exp = lo_nodes_exp->mt_nodes ).
 
     " true
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |bool |true     ||' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |bool |true     ||' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = abap_true ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
-      exp = nodes_exp->mt_nodes ).
+      exp = lo_nodes_exp->mt_nodes ).
 
     " false
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |bool |false    ||' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |bool |false    ||' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = abap_false ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
-      exp = nodes_exp->mt_nodes ).
+      exp = lo_nodes_exp->mt_nodes ).
 
     " xfeld
-    DATA lv_xfeld TYPE xfeld.
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '        |      |bool |true     ||' ).
+    data lv_xfeld type xfeld.
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '        |      |bool |true     ||' ).
 
     lv_xfeld = 'X'.
     lt_nodes = lcl_abap_to_json=>convert( iv_data = lv_xfeld ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
-      exp = nodes_exp->mt_nodes ).
+      exp = lo_nodes_exp->mt_nodes ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD set_null.
+  method set_null.
 
-    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA lt_nodes TYPE /mbtools/cl_ajson=>ty_nodes_tt.
-    DATA lv_null_ref TYPE REF TO data.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data lt_nodes type /mbtools/if_ajson=>ty_nodes_tt.
+    data lv_null_ref type ref to data.
 
     " null
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '       |      |null |null ||' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |null |null ||' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = lv_null_ref ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
-      exp = nodes_exp->mt_nodes ).
+      exp = lo_nodes_exp->mt_nodes ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD prefix.
+  method prefix.
 
-    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA lt_nodes TYPE /mbtools/cl_ajson=>ty_nodes_tt.
-    DATA ls_prefix TYPE /mbtools/cl_ajson=>ty_path_name.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data lt_nodes type /mbtools/if_ajson=>ty_nodes_tt.
+    data ls_prefix type /mbtools/if_ajson=>ty_path_name.
 
     ls_prefix-path = '/a/'.
     ls_prefix-name = 'b'.
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '/a/       |b     |num |1     ||' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '/a/       |b     |num |1     ||' ).
 
     lt_nodes = lcl_abap_to_json=>convert(
       iv_data   = 1
@@ -2701,42 +2778,42 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
-      exp = nodes_exp->mt_nodes ).
+      exp = lo_nodes_exp->mt_nodes ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD set_obj.
+  method set_obj.
 
-    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA ls_struc TYPE ty_struc.
-    DATA lt_nodes TYPE /mbtools/cl_ajson=>ty_nodes_tt.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data ls_struc type ty_struc.
+    data lt_nodes type /mbtools/if_ajson=>ty_nodes_tt.
 
     ls_struc-a = 'abc'.
     ls_struc-b = 10.
     ls_struc-c = abap_true.
     ls_struc-d = 'X'.
 
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '       |      |object |     ||4' ).
-    nodes_exp->add( '/      |a     |str    |abc  ||0' ).
-    nodes_exp->add( '/      |b     |num    |10   ||0' ).
-    nodes_exp->add( '/      |c     |bool   |true ||0' ).
-    nodes_exp->add( '/      |d     |bool   |true ||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |object |     ||4' ).
+    lo_nodes_exp->add( '/      |a     |str    |abc  ||0' ).
+    lo_nodes_exp->add( '/      |b     |num    |10   ||0' ).
+    lo_nodes_exp->add( '/      |c     |bool   |true ||0' ).
+    lo_nodes_exp->add( '/      |d     |bool   |true ||0' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = ls_struc ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
-      exp = nodes_exp->mt_nodes ).
+      exp = lo_nodes_exp->mt_nodes ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD set_complex_obj.
+  method set_complex_obj.
 
-    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA ls_struc TYPE ty_struc_complex.
-    DATA lt_nodes TYPE /mbtools/cl_ajson=>ty_nodes_tt.
-    FIELD-SYMBOLS <i> LIKE LINE OF ls_struc-tab.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data ls_struc type ty_struc_complex.
+    data lt_nodes type /mbtools/if_ajson=>ty_nodes_tt.
+    field-symbols <i> like line of ls_struc-tab.
 
     ls_struc-a = 'abc'.
     ls_struc-b = 10.
@@ -2747,99 +2824,100 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     ls_struc-struc-a = 'deep'.
     ls_struc-struc-b = 123.
 
-    APPEND 'hello' TO ls_struc-stab.
-    APPEND 'world' TO ls_struc-stab.
+    append 'hello' to ls_struc-stab.
+    append 'world' to ls_struc-stab.
 
-    APPEND INITIAL LINE TO ls_struc-tab ASSIGNING <i>.
+    append initial line to ls_struc-tab assigning <i>.
     <i>-a = 'abc'.
-    APPEND INITIAL LINE TO ls_struc-tab ASSIGNING <i>.
+    append initial line to ls_struc-tab assigning <i>.
     <i>-a = 'bcd'.
 
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '       |      |object |     ||8' ).
-    nodes_exp->add( '/      |a     |str    |abc  ||0' ).
-    nodes_exp->add( '/      |b     |num    |10   ||0' ).
-    nodes_exp->add( '/      |c     |bool   |true ||0' ).
-    nodes_exp->add( '/      |d     |bool   |true ||0' ).
-    nodes_exp->add( '/      |el    |str    |elem ||0' ).
-    nodes_exp->add( '/      |struc |object |     ||4' ).
-    nodes_exp->add( '/struc/|a     |str    |deep ||0' ).
-    nodes_exp->add( '/struc/|b     |num    |123  ||0' ).
-    nodes_exp->add( '/struc/|c     |bool   |false||0' ).
-    nodes_exp->add( '/struc/|d     |bool   |false||0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |object |     ||8' ).
+    lo_nodes_exp->add( '/      |a     |str    |abc  ||0' ).
+    lo_nodes_exp->add( '/      |b     |num    |10   ||0' ).
+    lo_nodes_exp->add( '/      |c     |bool   |true ||0' ).
+    lo_nodes_exp->add( '/      |d     |bool   |true ||0' ).
+    lo_nodes_exp->add( '/      |el    |str    |elem ||0' ).
+    lo_nodes_exp->add( '/      |struc |object |     ||4' ).
+    lo_nodes_exp->add( '/struc/|a     |str    |deep ||0' ).
+    lo_nodes_exp->add( '/struc/|b     |num    |123  ||0' ).
+    lo_nodes_exp->add( '/struc/|c     |bool   |false||0' ).
+    lo_nodes_exp->add( '/struc/|d     |bool   |false||0' ).
 
-    nodes_exp->add( '/      |tab   |array  |     | |2' ).
-    nodes_exp->add( '/tab/  |1     |object |     |1|4' ).
-    nodes_exp->add( '/tab/1/|a     |str    |abc  | |0' ).
-    nodes_exp->add( '/tab/1/|b     |num    |0    | |0' ).
-    nodes_exp->add( '/tab/1/|c     |bool   |false| |0' ).
-    nodes_exp->add( '/tab/1/|d     |bool   |false| |0' ).
-    nodes_exp->add( '/tab/  |2     |object |     |2|4' ).
-    nodes_exp->add( '/tab/2/|a     |str    |bcd  | |0' ).
-    nodes_exp->add( '/tab/2/|b     |num    |0    | |0' ).
-    nodes_exp->add( '/tab/2/|c     |bool   |false| |0' ).
-    nodes_exp->add( '/tab/2/|d     |bool   |false| |0' ).
+    lo_nodes_exp->add( '/      |tab   |array  |     | |2' ).
+    lo_nodes_exp->add( '/tab/  |1     |object |     |1|4' ).
+    lo_nodes_exp->add( '/tab/1/|a     |str    |abc  | |0' ).
+    lo_nodes_exp->add( '/tab/1/|b     |num    |0    | |0' ).
+    lo_nodes_exp->add( '/tab/1/|c     |bool   |false| |0' ).
+    lo_nodes_exp->add( '/tab/1/|d     |bool   |false| |0' ).
+    lo_nodes_exp->add( '/tab/  |2     |object |     |2|4' ).
+    lo_nodes_exp->add( '/tab/2/|a     |str    |bcd  | |0' ).
+    lo_nodes_exp->add( '/tab/2/|b     |num    |0    | |0' ).
+    lo_nodes_exp->add( '/tab/2/|c     |bool   |false| |0' ).
+    lo_nodes_exp->add( '/tab/2/|d     |bool   |false| |0' ).
 
-    nodes_exp->add( '/      |stab  |array  |     | |2' ).
-    nodes_exp->add( '/stab/ |1     |str    |hello|1|0' ).
-    nodes_exp->add( '/stab/ |2     |str    |world|2|0' ).
+    lo_nodes_exp->add( '/      |stab  |array  |     | |2' ).
+    lo_nodes_exp->add( '/stab/ |1     |str    |hello|1|0' ).
+    lo_nodes_exp->add( '/stab/ |2     |str    |world|2|0' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = ls_struc ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
-      exp = nodes_exp->mt_nodes ).
+      exp = lo_nodes_exp->mt_nodes ).
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD set_array.
+  method set_array.
 
-    DATA nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA lt_nodes TYPE /mbtools/cl_ajson=>ty_nodes_tt.
+    data lo_nodes_exp type ref to lcl_nodes_helper.
+    data lt_nodes type /mbtools/if_ajson=>ty_nodes_tt.
 
-    DATA lt_tab TYPE TABLE OF ty_struc.
-    FIELD-SYMBOLS <s> LIKE LINE OF lt_tab.
+    data lt_tab type table of ty_struc.
+    field-symbols <s> like line of lt_tab.
 
-    APPEND INITIAL LINE TO lt_tab ASSIGNING <s>.
+    append initial line to lt_tab assigning <s>.
     <s>-a = 'abc'.
     <s>-b = 10.
-    APPEND INITIAL LINE TO lt_tab ASSIGNING <s>.
+    append initial line to lt_tab assigning <s>.
     <s>-a = 'bcd'.
     <s>-b = 20.
 
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '       |      |array  |     | |2' ).
-    nodes_exp->add( '/      |1     |object |     |1|4' ).
-    nodes_exp->add( '/1/    |a     |str    |abc  | |0' ).
-    nodes_exp->add( '/1/    |b     |num    |10   | |0' ).
-    nodes_exp->add( '/1/    |c     |bool   |false| |0' ).
-    nodes_exp->add( '/1/    |d     |bool   |false| |0' ).
-    nodes_exp->add( '/      |2     |object |     |2|4' ).
-    nodes_exp->add( '/2/    |a     |str    |bcd  | |0' ).
-    nodes_exp->add( '/2/    |b     |num    |20   | |0' ).
-    nodes_exp->add( '/2/    |c     |bool   |false| |0' ).
-    nodes_exp->add( '/2/    |d     |bool   |false| |0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |array  |     | |2' ).
+    lo_nodes_exp->add( '/      |1     |object |     |1|4' ).
+    lo_nodes_exp->add( '/1/    |a     |str    |abc  | |0' ).
+    lo_nodes_exp->add( '/1/    |b     |num    |10   | |0' ).
+    lo_nodes_exp->add( '/1/    |c     |bool   |false| |0' ).
+    lo_nodes_exp->add( '/1/    |d     |bool   |false| |0' ).
+    lo_nodes_exp->add( '/      |2     |object |     |2|4' ).
+    lo_nodes_exp->add( '/2/    |a     |str    |bcd  | |0' ).
+    lo_nodes_exp->add( '/2/    |b     |num    |20   | |0' ).
+    lo_nodes_exp->add( '/2/    |c     |bool   |false| |0' ).
+    lo_nodes_exp->add( '/2/    |d     |bool   |false| |0' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = lt_tab ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
-      exp = nodes_exp->mt_nodes ).
+      exp = lo_nodes_exp->mt_nodes ).
 
-    DATA lt_strtab TYPE string_table.
-    APPEND 'abc' TO lt_strtab.
-    APPEND 'bcd' TO lt_strtab.
+    data lt_strtab type string_table.
+    append 'abc' to lt_strtab.
+    append 'bcd' to lt_strtab.
 
-    CREATE OBJECT nodes_exp.
-    nodes_exp->add( '       |      |array  |     | |2' ).
-    nodes_exp->add( '/      |1     |str    |abc  |1|0' ).
-    nodes_exp->add( '/      |2     |str    |bcd  |2|0' ).
+    create object lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |array  |     | |2' ).
+    lo_nodes_exp->add( '/      |1     |str    |abc  |1|0' ).
+    lo_nodes_exp->add( '/      |2     |str    |bcd  |2|0' ).
 
     lt_nodes = lcl_abap_to_json=>convert( iv_data = lt_strtab ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lt_nodes
-      exp = nodes_exp->mt_nodes ).
+      exp = lo_nodes_exp->mt_nodes ).
 
-  ENDMETHOD.
-ENDCLASS.
+  endmethod.
+
+endclass.

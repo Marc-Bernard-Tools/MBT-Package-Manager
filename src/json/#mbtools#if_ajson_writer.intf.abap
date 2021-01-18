@@ -18,6 +18,7 @@ INTERFACE /mbtools/if_ajson_writer
       iv_path         TYPE string
       iv_val          TYPE any
       iv_ignore_empty TYPE abap_bool DEFAULT abap_true
+      iv_node_type    TYPE string OPTIONAL
     RAISING
       /mbtools/cx_ajson_error.
 
@@ -75,11 +76,11 @@ INTERFACE /mbtools/if_ajson_writer
     RAISING
       /mbtools/cx_ajson_error.
 
-  METHODS set_with_type
+  METHODS stringify
     IMPORTING
-      iv_path TYPE string
-      iv_val  TYPE any
-      iv_type TYPE string
+      iv_indent      TYPE i DEFAULT 0
+    RETURNING
+      VALUE(rv_json) TYPE string
     RAISING
       /mbtools/cx_ajson_error.
 
