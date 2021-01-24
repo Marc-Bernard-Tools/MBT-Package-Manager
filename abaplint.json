@@ -129,7 +129,10 @@
         "check_subrc": {
             "assign": true,
             "authorityCheck": true,
-            "exclude": [],
+            "exclude": [
+                "#mbtools#cl_ajson.clas.abap",
+                "#mbtools#cl_ajson.clas.locals_imp.abap"
+            ],
             "find": true,
             "insertDatabase": true,
             "modifyDatabase": true,
@@ -196,7 +199,10 @@
             "severity": "Error"
         },
         "definitions_top": {
-            "exclude": [],
+            "exclude": [
+                "#mbtools#cl_ajson.clas.abap",
+                "#mbtools#cl_ajson.clas.locals_imp.abap"
+            ],
             "severity": "Error"
         },
         "description_empty": {
@@ -679,6 +685,7 @@
         "globalConstants": [
             "cndp_lifetime_transaction",
             "cndp_sap_subtype_unknown",
+            "icon_biw_info_cube",
             "icon_biw_report",
             "icon_biw_virtual_info_provider",
             "icon_bw_exception_monitor",
