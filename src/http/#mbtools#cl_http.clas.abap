@@ -170,7 +170,6 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
   METHOD create_by_destination.
 
     DATA:
-      lv_scheme    TYPE string,
       li_client    TYPE REF TO if_http_client,
       li_part      TYPE REF TO if_http_entity,
       ls_multipart TYPE ty_multipart,
@@ -244,7 +243,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
       li_part = li_client->request->if_http_entity~add_multipart( ).
 *      li_part->set_header_field(
 *        name  = '~request_method'
-*        value = 'GET' ).
+*        value = 'GET' )
       li_part->set_header_field(
         name  = 'Content-type'
         value = 'application/http' ).

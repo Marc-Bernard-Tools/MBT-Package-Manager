@@ -53,14 +53,6 @@ CLASS /mbtools/cl_tools DEFINITION
     " Evaluation
     CONSTANTS c_eval_days TYPE i VALUE 60 ##NO_TEXT.
     CONSTANTS c_eval_users TYPE i VALUE 10 ##NO_TEXT.
-    CONSTANTS:
-      " Actions
-      BEGIN OF c_action,
-        register   TYPE string VALUE 'register' ##NO_TEXT,
-        unregister TYPE string VALUE 'unregister' ##NO_TEXT,
-        activate   TYPE string VALUE 'activate' ##NO_TEXT,
-        deactivate TYPE string VALUE 'deactivate' ##NO_TEXT,
-      END OF c_action .
     DATA mbt_manifest TYPE /mbtools/if_manifest=>ty_descriptor READ-ONLY .
 
     " Constructor
@@ -125,7 +117,9 @@ CLASS /mbtools/cl_tools DEFINITION
       IMPORTING
         !io_tool         TYPE REF TO /mbtools/cl_tools
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool
+      RAISING
+        /mbtools/cx_exception .
     CLASS-METHODS is_base_only
       RETURNING
         VALUE(rv_result) TYPE abap_bool .
@@ -260,6 +254,8 @@ CLASS /mbtools/cl_tools DEFINITION
       RETURNING
         VALUE(rv_thumbnail) TYPE string .
     METHODS get_last_update
+      IMPORTING
+        !iv_internal     TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(rv_result) TYPE string .
     METHODS check_version
@@ -842,13 +838,19 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
           IF lv_update IS INITIAL.
             lv_update = lo_reg_entry->get_value( c_reg-key_install_time ).
           ENDIF.
-          rv_result = /mbtools/cl_datetime=>human_time_diff( lv_update ) && ' ago'.
-        ELSE.
+          IF iv_internal = abap_true.
+            rv_result = lv_update.
+          ELSE.
+            rv_result = /mbtools/cl_datetime=>human_time_diff( lv_update ) && ' ago'.
+          ENDIF.
+        ELSEIF iv_internal = abap_false.
           rv_result = 'never'.
         ENDIF.
 
       CATCH cx_root.
-        rv_result = 'n/a'.
+        IF iv_internal = abap_false.
+          rv_result = 'n/a'.
+        ENDIF.
     ENDTRY.
 
   ENDMETHOD.
@@ -1633,16 +1635,16 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD sync.
+  METHOD sync ##TODO.
 
     " Installer persistence
-    CONSTANTS c_tabname TYPE tabname VALUE 'ZMBTINST'.
+    CONSTANTS lc_tabname TYPE tabname VALUE 'ZMBTINST'.
 
     " Sync with zif_abapinst_definitions
-    CONSTANTS gc_name_length TYPE i VALUE 90 ##NO_TEXT.
+    CONSTANTS lc_name_length TYPE i VALUE 90 ##NO_TEXT.
 
     TYPES:
-      ty_name TYPE c LENGTH gc_name_length.
+      ty_name TYPE c LENGTH lc_name_length.
     TYPES:
       ty_pack TYPE devclass.
     TYPES:
@@ -1685,10 +1687,35 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       ls_inst TYPE ty_inst.
 
     lv_name = io_tool->get_name( ).
-    SELECT SINGLE * FROM (c_tabname) INTO ls_inst WHERE name = lv_name.
+    SELECT SINGLE * FROM (lc_tabname) INTO ls_inst WHERE name = lv_name.
     IF sy-subrc = 0.
+      ls_inst-pack            = io_tool->get_package( ).
+      ls_inst-version         = io_tool->get_version( ).
+      ls_inst-sem_version     = /mbtools/cl_version=>convert_string_to_version( ls_inst-version ).
+      ls_inst-description     = io_tool->get_description( ).
+      ls_inst-source_type     = 'INTERNET'.
+      ls_inst-source_name     = io_tool->get_url_download( ).
+      ls_inst-transport       = ''.
+      ls_inst-folder_logic    = 'PREFIX'.
+      ls_inst-installed_langu = 'E'.
+      ls_inst-installed_by    = sy-uname.
+      ls_inst-installed_at    = io_tool->get_last_update( abap_true ).
+      ls_inst-status          = 'I'.
       " Update
     ELSE.
+      ls_inst-name            = io_tool->get_name( ).
+      ls_inst-pack            = io_tool->get_package( ).
+      ls_inst-version         = io_tool->get_version( ).
+      ls_inst-sem_version     = /mbtools/cl_version=>convert_string_to_version( ls_inst-version ).
+      ls_inst-description     = io_tool->get_description( ).
+      ls_inst-source_type     = 'INTERNET'.
+      ls_inst-source_name     = io_tool->get_url_download( ).
+      ls_inst-transport       = ''.
+      ls_inst-folder_logic    = 'PREFIX'.
+      ls_inst-installed_langu = 'E'.
+      ls_inst-installed_by    = sy-uname.
+      ls_inst-installed_at    = io_tool->get_last_update( abap_true ).
+      ls_inst-status          = 'I'.
       " Insert
     ENDIF.
 

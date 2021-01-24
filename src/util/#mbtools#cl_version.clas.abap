@@ -11,7 +11,6 @@ CLASS /mbtools/cl_version DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-
   PUBLIC SECTION.
 
     CLASS-METHODS normalize
@@ -25,18 +24,18 @@ CLASS /mbtools/cl_version DEFINITION
         !iv_compare      TYPE string
       RETURNING
         VALUE(rv_result) TYPE i .
-  PROTECTED SECTION.
-
-  PRIVATE SECTION.
-
-    CLASS-METHODS conv_str_to_version
+    CLASS-METHODS convert_string_to_version
       IMPORTING
         !iv_version       TYPE csequence
       RETURNING
         VALUE(rs_version) TYPE /mbtools/if_definitions=>ty_version
       RAISING
         /mbtools/cx_exception .
-    CLASS-METHODS check_dependant_version
+  PROTECTED SECTION.
+
+  PRIVATE SECTION.
+
+    CLASS-METHODS check_dependent_version
       IMPORTING
         !is_current TYPE /mbtools/if_definitions=>ty_version
         !is_compare TYPE /mbtools/if_definitions=>ty_version
@@ -49,7 +48,7 @@ ENDCLASS.
 CLASS /mbtools/cl_version IMPLEMENTATION.
 
 
-  METHOD check_dependant_version.
+  METHOD check_dependent_version.
 
     CONSTANTS: lc_message TYPE string VALUE 'Current version is older than required' ##NO_TEXT.
 
@@ -115,8 +114,8 @@ CLASS /mbtools/cl_version IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        ls_version_a = conv_str_to_version( iv_current ).
-        ls_version_b = conv_str_to_version( iv_compare ).
+        ls_version_a = convert_string_to_version( iv_current ).
+        ls_version_b = convert_string_to_version( iv_compare ).
       CATCH /mbtools/cx_exception.
         rv_result = 0.
         RETURN.
@@ -126,7 +125,7 @@ CLASS /mbtools/cl_version IMPLEMENTATION.
       rv_result = 0.
     ELSE.
       TRY.
-          check_dependant_version( is_current = ls_version_a
+          check_dependent_version( is_current = ls_version_a
                                    is_compare = ls_version_b ).
           rv_result = +1.
         CATCH /mbtools/cx_exception.
@@ -138,7 +137,7 @@ CLASS /mbtools/cl_version IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD conv_str_to_version.
+  METHOD convert_string_to_version.
 
     DATA: lt_segments TYPE STANDARD TABLE OF string,
           lt_parts    TYPE STANDARD TABLE OF string,

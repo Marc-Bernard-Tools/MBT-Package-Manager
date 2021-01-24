@@ -158,6 +158,9 @@ AT SELECTION-SCREEN.
       SUBMIT /mbtools/registry VIA SELECTION-SCREEN AND RETURN. "#EC CI_SUBMIT
       CLEAR sscrfields-ucomm.
 
+    WHEN 'FC02'. " Reserved
+      ASSERT 0 = 0.
+
   ENDCASE.
 
 *-----------------------------------------------------------------------
