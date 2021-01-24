@@ -8,8 +8,10 @@
     ],
     "global": {
         "exclude": [
-            "#mbtools#cl_ajson.*",
-            "#mbtools#cl_logger.clas.testclasses.abap",
+            "#mbtools#cl_ajson*",
+            "#mbtools#cx_ajson*",
+            "#mbtools#if_ajson*",
+            "#mbtools#cl_logger*",
             "#mbtools#mbt_installer.prog.abap",
             "#mbtools#mbt_template.prog.abap"
         ],
@@ -640,11 +642,11 @@
         "unused_variables": {
             "exclude": [
                 "#mbtools#cl_datetime.clas.abap",
-                "#mbtools#cl_logger.*",
                 "#mbtools#cl_tree.clas.abap"
             ],
             "severity": "Error",
             "skipNames": [
+                "C_TITLE",
                 "C_TOOL",
                 "IO_TOOL",
                 "RV_RESULT"
@@ -705,6 +707,7 @@
             "icon_transport",
             "icon_url",
             "icon_write_file",
+            "mbt_manifest",
             "rs_c_obj_dtel",
             "rs_c_obj_nrob",
             "rs_c_obj_tabl",
