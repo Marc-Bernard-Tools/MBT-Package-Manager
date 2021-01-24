@@ -8,6 +8,7 @@
     ],
     "global": {
         "exclude": [
+            "#mbtools#cl_ajson.*",
             "#mbtools#cl_logger.clas.testclasses.abap",
             "#mbtools#mbt_installer.prog.abap",
             "#mbtools#mbt_template.prog.abap"
@@ -129,10 +130,7 @@
         "check_subrc": {
             "assign": true,
             "authorityCheck": true,
-            "exclude": [
-                "#mbtools#cl_ajson.clas.abap",
-                "#mbtools#cl_ajson.clas.locals_imp.abap"
-            ],
+            "exclude": [],
             "find": true,
             "insertDatabase": true,
             "modifyDatabase": true,
@@ -199,10 +197,7 @@
             "severity": "Error"
         },
         "definitions_top": {
-            "exclude": [
-                "#mbtools#cl_ajson.clas.abap",
-                "#mbtools#cl_ajson.clas.locals_imp.abap"
-            ],
+            "exclude": [],
             "severity": "Error"
         },
         "description_empty": {
