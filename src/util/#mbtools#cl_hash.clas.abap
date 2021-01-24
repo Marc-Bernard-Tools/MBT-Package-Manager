@@ -2,6 +2,12 @@ CLASS /mbtools/cl_hash DEFINITION
   PUBLIC
   CREATE PUBLIC .
 
+************************************************************************
+* MBT Hash Functions
+*
+* (c) MBT 2020 https://marcbernardtools.com/
+************************************************************************
+
   PUBLIC SECTION.
 
     CLASS-METHODS sha1

@@ -1063,6 +1063,8 @@ INTERFACE zif_abapinst_definitions DEFERRED.
 INTERFACE zif_abapgit_objects DEFERRED.
 INTERFACE zif_ajson_reader DEFERRED.
 INTERFACE zif_ajson_writer DEFERRED.
+INTERFACE zif_ajson DEFERRED.
+INTERFACE zif_ajson_mapping DEFERRED.
 INTERFACE zif_abapgit_exit DEFERRED.
 INTERFACE zif_abapgit_gui_functions DEFERRED.
 INTERFACE zif_abapgit_object_enho DEFERRED.
@@ -1151,6 +1153,7 @@ CLASS zcl_abapinst_screen DEFINITION DEFERRED.
 CLASS zcl_abapinst_setup DEFINITION DEFERRED.
 CLASS zcl_abapinst_textpool DEFINITION DEFERRED.
 CLASS zcl_ajson DEFINITION DEFERRED.
+CLASS zcl_ajson_mapping DEFINITION DEFERRED.
 CLASS zcl_ajson_utilities DEFINITION DEFERRED.
 INTERFACE zif_abapgit_definitions
    .
@@ -1285,7 +1288,6 @@ INTERFACE zif_abapgit_definitions
     END OF ty_transport .
   TYPES:
     BEGIN OF ty_deserialize_checks,
-      create_package  TYPE abap_bool,
       overwrite       TYPE ty_overwrite_tt,
       warning_package TYPE ty_overwrite_tt,
       requirements    TYPE ty_requirements,
@@ -1669,6 +1671,15 @@ INTERFACE zif_abapgit_definitions
       skip   TYPE ty_method VALUE '?',
     END OF c_method .
 
+  TYPES:
+    ty_languages TYPE STANDARD TABLE OF sy-langu WITH DEFAULT KEY.
+  TYPES:
+    BEGIN OF ty_i18n_params,
+      main_language         TYPE sy-langu,
+      main_language_only    TYPE abap_bool,
+      translation_languages TYPE ty_languages,
+    END OF ty_i18n_params .
+
 ENDINTERFACE.
 INTERFACE zif_abapgit_sap_package
    .
@@ -1679,8 +1690,7 @@ INTERFACE zif_abapgit_sap_package
 
   METHODS create
     IMPORTING
-      !is_package   TYPE scompkdtln
-      !iv_transport TYPE trkorr OPTIONAL
+      !is_package TYPE scompkdtln
     RAISING
       zcx_abapgit_exception .
   METHODS create_local
@@ -1717,6 +1727,11 @@ INTERFACE zif_abapgit_sap_package
       VALUE(rs_transport_type) TYPE zif_abapgit_definitions=>ty_transport_type
     RAISING
       zcx_abapgit_exception .
+  METHODS get_transport_layer
+    RETURNING
+      VALUE(rv_transport_layer) TYPE devlayer
+    RAISING
+      zcx_abapgit_exception .
 ENDINTERFACE.
 INTERFACE zif_abapgit_dot_abapgit .
 
@@ -1728,6 +1743,9 @@ INTERFACE zif_abapgit_dot_abapgit .
     END OF ty_requirement .
   TYPES:
     ty_requirement_tt TYPE STANDARD TABLE OF ty_requirement WITH DEFAULT KEY .
+
+  TYPES:
+    ty_langs_tt TYPE STANDARD TABLE OF laiso WITH DEFAULT KEY.
 
   " Former APACK
   TYPES:
@@ -1742,12 +1760,12 @@ INTERFACE zif_abapgit_dot_abapgit .
     ty_dependencies TYPE STANDARD TABLE OF ty_dependency WITH NON-UNIQUE DEFAULT KEY,
 
     BEGIN OF ty_descriptor,
-      name              TYPE string,
-      version           TYPE string,
-      sem_version       TYPE zif_abapgit_definitions=>ty_version,
-      description       TYPE string,
-      git_url           TYPE string,
-      target_package    TYPE devclass,
+      name           TYPE string,
+      version        TYPE string,
+      sem_version    TYPE zif_abapgit_definitions=>ty_version,
+      description    TYPE string,
+      git_url        TYPE string,
+      target_package TYPE devclass,
     END OF ty_descriptor,
 
     BEGIN OF ty_packaging.
@@ -1759,6 +1777,7 @@ INTERFACE zif_abapgit_dot_abapgit .
   TYPES:
     BEGIN OF ty_dot_abapgit,
       master_language TYPE spras,
+      i18n_langs      TYPE string,
       starting_folder TYPE string,
       folder_logic    TYPE string,
       ignore          TYPE STANDARD TABLE OF string WITH DEFAULT KEY,
@@ -1903,9 +1922,9 @@ INTERFACE zif_abapgit_longtexts
       zcx_abapgit_exception .
   METHODS deserialize
     IMPORTING
-      !iv_longtext_name   TYPE string DEFAULT 'LONGTEXTS'
-      !ii_xml             TYPE REF TO zif_abapgit_xml_input
-      !iv_master_language TYPE langu
+      !iv_longtext_name TYPE string DEFAULT 'LONGTEXTS'
+      !ii_xml           TYPE REF TO zif_abapgit_xml_input
+      !iv_main_language TYPE langu
     RAISING
       zcx_abapgit_exception .
   METHODS delete
@@ -1925,7 +1944,6 @@ INTERFACE zif_abapgit_object
       abap TYPE zif_abapgit_definitions=>ty_deserialization_step VALUE `ABAP`,
       ddic TYPE zif_abapgit_definitions=>ty_deserialization_step VALUE `DDIC`,
       late TYPE zif_abapgit_definitions=>ty_deserialization_step VALUE `LATE`,
-      lead TYPE zif_abapgit_definitions=>ty_deserialization_step VALUE `LEAD`,
     END OF gc_step_id.
 
   CONSTANTS c_abap_version_sap_cp TYPE progdir-uccheck VALUE '5' ##NO_TEXT.
@@ -2003,10 +2021,7 @@ INTERFACE zif_abapgit_xml_input
 ENDINTERFACE.
 INTERFACE zif_abapgit_xml_output
    .
-  TYPES:
-    BEGIN OF ty_i18n_params,
-      serialize_master_lang_only TYPE abap_bool,
-    END OF ty_i18n_params.
+
 
   METHODS add
     IMPORTING
@@ -2029,9 +2044,9 @@ INTERFACE zif_abapgit_xml_output
       VALUE(rv_xml) TYPE string .
   METHODS i18n_params
     IMPORTING
-      iv_serialize_master_lang_only TYPE ty_i18n_params-serialize_master_lang_only OPTIONAL
+      !is_i18n_params       TYPE zif_abapgit_definitions=>ty_i18n_params OPTIONAL
     RETURNING
-      VALUE(rs_params)              TYPE ty_i18n_params.
+      VALUE(rs_i18n_params) TYPE zif_abapgit_definitions=>ty_i18n_params .
 ENDINTERFACE.
 INTERFACE zif_abapgit_lang_definitions
    .
@@ -2507,6 +2522,113 @@ interface zif_ajson_writer
       zcx_ajson_error.
 
 endinterface.
+interface zif_ajson
+   .
+
+  constants version type string value 'v1.0.3'.
+  constants origin type string value 'https://github.com/sbcgua/ajson'.
+
+  interfaces zif_ajson_reader.
+  interfaces zif_ajson_writer.
+
+  constants:
+    begin of node_type,
+      boolean type string value 'bool',
+      string  type string value 'str',
+      number  type string value 'num',
+      null    type string value 'null',
+      array   type string value 'array',
+      object  type string value 'object',
+    end of node_type.
+
+  types:
+    begin of ty_node,
+      path type string,
+      name type string,
+      type type string,
+      value type string,
+      index type i,
+      order type i,
+      children type i,
+    end of ty_node .
+  types:
+    ty_nodes_tt type standard table of ty_node with key path name .
+  types:
+    ty_nodes_ts type sorted table of ty_node
+      with unique key path name
+      with non-unique sorted key array_index components path index
+      with non-unique sorted key item_order components path order .
+  types:
+    begin of ty_path_name,
+      path type string,
+      name type string,
+    end of ty_path_name.
+
+  " DATA
+
+  data mt_json_tree type ty_nodes_ts read-only.
+
+  " METHODS
+
+  methods freeze.
+  methods keep_item_order.
+
+  " METHODS (merged from reader/writer), maybe will completely move to this IF in future !
+
+  aliases:
+    exists for zif_ajson_reader~exists,
+    members for zif_ajson_reader~members,
+    get for zif_ajson_reader~get,
+    get_boolean for zif_ajson_reader~get_boolean,
+    get_integer for zif_ajson_reader~get_integer,
+    get_number for zif_ajson_reader~get_number,
+    get_date for zif_ajson_reader~get_date,
+    get_string for zif_ajson_reader~get_string,
+    slice for zif_ajson_reader~slice,
+    to_abap for zif_ajson_reader~to_abap,
+    array_to_string_table for zif_ajson_reader~array_to_string_table.
+
+  aliases:
+    clear for zif_ajson_writer~clear,
+    set for zif_ajson_writer~set,
+    set_boolean for zif_ajson_writer~set_boolean,
+    set_string for zif_ajson_writer~set_string,
+    set_integer for zif_ajson_writer~set_integer,
+    set_date for zif_ajson_writer~set_date,
+    set_null for zif_ajson_writer~set_null,
+    delete for zif_ajson_writer~delete,
+    touch_array for zif_ajson_writer~touch_array,
+    push for zif_ajson_writer~push,
+    stringify for zif_ajson_writer~stringify.
+
+endinterface.
+interface zif_ajson_mapping
+  .
+
+  types:
+    begin of ty_mapping_field,
+      abap type string,
+      json type string,
+    end of ty_mapping_field,
+    ty_mapping_fields type standard table of ty_mapping_field
+      with unique sorted key abap components abap
+      with unique sorted key json components json.
+
+  methods to_abap
+    importing
+      !iv_path         type string
+      !iv_name         type string
+    returning
+      value(rv_result) type string.
+
+  methods to_json
+    importing
+      !iv_path         type string
+      !iv_name         type string
+    returning
+      value(rv_result) type string.
+
+endinterface.
 INTERFACE zif_abapgit_exit
    .
 
@@ -2944,6 +3066,13 @@ CLASS zcl_abapgit_dot_abapgit DEFINITION
     METHODS set_requirements
       IMPORTING
         it_requirements TYPE zif_abapgit_dot_abapgit=>ty_requirement_tt.
+
+    METHODS get_i18n_langs
+      RETURNING
+        VALUE(rv_langs) TYPE string.
+    METHODS set_i18n_langs
+      IMPORTING
+        iv_langs TYPE string.
     METHODS get_packaging
       RETURNING
         VALUE(rs_packaging) TYPE zif_abapgit_dot_abapgit=>ty_packaging .
@@ -2962,6 +3091,13 @@ CLASS zcl_abapgit_dot_abapgit DEFINITION
       from_xml
         IMPORTING iv_xml         TYPE string
         RETURNING VALUE(rs_data) TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit.
+
+    CLASS-METHODS decode_i18n_langs_string
+      IMPORTING
+        iv_langs            TYPE string
+        iv_skip_master_lang TYPE spras OPTIONAL
+      RETURNING
+        VALUE(rt_langs)     TYPE zif_abapgit_dot_abapgit=>ty_langs_tt.
 
 ENDCLASS.
 CLASS zcl_abapgit_environment DEFINITION
@@ -3175,7 +3311,7 @@ ENDCLASS.
 *----------------------------------------------------------------------*
 * This helper class is used to set and restore the current language.
 * As some of the SAP functions used rely on SY-LANGU containing the
-* master language, this class is used to temporarily change and then
+* main language, this class is used to temporarily change and then
 * restore the value of SY-LANGU.
 *----------------------------------------------------------------------*
 CLASS zcl_abapgit_language DEFINITION
@@ -3189,6 +3325,7 @@ CLASS zcl_abapgit_language DEFINITION
     CLASS-METHODS set_current_language
       IMPORTING
         !iv_language TYPE langu .
+  PROTECTED SECTION.
   PRIVATE SECTION.
 
     CLASS-DATA gv_login_language TYPE langu .
@@ -3243,18 +3380,17 @@ CLASS zcl_abapgit_longtexts DEFINITION
         lines TYPE tline_tab,
       END OF ty_longtext .
     TYPES:
-      ty_longtexts TYPE STANDARD TABLE OF ty_longtext
-                             WITH NON-UNIQUE DEFAULT KEY .
+      ty_longtexts TYPE STANDARD TABLE OF ty_longtext WITH NON-UNIQUE DEFAULT KEY .
 
     METHODS read
       IMPORTING
-        !iv_object_name      TYPE sobj_name
-        !iv_longtext_id      TYPE dokil-id
-        !it_dokil            TYPE zif_abapgit_definitions=>ty_dokil_tt
-        !iv_master_lang_only TYPE abap_bool DEFAULT abap_false
-        !iv_clear_fields     TYPE abap_bool DEFAULT abap_true
+        !iv_object_name     TYPE sobj_name
+        !iv_longtext_id     TYPE dokil-id
+        !it_dokil           TYPE zif_abapgit_definitions=>ty_dokil_tt
+        !iv_main_lang_only  TYPE abap_bool DEFAULT abap_false
+        !iv_clear_fields    TYPE abap_bool DEFAULT abap_true
       RETURNING
-        VALUE(rt_longtexts)  TYPE ty_longtexts
+        VALUE(rt_longtexts) TYPE ty_longtexts
       RAISING
         zcx_abapgit_exception .
   PRIVATE SECTION.
@@ -3634,7 +3770,7 @@ CLASS zcl_abapgit_xml_output DEFINITION
   PRIVATE SECTION.
 
     DATA mi_raw TYPE REF TO if_ixml_element .
-    DATA ms_i18n_params TYPE zif_abapgit_xml_output~ty_i18n_params .
+    DATA ms_i18n_params TYPE zif_abapgit_definitions=>ty_i18n_params .
 
     METHODS build_asx_node
       RETURNING
@@ -4051,11 +4187,6 @@ CLASS zcl_abapgit_object_devc DEFINITION
 
     DATA mv_local_devclass TYPE devclass .
 
-    METHODS get_transport_layer
-      RETURNING
-        VALUE(rv_devlayer) TYPE devlayer
-      RAISING
-        zcx_abapgit_exception .
     METHODS get_package
       RETURNING
         VALUE(ri_package) TYPE REF TO if_package
@@ -5393,13 +5524,61 @@ CLASS zcl_abapgit_tadir DEFINITION
     METHODS build
       IMPORTING
         !iv_package            TYPE tadir-devclass
-        !iv_top                TYPE tadir-devclass
         !io_dot                TYPE REF TO zcl_abapgit_dot_abapgit
         !iv_ignore_subpackages TYPE abap_bool DEFAULT abap_false
-        !iv_only_local_objects TYPE abap_bool
+        !iv_only_local_objects TYPE abap_bool DEFAULT abap_false
         !ii_log                TYPE REF TO zif_abapgit_log OPTIONAL
       RETURNING
         VALUE(rt_tadir)        TYPE zif_abapgit_definitions=>ty_tadir_tt
+      RAISING
+        zcx_abapgit_exception .
+    METHODS select_objects
+      IMPORTING
+        !iv_package            TYPE tadir-devclass
+        !iv_ignore_subpackages TYPE abap_bool DEFAULT abap_false
+        !iv_only_local_objects TYPE abap_bool
+      EXPORTING
+        !et_packages           TYPE zif_abapgit_sap_package=>ty_devclass_tt
+        !et_tadir              TYPE zif_abapgit_definitions=>ty_tadir_tt
+      RAISING
+        zcx_abapgit_exception .
+    METHODS skip_objects
+      IMPORTING
+        !iv_package TYPE tadir-devclass
+        !io_dot     TYPE REF TO zcl_abapgit_dot_abapgit
+        !ii_log     TYPE REF TO zif_abapgit_log OPTIONAL
+      CHANGING
+        !ct_tadir   TYPE zif_abapgit_definitions=>ty_tadir_tt
+      RAISING
+        zcx_abapgit_exception .
+    METHODS add_local_packages
+      IMPORTING
+        !it_packages TYPE zif_abapgit_sap_package=>ty_devclass_tt
+      CHANGING
+        !ct_tadir    TYPE zif_abapgit_definitions=>ty_tadir_tt
+      RAISING
+        zcx_abapgit_exception .
+    METHODS add_namespaces
+      IMPORTING
+        !iv_package TYPE devclass
+      CHANGING
+        !ct_tadir   TYPE zif_abapgit_definitions=>ty_tadir_tt
+      RAISING
+        zcx_abapgit_exception .
+    METHODS determine_path
+      IMPORTING
+        !iv_package TYPE tadir-devclass
+        !io_dot     TYPE REF TO zcl_abapgit_dot_abapgit
+      CHANGING
+        !ct_tadir   TYPE zif_abapgit_definitions=>ty_tadir_tt
+      RAISING
+        zcx_abapgit_exception .
+    METHODS adjust_objects
+      IMPORTING
+        !iv_package TYPE tadir-devclass
+        !io_dot     TYPE REF TO zcl_abapgit_dot_abapgit
+      CHANGING
+        !ct_tadir   TYPE zif_abapgit_definitions=>ty_tadir_tt
       RAISING
         zcx_abapgit_exception .
 ENDCLASS.
@@ -5807,45 +5986,11 @@ CLASS zcl_abapinst_installer DEFINITION
     CLASS-DATA gs_packaging TYPE zif_abapgit_dot_abapgit=>ty_packaging .
     CLASS-DATA gv_name TYPE string .
     CLASS-DATA gv_names TYPE string .
+    CONSTANTS gc_success TYPE sy-msgty VALUE 'S' ##NO_TEXT.
+    CONSTANTS gc_warning TYPE sy-msgty VALUE 'W' ##NO_TEXT.
+    CONSTANTS gc_error TYPE sy-msgty VALUE 'E' ##NO_TEXT.
 
-    CLASS-METHODS _log_end
-      RAISING
-        zcx_abapinst_exception .
     CLASS-METHODS _log_start .
-    CLASS-METHODS _check
-      RAISING
-        zcx_abapinst_exception .
-    CLASS-METHODS _namespaces
-      RAISING
-        zcx_abapgit_exception .
-    CLASS-METHODS _folder_logic
-      IMPORTING
-        !iv_enum_folder_logic TYPE i
-      RAISING
-        zcx_abapinst_exception .
-    CLASS-METHODS _transport
-      IMPORTING
-        !iv_enum_transport TYPE i
-        !iv_transport      TYPE trkorr OPTIONAL .
-    CLASS-METHODS _devclass
-      IMPORTING
-        !iv_dlvunit  TYPE dlvunit OPTIONAL
-        !iv_devlayer TYPE devlayer OPTIONAL
-      RAISING
-        zcx_abapgit_exception
-        zcx_abapinst_exception .
-    CLASS-METHODS _sap_package
-      IMPORTING
-        !iv_enum_package TYPE i
-        !iv_package      TYPE devclass OPTIONAL
-        !iv_dlvunit      TYPE dlvunit OPTIONAL
-        !iv_devlayer     TYPE devlayer OPTIONAL
-      RAISING
-        zcx_abapgit_exception
-        zcx_abapinst_exception .
-    CLASS-METHODS _packaging
-      RAISING
-        zcx_abapinst_exception .
     CLASS-METHODS _files
       IMPORTING
         !iv_enum_zip       TYPE i
@@ -5859,6 +6004,34 @@ CLASS zcl_abapinst_installer DEFINITION
         !iv_proxy_password TYPE char255 OPTIONAL
       RAISING
         zcx_abapinst_exception .
+    CLASS-METHODS _packaging
+      RAISING
+        zcx_abapinst_exception .
+    CLASS-METHODS _sap_package
+      IMPORTING
+        !iv_enum_package TYPE i
+        !iv_package      TYPE devclass OPTIONAL
+        !iv_dlvunit      TYPE dlvunit OPTIONAL
+        !iv_devlayer     TYPE devlayer OPTIONAL
+      RAISING
+        zcx_abapgit_exception
+        zcx_abapinst_exception .
+    CLASS-METHODS _check
+      RAISING
+        zcx_abapinst_exception .
+    CLASS-METHODS _folder_logic
+      IMPORTING
+        !iv_enum_folder_logic TYPE i
+      RAISING
+        zcx_abapinst_exception .
+    CLASS-METHODS _transport
+      IMPORTING
+        !iv_enum_transport TYPE i
+        !iv_transport      TYPE trkorr OPTIONAL .
+    CLASS-METHODS _namespaces
+      RAISING
+        zcx_abapgit_exception .
+    CLASS-METHODS _confirm_messages .
     CLASS-METHODS _save
       RAISING
         zcx_abapinst_exception .
@@ -5868,6 +6041,12 @@ CLASS zcl_abapinst_installer DEFINITION
         !iv_pack TYPE zif_abapinst_definitions=>ty_pack
       RAISING
         zcx_abapinst_exception .
+    CLASS-METHODS _log_end
+      RAISING
+        zcx_abapinst_exception .
+    CLASS-METHODS _final_message
+      IMPORTING
+        !iv_type TYPE string .
     CLASS-METHODS _find_remote_dot_abapgit
       IMPORTING
         !it_remote    TYPE zif_abapgit_definitions=>ty_files_tt
@@ -6012,11 +6191,6 @@ CLASS zcl_abapinst_objects DEFINITION
 
     CLASS-DATA gt_obj_serializer_map TYPE ty_obj_serializer_map .
 
-    CLASS-METHODS create_tadir_for_namespace
-      IMPORTING
-        !is_item TYPE zif_abapgit_definitions=>ty_item
-      RAISING
-        zcx_abapgit_exception .
     CLASS-METHODS files_to_deserialize
       IMPORTING
         !iv_package         TYPE devclass
@@ -6042,7 +6216,7 @@ CLASS zcl_abapinst_objects DEFINITION
     CLASS-METHODS update_package_tree
       IMPORTING
         !iv_package TYPE devclass .
-    CLASS-METHODS delete_obj
+    CLASS-METHODS delete_object
       IMPORTING
         !iv_package TYPE devclass
         !is_item    TYPE zif_abapgit_definitions=>ty_item
@@ -6425,28 +6599,9 @@ class zcl_ajson definition
 
   public section.
 
-    constants version type string value 'v1.0.2'.
-    constants origin type string value 'https://github.com/sbcgua/ajson'.
-
     interfaces zif_ajson_reader .
     interfaces zif_ajson_writer .
-
-    constants:
-      begin of node_type,
-        boolean type string value 'bool',
-        string  type string value 'str',
-        number  type string value 'num',
-        null    type string value 'null',
-        array   type string value 'array',
-        object  type string value 'object',
-      end of node_type.
-
-    constants:
-      begin of node_value,
-        true  type string value 'true',
-        false type string value 'false',
-        null  type string value 'null',
-      end of node_value.
+    interfaces zif_ajson .
 
     aliases:
       exists for zif_ajson_reader~exists,
@@ -6474,72 +6629,165 @@ class zcl_ajson definition
       push for zif_ajson_writer~push,
       stringify for zif_ajson_writer~stringify.
 
-    types:
-      begin of ty_node,
-        path type string,
-        name type string,
-        type type string,
-        value type string,
-        index type i,
-        children type i,
-      end of ty_node .
-    types:
-      ty_nodes_tt type standard table of ty_node with key path name .
-    types:
-      ty_nodes_ts type sorted table of ty_node
-        with unique key path name
-        with non-unique sorted key array_index components path index .
-    types:
-      begin of ty_path_name,
-        path type string,
-        name type string,
-      end of ty_path_name.
+    aliases:
+      mt_json_tree for zif_ajson~mt_json_tree,
+      keep_item_order for zif_ajson~keep_item_order,
+      freeze for zif_ajson~freeze.
 
     class-methods parse
       importing
-        !iv_json type string
-        !iv_freeze type abap_bool default abap_false
+        !iv_json           type string
+        !iv_freeze         type abap_bool default abap_false
+        !ii_custom_mapping type ref to zif_ajson_mapping optional
       returning
         value(ro_instance) type ref to zcl_ajson
       raising
         zcx_ajson_error .
 
     class-methods create_empty
+      importing
+        !ii_custom_mapping type ref to zif_ajson_mapping optional
       returning
         value(ro_instance) type ref to zcl_ajson.
 
-    methods freeze.
-
-    data mt_json_tree type ty_nodes_ts read-only.
   protected section.
 
   private section.
 
     types:
-      tty_node_stack type standard table of ref to ty_node with default key.
+      tty_node_stack type standard table of ref to zif_ajson=>ty_node with default key.
 
     data mv_read_only type abap_bool.
+    data mi_custom_mapping type ref to zif_ajson_mapping.
+    data mv_keep_item_order type abap_bool.
 
     methods get_item
       importing
-        iv_path type string
+        iv_path        type string
       returning
-        value(rv_item) type ref to ty_node.
+        value(rv_item) type ref to zif_ajson=>ty_node.
     methods prove_path_exists
       importing
-        iv_path type string
+        iv_path              type string
       returning
         value(rt_node_stack) type tty_node_stack
       raising
         zcx_ajson_error.
     methods delete_subtree
       importing
-        iv_path type string
-        iv_name type string
+        iv_path           type string
+        iv_name           type string
       returning
         value(rv_deleted) type abap_bool.
 
-ENDCLASS.
+endclass.
+class lcl_mapping_fields definition.
+
+  public section.
+    interfaces zif_ajson_mapping.
+
+    aliases to_abap for zif_ajson_mapping~to_abap.
+    aliases to_json for zif_ajson_mapping~to_json.
+
+    methods constructor
+      importing
+        it_mapping_fields type zif_ajson_mapping~ty_mapping_fields optional.
+
+  protected section.
+
+  private section.
+    data mt_mapping_fields type zif_ajson_mapping~ty_mapping_fields.
+
+endclass.
+
+
+class lcl_mapping_to_upper definition.
+
+  public section.
+    interfaces zif_ajson_mapping.
+
+    methods constructor
+      importing
+        it_mapping_fields type zif_ajson_mapping~ty_mapping_fields optional.
+
+  protected section.
+
+  private section.
+    data mi_mapping_fields type ref to zif_ajson_mapping.
+
+endclass.
+
+
+class lcl_mapping_to_lower definition.
+
+  public section.
+    interfaces zif_ajson_mapping.
+
+    methods constructor
+      importing
+        it_mapping_fields type zif_ajson_mapping~ty_mapping_fields optional.
+
+  protected section.
+
+  private section.
+    data mi_mapping_fields type ref to zif_ajson_mapping.
+
+endclass.
+
+
+class lcl_mapping_camel definition.
+
+  public section.
+    interfaces zif_ajson_mapping.
+
+    methods constructor
+      importing
+        it_mapping_fields   type zif_ajson_mapping~ty_mapping_fields optional
+        iv_first_json_upper type abap_bool default abap_true.
+
+  protected section.
+
+  private section.
+    data mv_first_json_upper type abap_bool.
+    data mi_mapping_fields type ref to zif_ajson_mapping.
+
+endclass.
+class zcl_ajson_mapping definition
+
+  final
+  create public.
+
+  public section.
+    class-methods create_camel_case
+      importing
+        it_mapping_fields   type zif_ajson_mapping=>ty_mapping_fields optional
+        iv_first_json_upper type abap_bool default abap_true
+      returning
+        value(ri_mapping)   type ref to zif_ajson_mapping.
+
+    class-methods create_upper_case
+      importing
+        it_mapping_fields type zif_ajson_mapping=>ty_mapping_fields optional
+      returning
+        value(ri_mapping) type ref to zif_ajson_mapping.
+
+    class-methods create_lower_case
+      importing
+        it_mapping_fields type zif_ajson_mapping=>ty_mapping_fields optional
+      returning
+        value(ri_mapping) type ref to zif_ajson_mapping.
+
+    class-methods create_field_mapping
+      importing
+        it_mapping_fields type zif_ajson_mapping=>ty_mapping_fields
+      returning
+        value(ri_mapping) type ref to zif_ajson_mapping.
+
+  protected section.
+
+  private section.
+
+endclass.
 class zcl_ajson_utilities definition
 
   create public .
@@ -6550,18 +6798,18 @@ class zcl_ajson_utilities definition
       importing
         !iv_json_a type string optional
         !iv_json_b type string optional
-        !io_json_a type ref to zcl_ajson optional
-        !io_json_b type ref to zcl_ajson optional
+        !io_json_a type ref to zif_ajson optional
+        !io_json_b type ref to zif_ajson optional
       exporting
-        !eo_insert type ref to zcl_ajson
-        !eo_delete type ref to zcl_ajson
-        !eo_change type ref to zcl_ajson
+        !eo_insert type ref to zif_ajson
+        !eo_delete type ref to zif_ajson
+        !eo_change type ref to zif_ajson
       raising
         zcx_ajson_error .
     methods sort
       importing
         !iv_json         type string optional
-        !io_json         type ref to zcl_ajson optional
+        !io_json         type ref to zif_ajson optional
       returning
         value(rv_sorted) type string
       raising
@@ -6570,8 +6818,8 @@ class zcl_ajson_utilities definition
 
   private section.
 
-    data mo_json_a type ref to zcl_ajson .
-    data mo_json_b type ref to zcl_ajson .
+    data mo_json_a type ref to zif_ajson .
+    data mo_json_b type ref to zif_ajson .
     data mo_insert type ref to zif_ajson_writer .
     data mo_delete type ref to zif_ajson_writer .
     data mo_change type ref to zif_ajson_writer .
@@ -6588,7 +6836,7 @@ class zcl_ajson_utilities definition
         zcx_ajson_error .
     methods delete_empty_nodes
       importing
-        !io_json type ref to zcl_ajson
+        !io_json type ref to zif_ajson
       raising
         zcx_ajson_error .
 ENDCLASS.
@@ -6984,7 +7232,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_DEFAULT_TRANSPORT IMPLEMENTATION.
+CLASS zcl_abapgit_default_transport IMPLEMENTATION.
 
 
   METHOD clear.
@@ -7141,7 +7389,7 @@ CLASS ZCL_ABAPGIT_DEFAULT_TRANSPORT IMPLEMENTATION.
         OTHERS            = 7.
 
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( |Error from TR_TASK_SET. Subrc = { sy-subrc }| ).
+      zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
   ENDMETHOD.
@@ -7509,6 +7757,35 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD decode_i18n_langs_string.
+
+    " This should go as an util to TEXTS/i18n class
+
+    DATA lt_langs_str TYPE string_table.
+    DATA lv_master_lang_iso TYPE laiso.
+    FIELD-SYMBOLS <lv_str> LIKE LINE OF lt_langs_str.
+    FIELD-SYMBOLS <lv_lang> LIKE LINE OF rt_langs.
+
+    IF iv_skip_master_lang IS NOT INITIAL.
+      lv_master_lang_iso = cl_i18n_languages=>sap1_to_sap2( iv_skip_master_lang ).
+    ENDIF.
+
+    SPLIT iv_langs AT ',' INTO TABLE lt_langs_str.
+    LOOP AT lt_langs_str ASSIGNING <lv_str>.
+      CONDENSE <lv_str>.
+      <lv_str> = to_upper( <lv_str> ).
+      IF <lv_str> IS NOT INITIAL AND ( lv_master_lang_iso IS INITIAL OR <lv_str> <> lv_master_lang_iso ).
+        APPEND INITIAL LINE TO rt_langs ASSIGNING <lv_lang>.
+        <lv_lang> = <lv_str>.
+      ENDIF.
+    ENDLOOP.
+
+    " TODO: maybe validate language against table, but system may not have one?
+    " TODO: maybe through on lang > 2 symbols ?
+
+  ENDMETHOD.
+
+
   METHOD deserialize.
 
     DATA: lv_xml  TYPE string,
@@ -7552,6 +7829,18 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
 
   METHOD get_folder_logic.
     rv_logic = ms_data-folder_logic.
+  ENDMETHOD.
+
+
+  METHOD get_i18n_langs.
+
+    DATA lt_langs TYPE zif_abapgit_dot_abapgit=>ty_langs_tt.
+
+    lt_langs = decode_i18n_langs_string(
+      iv_langs            = ms_data-i18n_langs
+      iv_skip_master_lang = ms_data-master_language ).
+    CONCATENATE LINES OF lt_langs INTO rv_langs SEPARATED BY ','.
+
   ENDMETHOD.
 
 
@@ -7659,6 +7948,18 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
 
   METHOD set_folder_logic.
     ms_data-folder_logic = iv_logic.
+  ENDMETHOD.
+
+
+  METHOD set_i18n_langs.
+
+    DATA lt_langs TYPE zif_abapgit_dot_abapgit=>ty_langs_tt.
+
+    lt_langs = decode_i18n_langs_string(
+      iv_langs            = iv_langs
+      iv_skip_master_lang = ms_data-master_language ).
+    CONCATENATE LINES OF lt_langs INTO ms_data-i18n_langs SEPARATED BY ','.
+
   ENDMETHOD.
 
 
@@ -8070,6 +8371,7 @@ CLASS zcl_abapgit_folder_logic IMPLEMENTATION.
 
     DATA: lv_length               TYPE i,
           lv_parent               TYPE devclass,
+          ls_package              TYPE scompkdtln,
           lv_new                  TYPE string,
           lv_path                 TYPE string,
           lv_absolute_name        TYPE string,
@@ -8084,9 +8386,16 @@ CLASS zcl_abapgit_folder_logic IMPLEMENTATION.
     lv_parent  = iv_top.
     rv_package = iv_top.
 
-    " Automatically create local package if it does not exist
-    IF iv_top(1) = '$' AND iv_create_if_not_exists = abap_true.
-      zcl_abapinst_factory=>get_sap_package( iv_top )->create_local( ).
+    " Automatically create package using minimal properties
+    " Details will be updated during deserialization
+    IF iv_create_if_not_exists = abap_true.
+      IF iv_top(1) = '$'.
+        zcl_abapinst_factory=>get_sap_package( iv_top )->create_local( ).
+      ELSE.
+        ls_package-devclass = ls_package-ctext = iv_top.
+        ls_package-as4user = cl_abap_syst=>get_user_name( ).
+        zcl_abapinst_factory=>get_sap_package( iv_top )->create( ls_package ).
+      ENDIF.
     ENDIF.
 
     INSERT iv_top INTO TABLE lt_unique_package_names.
@@ -8622,7 +8931,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_LANGUAGE IMPLEMENTATION.
+CLASS zcl_abapgit_language IMPLEMENTATION.
 
 
   METHOD class_constructor.
@@ -8878,7 +9187,7 @@ CLASS zcl_abapgit_longtexts IMPLEMENTATION.
       lt_dokil = it_dokil.
 
     ELSEIF iv_longtext_id IS NOT INITIAL.
-      IF iv_master_lang_only = abap_true.
+      IF iv_main_lang_only = abap_true.
         SELECT * FROM dokil
                  INTO TABLE lt_dokil
                  WHERE id     = iv_longtext_id
@@ -8989,8 +9298,8 @@ CLASS zcl_abapgit_longtexts IMPLEMENTATION.
 
   METHOD zif_abapgit_longtexts~deserialize.
 
-    DATA: lt_longtexts     TYPE ty_longtexts,
-          lv_no_masterlang TYPE dokil-masterlang.
+    DATA: lt_longtexts    TYPE ty_longtexts,
+          lv_no_main_lang TYPE dokil-masterlang.
     FIELD-SYMBOLS: <ls_longtext> TYPE ty_longtext.
 
     ii_xml->read(
@@ -9001,7 +9310,7 @@ CLASS zcl_abapgit_longtexts IMPLEMENTATION.
 
     LOOP AT lt_longtexts ASSIGNING <ls_longtext>.
 
-      lv_no_masterlang = boolc( iv_master_language <> <ls_longtext>-dokil-langu ).
+      lv_no_main_lang = boolc( iv_main_language <> <ls_longtext>-dokil-langu ).
 
       CALL FUNCTION 'DOCU_UPDATE'
         EXPORTING
@@ -9009,7 +9318,7 @@ CLASS zcl_abapgit_longtexts IMPLEMENTATION.
           state         = c_docu_state_active
           typ           = <ls_longtext>-dokil-typ
           version       = <ls_longtext>-dokil-version
-          no_masterlang = lv_no_masterlang
+          no_masterlang = lv_no_main_lang
         TABLES
           line          = <ls_longtext>-lines.
 
@@ -9022,18 +9331,18 @@ CLASS zcl_abapgit_longtexts IMPLEMENTATION.
 
     DATA lt_longtexts TYPE ty_longtexts.
     DATA lt_dokil LIKE it_dokil.
-    DATA lv_master_lang_only TYPE abap_bool.
+    DATA lv_main_lang_only TYPE abap_bool.
 
     lt_dokil = it_dokil.
-    lv_master_lang_only = ii_xml->i18n_params( )-serialize_master_lang_only.
-    IF lv_master_lang_only = abap_true.
+    lv_main_lang_only = ii_xml->i18n_params( )-main_language_only.
+    IF lv_main_lang_only = abap_true.
       DELETE lt_dokil WHERE masterlang <> abap_true.
     ENDIF.
 
-    lt_longtexts = read( iv_object_name = iv_object_name
-                         iv_longtext_id = iv_longtext_id
-                         it_dokil       = lt_dokil
-                         iv_master_lang_only = lv_master_lang_only ).
+    lt_longtexts = read( iv_object_name    = iv_object_name
+                         iv_longtext_id    = iv_longtext_id
+                         it_dokil          = lt_dokil
+                         iv_main_lang_only = lv_main_lang_only ).
 
     ii_xml->add( iv_name = iv_longtext_name
                  ig_data = lt_longtexts ).
@@ -9365,7 +9674,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECTS_SUPER IMPLEMENTATION.
+CLASS zcl_abapgit_objects_super IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -9474,8 +9783,8 @@ CLASS ZCL_ABAPGIT_OBJECTS_SUPER IMPLEMENTATION.
   METHOD deserialize_longtexts.
 
     zcl_abapinst_factory=>get_longtexts( )->deserialize(
-        ii_xml             = ii_xml
-        iv_master_language = mv_language ).
+      ii_xml           = ii_xml
+      iv_main_language = mv_language ).
 
   ENDMETHOD.
 
@@ -10410,7 +10719,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_XML_OUTPUT IMPLEMENTATION.
+CLASS zcl_abapgit_xml_output IMPLEMENTATION.
 
 
   METHOD build_asx_node.
@@ -10486,11 +10795,11 @@ CLASS ZCL_ABAPGIT_XML_OUTPUT IMPLEMENTATION.
 
   METHOD zif_abapgit_xml_output~i18n_params.
 
-    IF iv_serialize_master_lang_only IS SUPPLIED.
-      ms_i18n_params-serialize_master_lang_only = iv_serialize_master_lang_only.
+    IF is_i18n_params IS SUPPLIED.
+      ms_i18n_params = is_i18n_params.
     ENDIF.
 
-    rs_params = ms_i18n_params.
+    rs_i18n_params = ms_i18n_params.
 
   ENDMETHOD.
 
@@ -11490,7 +11799,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_object_avar IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_OBJECT_AVAR IMPLEMENTATION.
 
 
   METHOD create_object.
@@ -12608,7 +12917,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_CLAS IMPLEMENTATION.
+CLASS zcl_abapgit_object_clas IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -12849,7 +13158,7 @@ CLASS ZCL_ABAPGIT_OBJECT_CLAS IMPLEMENTATION.
     DATA: lt_descriptions TYPE zif_abapgit_oo_object_fnc=>ty_seocompotx_tt,
           lv_language     TYPE spras.
 
-    IF ii_xml->i18n_params( )-serialize_master_lang_only = abap_true.
+    IF ii_xml->i18n_params( )-main_language_only = abap_true.
       lv_language = mv_language.
     ENDIF.
 
@@ -12882,7 +13191,7 @@ CLASS ZCL_ABAPGIT_OBJECT_CLAS IMPLEMENTATION.
                    ig_data = lt_lines ).
     ENDIF.
 
-    IF ii_xml->i18n_params( )-serialize_master_lang_only IS NOT INITIAL.
+    IF ii_xml->i18n_params( )-main_language_only = abap_true.
       RETURN.
     ENDIF.
 
@@ -12927,7 +13236,7 @@ CLASS ZCL_ABAPGIT_OBJECT_CLAS IMPLEMENTATION.
     ii_xml->add( iv_name = 'TPOOL'
                  ig_data = add_tpool( lt_tpool ) ).
 
-    IF ii_xml->i18n_params( )-serialize_master_lang_only IS NOT INITIAL.
+    IF ii_xml->i18n_params( )-main_language_only = abap_true.
       RETURN.
     ENDIF.
 
@@ -13261,29 +13570,6 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
     IF zif_abapgit_object~exists( ) = abap_true.
       ri_package = load_package( mv_local_devclass ).
     ENDIF.
-  ENDMETHOD.
-
-
-  METHOD get_transport_layer.
-
-    " Get default transport layer
-    IF mv_local_devclass(1) <> '$'.
-      CALL FUNCTION 'TR_GET_TRANSPORT_TARGET'
-        EXPORTING
-          iv_use_default             = abap_true
-          iv_get_layer_only          = abap_true
-        IMPORTING
-          ev_layer                   = rv_devlayer
-        EXCEPTIONS
-          wrong_call                 = 1
-          invalid_input              = 2
-          cts_initialization_failure = 3
-          OTHERS                     = 4.
-      IF sy-subrc <> 0.
-        zcx_abapgit_exception=>raise( |Error getting transport layer| ).
-      ENDIF.
-    ENDIF.
-
   ENDMETHOD.
 
 
@@ -13686,8 +13972,6 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
     ls_package_data-devclass = mv_local_devclass.
     IF li_package IS BOUND.
       ls_package_data-pdevclass = li_package->transport_layer.
-    ELSE.
-      ls_package_data-pdevclass = get_transport_layer( ).
     ENDIF.
 
     " Parent package is not changed. Assume the folder logic already created the package and set
@@ -13855,7 +14139,7 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~get_deserialize_steps.
-    APPEND zif_abapgit_object=>gc_step_id-lead TO rt_steps.
+    APPEND zif_abapgit_object=>gc_step_id-abap TO rt_steps.
   ENDMETHOD.
 
 
@@ -14121,7 +14405,7 @@ CLASS zcl_abapgit_object_doma IMPLEMENTATION.
                    <ls_dd01_text> LIKE LINE OF lt_dd01_texts,
                    <ls_dd07_text> LIKE LINE OF lt_dd07_texts.
 
-    IF ii_xml->i18n_params( )-serialize_master_lang_only = abap_true.
+    IF ii_xml->i18n_params( )-main_language_only = abap_true.
       RETURN.
     ENDIF.
 
@@ -14446,7 +14730,7 @@ CLASS zcl_abapgit_object_dtel IMPLEMENTATION.
     FIELD-SYMBOLS: <lv_lang>      LIKE LINE OF lt_i18n_langs,
                    <ls_dd04_text> LIKE LINE OF lt_dd04_texts.
 
-    IF ii_xml->i18n_params( )-serialize_master_lang_only = abap_true.
+    IF ii_xml->i18n_params( )-main_language_only = abap_true.
       RETURN.
     ENDIF.
 
@@ -17435,7 +17719,7 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_tpool> LIKE LINE OF lt_tpool_i18n.
 
-    IF ii_xml->i18n_params( )-serialize_master_lang_only = abap_true.
+    IF ii_xml->i18n_params( )-main_language_only = abap_true.
       RETURN.
     ENDIF.
 
@@ -18013,7 +18297,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_INTF IMPLEMENTATION.
+CLASS zcl_abapgit_object_intf IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -18149,7 +18433,7 @@ CLASS ZCL_ABAPGIT_OBJECT_INTF IMPLEMENTATION.
                    ig_data = lt_lines ).
     ENDIF.
 
-    IF io_xml->i18n_params( )-serialize_master_lang_only = abap_true.
+    IF io_xml->i18n_params( )-main_language_only = abap_true.
       lv_language = mv_language.
     ENDIF.
 
@@ -18450,8 +18734,7 @@ CLASS zcl_abapgit_object_msag IMPLEMENTATION.
           lt_doku_object_names          TYPE STANDARD TABLE OF dokhl-object
                           WITH NON-UNIQUE DEFAULT KEY,
           lt_dokil            TYPE zif_abapgit_definitions=>ty_dokil_tt,
-          ls_dokil            LIKE LINE OF lt_dokil,
-          lv_master_lang_only TYPE abap_bool.
+          ls_dokil            LIKE LINE OF lt_dokil.
 
     FIELD-SYMBOLS: <ls_t100>  TYPE t100.
 
@@ -18466,8 +18749,7 @@ CLASS zcl_abapgit_object_msag IMPLEMENTATION.
 
     ENDLOOP.
 
-    lv_master_lang_only = ii_xml->i18n_params( )-serialize_master_lang_only.
-    IF lv_master_lang_only = abap_true.
+    IF ii_xml->i18n_params( )-main_language_only = abap_true.
       SELECT * FROM dokil
         INTO TABLE lt_dokil
         FOR ALL ENTRIES IN lt_doku_object_names
@@ -18504,7 +18786,7 @@ CLASS zcl_abapgit_object_msag IMPLEMENTATION.
 
     lv_msg_id = ms_item-obj_name.
 
-    IF ii_xml->i18n_params( )-serialize_master_lang_only = abap_true.
+    IF ii_xml->i18n_params( )-main_language_only = abap_true.
       RETURN. " skip
     ENDIF.
 
@@ -18860,7 +19142,7 @@ CLASS zcl_abapgit_object_nspc IMPLEMENTATION.
       <lv_lang>      LIKE LINE OF lt_i18n_langs,
       <ls_nspc_text> LIKE LINE OF lt_nspc_texts.
 
-    IF ii_xml->i18n_params( )-serialize_master_lang_only = abap_true.
+    IF ii_xml->i18n_params( )-main_language_only = abap_true.
       RETURN.
     ENDIF.
 
@@ -19008,7 +19290,7 @@ CLASS zcl_abapgit_object_nspc IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~get_deserialize_steps.
-    APPEND zif_abapgit_object=>gc_step_id-lead TO rt_steps.
+    APPEND zif_abapgit_object=>gc_step_id-abap TO rt_steps.
   ENDMETHOD.
 
 
@@ -19308,7 +19590,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_PROG IMPLEMENTATION.
+CLASS zcl_abapgit_object_prog IMPLEMENTATION.
 
 
   METHOD deserialize_texts.
@@ -19347,7 +19629,7 @@ CLASS ZCL_ABAPGIT_OBJECT_PROG IMPLEMENTATION.
 
     FIELD-SYMBOLS <ls_tpool> LIKE LINE OF lt_tpool_i18n.
 
-    IF ii_xml->i18n_params( )-serialize_master_lang_only = abap_true.
+    IF ii_xml->i18n_params( )-main_language_only = abap_true.
       RETURN.
     ENDIF.
 
@@ -19757,7 +20039,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
+CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
 
 
   METHOD clear_dd03p_fields.
@@ -20129,7 +20411,7 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
     FIELD-SYMBOLS: <lv_lang>      LIKE LINE OF lt_i18n_langs,
                    <ls_dd02_text> LIKE LINE OF lt_dd02_texts.
 
-    IF io_xml->i18n_params( )-serialize_master_lang_only = abap_true.
+    IF io_xml->i18n_params( )-main_language_only = abap_true.
       RETURN.
     ENDIF.
 
@@ -20310,7 +20592,8 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
           lv_refs      TYPE abap_bool,
           ls_extras    TYPE ty_tabl_extras.
 
-    FIELD-SYMBOLS: <ls_dd03p> TYPE dd03p.
+    FIELD-SYMBOLS: <ls_dd03p> TYPE dd03p,
+                   <lg_roworcolst> TYPE any.
 
     IF deserialize_idoc_segment( io_xml     = io_xml
                                  iv_package = iv_package ) = abap_false.
@@ -20321,6 +20604,10 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
                     CHANGING cg_data = ls_dd09l ).
       io_xml->read( EXPORTING iv_name  = 'DD03P_TABLE'
                     CHANGING cg_data = lt_dd03p ).
+      ASSIGN COMPONENT 'ROWORCOLST' OF STRUCTURE ls_dd09l TO <lg_roworcolst>.
+      IF sy-subrc = 0 AND <lg_roworcolst> IS INITIAL.
+        <lg_roworcolst> = 'C'. "Reverse fix from serialize
+      ENDIF.
 
       " DDIC Step: Replace REF TO class/interface with generic reference to avoid cyclic dependency
       LOOP AT lt_dd03p ASSIGNING <ls_dd03p> WHERE datatype = 'REF'.
@@ -21252,7 +21539,7 @@ CLASS zcl_abapgit_object_tran IMPLEMENTATION.
 
     DATA lt_tpool_i18n TYPE TABLE OF tstct.
 
-    IF io_xml->i18n_params( )-serialize_master_lang_only = abap_true.
+    IF io_xml->i18n_params( )-main_language_only = abap_true.
       RETURN.
     ENDIF.
 
@@ -23046,6 +23333,7 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
       WHEN 0.
         rv_are_changes_rec_in_tr_req = li_package->wbo_korr_flag.
       WHEN 1.
+        " For new packages, derive from package name
         rv_are_changes_rec_in_tr_req = boolc( mv_package(1) <> '$' ).
       WHEN OTHERS.
         zcx_abapgit_exception=>raise_t100( ).
@@ -23056,10 +23344,9 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
 
   METHOD zif_abapgit_sap_package~create.
 
-    DATA: lv_err      TYPE string,
-          li_package  TYPE REF TO if_package,
-          lv_devlayer TYPE devlayer,
-          ls_package  LIKE is_package.
+    DATA: lv_err     TYPE string,
+          li_package TYPE REF TO if_package,
+          ls_package LIKE is_package.
 
 
     ASSERT NOT is_package-devclass IS INITIAL.
@@ -23085,6 +23372,11 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
     " Otherwise SOFTWARE_COMPONENT_INVALID will be raised.
     IF ls_package-dlvunit IS INITIAL.
       ls_package-dlvunit = 'HOME'.
+    ENDIF.
+
+    " For transportable packages, get default transport and layer
+    IF ls_package-devclass(1) <> '$' AND ls_package-pdevclass IS INITIAL.
+      ls_package-pdevclass = zif_abapgit_sap_package~get_transport_layer( ).
     ENDIF.
 
     cl_package_factory=>create_new_package(
@@ -23123,8 +23415,7 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
     ENDIF.
 
     li_package->save(
-      EXPORTING
-        i_transport_request   = iv_transport
+*      EXPORTING
 *        i_suppress_dialog     = abap_true    " Controls whether popups can be transmitted
       EXCEPTIONS
         object_invalid        = 1
@@ -23225,41 +23516,79 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD zif_abapgit_sap_package~get_transport_type.
-    DATA: lv_err_prefix TYPE string,
-          lv_pkg_name   TYPE e071-obj_name.
+  METHOD zif_abapgit_sap_package~get_transport_layer.
 
-    lv_err_prefix = |TRINT_GET_REQUEST_TYPE(R3TR, DEVC, { mv_package })|.
-    lv_pkg_name = mv_package.
-
-    CALL FUNCTION 'TRINT_GET_REQUEST_TYPE'
+    " Get default transport layer
+    CALL FUNCTION 'TR_GET_TRANSPORT_TARGET'
       EXPORTING
-        iv_pgmid                   = 'R3TR'
-        iv_object                  = 'DEVC'
-        iv_obj_name                = lv_pkg_name
+        iv_use_default             = abap_true
+        iv_get_layer_only          = abap_true
       IMPORTING
-        ev_request_type            = rs_transport_type-request
-        ev_task_type               = rs_transport_type-task
+        ev_layer                   = rv_transport_layer
       EXCEPTIONS
-        no_request_needed          = 1
-        internal_error             = 2
-        cts_initialization_failure = 3.
+        wrong_call                 = 1
+        invalid_input              = 2
+        cts_initialization_failure = 3
+        OTHERS                     = 4.
+    IF sy-subrc <> 0.
+      " Return empty layer (i.e. "local workbench request" for the package)
+      CLEAR rv_transport_layer.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_sap_package~get_transport_type.
+
+    DATA:
+      lv_pkg_name TYPE e071-obj_name,
+      lv_obj_name TYPE tadir-obj_name,
+      lv_role     TYPE trnrole.
+
+    lv_pkg_name = lv_obj_name = mv_package.
+
+    CALL FUNCTION 'TR_GET_REQUEST_TYPE'
+      EXPORTING
+        iv_pgmid          = 'R3TR'
+        iv_object         = 'DEVC'
+        iv_obj_name       = lv_pkg_name
+      IMPORTING
+        ev_request_type   = rs_transport_type-request
+        ev_task_type      = rs_transport_type-task
+      EXCEPTIONS
+        no_request_needed = 1
+        invalid_object    = 2
+        system_error      = 3
+        OTHERS            = 4.
 
     CASE sy-subrc.
-      WHEN 0.
-        " OK!
-
-      WHEN 1.
-        zcx_abapgit_exception=>raise( |{ lv_err_prefix }: transport is not needed| ).
-
+      WHEN 0 OR 1.
+        RETURN.
       WHEN 2.
-        zcx_abapgit_exception=>raise( |{ lv_err_prefix }: internal error| ).
+        " For new packages, set to workbench request
+        rs_transport_type-request = 'K'.
 
-      WHEN 3.
-        zcx_abapgit_exception=>raise( |{ lv_err_prefix }: failed to initialized CTS| ).
-
+        CALL FUNCTION 'TR_GET_NAMESPACE_AND_ROLE'
+          EXPORTING
+            iv_pgmid                   = 'R3TR'
+            iv_object                  = 'DEVC'
+            iv_objname                 = lv_obj_name
+          IMPORTING
+            ev_role                    = lv_role
+          EXCEPTIONS
+            namespace_not_existing     = 1
+            invalid_object             = 2
+            namespace_not_determinable = 3
+            OTHERS                     = 4.
+        IF sy-subrc = 0 AND lv_role = 'C'.
+          " Namespace with repair license requires repair task
+          rs_transport_type-task = 'R'.
+        ELSE.
+          " Otherweise use correction task
+          rs_transport_type-task = 'S'.
+        ENDIF.
       WHEN OTHERS.
-        zcx_abapgit_exception=>raise( |{ lv_err_prefix }: unrecognized return code| ).
+        zcx_abapgit_exception=>raise_t100( ).
     ENDCASE.
 
   ENDMETHOD.
@@ -23374,7 +23703,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_SOTR_HANDLER IMPLEMENTATION.
+CLASS zcl_abapgit_sotr_handler IMPLEMENTATION.
 
 
   METHOD create_sotr.
@@ -23540,7 +23869,7 @@ CLASS ZCL_ABAPGIT_SOTR_HANDLER IMPLEMENTATION.
       lv_sotr = get_sotr_4_concept( <ls_sotr_use>-concept ).
 
       IF io_xml IS BOUND AND
-         io_xml->i18n_params( )-serialize_master_lang_only = abap_true AND
+         io_xml->i18n_params( )-main_language_only = abap_true AND
          iv_language IS SUPPLIED.
         DELETE lv_sotr-entries WHERE langu <> iv_language.
         CHECK lv_sotr-entries IS NOT INITIAL.
@@ -23564,85 +23893,43 @@ ENDCLASS.
 CLASS zcl_abapgit_tadir IMPLEMENTATION.
 
 
-  METHOD build.
+  METHOD add_local_packages.
 
-    DATA: lv_path         TYPE string,
-          lo_skip_objects TYPE REF TO zcl_abapgit_skip_objects,
-          lt_excludes     TYPE RANGE OF trobjtype,
-          lt_srcsystem    TYPE RANGE OF tadir-srcsystem,
-          ls_srcsystem    LIKE LINE OF lt_srcsystem,
-          ls_exclude      LIKE LINE OF lt_excludes,
-          lo_folder_logic TYPE REF TO zcl_abapgit_folder_logic,
-          lv_last_package TYPE devclass VALUE cl_abap_char_utilities=>horizontal_tab,
-          lv_obj_name     TYPE sobj_name,
-          lv_name         TYPE progname,
-          lv_namespace    TYPE namespace,
-          lt_packages     TYPE zif_abapgit_sap_package=>ty_devclass_tt.
+    FIELD-SYMBOLS:
+      <lv_package> LIKE LINE OF it_packages,
+      <ls_tadir>   LIKE LINE OF ct_tadir.
 
-    FIELD-SYMBOLS: <ls_tadir>   LIKE LINE OF rt_tadir,
-                   <ls_nspc>    LIKE LINE OF rt_tadir,
-                   <lv_package> LIKE LINE OF lt_packages.
+    LOOP AT it_packages ASSIGNING <lv_package>.
 
-
-    "Determine Packages to Read
-    IF iv_ignore_subpackages = abap_false.
-      lt_packages = zcl_abapinst_factory=>get_sap_package( iv_package )->list_subpackages( ).
-    ENDIF.
-    INSERT iv_package INTO lt_packages INDEX 1.
-
-    ls_exclude-sign = 'I'.
-    ls_exclude-option = 'EQ'.
-
-    ls_exclude-low = 'SOTR'.
-    APPEND ls_exclude TO lt_excludes.
-    ls_exclude-low = 'SFB1'.
-    APPEND ls_exclude TO lt_excludes.
-    ls_exclude-low = 'SFB2'.
-    APPEND ls_exclude TO lt_excludes.
-    ls_exclude-low = 'STOB'. " auto generated by core data services
-    APPEND ls_exclude TO lt_excludes.
-
-    IF iv_only_local_objects = abap_true.
-      ls_srcsystem-sign   = 'I'.
-      ls_srcsystem-option = 'EQ'.
-      ls_srcsystem-low    = sy-sysid.
-      APPEND ls_srcsystem TO lt_srcsystem.
-    ENDIF.
-
-    IF lt_packages IS NOT INITIAL.
-      SELECT * FROM tadir
-        INTO CORRESPONDING FIELDS OF TABLE rt_tadir
-        FOR ALL ENTRIES IN lt_packages
-        WHERE devclass = lt_packages-table_line
-        AND pgmid = 'R3TR'
-        AND object NOT IN lt_excludes
-        AND delflag = abap_false
-        AND srcsystem IN lt_srcsystem
-        ORDER BY PRIMARY KEY ##TOO_MANY_ITAB_FIELDS. "#EC CI_GENBUFF "#EC CI_SUBRC
-    ENDIF.
-
-    SORT rt_tadir BY devclass pgmid object obj_name.
-
-    CREATE OBJECT lo_skip_objects.
-    rt_tadir = lo_skip_objects->skip_sadl_generated_objects(
-      it_tadir = rt_tadir
-      ii_log   = ii_log ).
-
-    LOOP AT lt_packages ASSIGNING <lv_package>.
       " Local packages are not in TADIR, only in TDEVC, act as if they were
       IF <lv_package> CP '$*'. " OR <package> CP 'T*' ).
-        APPEND INITIAL LINE TO rt_tadir ASSIGNING <ls_tadir>.
+        APPEND INITIAL LINE TO ct_tadir ASSIGNING <ls_tadir>.
         <ls_tadir>-pgmid    = 'R3TR'.
         <ls_tadir>-object   = 'DEVC'.
         <ls_tadir>-obj_name = <lv_package>.
         <ls_tadir>-devclass = <lv_package>.
       ENDIF.
+
     ENDLOOP.
 
-    LOOP AT rt_tadir ASSIGNING <ls_tadir> WHERE obj_name(1) = '/'.
-      " Namespaces are not in TADIR, but are necessary for creating
-      " objects in transportable packages
+  ENDMETHOD.
+
+
+  METHOD add_namespaces.
+
+    DATA:
+      lv_name      TYPE progname,
+      lv_namespace TYPE namespace.
+
+    FIELD-SYMBOLS:
+      <ls_tadir> LIKE LINE OF ct_tadir,
+      <ls_nspc>  LIKE LINE OF ct_tadir.
+
+    LOOP AT ct_tadir ASSIGNING <ls_tadir> WHERE obj_name(1) = '/'.
+
+      " Namespaces are not in TADIR, but are necessary for creating objects in transportable packages
       lv_name = <ls_tadir>-obj_name.
+
       CALL FUNCTION 'RS_NAME_SPLIT_NAMESPACE'
         EXPORTING
           name_with_namespace = lv_name
@@ -23651,54 +23938,98 @@ CLASS zcl_abapgit_tadir IMPLEMENTATION.
         EXCEPTIONS
           delimiter_error     = 1
           OTHERS              = 2.
+
       IF sy-subrc = 0 AND lv_namespace IS NOT INITIAL.
-        READ TABLE rt_tadir TRANSPORTING NO FIELDS
+        READ TABLE ct_tadir TRANSPORTING NO FIELDS
           WITH KEY pgmid = 'R3TR' object = 'NSPC' obj_name = lv_namespace.
         IF sy-subrc <> 0.
-          APPEND INITIAL LINE TO rt_tadir ASSIGNING <ls_nspc>.
+          APPEND INITIAL LINE TO ct_tadir ASSIGNING <ls_nspc>.
           <ls_nspc>-pgmid    = 'R3TR'.
           <ls_nspc>-object   = 'NSPC'.
           <ls_nspc>-obj_name = lv_namespace.
           <ls_nspc>-devclass = iv_package.
         ENDIF.
       ENDIF.
+
     ENDLOOP.
 
-    LOOP AT rt_tadir ASSIGNING <ls_tadir>.
+  ENDMETHOD.
 
-      IF lv_last_package <> <ls_tadir>-devclass.
-        "Change in Package
-        lv_last_package = <ls_tadir>-devclass.
 
-        IF NOT io_dot IS INITIAL.
-          "Reuse given Folder Logic Instance
-          IF lo_folder_logic IS NOT BOUND.
-            "Get Folder Logic Instance
-            lo_folder_logic = zcl_abapgit_folder_logic=>get_instance( ).
-          ENDIF.
+  METHOD adjust_objects.
 
-          lv_path = lo_folder_logic->package_to_path(
-            iv_top     = iv_top
-            io_dot     = io_dot
-            iv_package = <ls_tadir>-devclass ).
-        ENDIF.
-      ENDIF.
+    " Todo, replace with solution that will work with any object type (might depend on iv_package and io_dot)
 
-      <ls_tadir>-path = lv_path.
+    FIELD-SYMBOLS <ls_tadir> LIKE LINE OF ct_tadir.
+
+    LOOP AT ct_tadir ASSIGNING <ls_tadir>.
 
       IF <ls_tadir>-object = 'SICF'.
-* replace the internal GUID with a hash of the path
+        " Replace the internal GUID with a hash of the path
         TRY.
             CALL METHOD ('ZCL_ABAPGIT_OBJECT_SICF')=>read_sicf_url
               EXPORTING
                 iv_obj_name = <ls_tadir>-obj_name
               RECEIVING
                 rv_hash     = <ls_tadir>-obj_name+15.
+
           CATCH cx_sy_dyn_call_illegal_method ##NO_HANDLER.
-* SICF might not be supported in some systems, assume this code is not called
+            " SICF might not be supported in some systems, assume this code is not called
         ENDTRY.
       ENDIF.
+
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD build.
+
+    DATA lt_packages TYPE zif_abapgit_sap_package=>ty_devclass_tt.
+
+    select_objects(
+      EXPORTING
+        iv_package            = iv_package
+        iv_ignore_subpackages = iv_ignore_subpackages
+        iv_only_local_objects = iv_only_local_objects
+      IMPORTING
+        et_tadir              = rt_tadir
+        et_packages           = lt_packages ).
+
+    skip_objects(
+      EXPORTING
+        iv_package = iv_package
+        io_dot     = io_dot
+        ii_log     = ii_log
+      CHANGING
+        ct_tadir   = rt_tadir ).
+
+    add_local_packages(
+      EXPORTING
+        it_packages = lt_packages
+      CHANGING
+        ct_tadir    = rt_tadir ).
+
+    add_namespaces(
+      EXPORTING
+        iv_package = iv_package
+      CHANGING
+        ct_tadir   = rt_tadir ).
+
+    determine_path(
+      EXPORTING
+        iv_package = iv_package
+        io_dot     = io_dot
+      CHANGING
+        ct_tadir   = rt_tadir ).
+
+    adjust_objects(
+      EXPORTING
+        iv_package = iv_package
+        io_dot     = io_dot
+      CHANGING
+        ct_tadir   = rt_tadir ).
+
   ENDMETHOD.
 
 
@@ -23735,6 +24066,49 @@ CLASS zcl_abapgit_tadir IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD determine_path.
+
+    DATA:
+      lv_path         TYPE string,
+      lo_folder_logic TYPE REF TO zcl_abapgit_folder_logic,
+      lv_last_package TYPE devclass VALUE cl_abap_char_utilities=>horizontal_tab.
+
+    FIELD-SYMBOLS <ls_tadir> LIKE LINE OF ct_tadir.
+
+    lo_folder_logic = zcl_abapgit_folder_logic=>get_instance( ).
+
+    LOOP AT ct_tadir ASSIGNING <ls_tadir>.
+
+      IF lv_last_package <> <ls_tadir>-devclass.
+        "Change in Package
+        lv_last_package = <ls_tadir>-devclass.
+
+        IF NOT io_dot IS INITIAL.
+          lv_path = lo_folder_logic->package_to_path(
+            iv_top     = iv_package
+            io_dot     = io_dot
+            iv_package = <ls_tadir>-devclass ).
+        ENDIF.
+      ENDIF.
+
+      <ls_tadir>-path = lv_path.
+
+      IF <ls_tadir>-object = 'SICF'.
+* replace the internal GUID with a hash of the path
+        TRY.
+            CALL METHOD ('ZCL_ABAPGIT_OBJECT_SICF')=>read_sicf_url
+              EXPORTING
+                iv_obj_name = <ls_tadir>-obj_name
+              RECEIVING
+                rv_hash     = <ls_tadir>-obj_name+15.
+          CATCH cx_sy_dyn_call_illegal_method ##NO_HANDLER.
+* SICF might not be supported in some systems, assume this code is not called
+        ENDTRY.
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
+
+
   METHOD exists.
 
     IF is_item IS INITIAL.
@@ -23747,6 +24121,71 @@ CLASS zcl_abapgit_tadir IMPLEMENTATION.
     ENDIF.
 
     rv_exists = zcl_abapinst_objects=>exists( is_item ).
+
+  ENDMETHOD.
+
+
+  METHOD select_objects.
+
+    DATA:
+      lt_excludes  TYPE RANGE OF trobjtype,
+      ls_exclude   LIKE LINE OF lt_excludes,
+      lt_srcsystem TYPE RANGE OF tadir-srcsystem,
+      ls_srcsystem LIKE LINE OF lt_srcsystem.
+
+    " Determine packages to read
+    IF iv_ignore_subpackages = abap_false.
+      et_packages = zcl_abapinst_factory=>get_sap_package( iv_package )->list_subpackages( ).
+    ENDIF.
+    INSERT iv_package INTO et_packages INDEX 1.
+
+    " Exclude object types with tadir entries that are included elsewhere
+    ls_exclude-sign   = 'I'.
+    ls_exclude-option = 'EQ'.
+    ls_exclude-low    = 'SOTR'. " automatically create for sap packages (DEVC)
+    APPEND ls_exclude TO lt_excludes.
+    ls_exclude-low    = 'SFB1'. " covered by business function sets (SFBS)
+    APPEND ls_exclude TO lt_excludes.
+    ls_exclude-low    = 'SFB2'. " covered by business functions (SFBF)
+    APPEND ls_exclude TO lt_excludes.
+    ls_exclude-low    = 'STOB'. " auto generated by core data services (DDLS)
+    APPEND ls_exclude TO lt_excludes.
+
+    " Limit to objects belonging to this system
+    IF iv_only_local_objects = abap_true.
+      ls_srcsystem-sign   = 'I'.
+      ls_srcsystem-option = 'EQ'.
+      ls_srcsystem-low    = sy-sysid.
+      APPEND ls_srcsystem TO lt_srcsystem.
+    ENDIF.
+
+    IF et_packages IS NOT INITIAL.
+      SELECT * FROM tadir INTO CORRESPONDING FIELDS OF TABLE et_tadir
+        FOR ALL ENTRIES IN et_packages
+        WHERE devclass = et_packages-table_line
+        AND pgmid      = 'R3TR'
+        AND object     NOT IN lt_excludes
+        AND delflag    = abap_false
+        AND srcsystem  IN lt_srcsystem
+        ORDER BY PRIMARY KEY ##TOO_MANY_ITAB_FIELDS. "#EC CI_GENBUFF "#EC CI_SUBRC
+    ENDIF.
+
+    SORT et_tadir BY devclass pgmid object obj_name.
+
+  ENDMETHOD.
+
+
+  METHOD skip_objects.
+
+    " Todo, replace with solution that will work with any object type (might depend on iv_package and io_dot)
+
+    DATA lo_skip_objects TYPE REF TO zcl_abapgit_skip_objects.
+
+    CREATE OBJECT lo_skip_objects.
+
+    ct_tadir = lo_skip_objects->skip_sadl_generated_objects(
+      it_tadir = ct_tadir
+      ii_log   = ii_log ).
 
   ENDMETHOD.
 
@@ -23781,14 +24220,14 @@ CLASS zcl_abapgit_tadir IMPLEMENTATION.
 
     DATA: li_exit TYPE REF TO zif_abapgit_exit.
 
-* start recursion
-* hmm, some problems here, should TADIR also build path?
-    rt_tadir = build( iv_package            = iv_package
-                      iv_top                = iv_package
-                      io_dot                = io_dot
-                      iv_ignore_subpackages = iv_ignore_subpackages
-                      iv_only_local_objects = iv_only_local_objects
-                      ii_log                = ii_log ).
+    " Start recursion
+    " hmm, some problems here, should TADIR also build path?
+    rt_tadir = build(
+      iv_package            = iv_package
+      io_dot                = io_dot
+      iv_ignore_subpackages = iv_ignore_subpackages
+      iv_only_local_objects = iv_only_local_objects
+      ii_log                = ii_log ).
 
     li_exit = zcl_abapgit_exit=>get_instance( ).
     li_exit->change_tadir(
@@ -23876,10 +24315,14 @@ CLASS zcl_abapgit_url IMPLEMENTATION.
 
   METHOD regex.
 
-    FIND REGEX '(https?://[^/]*)(.*/)([^\.]*)[\.git]?' IN iv_url
+    FIND REGEX '(https?://[^/]*)(.*/)(.*)\.git$' IN iv_url
       SUBMATCHES ev_host ev_path ev_name.
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( 'Malformed URL' ).
+      FIND REGEX '(https?://[^/]*)(.*/)(.*)$' IN iv_url
+        SUBMATCHES ev_host ev_path ev_name.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise( 'Malformed URL' ).
+      ENDIF.
     ENDIF.
 
   ENDMETHOD.
@@ -24843,6 +25286,9 @@ CLASS zcl_abapinst_file_status IMPLEMENTATION.
         READ TABLE lt_remote ASSIGNING <ls_remote>
           WITH KEY filename = <ls_local>-file-filename.
         IF sy-subrc = 0 AND <ls_local>-file-sha1 = <ls_remote>-sha1.
+          <ls_result>-match = abap_false.
+          <ls_result>-lstate = zif_abapgit_definitions=>c_state-deleted.
+          <ls_result>-rstate = zif_abapgit_definitions=>c_state-unchanged.
           <ls_result>-packmove = abap_true.
         ELSEIF sy-subrc = 4.
           " Check if file existed before and was deleted remotely
@@ -24899,9 +25345,9 @@ CLASS zcl_abapinst_file_status IMPLEMENTATION.
                      } and repeat process.|.
             zcx_abapgit_exception=>raise( lv_msg ).
           ELSE.
-          CLEAR ls_item-devclass.
+            CLEAR ls_item-devclass.
+          ENDIF.
         ENDIF.
-      ENDIF.
       ENDIF.
 
       APPEND ls_item TO lt_items.
@@ -25105,10 +25551,6 @@ CLASS zcl_abapinst_file_status IMPLEMENTATION.
 
   METHOD status.
 
-    DATA lv_index LIKE sy-tabix.
-
-    FIELD-SYMBOLS: <ls_result> LIKE LINE OF rt_results.
-
     rt_results = calculate_status(
       iv_devclass  = iv_package
       io_dot       = io_dot
@@ -25225,11 +25667,9 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
           iv_enum_transport = iv_enum_transport
           iv_transport      = iv_transport ).
 
-*        _namespaces( ).
+        _namespaces( ).
 
-*        _devclass(
-*          iv_dlvunit  = iv_dlvunit
-*          iv_devlayer = iv_devlayer ).
+        _confirm_messages( ).
 
         zcl_abapinst_objects=>deserialize(
           iv_package   = gs_inst-pack
@@ -25243,16 +25683,14 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
         _save( ).
 
-        IF gs_inst-status <> 'E'.
-          lv_msg = |Installation of { gs_inst-name } successfully completed|.
-          MESSAGE lv_msg TYPE 'S'.
-        ELSE.
-          lv_msg = |Installation of { gs_inst-name } finshed with errors|.
-          MESSAGE lv_msg TYPE 'S' DISPLAY LIKE 'E'.
-        ENDIF.
+        _final_message( 'Installation' ).
 
       CATCH zcx_abapgit_exception INTO lx_error.
-        zcx_abapinst_exception=>raise( lx_error->get_text( ) ).
+
+        gi_log->add_exception( ix_exc = lx_error ).
+
+        _log_end( ).
+
     ENDTRY.
 
   ENDMETHOD.
@@ -25261,7 +25699,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
   METHOD list.
 
     DATA:
-      lv_msg TYPE string,
+      lv_msg                 TYPE string,
       lt_list                TYPE zif_abapinst_definitions=>ty_list,
       lo_list                TYPE REF TO cl_salv_table,
       lo_functions           TYPE REF TO cl_salv_functions,
@@ -25402,20 +25840,20 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
         _log_end( ).
 
-        IF gs_inst-status <> 'E'.
+        IF gs_inst-status = 'S'.
           _delete(
             iv_name = gs_inst-name
             iv_pack = gs_inst-pack ).
-
-          lv_msg = |Uninstall of { gs_inst-name } successfully completed|.
-          MESSAGE lv_msg TYPE 'S'.
-        ELSE.
-          lv_msg = |Uninstall of { gs_inst-name } finshed with errors|.
-          MESSAGE lv_msg TYPE 'S' DISPLAY LIKE 'E'.
         ENDIF.
 
+        _final_message( 'Uninstall' ).
+
       CATCH zcx_abapgit_exception INTO lx_error.
-        zcx_abapinst_exception=>raise( lx_error->get_text( ) ).
+
+        gi_log->add_exception( ix_exc = lx_error ).
+
+        _log_end( ).
+
     ENDTRY.
 
   ENDMETHOD.
@@ -25434,60 +25872,48 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD _delete.
+  METHOD _confirm_messages.
 
-    go_db->delete( iv_name = iv_name
-                   iv_pack = iv_pack ).
+    TYPES:
+      BEGIN OF ty_message,
+        id TYPE symsgid,
+        ty TYPE symsgty,
+        no TYPE symsgno,
+        v1 TYPE symsgv,
+        v2 TYPE symsgv,
+        v3 TYPE symsgv,
+        v4 TYPE symsgv,
+      END OF ty_message.
+
+    DATA ls_msg TYPE ty_message.
+
+    FIELD-SYMBOLS <lt_msg> TYPE STANDARD TABLE.
+
+    " Auto-confirm certain messages (requires SAP Note 1609940)
+    PERFORM dummy IN PROGRAM saplstrd IF FOUND.  "load function group STRD
+    ASSIGN ('(SAPLSTRD)GT_CONFIRMED_MESSAGES') TO <lt_msg>.
+    IF sy-subrc = 0.
+      " Object can only be created in package of namespace
+      ls_msg-id = 'TR'.
+      ls_msg-no = '007'.
+      COLLECT ls_msg INTO <lt_msg>.
+      " Make repairs in foreign namespaces only if they are urgent
+      ls_msg-id = 'TR'.
+      ls_msg-no = '852'.
+      COLLECT ls_msg INTO <lt_msg>.
+      " Make repairs in foreign namespaces only if they are urgent
+      ls_msg-id = 'TK'.
+      ls_msg-no = '016'.
+      COLLECT ls_msg INTO <lt_msg>.
+    ENDIF.
 
   ENDMETHOD.
 
 
-  METHOD _devclass.
+  METHOD _delete.
 
-    DATA:
-      lv_devlayer TYPE devlayer,
-      ls_package  TYPE scompkdtln.
-
-    IF gs_inst-pack(1) = '$'.
-      zcl_abapinst_factory=>get_sap_package( gs_inst-pack )->create_local( ).
-    ELSE.
-      " Software component
-      ls_package-dlvunit = iv_dlvunit.
-      IF ls_package-dlvunit IS INITIAL.
-        ls_package-dlvunit = 'HOME'.
-      ENDIF.
-
-      " Transport layer
-      ls_package-pdevclass = iv_devlayer.
-      IF ls_package-pdevclass IS INITIAL.
-        CALL FUNCTION 'TR_GET_TRANSPORT_TARGET'
-          EXPORTING
-            iv_use_default             = abap_true
-            iv_get_layer_only          = abap_true
-          IMPORTING
-            ev_layer                   = lv_devlayer
-          EXCEPTIONS
-            wrong_call                 = 1
-            invalid_input              = 2
-            cts_initialization_failure = 3
-            OTHERS                     = 4.
-        IF sy-subrc <> 0.
-          zcx_abapinst_exception=>raise( |Error getting transport layer| ).
-        ENDIF.
-        ls_package-pdevclass = lv_devlayer.
-      ENDIF.
-
-      ls_package-devclass   = gs_inst-pack.
-      ls_package-ctext      = gs_inst-pack.
-      ls_package-as4user    = sy-uname.
-      ls_package-language   = sy-langu.
-      ls_package-masterlang = sy-langu.
-      zcl_abapinst_factory=>get_sap_package( gs_inst-pack )->create(
-        is_package   = ls_package
-        iv_transport = gs_inst-transport ).
-    ENDIF.
-
-    COMMIT WORK AND WAIT.
+    go_db->delete( iv_name = iv_name
+                   iv_pack = iv_pack ).
 
   ENDMETHOD.
 
@@ -25527,6 +25953,27 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
     zcl_abapinst_file=>virus_scan( lv_xstr ).
 
     gt_remote = zcl_abapinst_file=>unzip( lv_xstr ).
+
+  ENDMETHOD.
+
+
+  METHOD _final_message.
+
+    DATA lv_msg TYPE string.
+
+    CASE gs_inst-status.
+      WHEN 'S'.
+        lv_msg = |{ iv_type } of { gs_inst-name } successfully completed|.
+        MESSAGE lv_msg TYPE 'S'.
+      WHEN 'W'.
+        lv_msg = |{ iv_type } of { gs_inst-name } finished with warnings|.
+        MESSAGE lv_msg TYPE 'W'.
+      WHEN 'E'.
+        lv_msg = |{ iv_type } of { gs_inst-name } finshed with errors|.
+        MESSAGE lv_msg TYPE 'S' DISPLAY LIKE 'E'.
+      WHEN OTHERS.
+        ASSERT 1 = 2.
+    ENDCASE.
 
   ENDMETHOD.
 
@@ -25610,6 +26057,8 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
     DATA lt_remote TYPE zif_abapgit_definitions=>ty_files_tt.
 
+    " Namespaces must be created upfront,
+    " otherwise folder_logic->path_to_package will fail
     lt_remote = _find_remote_namespaces( ).
 
     IF lines( lt_remote ) > 0.
@@ -25644,6 +26093,9 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       " Heuristic to get a name proposal
       TRY.
           lv_name = zcl_abapgit_url=>name( gs_inst-source_name ).
+          IF lv_name CS 'URL error'.
+            lv_name = gs_inst-source_name.
+          ENDIF.
         CATCH zcx_abapgit_exception.
           lv_name = gs_inst-source_name.
       ENDTRY.
@@ -26217,35 +26669,6 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD create_tadir_for_namespace.
-
-    DATA ls_tadir TYPE tadir.
-
-    IF is_item-obj_name(1) = '/'.
-      " For namespace object that do not exist yet, insert a TADIR entry
-      " Direct update to avoid namespace check or setting repair flag
-      SELECT SINGLE * FROM tadir INTO ls_tadir
-        WHERE pgmid = 'R3TR' AND object = is_item-obj_type AND obj_name = is_item-obj_name.
-      IF sy-subrc <> 0.
-        UPDATE tadir SET srcsystem = sy-sysid
-          WHERE pgmid = 'R3TR' AND object = is_item-obj_type AND obj_name = is_item-obj_name.
-      ELSE.
-        ls_tadir-pgmid      = 'R3TR'.
-        ls_tadir-object     = is_item-obj_type.
-        ls_tadir-obj_name   = is_item-obj_name.
-        ls_tadir-srcsystem  = sy-sysid.
-        ls_tadir-author     = sy-uname.
-        ls_tadir-devclass   = is_item-devclass.
-        ls_tadir-cproject   = ' L'.
-        ls_tadir-masterlang = sy-langu.
-        ls_tadir-created_on = sy-datum.
-        INSERT tadir FROM ls_tadir.
-      ENDIF.
-    ENDIF.
-
-  ENDMETHOD.
-
-
   METHOD delete.
 
     DATA: ls_item     TYPE zif_abapgit_definitions=>ty_item,
@@ -26291,7 +26714,7 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
         ls_item-obj_name = <ls_tadir>-obj_name.
 
         TRY.
-            delete_obj(
+            delete_object(
               iv_package = <ls_tadir>-devclass
               is_item    = ls_item ).
 
@@ -26329,7 +26752,7 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD delete_obj.
+  METHOD delete_object.
 
     DATA: li_obj TYPE REF TO zif_abapgit_object.
 
@@ -26411,6 +26834,7 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
                           it_items    = lt_items ).
 
     lo_folder_logic = zcl_abapgit_folder_logic=>get_instance( ).
+
     LOOP AT lt_results ASSIGNING <ls_result>.
       li_progress->show( iv_current = sy-tabix
                          iv_text    = |Deserialize { <ls_result>-obj_name }| ).
@@ -26421,7 +26845,7 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
 
       "error handling & logging added
       TRY.
-          " This will create the package if it does not exist
+          " If it does not exist yet, it will be created with this call
           lv_package = lo_folder_logic->path_to_package(
             iv_top  = iv_package
             io_dot  = io_dot
@@ -26526,8 +26950,6 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
         iv_text    = |Deserialize { is_step-descr } - { <ls_obj>-item-obj_name }| ).
 
       TRY.
-*          create_tadir_for_namespace( <ls_obj>-item ).
-
           <ls_obj>-obj->deserialize( iv_package = <ls_obj>-package
                                      io_xml     = <ls_obj>-xml
                                      iv_step    = is_step-step_id
@@ -26547,11 +26969,6 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
     ENDLOOP.
 
     CASE is_step-step_id.
-      WHEN zif_abapgit_object=>gc_step_id-lead.
-        " any errors during lead step will cancel rest of process
-        IF ii_log->get_status( ) = 'E'.
-          zcx_abapgit_exception=>raise( 'Error during lead phase' ).
-        ENDIF.
       WHEN zif_abapgit_object=>gc_step_id-ddic.
         zcl_abapgit_objects_activation=>activate( is_step-is_ddic ).
       WHEN zif_abapgit_object=>gc_step_id-abap.
@@ -26586,8 +27003,7 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
 
   METHOD files_to_deserialize.
 
-    DATA:
-      lt_results TYPE zif_abapgit_definitions=>ty_results_tt.
+    DATA lt_results TYPE zif_abapgit_definitions=>ty_results_tt.
 
     lt_results = zcl_abapinst_file_status=>status(
       iv_package         = iv_package
@@ -26597,11 +27013,11 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
       io_dot             = io_dot
       ii_log             = ii_log ).
 
-    lt_results = filter_files_to_deserialize(
-      it_results = lt_results
-      ii_log     = ii_log ).
-
-    rt_results = adjust_namespaces( prioritize_deser( lt_results ) ).
+    rt_results = adjust_namespaces(
+                   prioritize_deser(
+                     filter_files_to_deserialize(
+                       it_results = lt_results
+                       ii_log     = ii_log ) ) ).
 
   ENDMETHOD.
 
@@ -26700,13 +27116,6 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
 
 
     APPEND INITIAL LINE TO rt_steps ASSIGNING <ls_step>.
-    <ls_step>-step_id      = zif_abapgit_object=>gc_step_id-lead.
-    <ls_step>-descr        = 'Import lead objects'.
-    <ls_step>-is_ddic      = abap_false.
-    <ls_step>-syntax_check = abap_false.
-    <ls_step>-order        = 0.
-
-    APPEND INITIAL LINE TO rt_steps ASSIGNING <ls_step>.
     <ls_step>-step_id      = zif_abapgit_object=>gc_step_id-ddic.
     <ls_step>-descr        = 'Import DDIC objects'.
     <ls_step>-is_ddic      = abap_true.
@@ -26800,11 +27209,6 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
 
     FIELD-SYMBOLS: <ls_result> LIKE LINE OF it_results.
 
-* NSPC first
-    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'NSPC'.
-      APPEND <ls_result> TO rt_results.
-    ENDLOOP.
-
 * WEBI has to be handled before SPRX.
     LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'WEBI'.
       APPEND <ls_result> TO rt_results.
@@ -26857,7 +27261,6 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
 
     LOOP AT it_results ASSIGNING <ls_result>
         WHERE obj_type <> 'IASP'
-        AND obj_type <> 'NSPC'
         AND obj_type <> 'PROG'
         AND obj_type <> 'XSLT'
         AND obj_type <> 'PINF'
@@ -28023,13 +28426,15 @@ CLASS zcl_abapinst_screen IMPLEMENTATION.
       ENDIF.
 
       CASE screen-group1.
-        WHEN 'T02'.
+        WHEN 'T02'. " SAP Package
           lv_show = boolc( iv_options = abap_true AND NOT iv_mbt = abap_true ).
-        WHEN 'T03'.
+        WHEN 'T03'. " Transport
           lv_show = boolc( iv_options = abap_true AND NOT iv_mbt = abap_true ).
-        WHEN 'T04'.
+        WHEN 'T04'. " Authentication
           lv_show = boolc( iv_zip_i = abap_true ).
-        WHEN 'T08'.
+        WHEN 'T05'. " Uninstall (only for SUBMIT)
+          lv_show = abap_false.
+        WHEN 'T08'. " Options
           lv_show = boolc( iv_options = abap_true AND NOT iv_mbt = abap_true ).
         WHEN 'C11'.
           lv_input = boolc( iv_zip_i = abap_true ).
@@ -28398,7 +28803,7 @@ class lcl_utils definition final.
       importing
         iv_path type string
       returning
-        value(rv_path_name) type zcl_ajson=>ty_path_name.
+        value(rv_path_name) type zif_ajson=>ty_path_name.
     class-methods validate_array_index
       importing
         iv_path type string
@@ -28479,14 +28884,14 @@ class lcl_json_parser definition final.
       importing
         iv_json type string
       returning
-        value(rt_json_tree) type zcl_ajson=>ty_nodes_tt
+        value(rt_json_tree) type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
   private section.
 
     types:
-      ty_stack_tt type standard table of ref to zcl_ajson=>ty_node.
+      ty_stack_tt type standard table of ref to zif_ajson=>ty_node.
 
     data mt_stack type ty_stack_tt.
 
@@ -28506,7 +28911,7 @@ class lcl_json_parser definition final.
       importing
         iv_json type string
       returning
-        value(rt_json_tree) type zcl_ajson=>ty_nodes_tt
+        value(rt_json_tree) type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error cx_sxml_error.
 
@@ -28633,8 +29038,9 @@ class lcl_json_serializer definition final create private.
 
     class-methods stringify
       importing
-        it_json_tree type zcl_ajson=>ty_nodes_ts
+        it_json_tree type zif_ajson=>ty_nodes_ts
         iv_indent type i default 0
+        iv_keep_item_order type abap_bool default abap_false
       returning
         value(rv_json_string) type string
       raising
@@ -28646,7 +29052,8 @@ class lcl_json_serializer definition final create private.
 
     class-data gv_comma_with_lf type string.
 
-    data mt_json_tree type zcl_ajson=>ty_nodes_ts.
+    data mt_json_tree type zif_ajson=>ty_nodes_ts.
+    data mv_keep_item_order type abap_bool.
     data mt_buffer type string_table.
     data mv_indent_step type i.
     data mv_level type i.
@@ -28665,7 +29072,7 @@ class lcl_json_serializer definition final create private.
 
     methods stringify_node
       importing
-        is_node type zcl_ajson=>ty_node
+        is_node type zif_ajson=>ty_node
       raising
         zcx_ajson_error.
 
@@ -28690,6 +29097,7 @@ class lcl_json_serializer implementation.
     create object lo.
     lo->mt_json_tree = it_json_tree.
     lo->mv_indent_step = iv_indent.
+    lo->mv_keep_item_order = iv_keep_item_order.
     rv_json_string = lo->_stringify( ).
 
   endmethod.
@@ -28730,16 +29138,16 @@ class lcl_json_serializer implementation.
     endif.
 
     case is_node-type.
-      when zcl_ajson=>node_type-array.
+      when zif_ajson=>node_type-array.
         lv_item = lv_item && '['.
-      when zcl_ajson=>node_type-object.
+      when zif_ajson=>node_type-object.
         lv_item = lv_item && '{'.
-      when zcl_ajson=>node_type-string.
+      when zif_ajson=>node_type-string.
         lv_item = lv_item && |"{ escape( is_node-value ) }"|.
-      when zcl_ajson=>node_type-boolean or zcl_ajson=>node_type-number.
+      when zif_ajson=>node_type-boolean or zif_ajson=>node_type-number.
         lv_item = lv_item && is_node-value.
-      when zcl_ajson=>node_type-null.
-        lv_item = lv_item && zcl_ajson=>node_value-null.
+      when zif_ajson=>node_type-null.
+        lv_item = lv_item && 'null'.
       when others.
         zcx_ajson_error=>raise(
           iv_msg = |Unexpected type [{ is_node-type }]|
@@ -28747,7 +29155,7 @@ class lcl_json_serializer implementation.
     endcase.
 
     if mv_indent_step > 0
-      and ( is_node-type = zcl_ajson=>node_type-array or is_node-type = zcl_ajson=>node_type-object )
+      and ( is_node-type = zif_ajson=>node_type-array or is_node-type = zif_ajson=>node_type-object )
       and is_node-children > 0.
       mv_level = mv_level + 1.
       lv_item = lv_item && cl_abap_char_utilities=>newline.
@@ -28757,21 +29165,21 @@ class lcl_json_serializer implementation.
 
     " finish complex item
 
-    if is_node-type = zcl_ajson=>node_type-array or is_node-type = zcl_ajson=>node_type-object.
+    if is_node-type = zif_ajson=>node_type-array or is_node-type = zif_ajson=>node_type-object.
       data lv_children_path type string.
       data lv_tail type string.
 
       lv_children_path = is_node-path && is_node-name && '/'. " for root: path = '' and name = '', so result is '/'
 
       case is_node-type.
-        when zcl_ajson=>node_type-array.
+        when zif_ajson=>node_type-array.
           if is_node-children > 0.
             stringify_set(
               iv_parent_path = lv_children_path
               iv_array       = abap_true ).
           endif.
           lv_tail = ']'.
-        when zcl_ajson=>node_type-object.
+        when zif_ajson=>node_type-object.
           if is_node-children > 0.
             stringify_set(
               iv_parent_path = lv_children_path
@@ -28797,6 +29205,8 @@ class lcl_json_serializer implementation.
 
     if iv_array = abap_true.
       lv_tab_key = 'array_index'. " path + index
+    elseif mv_keep_item_order = abap_true.
+      lv_tab_key = 'item_order'. " path + order
     else.
       lv_tab_key = 'primary_key'. " path + name
     endif.
@@ -28875,18 +29285,22 @@ class lcl_json_to_abap definition final.
         zcx_ajson_error.
 
     class-methods bind
+      importing
+        !ii_custom_mapping type ref to zif_ajson_mapping optional
       changing
-        c_obj type any
-        co_instance type ref to lcl_json_to_abap.
+        c_obj              type any
+        co_instance        type ref to lcl_json_to_abap.
 
     methods to_abap
       importing
-        it_nodes type zcl_ajson=>ty_nodes_ts
+        it_nodes type zif_ajson=>ty_nodes_ts
       raising
         zcx_ajson_error.
 
   private section.
     data mr_obj type ref to data.
+    data mi_custom_mapping type ref to zif_ajson_mapping.
+
 endclass.
 
 class lcl_json_to_abap implementation.
@@ -28894,6 +29308,7 @@ class lcl_json_to_abap implementation.
   method bind.
     create object co_instance.
     get reference of c_obj into co_instance->mr_obj.
+    co_instance->mi_custom_mapping = ii_custom_mapping.
   endmethod.
 
   method to_abap.
@@ -28915,13 +29330,13 @@ class lcl_json_to_abap implementation.
         describe field <value> type lv_type.
 
         case <n>-type.
-          when zcl_ajson=>node_type-null.
+          when zif_ajson=>node_type-null.
             " Do nothing
-          when zcl_ajson=>node_type-boolean.
-            <value> = boolc( <n>-value = zcl_ajson=>node_value-true ).
-          when zcl_ajson=>node_type-number.
+          when zif_ajson=>node_type-boolean.
+            <value> = boolc( <n>-value = 'true' ).
+          when zif_ajson=>node_type-number.
             <value> = <n>-value.
-          when zcl_ajson=>node_type-string.
+          when zif_ajson=>node_type-string.
             if lv_type = 'D' and <n>-value is not initial.
               data lv_y type c length 4.
               data lv_m type c length 2.
@@ -28939,13 +29354,13 @@ class lcl_json_to_abap implementation.
             else.
               <value> = <n>-value.
             endif.
-          when zcl_ajson=>node_type-object.
+          when zif_ajson=>node_type-object.
             if not lv_type co 'uv'.
               zcx_ajson_error=>raise(
                 iv_msg      = 'Expected structure'
                 iv_location = <n>-path && <n>-name ).
             endif.
-          when zcl_ajson=>node_type-array.
+          when zif_ajson=>node_type-array.
             if not lv_type co 'h'.
               zcx_ajson_error=>raise(
                 iv_msg      = 'Expected table'
@@ -28970,6 +29385,7 @@ class lcl_json_to_abap implementation.
 
     data lt_path type string_table.
     data lv_trace type string.
+    data lv_seg like line of lt_path.
     data lv_type type c.
     data lv_size type i.
     data lv_index type i.
@@ -28988,7 +29404,18 @@ class lcl_json_to_abap implementation.
 
     loop at lt_path assigning <seg>.
       lv_trace = lv_trace && '/' && <seg>.
-      <seg> = to_upper( <seg> ).
+
+      if mi_custom_mapping is bound.
+        lv_seg = mi_custom_mapping->to_abap( iv_path = iv_path iv_name = <seg> ).
+      else.
+        clear lv_seg.
+      endif.
+
+      if lv_seg is initial.
+        lv_seg = to_upper( <seg> ).
+      else.
+        lv_seg = to_upper( lv_seg ).
+      endif.
 
       assign r_ref->* to <struc>.
       assert sy-subrc = 0.
@@ -29001,12 +29428,12 @@ class lcl_json_to_abap implementation.
           iv_location = lv_trace ).
 
       elseif lv_type = 'h'. " table
-        if not <seg> co '0123456789'.
+        if not lv_seg co '0123456789'.
           zcx_ajson_error=>raise(
             iv_msg      = 'Need index to access tables'
             iv_location = lv_trace ).
         endif.
-        lv_index = <seg>.
+        lv_index = lv_seg.
         assign r_ref->* to <table>.
         assert sy-subrc = 0.
 
@@ -29023,7 +29450,7 @@ class lcl_json_to_abap implementation.
         endif.
 
       elseif lv_type ca 'uv'. " structure
-        assign component <seg> of structure <struc> to <value>.
+        assign component lv_seg of structure <struc> to <value>.
         if sy-subrc <> 0.
           zcx_ajson_error=>raise(
             iv_msg      = 'Path not found'
@@ -29050,22 +29477,26 @@ class lcl_abap_to_json definition final.
 
     class-methods convert
       importing
-        iv_data type any
-        is_prefix type zcl_ajson=>ty_path_name optional
-        iv_array_index type i default 0
+        iv_data            type any
+        is_prefix          type zif_ajson=>ty_path_name optional
+        iv_array_index     type i default 0
+        ii_custom_mapping  type ref to zif_ajson_mapping optional
+        iv_keep_item_order type abap_bool default abap_false
       returning
-        value(rt_nodes) type zcl_ajson=>ty_nodes_tt
+        value(rt_nodes)   type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
     class-methods insert_with_type
       importing
-        iv_data type any
-        iv_type type string
-        is_prefix type zcl_ajson=>ty_path_name optional
-        iv_array_index type i default 0
+        iv_data            type any
+        iv_type            type string
+        is_prefix          type zif_ajson=>ty_path_name optional
+        iv_array_index     type i default 0
+        ii_custom_mapping  type ref to zif_ajson_mapping optional
+        iv_keep_item_order type abap_bool default abap_false
       returning
-        value(rt_nodes) type zcl_ajson=>ty_nodes_tt
+        value(rt_nodes)   type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
@@ -29074,45 +29505,49 @@ class lcl_abap_to_json definition final.
   private section.
 
     class-data gv_ajson_absolute_type_name type string.
+    data mi_custom_mapping type ref to zif_ajson_mapping.
+    data mv_keep_item_order type abap_bool.
 
     methods convert_any
       importing
         iv_data type any
         io_type type ref to cl_abap_typedescr
-        is_prefix type zcl_ajson=>ty_path_name
+        is_prefix type zif_ajson=>ty_path_name
         iv_index type i default 0
+        iv_item_order type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
+        ct_nodes type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
     methods convert_ajson
       importing
         io_json type ref to zcl_ajson
-        is_prefix type zcl_ajson=>ty_path_name
+        is_prefix type zif_ajson=>ty_path_name
         iv_index type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt.
+        ct_nodes type zif_ajson=>ty_nodes_tt.
 
     methods convert_value
       importing
         iv_data type any
         io_type type ref to cl_abap_typedescr
-        is_prefix type zcl_ajson=>ty_path_name
+        is_prefix type zif_ajson=>ty_path_name
         iv_index type i default 0
+        iv_item_order type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
+        ct_nodes type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
     methods convert_ref
       importing
         iv_data type any
-        io_type type ref to cl_abap_typedescr
-        is_prefix type zcl_ajson=>ty_path_name
+        is_prefix type zif_ajson=>ty_path_name
         iv_index type i default 0
+        iv_item_order type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
+        ct_nodes type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
@@ -29120,11 +29555,12 @@ class lcl_abap_to_json definition final.
       importing
         iv_data type any
         io_type type ref to cl_abap_typedescr
-        is_prefix type zcl_ajson=>ty_path_name
+        is_prefix type zif_ajson=>ty_path_name
         iv_index type i default 0
+        iv_item_order type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
-        cs_root  type zcl_ajson=>ty_node optional
+        ct_nodes type zif_ajson=>ty_nodes_tt
+        cs_root  type zif_ajson=>ty_node optional
       raising
         zcx_ajson_error.
 
@@ -29132,10 +29568,11 @@ class lcl_abap_to_json definition final.
       importing
         iv_data type any
         io_type type ref to cl_abap_typedescr
-        is_prefix type zcl_ajson=>ty_path_name
+        is_prefix type zif_ajson=>ty_path_name
         iv_index type i default 0
+        iv_item_order type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
+        ct_nodes type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
@@ -29144,10 +29581,11 @@ class lcl_abap_to_json definition final.
         iv_data type any
         iv_type type string
         io_type type ref to cl_abap_typedescr
-        is_prefix type zcl_ajson=>ty_path_name
+        is_prefix type zif_ajson=>ty_path_name
         iv_index type i default 0
+        iv_item_order type i default 0
       changing
-        ct_nodes type zcl_ajson=>ty_nodes_tt
+        ct_nodes type zif_ajson=>ty_nodes_tt
       raising
         zcx_ajson_error.
 
@@ -29170,7 +29608,10 @@ class lcl_abap_to_json implementation.
     data lo_converter type ref to lcl_abap_to_json.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
+
     create object lo_converter.
+    lo_converter->mi_custom_mapping = ii_custom_mapping.
+    lo_converter->mv_keep_item_order = iv_keep_item_order.
 
     lo_converter->convert_any(
       exporting
@@ -29193,6 +29634,7 @@ class lcl_abap_to_json implementation.
             io_type   = io_type
             is_prefix = is_prefix
             iv_index  = iv_index
+            iv_item_order = iv_item_order
           changing
             ct_nodes = ct_nodes ).
 
@@ -29203,6 +29645,7 @@ class lcl_abap_to_json implementation.
             io_type   = io_type
             is_prefix = is_prefix
             iv_index  = iv_index
+            iv_item_order = iv_item_order
           changing
             ct_nodes = ct_nodes ).
 
@@ -29213,6 +29656,7 @@ class lcl_abap_to_json implementation.
             io_type   = io_type
             is_prefix = is_prefix
             iv_index  = iv_index
+            iv_item_order = iv_item_order
           changing
             ct_nodes = ct_nodes ).
 
@@ -29222,9 +29666,9 @@ class lcl_abap_to_json implementation.
           convert_ref(
             exporting
               iv_data   = iv_data
-              io_type   = io_type
               is_prefix = is_prefix
               iv_index  = iv_index
+              iv_item_order = iv_item_order
             changing
               ct_nodes = ct_nodes ).
 
@@ -29273,19 +29717,28 @@ class lcl_abap_to_json implementation.
     <n>-path  = is_prefix-path.
     <n>-name  = is_prefix-name.
     <n>-index = iv_index.
+    <n>-order = iv_item_order.
+
+    if mi_custom_mapping is bound.
+      <n>-name = mi_custom_mapping->to_json( iv_path = is_prefix-path iv_name = is_prefix-name ).
+    endif.
+
+    if <n>-name is initial.
+      <n>-name  = is_prefix-name.
+    endif.
 
     if io_type->absolute_name = '\TYPE-POOL=ABAP\TYPE=ABAP_BOOL' or io_type->absolute_name = '\TYPE=XFELD'.
-      <n>-type = zcl_ajson=>node_type-boolean.
+      <n>-type = zif_ajson=>node_type-boolean.
       if iv_data is not initial.
-        <n>-value = zcl_ajson=>node_value-true.
+        <n>-value = 'true'.
       else.
-        <n>-value = zcl_ajson=>node_value-false.
+        <n>-value = 'false'.
       endif.
     elseif io_type->type_kind co 'CNgXyDT'. " Char like, date/time, xstring
-      <n>-type = zcl_ajson=>node_type-string.
+      <n>-type = zif_ajson=>node_type-string.
       <n>-value = |{ iv_data }|.
     elseif io_type->type_kind co 'bsI8PaeF'. " Numeric
-      <n>-type = zcl_ajson=>node_type-number.
+      <n>-type = zif_ajson=>node_type-number.
       <n>-value = |{ iv_data }|.
     else.
       zcx_ajson_error=>raise( |Unexpected elemetary type [{
@@ -29303,10 +29756,19 @@ class lcl_abap_to_json implementation.
     <n>-path  = is_prefix-path.
     <n>-name  = is_prefix-name.
     <n>-index = iv_index.
+    <n>-order = iv_item_order.
+
+    if mi_custom_mapping is bound.
+      <n>-name = mi_custom_mapping->to_json( iv_path = is_prefix-path iv_name = is_prefix-name ).
+    endif.
+
+    if <n>-name is initial.
+      <n>-name  = is_prefix-name.
+    endif.
 
     if iv_data is initial.
-      <n>-type  = zcl_ajson=>node_type-null.
-      <n>-value = zcl_ajson=>node_value-null.
+      <n>-type  = zif_ajson=>node_type-null.
+      <n>-value = 'null'.
     else.
       " TODO support data references
       zcx_ajson_error=>raise( |Unexpected reference @{ is_prefix-path && is_prefix-name }| ).
@@ -29319,6 +29781,7 @@ class lcl_abap_to_json implementation.
     data lo_struc type ref to cl_abap_structdescr.
     data lt_comps type cl_abap_structdescr=>component_table.
     data ls_next_prefix like is_prefix.
+    data lv_item_order type i.
 
     field-symbols <root> like line of ct_nodes.
     field-symbols <c> like line of lt_comps.
@@ -29337,8 +29800,18 @@ class lcl_abap_to_json implementation.
       append initial line to ct_nodes assigning <root>.
       <root>-path  = is_prefix-path.
       <root>-name  = is_prefix-name.
-      <root>-type  = zcl_ajson=>node_type-object.
+      <root>-type  = zif_ajson=>node_type-object.
       <root>-index = iv_index.
+
+      if mi_custom_mapping is bound.
+        <root>-name = mi_custom_mapping->to_json( iv_path = is_prefix-path iv_name = is_prefix-name ).
+      endif.
+
+      if <root>-name is initial.
+        <root>-name  = is_prefix-name.
+      endif.
+
+      <root>-order = iv_item_order.
     endif.
 
     ls_next_prefix-path = is_prefix-path && is_prefix-name && '/'.
@@ -29363,11 +29836,16 @@ class lcl_abap_to_json implementation.
         assign component <c>-name of structure iv_data to <val>.
         assert sy-subrc = 0.
 
+        if mv_keep_item_order = abap_true.
+          lv_item_order = <root>-children.
+        endif.
+
         convert_any(
           exporting
             iv_data   = <val>
             io_type   = <c>-type
             is_prefix = ls_next_prefix
+            iv_item_order = lv_item_order
           changing
             ct_nodes = ct_nodes ).
 
@@ -29393,8 +29871,17 @@ class lcl_abap_to_json implementation.
     append initial line to ct_nodes assigning <root>.
     <root>-path  = is_prefix-path.
     <root>-name  = is_prefix-name.
-    <root>-type  = zcl_ajson=>node_type-array.
+    <root>-type  = zif_ajson=>node_type-array.
     <root>-index = iv_index.
+    <root>-order = iv_item_order.
+
+    if mi_custom_mapping is bound.
+      <root>-name = mi_custom_mapping->to_json( iv_path = is_prefix-path iv_name = is_prefix-name ).
+    endif.
+
+    if <root>-name is initial.
+      <root>-name  = is_prefix-name.
+    endif.
 
     ls_next_prefix-path = is_prefix-path && is_prefix-name && '/'.
     assign iv_data to <tab>.
@@ -29422,7 +29909,10 @@ class lcl_abap_to_json implementation.
     data lo_converter type ref to lcl_abap_to_json.
 
     lo_type = cl_abap_typedescr=>describe_by_data( iv_data ).
+
     create object lo_converter.
+    lo_converter->mi_custom_mapping = ii_custom_mapping.
+    lo_converter->mv_keep_item_order = iv_keep_item_order.
 
     lo_converter->insert_value_with_type(
       exporting
@@ -29444,19 +29934,18 @@ class lcl_abap_to_json implementation.
 
     lv_prefix = is_prefix-path && is_prefix-name.
     if io_type->type_kind co 'CNgXyDT'. " Char like, date/time, xstring
-      if iv_type = zcl_ajson=>node_type-boolean and iv_data <> zcl_ajson=>node_value-true
-        and iv_data <> zcl_ajson=>node_value-false.
+      if iv_type = zif_ajson=>node_type-boolean and iv_data <> 'true' and iv_data <> 'false'.
         zcx_ajson_error=>raise( |Unexpected boolean value [{ iv_data }] @{ lv_prefix }| ).
-      elseif iv_type = zcl_ajson=>node_type-null and iv_data is not initial.
+      elseif iv_type = zif_ajson=>node_type-null and iv_data is not initial.
         zcx_ajson_error=>raise( |Unexpected null value [{ iv_data }] @{ lv_prefix }| ).
-      elseif iv_type = zcl_ajson=>node_type-number and iv_data cn '0123456789. E+-'.
+      elseif iv_type = zif_ajson=>node_type-number and iv_data cn '0123456789. E+-'.
         zcx_ajson_error=>raise( |Unexpected numeric value [{ iv_data }] @{ lv_prefix }| ).
-      elseif iv_type <> zcl_ajson=>node_type-string and iv_type <> zcl_ajson=>node_type-boolean
-        and iv_type <> zcl_ajson=>node_type-null and iv_type <> zcl_ajson=>node_type-number.
+      elseif iv_type <> zif_ajson=>node_type-string and iv_type <> zif_ajson=>node_type-boolean
+        and iv_type <> zif_ajson=>node_type-null and iv_type <> zif_ajson=>node_type-number.
         zcx_ajson_error=>raise( |Unexpected type for value [{ iv_type },{ iv_data }] @{ lv_prefix }| ).
       endif.
     elseif io_type->type_kind co 'bsI8PaeF'. " Numeric
-      if iv_type <> zcl_ajson=>node_type-number.
+      if iv_type <> zif_ajson=>node_type-number.
         zcx_ajson_error=>raise( |Unexpected value for numeric [{ iv_data }] @{ lv_prefix }| ).
       endif.
     else.
@@ -29470,6 +29959,15 @@ class lcl_abap_to_json implementation.
     <n>-index = iv_index.
     <n>-value = iv_data.
     <n>-type  = iv_type.
+    <n>-order = iv_item_order.
+
+    if mi_custom_mapping is bound.
+      <n>-name = mi_custom_mapping->to_json( iv_path = is_prefix-path iv_name = is_prefix-name ).
+    endif.
+
+    if <n>-name is initial.
+      <n>-name  = is_prefix-name.
+    endif.
 
   endmethod.
 
@@ -29477,11 +29975,12 @@ endclass.
 
 
 
-CLASS zcl_ajson IMPLEMENTATION.
+class zcl_ajson implementation.
 
 
   method create_empty.
     create object ro_instance.
+    ro_instance->mi_custom_mapping = ii_custom_mapping.
   endmethod.
 
 
@@ -29509,7 +30008,7 @@ CLASS zcl_ajson IMPLEMENTATION.
       delete mt_json_tree where path = iv_path and name = iv_name.
       rv_deleted = abap_true.
 
-      data ls_path type ty_path_name.
+      data ls_path type zif_ajson=>ty_path_name.
       ls_path = lcl_utils=>split_path( iv_path ).
       read table mt_json_tree assigning <node>
         with key
@@ -29523,15 +30022,10 @@ CLASS zcl_ajson IMPLEMENTATION.
   endmethod.
 
 
-  method freeze.
-    mv_read_only = abap_true.
-  endmethod.
-
-
   method get_item.
 
     field-symbols <item> like line of mt_json_tree.
-    data ls_path_name type ty_path_name.
+    data ls_path_name type zif_ajson=>ty_path_name.
     ls_path_name = lcl_utils=>split_path( iv_path ).
 
     read table mt_json_tree
@@ -29553,6 +30047,7 @@ CLASS zcl_ajson IMPLEMENTATION.
     create object ro_instance.
     create object lo_parser.
     ro_instance->mt_json_tree = lo_parser->parse( iv_json ).
+    ro_instance->mi_custom_mapping = ii_custom_mapping.
 
     if iv_freeze = abap_true.
       ro_instance->freeze( ).
@@ -29583,7 +30078,7 @@ CLASS zcl_ajson IMPLEMENTATION.
         clear ls_new_node.
         if lr_node_parent is not initial. " if has parent
           lr_node_parent->children = lr_node_parent->children + 1.
-          if lr_node_parent->type = node_type-array.
+          if lr_node_parent->type = zif_ajson=>node_type-array.
             ls_new_node-index = lcl_utils=>validate_array_index(
               iv_path  = lv_cur_path
               iv_index = lv_cur_name ).
@@ -29591,7 +30086,7 @@ CLASS zcl_ajson IMPLEMENTATION.
         endif.
         ls_new_node-path = lv_cur_path.
         ls_new_node-name = lv_cur_name.
-        ls_new_node-type = node_type-object.
+        ls_new_node-type = zif_ajson=>node_type-object.
         insert ls_new_node into table mt_json_tree reference into lr_node.
       endif.
       insert lr_node into rt_node_stack index 1.
@@ -29607,19 +30102,10 @@ CLASS zcl_ajson IMPLEMENTATION.
   endmethod.
 
 
-  method stringify.
-
-    rv_json = lcl_json_serializer=>stringify(
-      it_json_tree = mt_json_tree
-      iv_indent = iv_indent ).
-
-  endmethod.
-
-
   method zif_ajson_reader~array_to_string_table.
 
     data lv_normalized_path type string.
-    data lr_node type ref to ty_node.
+    data lr_node type ref to zif_ajson=>ty_node.
     field-symbols <item> like line of mt_json_tree.
 
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
@@ -29628,19 +30114,19 @@ CLASS zcl_ajson IMPLEMENTATION.
     if lr_node is initial.
       zcx_ajson_error=>raise( |Path not found: { iv_path }| ).
     endif.
-    if lr_node->type <> node_type-array.
+    if lr_node->type <> zif_ajson=>node_type-array.
       zcx_ajson_error=>raise( |Array expected at: { iv_path }| ).
     endif.
 
     loop at mt_json_tree assigning <item> where path = lv_normalized_path.
       case <item>-type.
-        when node_type-number or node_type-string.
+        when zif_ajson=>node_type-number or zif_ajson=>node_type-string.
           append <item>-value to rt_string_table.
-        when node_type-null.
+        when zif_ajson=>node_type-null.
           append '' to rt_string_table.
-        when node_type-boolean.
+        when zif_ajson=>node_type-boolean.
           data lv_tmp type string.
-          if <item>-value = zcl_ajson=>node_value-true.
+          if <item>-value = 'true'.
             lv_tmp = abap_true.
           else.
             clear lv_tmp.
@@ -29657,7 +30143,7 @@ CLASS zcl_ajson IMPLEMENTATION.
 
   method zif_ajson_reader~exists.
 
-    data lv_item type ref to ty_node.
+    data lv_item type ref to zif_ajson=>ty_node.
     lv_item = get_item( iv_path ).
     if lv_item is not initial.
       rv_exists = abap_true.
@@ -29668,7 +30154,7 @@ CLASS zcl_ajson IMPLEMENTATION.
 
   method zif_ajson_reader~get.
 
-    data lv_item type ref to ty_node.
+    data lv_item type ref to zif_ajson=>ty_node.
     lv_item = get_item( iv_path ).
     if lv_item is not initial.
       rv_value = lv_item->value.
@@ -29679,12 +30165,12 @@ CLASS zcl_ajson IMPLEMENTATION.
 
   method zif_ajson_reader~get_boolean.
 
-    data lv_item type ref to ty_node.
+    data lv_item type ref to zif_ajson=>ty_node.
     lv_item = get_item( iv_path ).
-    if lv_item is initial or lv_item->type = node_type-null.
+    if lv_item is initial or lv_item->type = zif_ajson=>node_type-null.
       return.
-    elseif lv_item->type = node_type-boolean.
-      rv_value = boolc( lv_item->value = zcl_ajson=>node_value-true ).
+    elseif lv_item->type = zif_ajson=>node_type-boolean.
+      rv_value = boolc( lv_item->value = 'true' ).
     elseif lv_item->value is not initial.
       rv_value = abap_true.
     endif.
@@ -29694,14 +30180,14 @@ CLASS zcl_ajson IMPLEMENTATION.
 
   method zif_ajson_reader~get_date.
 
-    data lv_item type ref to ty_node.
+    data lv_item type ref to zif_ajson=>ty_node.
     data lv_y type c length 4.
     data lv_m type c length 2.
     data lv_d type c length 2.
 
     lv_item = get_item( iv_path ).
 
-    if lv_item is not initial and lv_item->type = node_type-string.
+    if lv_item is not initial and lv_item->type = zif_ajson=>node_type-string.
       find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)'
         in lv_item->value
         submatches lv_y lv_m lv_d.
@@ -29713,9 +30199,9 @@ CLASS zcl_ajson IMPLEMENTATION.
 
   method zif_ajson_reader~get_integer.
 
-    data lv_item type ref to ty_node.
+    data lv_item type ref to zif_ajson=>ty_node.
     lv_item = get_item( iv_path ).
-    if lv_item is not initial and lv_item->type = node_type-number.
+    if lv_item is not initial and lv_item->type = zif_ajson=>node_type-number.
       rv_value = lv_item->value.
     endif.
 
@@ -29724,7 +30210,7 @@ CLASS zcl_ajson IMPLEMENTATION.
 
   method zif_ajson_reader~get_node_type.
 
-    data lv_item type ref to ty_node.
+    data lv_item type ref to zif_ajson=>ty_node.
     lv_item = get_item( iv_path ).
     if lv_item is not initial.
       rv_node_type = lv_item->type.
@@ -29735,9 +30221,9 @@ CLASS zcl_ajson IMPLEMENTATION.
 
   method zif_ajson_reader~get_number.
 
-    data lv_item type ref to ty_node.
+    data lv_item type ref to zif_ajson=>ty_node.
     lv_item = get_item( iv_path ).
-    if lv_item is not initial and lv_item->type = node_type-number.
+    if lv_item is not initial and lv_item->type = zif_ajson=>node_type-number.
       rv_value = lv_item->value.
     endif.
 
@@ -29746,9 +30232,9 @@ CLASS zcl_ajson IMPLEMENTATION.
 
   method zif_ajson_reader~get_string.
 
-    data lv_item type ref to ty_node.
+    data lv_item type ref to zif_ajson=>ty_node.
     lv_item = get_item( iv_path ).
-    if lv_item is not initial and lv_item->type <> node_type-null.
+    if lv_item is not initial and lv_item->type <> zif_ajson=>node_type-null.
       rv_value = lv_item->value.
     endif.
 
@@ -29774,7 +30260,7 @@ CLASS zcl_ajson IMPLEMENTATION.
     data lo_section         type ref to zcl_ajson.
     data ls_item            like line of mt_json_tree.
     data lv_normalized_path type string.
-    data ls_path_parts      type ty_path_name.
+    data ls_path_parts      type zif_ajson=>ty_path_name.
     data lv_path_len        type i.
 
     create object lo_section.
@@ -29805,9 +30291,11 @@ CLASS zcl_ajson IMPLEMENTATION.
 
     clear ev_container.
     lcl_json_to_abap=>bind(
+      exporting
+        ii_custom_mapping = mi_custom_mapping
       changing
-        c_obj = ev_container
-        co_instance = lo_to_abap ).
+        c_obj             = ev_container
+        co_instance       = lo_to_abap ).
     lo_to_abap->to_abap( mt_json_tree ).
 
   endmethod.
@@ -29830,7 +30318,7 @@ CLASS zcl_ajson IMPLEMENTATION.
       zcx_ajson_error=>raise( 'This json instance is read only' ).
     endif.
 
-    data ls_split_path type ty_path_name.
+    data ls_split_path type zif_ajson=>ty_path_name.
     ls_split_path = lcl_utils=>split_path( iv_path ).
 
     delete_subtree(
@@ -29842,8 +30330,8 @@ CLASS zcl_ajson IMPLEMENTATION.
 
   method zif_ajson_writer~push.
 
-    data lr_parent type ref to ty_node.
-    data lr_new_node type ref to ty_node.
+    data lr_parent type ref to zif_ajson=>ty_node.
+    data lr_new_node type ref to zif_ajson=>ty_node.
 
     if mv_read_only = abap_true.
       zcx_ajson_error=>raise( 'This json instance is read only' ).
@@ -29855,17 +30343,18 @@ CLASS zcl_ajson IMPLEMENTATION.
       zcx_ajson_error=>raise( |Path [{ iv_path }] does not exist| ).
     endif.
 
-    if lr_parent->type <> node_type-array.
+    if lr_parent->type <> zif_ajson=>node_type-array.
       zcx_ajson_error=>raise( |Path [{ iv_path }] is not array| ).
     endif.
 
-    data lt_new_nodes type ty_nodes_tt.
-    data ls_new_path type ty_path_name.
+    data lt_new_nodes type zif_ajson=>ty_nodes_tt.
+    data ls_new_path type zif_ajson=>ty_path_name.
 
     ls_new_path-path = lcl_utils=>normalize_path( iv_path ).
     ls_new_path-name = |{ lr_parent->children + 1 }|.
 
     lt_new_nodes = lcl_abap_to_json=>convert(
+      iv_keep_item_order = mv_keep_item_order
       iv_data   = iv_val
       is_prefix = ls_new_path ).
     read table lt_new_nodes index 1 reference into lr_new_node. " assume first record is the array item - not ideal !
@@ -29881,11 +30370,9 @@ CLASS zcl_ajson IMPLEMENTATION.
 
   method zif_ajson_writer~set.
 
-    data lt_path type string_table.
-    data ls_split_path type ty_path_name.
-    data lr_parent type ref to ty_node.
-    data lt_node_stack type table of ref to ty_node.
-    field-symbols <topnode> type ty_node.
+    data ls_split_path type zif_ajson=>ty_path_name.
+    data lr_parent type ref to zif_ajson=>ty_node.
+    data lt_node_stack type tty_node_stack.
 
     if mv_read_only = abap_true.
       zcx_ajson_error=>raise( 'This json instance is read only' ).
@@ -29896,8 +30383,8 @@ CLASS zcl_ajson IMPLEMENTATION.
     endif.
 
     if iv_node_type is not initial
-      and iv_node_type <> node_type-boolean and iv_node_type <> node_type-null
-      and iv_node_type <> node_type-number and iv_node_type <> node_type-string.
+      and iv_node_type <> zif_ajson=>node_type-boolean and iv_node_type <> zif_ajson=>node_type-null
+      and iv_node_type <> zif_ajson=>node_type-number and iv_node_type <> zif_ajson=>node_type-string.
       zcx_ajson_error=>raise( |Unexpected type { iv_node_type }| ).
     endif.
 
@@ -29905,13 +30392,17 @@ CLASS zcl_ajson IMPLEMENTATION.
     if ls_split_path is initial. " Assign root, exceptional processing
       if iv_node_type is not initial.
         mt_json_tree = lcl_abap_to_json=>insert_with_type(
-          iv_data   = iv_val
-          iv_type   = iv_node_type
-          is_prefix = ls_split_path ).
+          iv_keep_item_order = mv_keep_item_order
+          iv_data            = iv_val
+          iv_type            = iv_node_type
+          is_prefix          = ls_split_path
+          ii_custom_mapping  = mi_custom_mapping ).
       else.
         mt_json_tree = lcl_abap_to_json=>convert(
-          iv_data   = iv_val
-          is_prefix = ls_split_path ).
+          iv_keep_item_order = mv_keep_item_order
+          iv_data            = iv_val
+          is_prefix          = ls_split_path
+          ii_custom_mapping  = mi_custom_mapping ).
       endif.
       return.
     endif.
@@ -29927,10 +30418,10 @@ CLASS zcl_ajson IMPLEMENTATION.
       iv_name = ls_split_path-name ).
 
     " convert to json
-    data lt_new_nodes type ty_nodes_tt.
+    data lt_new_nodes type zif_ajson=>ty_nodes_tt.
     data lv_array_index type i.
 
-    if lr_parent->type = node_type-array.
+    if lr_parent->type = zif_ajson=>node_type-array.
       lv_array_index = lcl_utils=>validate_array_index(
         iv_path  = ls_split_path-path
         iv_index = ls_split_path-name ).
@@ -29938,15 +30429,19 @@ CLASS zcl_ajson IMPLEMENTATION.
 
     if iv_node_type is not initial.
       lt_new_nodes = lcl_abap_to_json=>insert_with_type(
-        iv_data        = iv_val
-        iv_type        = iv_node_type
-        iv_array_index = lv_array_index
-        is_prefix      = ls_split_path ).
+        iv_keep_item_order = mv_keep_item_order
+        iv_data            = iv_val
+        iv_type            = iv_node_type
+        iv_array_index     = lv_array_index
+        is_prefix          = ls_split_path
+        ii_custom_mapping  = mi_custom_mapping ).
     else.
       lt_new_nodes = lcl_abap_to_json=>convert(
-        iv_data        = iv_val
-        iv_array_index = lv_array_index
-        is_prefix      = ls_split_path ).
+        iv_keep_item_order = mv_keep_item_order
+        iv_data            = iv_val
+        iv_array_index     = lv_array_index
+        is_prefix          = ls_split_path
+        ii_custom_mapping  = mi_custom_mapping ).
     endif.
 
     " update data
@@ -30017,11 +30512,21 @@ CLASS zcl_ajson IMPLEMENTATION.
   endmethod.
 
 
+  method zif_ajson_writer~stringify.
+
+    rv_json = lcl_json_serializer=>stringify(
+      it_json_tree       = mt_json_tree
+      iv_keep_item_order = mv_keep_item_order
+      iv_indent          = iv_indent ).
+
+  endmethod.
+
+
   method zif_ajson_writer~touch_array.
 
-    data lr_node type ref to ty_node.
+    data lr_node type ref to zif_ajson=>ty_node.
     data ls_new_node like line of mt_json_tree.
-    data ls_split_path type ty_path_name.
+    data ls_split_path type zif_ajson=>ty_path_name.
 
     if mv_read_only = abap_true.
       zcx_ajson_error=>raise( 'This json instance is read only' ).
@@ -30046,8 +30551,8 @@ CLASS zcl_ajson IMPLEMENTATION.
 
     if lr_node is initial. " Or node was cleared
 
-      data lr_parent type ref to ty_node.
-      data lt_node_stack type table of ref to ty_node.
+      data lr_parent type ref to zif_ajson=>ty_node.
+      data lt_node_stack type tty_node_stack.
 
       lt_node_stack = prove_path_exists( ls_split_path-path ).
       read table lt_node_stack index 1 into lr_parent.
@@ -30056,24 +30561,255 @@ CLASS zcl_ajson IMPLEMENTATION.
 
       ls_new_node-path = ls_split_path-path.
       ls_new_node-name = ls_split_path-name.
-      ls_new_node-type = node_type-array.
+      ls_new_node-type = zif_ajson=>node_type-array.
       insert ls_new_node into table mt_json_tree.
 
-    elseif lr_node->type <> node_type-array.
+    elseif lr_node->type <> zif_ajson=>node_type-array.
       zcx_ajson_error=>raise( |Path [{ iv_path }] already used and is not array| ).
     endif.
 
   endmethod.
-ENDCLASS.
+
+
+  method zif_ajson~freeze.
+    mv_read_only = abap_true.
+  endmethod.
+
+
+  method zif_ajson~keep_item_order.
+    mv_keep_item_order = abap_true.
+  endmethod.
+endclass.
+class lcl_mapping_fields implementation.
+
+
+  method constructor.
+
+    data ls_mapping_field like line of mt_mapping_fields.
+
+    loop at it_mapping_fields into ls_mapping_field.
+      ls_mapping_field-abap = to_upper( ls_mapping_field-abap ).
+      insert ls_mapping_field into table mt_mapping_fields.
+    endloop.
+
+  endmethod.
+
+
+  method zif_ajson_mapping~to_abap.
+
+    data ls_mapping_field like line of mt_mapping_fields.
+
+    read table mt_mapping_fields into ls_mapping_field
+      with key json components json = iv_name.
+    if sy-subrc = 0.
+      rv_result = ls_mapping_field-abap.
+    endif.
+
+  endmethod.
+
+
+  method zif_ajson_mapping~to_json.
+
+    data lv_field type string.
+    data ls_mapping_field like line of mt_mapping_fields.
+
+    lv_field = to_upper( iv_name ).
+
+    read table mt_mapping_fields into ls_mapping_field
+      with key abap components abap = lv_field.
+    if sy-subrc = 0.
+      rv_result = ls_mapping_field-json.
+    endif.
+
+  endmethod.
+
+
+endclass.
+
+
+class lcl_mapping_to_upper implementation.
+
+
+  method constructor.
+
+    mi_mapping_fields = zcl_ajson_mapping=>create_field_mapping( it_mapping_fields ).
+
+  endmethod.
+
+
+  method zif_ajson_mapping~to_abap.
+
+    rv_result = mi_mapping_fields->to_abap( iv_path = iv_path iv_name = iv_name ).
+
+  endmethod.
+
+
+  method zif_ajson_mapping~to_json.
+
+    rv_result = mi_mapping_fields->to_json( iv_path = iv_path iv_name = iv_name ).
+
+    if rv_result is not initial. " Mapping found
+      return.
+    endif.
+
+    rv_result = to_upper( iv_name ).
+
+  endmethod.
+
+
+endclass.
+
+
+class lcl_mapping_to_lower implementation.
+
+
+  method constructor.
+
+    mi_mapping_fields = zcl_ajson_mapping=>create_field_mapping( it_mapping_fields ).
+
+  endmethod.
+
+
+  method zif_ajson_mapping~to_abap.
+
+    rv_result = mi_mapping_fields->to_abap( iv_path = iv_path iv_name = iv_name ).
+
+  endmethod.
+
+
+  method zif_ajson_mapping~to_json.
+
+    rv_result = mi_mapping_fields->to_json( iv_path = iv_path iv_name = iv_name ).
+
+    if rv_result is not initial. " Mapping found
+      return.
+    endif.
+
+    rv_result = to_lower( iv_name ).
+
+  endmethod.
+
+
+endclass.
+
+
+class lcl_mapping_camel implementation.
+
+
+  method constructor.
+
+    mi_mapping_fields   = zcl_ajson_mapping=>create_field_mapping( it_mapping_fields ).
+    mv_first_json_upper = iv_first_json_upper.
+
+  endmethod.
+
+
+  method zif_ajson_mapping~to_abap.
+
+    rv_result = mi_mapping_fields->to_abap( iv_path = iv_path iv_name = iv_name ).
+
+    if rv_result is not initial. " Mapping found
+      return.
+    endif.
+
+    rv_result = iv_name.
+
+    replace all occurrences of regex `([a-z])([A-Z])` in rv_result with `$1_$2`.
+
+  endmethod.
+
+
+  method zif_ajson_mapping~to_json.
+
+    types ty_token type c length 255.
+    data lt_tokens type standard table of ty_token.
+    data lv_from type i.
+    field-symbols <token> like line of lt_tokens.
+
+    rv_result = mi_mapping_fields->to_json( iv_path = iv_path iv_name = iv_name ).
+
+    if rv_result is not initial. " Mapping found
+      return.
+    endif.
+
+    rv_result = iv_name.
+
+    replace all occurrences of `__` in rv_result with `*`.
+
+    translate rv_result to lower case.
+    translate rv_result using `/_:_~_`.
+
+    if mv_first_json_upper = abap_true.
+      lv_from = 1.
+    else.
+      lv_from = 2.
+    endif.
+
+    split rv_result at `_` into table lt_tokens.
+    loop at lt_tokens assigning <token> from lv_from.
+      translate <token>(1) to upper case.
+    endloop.
+
+    concatenate lines of lt_tokens into rv_result.
+    replace all occurrences of `*` in rv_result with `_`.
+
+  endmethod.
+
+
+endclass.
 
 
 
-CLASS zcl_ajson_utilities IMPLEMENTATION.
+class zcl_ajson_mapping implementation.
+
+
+  method create_camel_case.
+
+    create object ri_mapping type lcl_mapping_camel
+      exporting
+        it_mapping_fields   = it_mapping_fields
+        iv_first_json_upper = iv_first_json_upper.
+
+  endmethod.
+
+
+  method create_upper_case.
+
+    create object ri_mapping type lcl_mapping_to_upper
+      exporting
+        it_mapping_fields = it_mapping_fields.
+
+  endmethod.
+
+
+  method create_lower_case.
+
+    create object ri_mapping type lcl_mapping_to_lower
+      exporting
+        it_mapping_fields = it_mapping_fields.
+
+  endmethod.
+
+
+  method create_field_mapping.
+
+    create object ri_mapping type lcl_mapping_fields
+      exporting
+        it_mapping_fields = it_mapping_fields.
+
+  endmethod.
+
+
+endclass.
+
+
+
+CLASS ZCL_AJSON_UTILITIES IMPLEMENTATION.
 
 
   method delete_empty_nodes.
 
-    data ls_json_tree type zcl_ajson=>ty_node.
+    data ls_json_tree like line of io_json->mt_json_tree.
     data lv_subrc type sy-subrc.
 
     do.
@@ -30149,8 +30885,8 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
       lv_path_b type string.
 
     field-symbols:
-      <node_a> type zcl_ajson=>ty_node,
-      <node_b> type zcl_ajson=>ty_node.
+      <node_a> like line of mo_json_a->mt_json_tree,
+      <node_b> like line of mo_json_a->mt_json_tree.
 
     loop at mo_json_a->mt_json_tree assigning <node_a> where path = iv_path.
       lv_path_a = <node_a>-path && <node_a>-name && '/'.
@@ -30230,8 +30966,8 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
     data lv_path type string.
 
     field-symbols:
-      <node_a> type zcl_ajson=>ty_node,
-      <node_b> type zcl_ajson=>ty_node.
+      <node_a> like line of mo_json_b->mt_json_tree,
+      <node_b> like line of mo_json_b->mt_json_tree.
 
     loop at mo_json_b->mt_json_tree assigning <node_b> where path = iv_path.
       lv_path = <node_b>-path && <node_b>-name && '/'.
@@ -30260,7 +30996,7 @@ CLASS zcl_ajson_utilities IMPLEMENTATION.
 
   method sort.
 
-    data lo_json type ref to zcl_ajson.
+    data lo_json type ref to zif_ajson.
 
     if boolc( iv_json is supplied ) = boolc( io_json is supplied ).
       zcx_ajson_error=>raise( 'Either supply JSON string or instance, but not both' ).
@@ -30801,6 +31537,8 @@ AT SELECTION-SCREEN.
       zcl_abapinst_screen=>browser( c_url_repo ).
 
   ENDCASE.
+
+  CLEAR sscrfields-ucomm.
 
 AT SELECTION-SCREEN OUTPUT.
 

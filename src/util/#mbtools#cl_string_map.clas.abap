@@ -14,6 +14,7 @@ CLASS /mbtools/cl_string_map DEFINITION
 *
 * Last update: 2020-11-30
 ************************************************************************
+
   PUBLIC SECTION.
 
     TYPES:

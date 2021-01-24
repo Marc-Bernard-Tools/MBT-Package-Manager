@@ -85,9 +85,7 @@ CLASS /mbtools/cx_exception DEFINITION
 
     CLASS-METHODS split_text_to_symsg
       IMPORTING
-        !iv_text      TYPE string
-      RETURNING
-        VALUE(rs_msg) TYPE symsg .
+        !iv_text TYPE string .
     METHODS save_callstack .
     METHODS itf_to_string
       IMPORTING
@@ -147,7 +145,7 @@ CLASS /mbtools/cx_exception IMPLEMENTATION.
         IMPORTING
           program_name = program_name
           include_name = include_name
-          source_line  = source_line   ).
+          source_line  = source_line ).
     ENDIF.
 
   ENDMETHOD.

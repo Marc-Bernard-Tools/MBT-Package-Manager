@@ -2,6 +2,7 @@ CLASS /mbtools/cl_stack DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT Stack
 *
@@ -32,7 +33,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_STACK IMPLEMENTATION.
+CLASS /mbtools/cl_stack IMPLEMENTATION.
 
 
   METHOD pop.

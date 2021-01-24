@@ -13,6 +13,15 @@ CLASS /mbtools/cl_switches DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
+    CONSTANTS:
+      BEGIN OF c_tool,
+        mbt_base              TYPE string VALUE 'MBT Base' ##NO_TEXT,
+        mbt_command_field     TYPE string VALUE 'MBT Command Field' ##NO_TEXT,
+        mbt_transport_request TYPE string VALUE 'MBT Transport Request' ##NO_TEXT,
+        mbt_note_assistant    TYPE string VALUE 'MBT Note Assistant' ##NO_TEXT,
+        mbt_system_monitor    TYPE string VALUE 'MBT System Monitor' ##NO_TEXT,
+      END OF c_tool.
+
     CLASS-METHODS class_constructor.
     CLASS-METHODS is_active
       IMPORTING
@@ -40,6 +49,7 @@ CLASS /mbtools/cl_switches DEFINITION
         key_debug  TYPE string VALUE 'Debug' ##NO_TEXT,
         key_trace  TYPE string VALUE 'Trace' ##NO_TEXT,
       END OF c_reg.
+
     CLASS-DATA go_reg_root TYPE REF TO /mbtools/cl_registry.
 
     CLASS-METHODS check_switch

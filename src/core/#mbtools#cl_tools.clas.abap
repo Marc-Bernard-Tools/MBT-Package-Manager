@@ -1134,7 +1134,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
           ENDIF.
 
           " Filter by pattern
-          IF iv_pattern IS NOT INITIAL AND NOT lo_tool->get_title( ) CP iv_pattern.
+          IF iv_pattern IS NOT INITIAL AND lo_tool->get_title( ) NP iv_pattern.
             CONTINUE.
           ENDIF.
 
@@ -1670,9 +1670,9 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         description     TYPE string,
         source_type     TYPE string,
         source_name     TYPE string,
-        transport	      TYPE trkorr,
+        transport       TYPE trkorr,
         folder_logic    TYPE string,
-        installed_langu	TYPE sy-langu,
+        installed_langu TYPE sy-langu,
         installed_by    TYPE xubname,
         installed_at    TYPE timestamp,
         updated_by      TYPE xubname,
@@ -1699,6 +1699,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     DATA:
       lo_popup  TYPE REF TO /mbtools/if_popups,
+      lv_name   TYPE string,
+      lv_pack   TYPE string,
       lv_answer TYPE sy-input.
 
     lo_popup = /mbtools/cl_gui_factory=>get_popups( ).
@@ -1710,12 +1712,15 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
           iv_default_button = '2' ).
 
         IF lv_answer = '1'.
-          CALL METHOD ('\PROGRAM=/MBTOOLS/MBT_INSTALLER\CLASS=ZCL_ABAPINST_INSTALLER')=>('UNINSTALL')
-            EXPORTING
-              iv_name = |{ io_tool->get_title( ) }|
-              iv_pack = |{ io_tool->get_package( ) }|.
+          lv_name = io_tool->get_title( ).
+          lv_pack = io_tool->get_package( ).
 
-          " Unregister tool ##TODO
+          SUBMIT /mbtools/mbt_installer
+            WITH p_drop_n = lv_name
+            WITH p_drop_p = lv_pack
+            AND RETURN.
+
+          " Unregister tool
           io_tool->unregister( ).
         ENDIF.
       CATCH cx_root ##NO_HANDLER.
@@ -1789,7 +1794,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       ENDTRY.
     ENDIF.
 
-    IF /mbtools/cl_mbt=>is_online( ).
+    IF /mbtools/cl_mbt=>is_online( ) = abap_true.
       " URL and no selection screen
       SUBMIT /mbtools/mbt_installer
         WITH p_file_f = lv_file

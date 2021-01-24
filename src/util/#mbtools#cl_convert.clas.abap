@@ -1,6 +1,7 @@
 CLASS /mbtools/cl_convert DEFINITION
   PUBLIC
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT Conversions
 *
@@ -69,7 +70,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_CONVERT IMPLEMENTATION.
+CLASS /mbtools/cl_convert IMPLEMENTATION.
 
 
   METHOD base64_to_xstring.

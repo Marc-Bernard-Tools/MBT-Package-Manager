@@ -11,6 +11,7 @@ CLASS /mbtools/cl_version DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
+
   PUBLIC SECTION.
 
     CLASS-METHODS normalize

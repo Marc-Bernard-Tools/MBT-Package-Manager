@@ -8,6 +8,7 @@ CLASS /mbtools/cl_datetime DEFINITION
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
+
   PUBLIC SECTION.
 
     CONSTANTS c_minute_in_seconds TYPE i VALUE 60 ##NO_TEXT.

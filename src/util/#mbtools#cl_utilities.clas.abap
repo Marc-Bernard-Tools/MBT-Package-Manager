@@ -8,6 +8,7 @@ CLASS /mbtools/cl_utilities DEFINITION
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
+
   PUBLIC SECTION.
 
     TYPES:

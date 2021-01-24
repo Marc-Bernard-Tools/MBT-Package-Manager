@@ -2,11 +2,13 @@ CLASS /mbtools/cl_aphp DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
+
 ************************************************************************
 * MBT PHP
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
+
   PUBLIC SECTION.
 
     CLASS-METHODS serialize
