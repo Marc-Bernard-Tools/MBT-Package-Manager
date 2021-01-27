@@ -31803,6 +31803,33 @@ SELECTION-SCREEN END OF SCREEN 400.
 
 *-----------------------------------------------------------------------
 
+" Uninstall (hidden)
+SELECTION-SCREEN BEGIN OF SCREEN 500 AS SUBSCREEN.
+
+SELECTION-SCREEN BEGIN OF BLOCK b500 WITH FRAME.
+SELECTION-SCREEN COMMENT:
+      /1(77) scr_t500,
+      /1(77) scr_t501.
+SELECTION-SCREEN END OF BLOCK b500.
+
+SELECTION-SCREEN BEGIN OF BLOCK b510 WITH FRAME.
+
+SELECTION-SCREEN COMMENT:
+   /1(77) scr_t510.
+SELECTION-SCREEN SKIP.
+PARAMETERS:
+  p_drop_n TYPE zif_abapinst_definitions=>ty_name.
+SELECTION-SCREEN SKIP.
+PARAMETERS:
+  p_drop_p TYPE zif_abapinst_definitions=>ty_pack.
+
+SELECTION-SCREEN SKIP 8.
+SELECTION-SCREEN END OF BLOCK b510.
+
+SELECTION-SCREEN END OF SCREEN 500.
+
+*-----------------------------------------------------------------------
+
 " Options
 SELECTION-SCREEN BEGIN OF SCREEN 800 AS SUBSCREEN.
 
@@ -31869,6 +31896,8 @@ SELECTION-SCREEN:
       DEFAULT SCREEN 0300 MODIF ID t03,
     TAB (40) scr_tab4 USER-COMMAND scr_push4
       DEFAULT SCREEN 0400 MODIF ID t04,
+    TAB (40) scr_tab5 USER-COMMAND scr_push5
+      DEFAULT SCREEN 0500 MODIF ID t05,
     TAB (40) scr_tab8 USER-COMMAND scr_push8
       DEFAULT SCREEN 0800 MODIF ID t08,
     TAB (40) scr_tab9 USER-COMMAND scr_push9
@@ -31904,6 +31933,8 @@ INITIALIZATION.
   go_textpool->set( 'S,P_CONN_O,Internet Server' ).
   go_textpool->set( 'S,P_CONN_P,Password' ).
   go_textpool->set( 'S,P_CONN_U,User' ).
+  go_textpool->set( 'S,P_DROP_N,abapGit Package' ).
+  go_textpool->set( 'S,P_DROP_P,SAP Package' ).
   go_textpool->set( 'S,P_FILE_F,Your Computer' ).
   go_textpool->set( 'S,P_FILE_I,Internet' ).
   go_textpool->set( 'S,P_FILE_S,Application Server' ).
@@ -31957,24 +31988,6 @@ INITIALIZATION.
 
 *-----------------------------------------------------------------------
 
-* Authentication Tab
-  scr_tab4 = zcl_abapinst_screen=>header( iv_icon = icon_connect
-                                          iv_text = 'Authentication' ).
-
-  scr_t400 =
-  'When downloading the MBT package from the Internet, you might have to'.
-  scr_t401 =
-  'authenticate yourself at the server and/or your proxy.'.
-
-  scr_t402 = 'User'.
-  scr_t403 = 'Password'.
-  scr_t404 = 'Proxy Host'.
-  scr_t405 = 'Proxy Port'.
-  scr_t406 = 'Proxy User'.
-  scr_t407 = 'Proxy Password'.
-
-*-----------------------------------------------------------------------
-
 * Target Tab
   scr_tab2 = zcl_abapinst_screen=>header( iv_icon = icon_package_standard
                                           iv_text = 'SAP Package' ).
@@ -31994,6 +32007,37 @@ INITIALIZATION.
   'When installing into a transportable package, decide if you want to create'.
   scr_t301 =
   'a new transport request or select an existing one.'.
+
+*-----------------------------------------------------------------------
+
+* Authentication Tab
+  scr_tab4 = zcl_abapinst_screen=>header( iv_icon = icon_connect
+                                          iv_text = 'Authentication' ).
+
+  scr_t400 =
+  'When downloading the MBT package from the Internet, you might have to'.
+  scr_t401 =
+  'authenticate yourself at the server and/or your proxy.'.
+
+  scr_t402 = 'User'.
+  scr_t403 = 'Password'.
+  scr_t404 = 'Proxy Host'.
+  scr_t405 = 'Proxy Port'.
+  scr_t406 = 'Proxy User'.
+  scr_t407 = 'Proxy Password'.
+
+*-----------------------------------------------------------------------
+
+* Uninstall Tab
+  scr_tab5 = zcl_abapinst_screen=>header( iv_icon = icon_delete
+                                          iv_text = 'Uninstall' ).
+
+  scr_t500 =
+  'Select the MBT package that you want to uninstall'.
+  scr_t501 =
+  ''.
+
+  scr_t510 = 'Uninstall Options:'.
 
 *-----------------------------------------------------------------------
 
@@ -32060,6 +32104,7 @@ AT SELECTION-SCREEN.
       ENDTRY.
 
     WHEN 'FC02'. " Uninstall Package
+      zcl_abapinst_screen=>banner( iv_show = abap_false ).
       TRY.
           gs_inst = zcl_abapinst_screen=>f4_inst( ).
 
@@ -32085,13 +32130,12 @@ AT SELECTION-SCREEN.
 
   ENDCASE.
 
-  CLEAR sscrfields-ucomm.
-
 AT SELECTION-SCREEN OUTPUT.
 
   PERFORM banner.
 
-  zcl_abapinst_screen=>banner( it_base = gt_banner ). " iv_id = c_banner_id
+*  zcl_abapinst_screen=>banner( iv_id = c_banner_id )
+  zcl_abapinst_screen=>banner( it_base = gt_banner ).
 
   zcl_abapinst_screen=>modify(
     iv_options = gv_options
@@ -32175,24 +32219,35 @@ START-OF-SELECTION.
       lv_enum_folder_logic = zcl_abapinst_installer=>ty_enum_folder_logic-full.
   ENDCASE.
 
-  TRY.
-      zcl_abapinst_installer=>install(
-        iv_enum_zip          = lv_enum_zip
-        iv_name              = lv_name
-        iv_enum_package      = lv_enum_package
-        iv_package           = lv_package
-        iv_dlvunit           = p_soft_t
-        iv_devlayer          = p_layr_t
-        iv_enum_transport    = lv_enum_transport
-        iv_transport         = p_req_e
-        iv_user              = p_conn_u
-        iv_password          = p_conn_p
-        iv_proxy_host        = p_prox_h
-        iv_proxy_service     = p_prox_s
-        iv_proxy_user        = p_prox_u
-        iv_proxy_password    = p_prox_p
-        iv_enum_folder_logic = lv_enum_folder_logic ).
+  zcl_abapinst_screen=>banner( iv_show = abap_false ).
 
+  TRY.
+      IF p_drop_n IS INITIAL.
+
+        zcl_abapinst_installer=>install(
+          iv_enum_zip          = lv_enum_zip
+          iv_name              = lv_name
+          iv_enum_package      = lv_enum_package
+          iv_package           = lv_package
+          iv_dlvunit           = p_soft_t
+          iv_devlayer          = p_layr_t
+          iv_enum_transport    = lv_enum_transport
+          iv_transport         = p_req_e
+          iv_user              = p_conn_u
+          iv_password          = p_conn_p
+          iv_proxy_host        = p_prox_h
+          iv_proxy_service     = p_prox_s
+          iv_proxy_user        = p_prox_u
+          iv_proxy_password    = p_prox_p
+          iv_enum_folder_logic = lv_enum_folder_logic ).
+
+      ELSE.
+
+        zcl_abapinst_installer=>uninstall(
+          iv_name = p_drop_n
+          iv_pack = p_drop_p ).
+
+      ENDIF.
     CATCH zcx_abapinst_exception INTO gx_error.
       MESSAGE gx_error TYPE 'S' DISPLAY LIKE 'E'.
   ENDTRY.
