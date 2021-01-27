@@ -1051,6 +1051,7 @@ INTERFACE zif_abapgit_dot_abapgit DEFERRED.
 INTERFACE zif_abapgit_environment DEFERRED.
 INTERFACE zif_abapgit_log DEFERRED.
 INTERFACE zif_abapgit_longtexts DEFERRED.
+INTERFACE zif_abapgit_lxe_texts DEFERRED.
 INTERFACE zif_abapgit_object DEFERRED.
 INTERFACE zif_abapgit_xml_input DEFERRED.
 INTERFACE zif_abapgit_xml_output DEFERRED.
@@ -1084,6 +1085,7 @@ CLASS zcl_abapgit_hash DEFINITION DEFERRED.
 CLASS zcl_abapgit_language DEFINITION DEFERRED.
 CLASS zcl_abapgit_log DEFINITION DEFERRED.
 CLASS zcl_abapgit_longtexts DEFINITION DEFERRED.
+CLASS zcl_abapgit_lxe_texts DEFINITION DEFERRED.
 CLASS zcl_abapgit_objects_activation DEFINITION DEFERRED.
 CLASS zcl_abapgit_objects_super DEFINITION DEFERRED.
 CLASS zcl_abapgit_objects_bridge DEFINITION DEFERRED.
@@ -1744,9 +1746,6 @@ INTERFACE zif_abapgit_dot_abapgit .
   TYPES:
     ty_requirement_tt TYPE STANDARD TABLE OF ty_requirement WITH DEFAULT KEY .
 
-  TYPES:
-    ty_langs_tt TYPE STANDARD TABLE OF laiso WITH DEFAULT KEY.
-
   " Former APACK
   TYPES:
     BEGIN OF ty_dependency,
@@ -1760,12 +1759,12 @@ INTERFACE zif_abapgit_dot_abapgit .
     ty_dependencies TYPE STANDARD TABLE OF ty_dependency WITH NON-UNIQUE DEFAULT KEY,
 
     BEGIN OF ty_descriptor,
-      name           TYPE string,
-      version        TYPE string,
-      sem_version    TYPE zif_abapgit_definitions=>ty_version,
-      description    TYPE string,
-      git_url        TYPE string,
-      target_package TYPE devclass,
+      name              TYPE string,
+      version           TYPE string,
+      sem_version       TYPE zif_abapgit_definitions=>ty_version,
+      description       TYPE string,
+      git_url           TYPE string,
+      target_package    TYPE devclass,
     END OF ty_descriptor,
 
     BEGIN OF ty_packaging.
@@ -1777,7 +1776,7 @@ INTERFACE zif_abapgit_dot_abapgit .
   TYPES:
     BEGIN OF ty_dot_abapgit,
       master_language TYPE spras,
-      i18n_langs      TYPE string,
+      i18n_languages  TYPE zif_abapgit_definitions=>ty_languages,
       starting_folder TYPE string,
       folder_logic    TYPE string,
       ignore          TYPE STANDARD TABLE OF string WITH DEFAULT KEY,
@@ -1931,6 +1930,39 @@ INTERFACE zif_abapgit_longtexts
     IMPORTING
       !iv_object_name TYPE sobj_name
       !iv_longtext_id TYPE dokil-id
+    RAISING
+      zcx_abapgit_exception .
+ENDINTERFACE.
+INTERFACE zif_abapgit_lxe_texts
+   .
+
+
+  TYPES:
+    BEGIN OF ty_lxe_i18n,
+      source_lang TYPE lxeisolang,
+      target_lang TYPE lxeisolang,
+      custmnr     TYPE lxecustmnr,
+      objtype     TYPE trobjtype,
+      objname     TYPE lxeobjname,
+      text_pairs  TYPE STANDARD TABLE OF lxe_pcx_s1 WITH DEFAULT KEY,
+    END OF ty_lxe_i18n .
+  TYPES:
+    ty_tlxe_i18n TYPE STANDARD TABLE OF ty_lxe_i18n WITH DEFAULT KEY .
+
+  METHODS serialize
+    IMPORTING
+      !iv_lxe_text_name TYPE string DEFAULT 'LXE_TEXTS'
+      !iv_object_type   TYPE trobjtype
+      !iv_object_name   TYPE sobj_name
+      !ii_xml           TYPE REF TO zif_abapgit_xml_output
+    RAISING
+      zcx_abapgit_exception .
+  METHODS deserialize
+    IMPORTING
+      !iv_lxe_text_name TYPE string DEFAULT 'LXE_TEXTS'
+      !iv_object_type   TYPE trobjtype OPTIONAL
+      !iv_object_name   TYPE sobj_name OPTIONAL
+      !ii_xml           TYPE REF TO zif_abapgit_xml_input
     RAISING
       zcx_abapgit_exception .
 ENDINTERFACE.
@@ -3016,7 +3048,7 @@ CLASS zcl_abapgit_dot_abapgit DEFINITION
       RETURNING
         VALUE(rs_file) TYPE zif_abapgit_definitions=>ty_file
       RAISING
-        zcx_abapgit_exception.
+        zcx_abapgit_exception .
     METHODS get_data
       RETURNING
         VALUE(rs_data) TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit .
@@ -3037,24 +3069,31 @@ CLASS zcl_abapgit_dot_abapgit DEFINITION
     METHODS get_starting_folder
       RETURNING
         VALUE(rv_path) TYPE string .
-
     METHODS get_folder_logic
       RETURNING
         VALUE(rv_logic) TYPE string .
-
     METHODS set_folder_logic
       IMPORTING
         !iv_logic TYPE string .
-
     METHODS set_starting_folder
       IMPORTING
         !iv_path TYPE string .
-
     METHODS get_master_language
       RETURNING
         VALUE(rv_language) TYPE spras .
-*      set_master_language
-*        IMPORTING iv_language TYPE spras,
+    METHODS get_main_language
+      RETURNING
+        VALUE(rv_language) TYPE spras .
+    METHODS get_i18n_languages
+      RETURNING
+        VALUE(rt_languages) TYPE zif_abapgit_definitions=>ty_languages
+      RAISING
+        zcx_abapgit_exception .
+    METHODS set_i18n_languages
+      IMPORTING
+        VALUE(it_languages) TYPE zif_abapgit_definitions=>ty_languages
+      RAISING
+        zcx_abapgit_exception .
     METHODS get_signature
       RETURNING
         VALUE(rs_signature) TYPE zif_abapgit_definitions=>ty_file_signature
@@ -3062,43 +3101,43 @@ CLASS zcl_abapgit_dot_abapgit DEFINITION
         zcx_abapgit_exception .
     METHODS get_requirements
       RETURNING
-        VALUE(rt_requirements) TYPE zif_abapgit_dot_abapgit=>ty_requirement_tt.
+        VALUE(rt_requirements) TYPE zif_abapgit_dot_abapgit=>ty_requirement_tt .
     METHODS set_requirements
       IMPORTING
-        it_requirements TYPE zif_abapgit_dot_abapgit=>ty_requirement_tt.
-
+        !it_requirements TYPE zif_abapgit_dot_abapgit=>ty_requirement_tt .
     METHODS get_i18n_langs
       RETURNING
-        VALUE(rv_langs) TYPE string.
+        VALUE(rv_langs) TYPE string
+      RAISING
+        zcx_abapgit_exception .
     METHODS set_i18n_langs
       IMPORTING
-        iv_langs TYPE string.
+        !iv_langs TYPE string
+      RAISING
+        zcx_abapgit_exception .
     METHODS get_packaging
       RETURNING
-        VALUE(rs_packaging) TYPE zif_abapgit_dot_abapgit=>ty_packaging .
+        VALUE(rt_packaging) TYPE zif_abapgit_dot_abapgit=>ty_packaging .
     METHODS set_packaging
       IMPORTING
-        !is_packaging TYPE zif_abapgit_dot_abapgit=>ty_packaging .
+        !it_packaging TYPE zif_abapgit_dot_abapgit=>ty_packaging .
   PROTECTED SECTION.
   PRIVATE SECTION.
-    DATA: ms_data TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit.
 
-    CLASS-METHODS:
-      to_xml
-        IMPORTING is_data       TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit
-        RETURNING VALUE(rv_xml) TYPE string
-        RAISING   zcx_abapgit_exception,
-      from_xml
-        IMPORTING iv_xml         TYPE string
-        RETURNING VALUE(rs_data) TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit.
+    DATA ms_data TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit .
 
-    CLASS-METHODS decode_i18n_langs_string
+    CLASS-METHODS to_xml
       IMPORTING
-        iv_langs            TYPE string
-        iv_skip_master_lang TYPE spras OPTIONAL
+        !is_data      TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit
       RETURNING
-        VALUE(rt_langs)     TYPE zif_abapgit_dot_abapgit=>ty_langs_tt.
-
+        VALUE(rv_xml) TYPE string
+      RAISING
+        zcx_abapgit_exception .
+    CLASS-METHODS from_xml
+      IMPORTING
+        !iv_xml        TYPE string
+      RETURNING
+        VALUE(rs_data) TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit .
 ENDCLASS.
 CLASS zcl_abapgit_environment DEFINITION
 
@@ -3397,6 +3436,57 @@ CLASS zcl_abapgit_longtexts DEFINITION
 
     CONSTANTS c_docu_state_active TYPE dokstate VALUE 'A' ##NO_TEXT.
 ENDCLASS.
+CLASS zcl_abapgit_lxe_texts DEFINITION
+
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+
+    INTERFACES zif_abapgit_lxe_texts .
+
+    CLASS-METHODS get_translation_languages
+      IMPORTING
+        !iv_main_language   TYPE spras
+        !it_i18n_languages  TYPE zif_abapgit_definitions=>ty_languages
+      RETURNING
+        VALUE(rt_languages) TYPE zif_abapgit_definitions=>ty_languages .
+    CLASS-METHODS get_installed_languages
+      RETURNING
+        VALUE(rt_languages) TYPE zif_abapgit_definitions=>ty_languages .
+    CLASS-METHODS convert_lang_string_to_table
+      IMPORTING
+        !iv_langs              TYPE string
+        !iv_skip_main_language TYPE spras
+      RETURNING
+        VALUE(rt_languages)    TYPE zif_abapgit_definitions=>ty_languages
+      RAISING
+        zcx_abapgit_exception .
+    CLASS-METHODS convert_table_to_lang_string
+      IMPORTING
+        !it_languages   TYPE zif_abapgit_definitions=>ty_languages
+      RETURNING
+        VALUE(rv_langs) TYPE string
+      RAISING
+        zcx_abapgit_exception .
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+
+    METHODS
+      get_lang_iso4
+        IMPORTING
+          iv_src         TYPE spras
+        RETURNING
+          VALUE(rv_iso4) TYPE lxeisolang .
+    METHODS
+      get_lxe_object_list
+        IMPORTING
+          iv_object_type     TYPE trobjtype
+          iv_object_name     TYPE sobj_name
+        RETURNING
+          VALUE(rt_obj_list) TYPE lxe_tt_colob .
+
+ENDCLASS.
 CLASS zcl_abapgit_objects_activation DEFINITION
 
   CREATE PUBLIC .
@@ -3461,20 +3551,20 @@ CLASS zcl_abapgit_objects_super DEFINITION  ABSTRACT.
 
   PUBLIC SECTION.
 
-    METHODS:
-      constructor
-        IMPORTING
-          is_item     TYPE zif_abapgit_definitions=>ty_item
-          iv_language TYPE spras.
+    METHODS constructor
+      IMPORTING
+        is_item     TYPE zif_abapgit_definitions=>ty_item
+        iv_language TYPE spras.
 
-    CLASS-METHODS:
-      jump_adt
-        IMPORTING iv_obj_name     TYPE zif_abapgit_definitions=>ty_item-obj_name
-                  iv_obj_type     TYPE zif_abapgit_definitions=>ty_item-obj_type
-                  iv_sub_obj_name TYPE zif_abapgit_definitions=>ty_item-obj_name OPTIONAL
-                  iv_sub_obj_type TYPE zif_abapgit_definitions=>ty_item-obj_type OPTIONAL
-                  iv_line_number  TYPE i OPTIONAL
-        RAISING   zcx_abapgit_exception.
+    CLASS-METHODS jump_adt
+      IMPORTING
+        iv_obj_name     TYPE zif_abapgit_definitions=>ty_item-obj_name
+        iv_obj_type     TYPE zif_abapgit_definitions=>ty_item-obj_type
+        iv_sub_obj_name TYPE zif_abapgit_definitions=>ty_item-obj_name OPTIONAL
+        iv_sub_obj_type TYPE zif_abapgit_definitions=>ty_item-obj_type OPTIONAL
+        iv_line_number  TYPE i OPTIONAL
+      RAISING
+        zcx_abapgit_exception.
 
     CONSTANTS: c_user_unknown TYPE xubname VALUE 'UNKNOWN'.
 
@@ -3541,6 +3631,16 @@ CLASS zcl_abapgit_objects_super DEFINITION  ABSTRACT.
         VALUE(iv_objtype)              TYPE string
         VALUE(iv_no_ask)               TYPE abap_bool DEFAULT abap_true
         VALUE(iv_no_ask_delete_append) TYPE abap_bool DEFAULT abap_false
+      RAISING
+        zcx_abapgit_exception .
+    METHODS serialize_lxe_texts
+      IMPORTING
+        !ii_xml TYPE REF TO zif_abapgit_xml_output
+      RAISING
+        zcx_abapgit_exception .
+    METHODS deserialize_lxe_texts
+      IMPORTING
+        !ii_xml TYPE REF TO zif_abapgit_xml_input
       RAISING
         zcx_abapgit_exception .
   PRIVATE SECTION.
@@ -5713,7 +5813,6 @@ CLASS zcl_abapinst_factory DEFINITION
   "
   " Once the class is embedded into the standalone program as a local class,
   " it will work just fine.
-
   PUBLIC SECTION.
 
     CLASS-METHODS get_tadir
@@ -5733,7 +5832,9 @@ CLASS zcl_abapinst_factory DEFINITION
     CLASS-METHODS get_gui_functions
       RETURNING
         VALUE(ri_gui_functions) TYPE REF TO zif_abapgit_gui_functions .
-
+    CLASS-METHODS get_lxe_texts
+      RETURNING
+        VALUE(ri_lxe_texts) TYPE REF TO zif_abapgit_lxe_texts .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -5751,6 +5852,7 @@ CLASS zcl_abapinst_factory DEFINITION
     CLASS-DATA gi_environment TYPE REF TO zif_abapgit_environment .
     CLASS-DATA gi_longtext TYPE REF TO zif_abapgit_longtexts .
     CLASS-DATA gi_gui_functions TYPE REF TO zcl_abapgit_gui_functions .
+    CLASS-DATA gi_lxe_texts TYPE REF TO zif_abapgit_lxe_texts .
 ENDCLASS.
 CLASS zcl_abapinst_file DEFINITION
 
@@ -5896,6 +5998,38 @@ CLASS zcl_abapinst_file_status DEFINITION
         !iv_obj_name       TYPE tadir-obj_name
       RETURNING
         VALUE(rv_devclass) TYPE devclass
+      RAISING
+        zcx_abapgit_exception .
+    CLASS-METHODS check_package_move
+      IMPORTING
+        !ii_log     TYPE REF TO zif_abapgit_log
+        !it_results TYPE zif_abapgit_definitions=>ty_results_tt
+      RAISING
+        zcx_abapgit_exception .
+    CLASS-METHODS check_files_folder
+      IMPORTING
+        !ii_log     TYPE REF TO zif_abapgit_log
+        !it_results TYPE zif_abapgit_definitions=>ty_results_tt
+      RAISING
+        zcx_abapgit_exception .
+    CLASS-METHODS check_package_folder
+      IMPORTING
+        !ii_log     TYPE REF TO zif_abapgit_log
+        !it_results TYPE zif_abapgit_definitions=>ty_results_tt
+        !io_dot     TYPE REF TO zcl_abapgit_dot_abapgit
+        !iv_top     TYPE devclass
+      RAISING
+        zcx_abapgit_exception .
+    CLASS-METHODS check_multiple_files
+      IMPORTING
+        !ii_log     TYPE REF TO zif_abapgit_log
+        !it_results TYPE zif_abapgit_definitions=>ty_results_tt
+      RAISING
+        zcx_abapgit_exception .
+    CLASS-METHODS check_namespace
+      IMPORTING
+        !ii_log     TYPE REF TO zif_abapgit_log
+        !it_results TYPE zif_abapgit_definitions=>ty_results_tt
       RAISING
         zcx_abapgit_exception .
 ENDCLASS.
@@ -7757,35 +7891,6 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD decode_i18n_langs_string.
-
-    " This should go as an util to TEXTS/i18n class
-
-    DATA lt_langs_str TYPE string_table.
-    DATA lv_master_lang_iso TYPE laiso.
-    FIELD-SYMBOLS <lv_str> LIKE LINE OF lt_langs_str.
-    FIELD-SYMBOLS <lv_lang> LIKE LINE OF rt_langs.
-
-    IF iv_skip_master_lang IS NOT INITIAL.
-      lv_master_lang_iso = cl_i18n_languages=>sap1_to_sap2( iv_skip_master_lang ).
-    ENDIF.
-
-    SPLIT iv_langs AT ',' INTO TABLE lt_langs_str.
-    LOOP AT lt_langs_str ASSIGNING <lv_str>.
-      CONDENSE <lv_str>.
-      <lv_str> = to_upper( <lv_str> ).
-      IF <lv_str> IS NOT INITIAL AND ( lv_master_lang_iso IS INITIAL OR <lv_str> <> lv_master_lang_iso ).
-        APPEND INITIAL LINE TO rt_langs ASSIGNING <lv_lang>.
-        <lv_lang> = <lv_str>.
-      ENDIF.
-    ENDLOOP.
-
-    " TODO: maybe validate language against table, but system may not have one?
-    " TODO: maybe through on lang > 2 symbols ?
-
-  ENDMETHOD.
-
-
   METHOD deserialize.
 
     DATA: lv_xml  TYPE string,
@@ -7833,24 +7938,30 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
 
 
   METHOD get_i18n_langs.
-
-    DATA lt_langs TYPE zif_abapgit_dot_abapgit=>ty_langs_tt.
-
-    lt_langs = decode_i18n_langs_string(
-      iv_langs            = ms_data-i18n_langs
-      iv_skip_master_lang = ms_data-master_language ).
-    CONCATENATE LINES OF lt_langs INTO rv_langs SEPARATED BY ','.
+    " todo, replace with get_i18n_languages
+    rv_langs = zcl_abapgit_lxe_texts=>convert_table_to_lang_string( ms_data-i18n_languages ).
 
   ENDMETHOD.
 
 
+  METHOD get_i18n_languages.
+    rt_languages = ms_data-i18n_languages.
+  ENDMETHOD.
+
+
+  METHOD get_main_language.
+    rv_language = ms_data-master_language.
+  ENDMETHOD.
+
+
   METHOD get_master_language.
+    " todo, transition to get_main_language()
     rv_language = ms_data-master_language.
   ENDMETHOD.
 
 
   METHOD get_packaging.
-    rs_packaging = ms_data-packaging.
+    rt_packaging = ms_data-packaging.
   ENDMETHOD.
 
 
@@ -7953,18 +8064,21 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
 
   METHOD set_i18n_langs.
 
-    DATA lt_langs TYPE zif_abapgit_dot_abapgit=>ty_langs_tt.
-
-    lt_langs = decode_i18n_langs_string(
-      iv_langs            = iv_langs
-      iv_skip_master_lang = ms_data-master_language ).
-    CONCATENATE LINES OF lt_langs INTO ms_data-i18n_langs SEPARATED BY ','.
+    " todo, replace with set_i18n_languages
+    ms_data-i18n_languages = zcl_abapgit_lxe_texts=>convert_lang_string_to_table(
+                              iv_langs              = iv_langs
+                              iv_skip_main_language = ms_data-master_language ).
 
   ENDMETHOD.
 
 
+  METHOD set_i18n_languages.
+    ms_data-i18n_languages = it_languages.
+  ENDMETHOD.
+
+
   METHOD set_packaging.
-    ms_data-packaging = is_packaging.
+    ms_data-packaging = it_packaging.
   ENDMETHOD.
 
 
@@ -9352,6 +9466,267 @@ ENDCLASS.
 
 
 
+CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
+
+
+  METHOD convert_lang_string_to_table.
+
+    DATA:
+      lt_langs_str TYPE string_table,
+      lv_laiso     TYPE laiso,
+      lv_langu     TYPE spras.
+
+    FIELD-SYMBOLS:
+      <lv_str>  LIKE LINE OF lt_langs_str,
+      <lv_lang> LIKE LINE OF rt_languages.
+
+    " Keep * as indicator for 'all installed languages'
+    IF iv_langs = '*'.
+      APPEND iv_langs TO rt_languages.
+      RETURN.
+    ENDIF.
+
+    " Convert string of 2-letter ISO languages into table of sy-langu codes
+    SPLIT iv_langs AT ',' INTO TABLE lt_langs_str.
+
+    LOOP AT lt_langs_str ASSIGNING <lv_str>.
+      lv_laiso = condense( to_upper( <lv_str> ) ).
+
+      cl_i18n_languages=>sap2_to_sap1(
+        EXPORTING
+          im_lang_sap2      = lv_laiso
+        RECEIVING
+          re_lang_sap1      = lv_langu
+        EXCEPTIONS
+          no_assignment     = 1
+          no_representation = 2
+          OTHERS            = 3 ).
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise( |Unknown language code { <lv_str> }| ).
+      ENDIF.
+
+      APPEND INITIAL LINE TO rt_languages ASSIGNING <lv_lang>.
+      <lv_lang> = lv_langu.
+    ENDLOOP.
+
+    DELETE rt_languages WHERE table_line = iv_skip_main_language.
+
+    SORT rt_languages.
+    DELETE ADJACENT DUPLICATES FROM rt_languages.
+
+  ENDMETHOD.
+
+
+  METHOD convert_table_to_lang_string.
+
+    DATA:
+      lt_langs_str TYPE string_table,
+      lv_laiso     TYPE laiso.
+
+    FIELD-SYMBOLS:
+      <lv_langu> LIKE LINE OF it_languages,
+      <lv_str>   TYPE string.
+
+    " Convert table of sy-langu codes into string of 2-letter ISO languages
+    LOOP AT it_languages ASSIGNING <lv_langu>.
+      " Keep * as indicator for 'all installed languages'
+      IF <lv_langu> = '*'.
+        APPEND '*' TO lt_langs_str.
+        EXIT.
+      ENDIF.
+
+      cl_i18n_languages=>sap1_to_sap2(
+        EXPORTING
+          im_lang_sap1  = <lv_langu>
+        RECEIVING
+          re_lang_sap2  = lv_laiso
+        EXCEPTIONS
+          no_assignment = 1
+          OTHERS        = 2 ).
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise( |Unknown language code { <lv_langu> }| ).
+      ENDIF.
+
+      APPEND INITIAL LINE TO lt_langs_str ASSIGNING <lv_str>.
+      <lv_str> = lv_laiso.
+    ENDLOOP.
+
+    CONCATENATE LINES OF lt_langs_str INTO rv_langs SEPARATED BY ','.
+
+  ENDMETHOD.
+
+
+  METHOD get_installed_languages.
+
+    DATA:
+      lv_index               TYPE i,
+      lv_installed_languages TYPE string.
+
+    CALL FUNCTION 'SYSTEM_INSTALLED_LANGUAGES'
+      IMPORTING
+        languages       = lv_installed_languages
+      EXCEPTIONS
+        sapgparam_error = 1                " Error requesting profile parameter
+        OTHERS          = 2.
+    IF sy-subrc <> 0.
+    ENDIF.
+
+    DO strlen( lv_installed_languages ) TIMES.
+      lv_index = sy-index - 1.
+      APPEND lv_installed_languages+lv_index(1) TO rt_languages.
+    ENDDO.
+
+  ENDMETHOD.
+
+
+  METHOD get_lang_iso4.
+
+    CALL FUNCTION 'LXE_T002_CONVERT_2_TO_4'
+      EXPORTING
+        old_r3_lang = iv_src
+      IMPORTING
+        new_lang    = rv_iso4.
+
+  ENDMETHOD.
+
+
+  METHOD get_lxe_object_list.
+
+    DATA lv_object_name TYPE trobj_name.
+
+    lv_object_name = iv_object_name.
+
+    CALL FUNCTION 'LXE_OBJ_EXPAND_TRANSPORT_OBJ'
+      EXPORTING
+        pgmid    = 'R3TR'
+        object   = iv_object_type
+        obj_name = lv_object_name
+      TABLES
+        ex_colob = rt_obj_list.
+
+  ENDMETHOD.
+
+
+  METHOD get_translation_languages.
+
+    " Returns a list of translation languages for serialization
+    " If the setting is initial, no translations shall be serialized
+    " If the setting is `*`, all all installed system languages shall be serialized
+    " Else, the setting shall contain all languages to be serialized
+
+    IF it_i18n_languages IS NOT INITIAL.
+      READ TABLE it_i18n_languages TRANSPORTING NO FIELDS WITH KEY table_line = '*'.
+      IF sy-subrc = 0.
+        rt_languages = get_installed_languages( ).
+      ELSE.
+        rt_languages = it_i18n_languages.
+      ENDIF.
+    ENDIF.
+
+    " Remove main language from translation languages
+    DELETE rt_languages WHERE table_line = iv_main_language.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_lxe_texts~deserialize.
+
+    DATA:
+      lt_lxe_texts      TYPE zif_abapgit_lxe_texts=>ty_tlxe_i18n,
+      ls_lxe_item       TYPE zif_abapgit_lxe_texts=>ty_lxe_i18n,
+      lt_text_pairs_tmp LIKE ls_lxe_item-text_pairs.
+
+    ii_xml->read( EXPORTING iv_name = iv_lxe_text_name
+                  CHANGING  cg_data = lt_lxe_texts ).
+
+    LOOP AT lt_lxe_texts INTO ls_lxe_item.
+      " Call Read first for buffer prefill
+      CLEAR: lt_text_pairs_tmp.
+      CALL FUNCTION 'LXE_OBJ_TEXT_PAIR_READ'
+        EXPORTING
+          s_lang    = ls_lxe_item-source_lang
+          t_lang    = ls_lxe_item-target_lang
+          custmnr   = ls_lxe_item-custmnr
+          objtype   = ls_lxe_item-objtype
+          objname   = ls_lxe_item-objname
+          read_only = abap_false
+        TABLES
+          lt_pcx_s1 = lt_text_pairs_tmp.
+
+      "Call actual Write FM
+      CALL FUNCTION 'LXE_OBJ_TEXT_PAIR_WRITE'
+        EXPORTING
+          s_lang    = ls_lxe_item-source_lang
+          t_lang    = ls_lxe_item-target_lang
+          custmnr   = ls_lxe_item-custmnr
+          objtype   = ls_lxe_item-objtype
+          objname   = ls_lxe_item-objname
+        TABLES
+          lt_pcx_s1 = ls_lxe_item-text_pairs.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_lxe_texts~serialize.
+
+    DATA:
+      lt_obj_list      TYPE lxe_tt_colob,
+      lv_main_lang     TYPE lxeisolang,
+      lt_languages     TYPE zif_abapgit_definitions=>ty_languages,
+      lt_lxe_texts     TYPE zif_abapgit_lxe_texts=>ty_tlxe_i18n,
+      ls_lxe_text_item TYPE zif_abapgit_lxe_texts=>ty_lxe_i18n.
+
+    FIELD-SYMBOLS:
+      <lv_language>   TYPE langu,
+      <lv_lxe_object> TYPE lxe_colob.
+
+    lt_obj_list = get_lxe_object_list(
+                    iv_object_name = iv_object_name
+                    iv_object_type = iv_object_type ).
+
+    " Get list of languages that need to be serialized (already resolves * and installed languages)
+    lv_main_lang = get_lang_iso4( ii_xml->i18n_params( )-main_language ).
+    lt_languages = ii_xml->i18n_params( )-translation_languages.
+
+    LOOP AT lt_obj_list ASSIGNING <lv_lxe_object>.
+      CLEAR ls_lxe_text_item.
+      ls_lxe_text_item-custmnr = <lv_lxe_object>-custmnr.
+      ls_lxe_text_item-objtype = <lv_lxe_object>-objtype.
+      ls_lxe_text_item-objname = <lv_lxe_object>-objname.
+
+      LOOP AT lt_languages ASSIGNING <lv_language>.
+        ls_lxe_text_item-source_lang = lv_main_lang.
+        ls_lxe_text_item-target_lang = get_lang_iso4( <lv_language> ).
+        IF ls_lxe_text_item-source_lang = ls_lxe_text_item-target_lang.
+          CONTINUE. " if source = target -> skip
+        ENDIF.
+
+        CLEAR ls_lxe_text_item-text_pairs.
+        CALL FUNCTION 'LXE_OBJ_TEXT_PAIR_READ'
+          EXPORTING
+            s_lang    = ls_lxe_text_item-source_lang
+            t_lang    = ls_lxe_text_item-target_lang
+            custmnr   = ls_lxe_text_item-custmnr
+            objtype   = ls_lxe_text_item-objtype
+            objname   = ls_lxe_text_item-objname
+          TABLES
+            lt_pcx_s1 = ls_lxe_text_item-text_pairs.
+
+        IF ls_lxe_text_item-text_pairs IS NOT INITIAL.
+          APPEND ls_lxe_text_item TO lt_lxe_texts.
+        ENDIF.
+      ENDLOOP.
+    ENDLOOP.
+
+    ii_xml->add( iv_name = iv_lxe_text_name
+                 ig_data = lt_lxe_texts ).
+
+  ENDMETHOD.
+ENDCLASS.
+
+
+
 CLASS ZCL_ABAPGIT_OBJECTS_ACTIVATION IMPLEMENTATION.
 
 
@@ -9789,6 +10164,16 @@ CLASS zcl_abapgit_objects_super IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD deserialize_lxe_texts.
+
+    zcl_abapinst_factory=>get_lxe_texts( )->deserialize(
+      iv_object_type = ms_item-obj_type
+      iv_object_name = ms_item-obj_name
+      ii_xml         = ii_xml ).
+
+  ENDMETHOD.
+
+
   METHOD exists_a_lock_entry_for.
 
     DATA: lt_lock_entries TYPE STANDARD TABLE OF seqg3.
@@ -9917,6 +10302,20 @@ CLASS zcl_abapgit_objects_super IMPLEMENTATION.
         iv_longtext_id = iv_longtext_id
         it_dokil       = it_dokil
         ii_xml         = ii_xml  ).
+
+  ENDMETHOD.
+
+
+  METHOD serialize_lxe_texts.
+
+    IF ii_xml->i18n_params( )-main_language_only = abap_true.
+      RETURN.
+    ENDIF.
+
+    zcl_abapinst_factory=>get_lxe_texts( )->serialize(
+      iv_object_type = ms_item-obj_type
+      iv_object_name = ms_item-obj_name
+      ii_xml         = ii_xml ).
 
   ENDMETHOD.
 
@@ -17939,6 +18338,8 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
     deserialize_texts( iv_prog_name = lv_program_name
                        ii_xml       = io_xml ).
 
+    deserialize_lxe_texts( io_xml ).
+
     io_xml->read( EXPORTING iv_name = 'DYNPROS'
                   CHANGING cg_data = lt_dynpros ).
     deserialize_dynpros( lt_dynpros ).
@@ -18046,8 +18447,14 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
     lv_program_name = main_name( ).
     ls_progdir = read_progdir( lv_program_name ).
 
-    serialize_texts( iv_prog_name = lv_program_name
-                     ii_xml       = io_xml ).
+    IF io_xml->i18n_params( )-translation_languages IS INITIAL.
+      " Old I18N option
+      serialize_texts( iv_prog_name = lv_program_name
+                       ii_xml       = io_xml ).
+    ELSE.
+      " New LXE option
+      serialize_lxe_texts( io_xml ).
+    ENDIF.
 
     IF ls_progdir-subc = 'F'.
       lt_dynpros = serialize_dynpros( lv_program_name ).
@@ -19365,12 +19772,19 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_PARA IMPLEMENTATION.
+CLASS zcl_abapgit_object_para IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~changed_by.
-* looks like "changed by user" is not stored in the database
-    rv_user = c_user_unknown.
+
+    " 'Changed by User' is not stored in the database
+    " Instead use 'Person Responsible' like SE80
+    SELECT SINGLE author FROM tadir INTO rv_user
+      WHERE pgmid = 'R3TR' AND object = 'PARA' AND obj_name = ms_item-obj_name.
+    IF sy-subrc <> 0.
+      rv_user = c_user_unknown.
+    ENDIF.
+
   ENDMETHOD.
 
 
@@ -19765,6 +20179,7 @@ CLASS zcl_abapgit_object_prog IMPLEMENTATION.
 
     " Texts deserializing (translations)
     deserialize_texts( io_xml ).
+    deserialize_lxe_texts( io_xml ).
 
     deserialize_longtexts( io_xml ).
 
@@ -19838,7 +20253,13 @@ CLASS zcl_abapgit_object_prog IMPLEMENTATION.
                        io_files = mo_files ).
 
     " Texts serializing (translations)
-    serialize_texts( io_xml ).
+    IF io_xml->i18n_params( )-translation_languages IS INITIAL.
+      " Old I18N option
+      serialize_texts( io_xml ).
+    ELSE.
+      " New LXE option
+      serialize_lxe_texts( io_xml ).
+    ENDIF.
 
     serialize_longtexts( ii_xml         = io_xml
                          iv_longtext_id = c_longtext_id_prog ).
@@ -24652,6 +25073,16 @@ CLASS zcl_abapinst_factory IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_lxe_texts.
+
+    IF gi_lxe_texts IS NOT BOUND.
+      CREATE OBJECT gi_lxe_texts TYPE zcl_abapgit_lxe_texts.
+    ENDIF.
+    ri_lxe_texts = gi_lxe_texts.
+
+  ENDMETHOD.
+
+
   METHOD get_sap_package.
 
     DATA: ls_sap_package TYPE ty_sap_package.
@@ -25265,6 +25696,12 @@ CLASS zcl_abapinst_file_status IMPLEMENTATION.
 
     " Process local files and new local files
     LOOP AT it_local ASSIGNING <ls_local>.
+      " Skip ignored files
+      IF io_dot->is_ignored( iv_path     = <ls_local>-file-path
+                             iv_filename = <ls_local>-file-filename ) = abap_true.
+        CONTINUE.
+      ENDIF.
+
       APPEND INITIAL LINE TO rt_results ASSIGNING <ls_result>.
       IF <ls_local>-item IS NOT INITIAL.
         APPEND <ls_local>-item TO lt_items. " Collect for item index
@@ -25286,9 +25723,6 @@ CLASS zcl_abapinst_file_status IMPLEMENTATION.
         READ TABLE lt_remote ASSIGNING <ls_remote>
           WITH KEY filename = <ls_local>-file-filename.
         IF sy-subrc = 0 AND <ls_local>-file-sha1 = <ls_remote>-sha1.
-          <ls_result>-match = abap_false.
-          <ls_result>-lstate = zif_abapgit_definitions=>c_state-deleted.
-          <ls_result>-rstate = zif_abapgit_definitions=>c_state-unchanged.
           <ls_result>-packmove = abap_true.
         ELSEIF sy-subrc = 4.
           " Check if file existed before and was deleted remotely
@@ -25368,11 +25802,13 @@ CLASS zcl_abapinst_file_status IMPLEMENTATION.
       " Check if same file exists in different location
       READ TABLE it_local ASSIGNING <ls_local>
         WITH KEY file-filename = <ls_remote>-filename.
-      IF sy-subrc = 0 AND <ls_local>-file-sha1 = <ls_remote>-sha1.
+      IF sy-subrc = 0.
         <ls_result>-match = abap_false.
         <ls_result>-lstate = zif_abapgit_definitions=>c_state-deleted.
         <ls_result>-rstate = zif_abapgit_definitions=>c_state-unchanged.
-        <ls_result>-packmove = abap_true.
+        IF <ls_local>-file-sha1 = <ls_remote>-sha1.
+          <ls_result>-packmove = abap_true.
+        ENDIF.
       ELSEIF sy-subrc = 4.
         " Check if file existed before and was deleted locally
         READ TABLE lt_state_idx ASSIGNING <ls_state>
@@ -25387,7 +25823,180 @@ CLASS zcl_abapinst_file_status IMPLEMENTATION.
     SORT rt_results BY
       obj_type ASCENDING
       obj_name ASCENDING
-      filename ASCENDING.
+      filename ASCENDING
+      path ASCENDING.
+
+  ENDMETHOD.
+
+
+  METHOD check_files_folder.
+
+    DATA:
+      ls_item     TYPE zif_abapgit_definitions=>ty_item,
+      lt_res_sort LIKE it_results,
+      lt_item_idx LIKE it_results.
+
+    FIELD-SYMBOLS:
+      <ls_result>     LIKE LINE OF it_results,
+      <ls_result_idx> LIKE LINE OF it_results.
+
+    " Collect object index
+    lt_res_sort = it_results.
+    SORT lt_res_sort BY obj_type ASCENDING obj_name ASCENDING.
+
+    LOOP AT it_results ASSIGNING <ls_result> WHERE NOT obj_type IS INITIAL AND packmove = abap_false.
+
+      IF NOT ( <ls_result>-obj_type = ls_item-obj_type
+          AND <ls_result>-obj_name = ls_item-obj_name ).
+        APPEND INITIAL LINE TO lt_item_idx ASSIGNING <ls_result_idx>.
+        <ls_result_idx>-obj_type = <ls_result>-obj_type.
+        <ls_result_idx>-obj_name = <ls_result>-obj_name.
+        <ls_result_idx>-path     = <ls_result>-path.
+        MOVE-CORRESPONDING <ls_result> TO ls_item.
+      ENDIF.
+
+    ENDLOOP.
+
+    LOOP AT it_results ASSIGNING <ls_result>
+      WHERE NOT obj_type IS INITIAL AND obj_type <> 'DEVC' AND packmove = abap_false.
+
+      READ TABLE lt_item_idx ASSIGNING <ls_result_idx>
+        WITH KEY obj_type = <ls_result>-obj_type obj_name = <ls_result>-obj_name
+        BINARY SEARCH. " Sorted above
+
+      IF sy-subrc <> 0 OR <ls_result>-path <> <ls_result_idx>-path. " All paths are same
+        ii_log->add( iv_msg = |Files for object { <ls_result>-obj_type } {
+                              <ls_result>-obj_name } are not placed in the same folder|
+                     iv_type = 'W'
+                     iv_rc   = '1' ).
+      ENDIF.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD check_multiple_files.
+
+    DATA:
+      lt_res_sort LIKE it_results,
+      ls_file     TYPE zif_abapgit_definitions=>ty_file_signature.
+
+    FIELD-SYMBOLS <ls_result> LIKE LINE OF it_results.
+
+    lt_res_sort = it_results.
+    SORT lt_res_sort BY filename ASCENDING.
+
+    LOOP AT lt_res_sort ASSIGNING <ls_result> WHERE obj_type <> 'DEVC' AND packmove = abap_false.
+      IF <ls_result>-filename IS NOT INITIAL AND <ls_result>-filename = ls_file-filename.
+        ii_log->add( iv_msg  = |Multiple files with same filename, { <ls_result>-filename }|
+                     iv_type = 'W'
+                     iv_rc   = '3' ).
+      ENDIF.
+
+      IF <ls_result>-filename IS INITIAL.
+        ii_log->add( iv_msg  = |Filename is empty for object { <ls_result>-obj_type } { <ls_result>-obj_name }|
+                     iv_type = 'W'
+                     iv_rc   = '4' ).
+      ENDIF.
+
+      MOVE-CORRESPONDING <ls_result> TO ls_file.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD check_namespace.
+
+    DATA:
+      lv_namespace TYPE namespace,
+      lt_namespace TYPE TABLE OF namespace.
+
+    FIELD-SYMBOLS <ls_result> LIKE LINE OF it_results.
+
+    " Collect all namespaces based on name of xml-files
+    LOOP AT it_results ASSIGNING <ls_result>.
+      FIND REGEX '#(.*)#.*\..*\.xml' IN <ls_result>-filename SUBMATCHES lv_namespace.
+      IF sy-subrc = 0.
+        lv_namespace = '/' && to_upper( lv_namespace ) && '/'.
+        COLLECT lv_namespace INTO lt_namespace.
+      ENDIF.
+    ENDLOOP.
+
+    LOOP AT lt_namespace INTO lv_namespace.
+      CALL FUNCTION 'TR_CHECK_NAMESPACE'
+        EXPORTING
+          iv_namespace        = lv_namespace
+        EXCEPTIONS
+          namespace_not_valid = 1
+          OTHERS              = 2.
+      IF sy-subrc <> 0.
+        ii_log->add( iv_msg  = |Namespace { lv_namespace } does not exist. Create it in transaction SE03|
+                     iv_type = 'W'
+                     iv_rc   = '6' ).
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD check_package_folder.
+
+    DATA:
+      lv_path         TYPE string,
+      lo_folder_logic TYPE REF TO zcl_abapgit_folder_logic.
+
+    FIELD-SYMBOLS <ls_result> LIKE LINE OF it_results.
+
+    lo_folder_logic = zcl_abapgit_folder_logic=>get_instance( ).
+
+    LOOP AT it_results ASSIGNING <ls_result>
+      WHERE NOT package IS INITIAL AND NOT path IS INITIAL AND packmove = abap_false.
+
+      lv_path = lo_folder_logic->package_to_path(
+        iv_top     = iv_top
+        io_dot     = io_dot
+        iv_package = <ls_result>-package ).
+
+      IF lv_path <> <ls_result>-path.
+        ii_log->add( iv_msg = |Package and path does not match for object, {
+                       <ls_result>-obj_type } { <ls_result>-obj_name }|
+                     iv_type = 'W'
+                     iv_rc   = '2' ).
+      ENDIF.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD check_package_move.
+
+    DATA:
+      lt_move_idx LIKE it_results.
+
+    FIELD-SYMBOLS:
+      <ls_result>      LIKE LINE OF it_results,
+      <ls_result_move> LIKE LINE OF it_results.
+
+    LOOP AT it_results ASSIGNING <ls_result>
+      WHERE lstate = zif_abapgit_definitions=>c_state-added AND packmove = abap_true.
+
+      READ TABLE lt_move_idx TRANSPORTING NO FIELDS
+        WITH KEY obj_type = <ls_result>-obj_type obj_name = <ls_result>-obj_name
+        BINARY SEARCH. " Sorted since it_result is sorted
+      IF sy-subrc <> 0.
+        ii_log->add( iv_msg  = |Changed package assignment for object {
+                               <ls_result>-obj_type } { <ls_result>-obj_name }|
+                     iv_type = 'W'
+                     iv_rc   = '5' ).
+        APPEND INITIAL LINE TO lt_move_idx ASSIGNING <ls_result_move>.
+        <ls_result_move>-obj_type = <ls_result>-obj_type.
+        <ls_result_move>-obj_name = <ls_result>-obj_name.
+        <ls_result_move>-path     = <ls_result>-path.
+      ENDIF.
+
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -25448,103 +26057,37 @@ CLASS zcl_abapinst_file_status IMPLEMENTATION.
 
   METHOD run_checks.
 
-    DATA: lv_path         TYPE string,
-          ls_item         TYPE zif_abapgit_definitions=>ty_item,
-          ls_file         TYPE zif_abapgit_definitions=>ty_file_signature,
-          lt_res_sort     LIKE it_results,
-          lt_item_idx     LIKE it_results,
-          lt_move_idx     LIKE it_results,
-          lo_folder_logic TYPE REF TO zcl_abapgit_folder_logic.
-
-    FIELD-SYMBOLS: <ls_res1> LIKE LINE OF it_results,
-                   <ls_res2> LIKE LINE OF it_results.
-
     " This method just adds messages to the log. No log, nothing to do here
     IF ii_log IS INITIAL.
       RETURN.
     ENDIF.
 
     " Find all objects which were assigned to a different package
-    LOOP AT it_results ASSIGNING <ls_res1>
-      WHERE lstate = zif_abapgit_definitions=>c_state-added AND packmove = abap_true.
-      READ TABLE lt_move_idx TRANSPORTING NO FIELDS
-        WITH KEY obj_type = <ls_res1>-obj_type obj_name = <ls_res1>-obj_name
-        BINARY SEARCH. " Sorted since it_result is sorted
-      IF sy-subrc <> 0.
-        ii_log->add( iv_msg  = |Changed package assignment for object { <ls_res1>-obj_type } { <ls_res1>-obj_name }|
-                     iv_type = 'W'
-                     iv_rc   = '5' ).
-        APPEND INITIAL LINE TO lt_move_idx ASSIGNING <ls_res2>.
-        <ls_res2>-obj_type = <ls_res1>-obj_type.
-        <ls_res2>-obj_name = <ls_res1>-obj_name.
-        <ls_res2>-path     = <ls_res1>-path.
-      ENDIF.
-    ENDLOOP.
-
-    " Collect object indexe
-    lt_res_sort = it_results.
-    SORT lt_res_sort BY obj_type ASCENDING obj_name ASCENDING.
-
-    LOOP AT it_results ASSIGNING <ls_res1> WHERE NOT obj_type IS INITIAL AND packmove = abap_false.
-      IF NOT ( <ls_res1>-obj_type = ls_item-obj_type
-          AND <ls_res1>-obj_name = ls_item-obj_name ).
-        APPEND INITIAL LINE TO lt_item_idx ASSIGNING <ls_res2>.
-        <ls_res2>-obj_type = <ls_res1>-obj_type.
-        <ls_res2>-obj_name = <ls_res1>-obj_name.
-        <ls_res2>-path     = <ls_res1>-path.
-        MOVE-CORRESPONDING <ls_res1> TO ls_item.
-      ENDIF.
-    ENDLOOP.
+    check_package_move(
+      ii_log     = ii_log
+      it_results = it_results ).
 
     " Check files for one object is in the same folder
-    LOOP AT it_results ASSIGNING <ls_res1>
-      WHERE NOT obj_type IS INITIAL AND obj_type <> 'DEVC' AND packmove = abap_false.
-      READ TABLE lt_item_idx ASSIGNING <ls_res2>
-        WITH KEY obj_type = <ls_res1>-obj_type obj_name = <ls_res1>-obj_name
-        BINARY SEARCH. " Sorted above
-
-      IF sy-subrc <> 0 OR <ls_res1>-path <> <ls_res2>-path. " All paths are same
-        ii_log->add( iv_msg = |Files for object { <ls_res1>-obj_type } {
-                       <ls_res1>-obj_name } are not placed in the same folder|
-                     iv_type = 'W'
-                     iv_rc   = '1' ).
-      ENDIF.
-    ENDLOOP.
+    check_files_folder(
+      ii_log     = ii_log
+      it_results = it_results ).
 
     " Check that objects are created in package corresponding to folder
-    lo_folder_logic = zcl_abapgit_folder_logic=>get_instance( ).
-    LOOP AT it_results ASSIGNING <ls_res1>
-      WHERE NOT package IS INITIAL AND NOT path IS INITIAL AND packmove = abap_false.
-      lv_path = lo_folder_logic->package_to_path(
-        iv_top     = iv_top
+    check_package_folder(
+      ii_log     = ii_log
+      it_results = it_results
         io_dot     = io_dot
-        iv_package = <ls_res1>-package ).
-      IF lv_path <> <ls_res1>-path.
-        ii_log->add( iv_msg = |Package and path does not match for object, {
-                       <ls_res1>-obj_type } { <ls_res1>-obj_name }|
-                     iv_type = 'W'
-                     iv_rc   = '2' ).
-      ENDIF.
-    ENDLOOP.
+      iv_top     = iv_top ).
 
     " Check for multiple files with same filename
-    SORT lt_res_sort BY filename ASCENDING.
+    check_multiple_files(
+      ii_log     = ii_log
+      it_results = it_results ).
 
-    LOOP AT lt_res_sort ASSIGNING <ls_res1> WHERE obj_type <> 'DEVC' AND packmove = abap_false.
-      IF <ls_res1>-filename IS NOT INITIAL AND <ls_res1>-filename = ls_file-filename.
-        ii_log->add( iv_msg  = |Multiple files with same filename, { <ls_res1>-filename }|
-                     iv_type = 'W'
-                     iv_rc   = '3' ).
-      ENDIF.
-
-      IF <ls_res1>-filename IS INITIAL.
-        ii_log->add( iv_msg  = |Filename is empty for object { <ls_res1>-obj_type } { <ls_res1>-obj_name }|
-                     iv_type = 'W'
-                     iv_rc   = '4' ).
-      ENDIF.
-
-      MOVE-CORRESPONDING <ls_res1> TO ls_file.
-    ENDLOOP.
+    " Check if namespaces exist already
+    check_namespace(
+      ii_log     = ii_log
+      it_results = it_results ).
 
   ENDMETHOD.
 
@@ -25896,6 +26439,10 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       " Object can only be created in package of namespace
       ls_msg-id = 'TR'.
       ls_msg-no = '007'.
+      COLLECT ls_msg INTO <lt_msg>.
+      " Original system set to "SAP"
+      ls_msg-id = 'TR'.
+      ls_msg-no = '013'.
       COLLECT ls_msg INTO <lt_msg>.
       " Make repairs in foreign namespaces only if they are urgent
       ls_msg-id = 'TR'.
