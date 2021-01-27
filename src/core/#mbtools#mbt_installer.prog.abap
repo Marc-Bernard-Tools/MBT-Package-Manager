@@ -4081,18 +4081,25 @@ CLASS zcl_abapgit_oo_base DEFINITION  ABSTRACT.
         RETURNING VALUE(rt_vseoattrib) TYPE seoo_attributes_r.
 
   PRIVATE SECTION.
-    DATA mv_skip_test_classes TYPE abap_bool.
 
+    DATA mv_skip_test_classes TYPE abap_bool .
+
+    METHODS repair_exp_class_constructor
+      IMPORTING
+        !is_clskey TYPE seoclskey .
     METHODS deserialize_abap_source_old
-      IMPORTING is_clskey TYPE seoclskey
-                it_source TYPE zif_abapgit_definitions=>ty_string_tt
-      RAISING   zcx_abapgit_exception.
-
+      IMPORTING
+        !is_clskey TYPE seoclskey
+        !it_source TYPE zif_abapgit_definitions=>ty_string_tt
+      RAISING
+        zcx_abapgit_exception .
     METHODS deserialize_abap_source_new
-      IMPORTING is_clskey TYPE seoclskey
-                it_source TYPE zif_abapgit_definitions=>ty_string_tt
-      RAISING   zcx_abapgit_exception
-                cx_sy_dyn_call_error.
+      IMPORTING
+        !is_clskey TYPE seoclskey
+        !it_source TYPE zif_abapgit_definitions=>ty_string_tt
+      RAISING
+        zcx_abapgit_exception
+        cx_sy_dyn_call_error .
 ENDCLASS.
 CLASS zcl_abapgit_oo_class DEFINITION
 
@@ -12047,7 +12054,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_ACID IMPLEMENTATION.
+CLASS zcl_abapgit_object_acid IMPLEMENTATION.
 
 
   METHOD create_object.
@@ -12082,7 +12089,15 @@ CLASS ZCL_ABAPGIT_OBJECT_ACID IMPLEMENTATION.
 
 
     lo_aab = create_object( ).
-    lo_aab->enqueue( ).
+    lo_aab->enqueue(
+      EXCEPTIONS
+        foreign_lock = 1
+        system_error = 2
+        cts_error    = 3
+        OTHERS       = 4 ).
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
     lo_aab->delete(
       EXCEPTIONS
         prop_error       = 1
@@ -12096,7 +12111,7 @@ CLASS ZCL_ABAPGIT_OBJECT_ACID IMPLEMENTATION.
         where_used_error = 9
         OTHERS           = 10 ).
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( 'error deleting ACID object' ).
+      zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
     lo_aab->dequeue( ).
 
@@ -12110,13 +12125,48 @@ CLASS ZCL_ABAPGIT_OBJECT_ACID IMPLEMENTATION.
 
 
     io_xml->read( EXPORTING iv_name = 'DESCRIPTION'
-                  CHANGING cg_data = lv_description ).
+                  CHANGING  cg_data = lv_description ).
 
     lo_aab = create_object( ).
-    lo_aab->enqueue( ).
-    lo_aab->set_descript( lv_description ).
+
+    lo_aab->enqueue(
+      EXCEPTIONS
+        foreign_lock = 1
+        system_error = 2
+        cts_error    = 3
+        OTHERS       = 4 ).
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
+
+    lo_aab->set_descript(
+      EXPORTING
+        im_descript      = lv_description
+      EXCEPTIONS
+        no_authorization = 1
+        OTHERS           = 2 ).
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
+
     tadir_insert( iv_package ).
-    lo_aab->save( ).
+
+    lo_aab->save(
+      EXCEPTIONS
+        no_descript_specified = 1
+        no_changes_found      = 2
+        prop_error            = 3
+        propt_error           = 4
+        act_error             = 5
+        cts_error             = 6
+        sync_attributes_error = 7
+        action_canceled       = 8
+        OTHERS                = 9 ).
+    IF sy-subrc >= 3.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
+
+    lo_aab->dequeue( ).
 
   ENDMETHOD.
 
@@ -12504,6 +12554,25 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
       CATCH cx_oo_source_save_failure.
         zcx_abapgit_exception=>raise( 'save failure' ).
     ENDTRY.
+
+    repair_exp_class_constructor( is_clskey ).
+
+  ENDMETHOD.
+
+
+  METHOD repair_exp_class_constructor.
+
+    DATA lo_helper TYPE REF TO cl_oo_exception_class.
+
+    " Old deserializer does not create the constructor of exception classes properly
+    " Same as SE24 > Utilities > Clean-up > Constructor
+    CREATE OBJECT lo_helper
+      EXPORTING
+        clskey = is_clskey.
+
+    IF lo_helper->is_t100_exception( ) = abap_true.
+      lo_helper->repair_subclasses( ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -26210,6 +26279,8 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
           iv_enum_transport = iv_enum_transport
           iv_transport      = iv_transport ).
 
+        _confirm_messages( ).
+
         _namespaces( ).
 
         _confirm_messages( ).
@@ -26222,6 +26293,12 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
           io_dot       = go_dot
           ii_log       = gi_log ).
 
+      CATCH zcx_abapgit_exception INTO lx_error.
+        gi_log->add_exception( ix_exc = lx_error ).
+    ENDTRY.
+
+    TRY.
+
         _log_end( ).
 
         _save( ).
@@ -26229,11 +26306,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
         _final_message( 'Installation' ).
 
       CATCH zcx_abapgit_exception INTO lx_error.
-
-        gi_log->add_exception( ix_exc = lx_error ).
-
-        _log_end( ).
-
+        ASSERT 1 = 2.
     ENDTRY.
 
   ENDMETHOD.
@@ -26381,6 +26454,12 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
           iv_transport = gs_inst-transport
           ii_log       = gi_log ).
 
+      CATCH zcx_abapgit_exception INTO lx_error.
+        gi_log->add_exception( ix_exc = lx_error ).
+    ENDTRY.
+
+    TRY.
+
         _log_end( ).
 
         IF gs_inst-status = 'S'.
@@ -26392,11 +26471,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
         _final_message( 'Uninstall' ).
 
       CATCH zcx_abapgit_exception INTO lx_error.
-
-        gi_log->add_exception( ix_exc = lx_error ).
-
-        _log_end( ).
-
+        ASSERT 1 = 2.
     ENDTRY.
 
   ENDMETHOD.
@@ -27392,15 +27467,17 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
 
       "error handling & logging added
       TRY.
-          " If it does not exist yet, it will be created with this call
-          lv_package = lo_folder_logic->path_to_package(
-            iv_top  = iv_package
-            io_dot  = io_dot
-            iv_path = <ls_result>-path ).
+          IF ls_item-obj_type <> 'NSPC'.
+            " If it does not exist yet, it will be created with this call
+            lv_package = lo_folder_logic->path_to_package(
+              iv_top  = iv_package
+              io_dot  = io_dot
+              iv_path = <ls_result>-path ).
 
-          check_main_package(
-            iv_package  = lv_package
-            iv_obj_type = ls_item-obj_type ).
+            check_main_package(
+              iv_package  = lv_package
+              iv_obj_type = ls_item-obj_type ).
+          ENDIF.
 
           IF ls_item-obj_type = 'DEVC'.
             " Packages have the same filename across different folders. The path needs to be supplied
