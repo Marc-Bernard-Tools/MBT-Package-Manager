@@ -3048,7 +3048,7 @@ CLASS zcl_abapgit_dot_abapgit DEFINITION
       RETURNING
         VALUE(rs_file) TYPE zif_abapgit_definitions=>ty_file
       RAISING
-        zcx_abapgit_exception .
+        zcx_abapgit_exception.
     METHODS get_data
       RETURNING
         VALUE(rs_data) TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit .
@@ -3551,20 +3551,20 @@ CLASS zcl_abapgit_objects_super DEFINITION  ABSTRACT.
 
   PUBLIC SECTION.
 
-    METHODS constructor
-      IMPORTING
-        is_item     TYPE zif_abapgit_definitions=>ty_item
-        iv_language TYPE spras.
+    METHODS:
+      constructor
+        IMPORTING
+          is_item     TYPE zif_abapgit_definitions=>ty_item
+          iv_language TYPE spras.
 
-    CLASS-METHODS jump_adt
-      IMPORTING
-        iv_obj_name     TYPE zif_abapgit_definitions=>ty_item-obj_name
-        iv_obj_type     TYPE zif_abapgit_definitions=>ty_item-obj_type
-        iv_sub_obj_name TYPE zif_abapgit_definitions=>ty_item-obj_name OPTIONAL
-        iv_sub_obj_type TYPE zif_abapgit_definitions=>ty_item-obj_type OPTIONAL
-        iv_line_number  TYPE i OPTIONAL
-      RAISING
-        zcx_abapgit_exception.
+    CLASS-METHODS:
+      jump_adt
+        IMPORTING iv_obj_name     TYPE zif_abapgit_definitions=>ty_item-obj_name
+                  iv_obj_type     TYPE zif_abapgit_definitions=>ty_item-obj_type
+                  iv_sub_obj_name TYPE zif_abapgit_definitions=>ty_item-obj_name OPTIONAL
+                  iv_sub_obj_type TYPE zif_abapgit_definitions=>ty_item-obj_type OPTIONAL
+                  iv_line_number  TYPE i OPTIONAL
+        RAISING   zcx_abapgit_exception.
 
     CONSTANTS: c_user_unknown TYPE xubname VALUE 'UNKNOWN'.
 
@@ -12054,7 +12054,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_object_acid IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_OBJECT_ACID IMPLEMENTATION.
 
 
   METHOD create_object.
@@ -12089,15 +12089,7 @@ CLASS zcl_abapgit_object_acid IMPLEMENTATION.
 
 
     lo_aab = create_object( ).
-    lo_aab->enqueue(
-      EXCEPTIONS
-        foreign_lock = 1
-        system_error = 2
-        cts_error    = 3
-        OTHERS       = 4 ).
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise_t100( ).
-    ENDIF.
+    lo_aab->enqueue( ).
     lo_aab->delete(
       EXCEPTIONS
         prop_error       = 1
@@ -12111,7 +12103,7 @@ CLASS zcl_abapgit_object_acid IMPLEMENTATION.
         where_used_error = 9
         OTHERS           = 10 ).
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise_t100( ).
+      zcx_abapgit_exception=>raise( 'error deleting ACID object' ).
     ENDIF.
     lo_aab->dequeue( ).
 
@@ -12125,48 +12117,13 @@ CLASS zcl_abapgit_object_acid IMPLEMENTATION.
 
 
     io_xml->read( EXPORTING iv_name = 'DESCRIPTION'
-                  CHANGING  cg_data = lv_description ).
+                  CHANGING cg_data = lv_description ).
 
     lo_aab = create_object( ).
-
-    lo_aab->enqueue(
-      EXCEPTIONS
-        foreign_lock = 1
-        system_error = 2
-        cts_error    = 3
-        OTHERS       = 4 ).
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise_t100( ).
-    ENDIF.
-
-    lo_aab->set_descript(
-      EXPORTING
-        im_descript      = lv_description
-      EXCEPTIONS
-        no_authorization = 1
-        OTHERS           = 2 ).
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise_t100( ).
-    ENDIF.
-
+    lo_aab->enqueue( ).
+    lo_aab->set_descript( lv_description ).
     tadir_insert( iv_package ).
-
-    lo_aab->save(
-      EXCEPTIONS
-        no_descript_specified = 1
-        no_changes_found      = 2
-        prop_error            = 3
-        propt_error           = 4
-        act_error             = 5
-        cts_error             = 6
-        sync_attributes_error = 7
-        action_canceled       = 8
-        OTHERS                = 9 ).
-    IF sy-subrc >= 3.
-      zcx_abapgit_exception=>raise_t100( ).
-    ENDIF.
-
-    lo_aab->dequeue( ).
+    lo_aab->save( ).
 
   ENDMETHOD.
 
@@ -19841,19 +19798,12 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_object_para IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_OBJECT_PARA IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~changed_by.
-
-    " 'Changed by User' is not stored in the database
-    " Instead use 'Person Responsible' like SE80
-    SELECT SINGLE author FROM tadir INTO rv_user
-      WHERE pgmid = 'R3TR' AND object = 'PARA' AND obj_name = ms_item-obj_name.
-    IF sy-subrc <> 0.
-      rv_user = c_user_unknown.
-    ENDIF.
-
+* looks like "changed by user" is not stored in the database
+    rv_user = c_user_unknown.
   ENDMETHOD.
 
 
