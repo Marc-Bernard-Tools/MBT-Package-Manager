@@ -1,6 +1,8 @@
 INTERFACE /mbtools/if_ajson_mapping
   PUBLIC .
 
+
+  TYPES:
 ************************************************************************
 * MBT AJSON Mapping Interface
 *
@@ -9,28 +11,25 @@ INTERFACE /mbtools/if_ajson_mapping
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
-
-  TYPES:
     BEGIN OF ty_mapping_field,
       abap TYPE string,
       json TYPE string,
-    END OF ty_mapping_field,
+    END OF ty_mapping_field .
+  TYPES:
     ty_mapping_fields TYPE STANDARD TABLE OF ty_mapping_field
       WITH UNIQUE SORTED KEY abap COMPONENTS abap
-      WITH UNIQUE SORTED KEY json COMPONENTS json.
+      WITH UNIQUE SORTED KEY json COMPONENTS json .
 
   METHODS to_abap
     IMPORTING
       !iv_path         TYPE string
       !iv_name         TYPE string
     RETURNING
-      VALUE(rv_result) TYPE string.
-
+      VALUE(rv_result) TYPE string .
   METHODS to_json
     IMPORTING
       !iv_path         TYPE string
       !iv_name         TYPE string
     RETURNING
-      VALUE(rv_result) TYPE string.
-
+      VALUE(rv_result) TYPE string .
 ENDINTERFACE.

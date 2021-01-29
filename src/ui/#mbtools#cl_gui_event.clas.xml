@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>/MBTOOLS/CL_GUI_EVENT</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abapGit html event abstraction</DESCRIPT>
+    <DESCRIPT>MBT GUI Event Abstraction</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

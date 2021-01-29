@@ -6131,6 +6131,7 @@ CLASS zcl_abapinst_installer DEFINITION
     CONSTANTS gc_warning TYPE sy-msgty VALUE 'W' ##NO_TEXT.
     CONSTANTS gc_error TYPE sy-msgty VALUE 'E' ##NO_TEXT.
 
+    CLASS-METHODS _transport_reset .
     CLASS-METHODS _log_start .
     CLASS-METHODS _files
       IMPORTING
@@ -7389,9 +7390,8 @@ CLASS zcl_abapgit_default_transport IMPLEMENTATION.
         invalid_order    = 2
         invalid_task     = 3
         OTHERS           = 4.
-
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( |Error from TR_TASK_RESET. Subrc = { sy-subrc }| ).
+      zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
   ENDMETHOD.
@@ -7416,9 +7416,8 @@ CLASS zcl_abapgit_default_transport IMPLEMENTATION.
         invalid_category = 2
         invalid_client   = 3
         OTHERS           = 4.
-
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( |Error from TR_TASK_GET. Subrc = { sy-subrc }| ).
+      zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
     READ TABLE lt_e070use INTO rs_default_task
@@ -7483,9 +7482,8 @@ CLASS zcl_abapgit_default_transport IMPLEMENTATION.
         invalid_order     = 5
         invalid_task      = 6
         OTHERS            = 7.
-
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( |Error from TR_TASK_SET. Subrc = { sy-subrc }| ).
+      zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
   ENDMETHOD.
@@ -14010,11 +14008,12 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    " SOTR is linked to SAP packages (DEVC)
     SELECT SINGLE obj_name
            FROM tadir
            INTO lv_object_name
            WHERE pgmid = 'R3TR'
-           AND NOT ( object = 'DEVC' AND obj_name = iv_package_name )
+           AND NOT ( ( object = 'DEVC' OR object = 'SOTR' ) AND obj_name = iv_package_name )
            AND devclass = iv_package_name.
     rv_is_empty = boolc( sy-subrc <> 0 ).
 
@@ -22976,6 +22975,7 @@ CLASS zcl_abapgit_object_w3xx_super IMPLEMENTATION.
 
   METHOD zif_abapgit_object~get_metadata.
     rs_metadata = get_metadata( ).
+    rs_metadata-delete_tadir = abap_true.
   ENDMETHOD.
 
 
@@ -26103,10 +26103,11 @@ CLASS zcl_abapinst_file_status IMPLEMENTATION.
       ii_log     = ii_log
       it_results = it_results ).
 
-    " Check if namespaces exist already
-    check_namespace(
-      ii_log     = ii_log
-      it_results = it_results ).
+*** abapinst creates namespace automatically
+*    " Check if namespaces exist already
+*    check_namespace(
+*      ii_log     = ii_log
+*      it_results = it_results ).
 
   ENDMETHOD.
 
@@ -26233,8 +26234,6 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
         _namespaces( ).
 
-        _confirm_messages( ).
-
         zcl_abapinst_objects=>deserialize(
           iv_package   = gs_inst-pack
           iv_language  = gs_inst-installed_langu
@@ -26244,6 +26243,8 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
           ii_log       = gi_log ).
 
       CATCH zcx_abapgit_exception INTO lx_error.
+        _transport_reset( ).
+
         gi_log->add_exception( ix_exc = lx_error ).
     ENDTRY.
 
@@ -26397,6 +26398,8 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
         _transport( ty_enum_transport-prompt ).
 
+        _confirm_messages( ).
+
         lt_tadir = zcl_abapinst_factory=>get_tadir( )->read( gs_inst-pack ).
 
         zcl_abapinst_objects=>delete(
@@ -26405,6 +26408,8 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
           ii_log       = gi_log ).
 
       CATCH zcx_abapgit_exception INTO lx_error.
+        _transport_reset( ).
+
         gi_log->add_exception( ix_exc = lx_error ).
     ENDTRY.
 
@@ -26442,6 +26447,8 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
   METHOD _confirm_messages.
 
+    CONSTANTS lc_toolflag_set TYPE funcname VALUE 'SCWG_TOOLFLAG_SET'.
+
     TYPES:
       BEGIN OF ty_message,
         id TYPE symsgid,
@@ -26477,6 +26484,17 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       ls_msg-id = 'TK'.
       ls_msg-no = '016'.
       COLLECT ls_msg INTO <lt_msg>.
+    ENDIF.
+
+    " Set tool flag to avoid messages
+    CALL FUNCTION 'FUNCTION_EXISTS'
+      EXPORTING
+        funcname           = lc_toolflag_set
+      EXCEPTIONS
+        function_not_exist = 1
+        OTHERS             = 2.
+    IF sy-subrc = 0.
+      CALL FUNCTION lc_toolflag_set.
     ENDIF.
 
   ENDMETHOD.
@@ -26767,6 +26785,16 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
           gs_inst-transport = zcl_abapinst_screen=>f4_transport( gs_inst-pack ).
       ENDCASE.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD _transport_reset.
+
+    TRY.
+        zcl_abapgit_default_transport=>get_instance( )->reset( ).
+      CATCH zcx_abapgit_exception ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 ENDCLASS.
@@ -27898,12 +27926,14 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
           lv_package  LIKE LINE OF lt_packages,
           lv_tree     TYPE dirtree-tname.
 
+    " Make sure all deserialized objects are committed
+    COMMIT WORK AND WAIT.
 
     lt_packages = zcl_abapinst_factory=>get_sap_package( iv_package )->list_subpackages( ).
     APPEND iv_package TO lt_packages.
 
     LOOP AT lt_packages INTO lv_package.
-* update package tree for SE80
+      " Update package tree for SE80
       lv_tree = 'EU_' && lv_package.
       CALL FUNCTION 'WB_TREE_ACTUALIZE'
         EXPORTING
@@ -29246,7 +29276,6 @@ CLASS zcl_abapinst_setup IMPLEMENTATION.
     <ls_dd03p>-fieldname = 'JSON'.
     <ls_dd03p>-position  = '0003'.
     <ls_dd03p>-datatype  = 'STRG'.
-    <ls_dd03p>-notnull   = abap_true.
 
     CALL FUNCTION 'DDIF_TABL_PUT'
       EXPORTING

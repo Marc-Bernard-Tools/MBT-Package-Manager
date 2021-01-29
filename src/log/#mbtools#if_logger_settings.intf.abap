@@ -1,6 +1,7 @@
 INTERFACE /mbtools/if_logger_settings
   PUBLIC .
 
+
 ************************************************************************
 * MBT Logger
 *
@@ -11,7 +12,6 @@ INTERFACE /mbtools/if_logger_settings
 *
 * Last update: 2020-08-17
 ************************************************************************
-
   "! Is the log automatically saved when adding messages?
   "! See setter for more details.
   METHODS get_autosave
