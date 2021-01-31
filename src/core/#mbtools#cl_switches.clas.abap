@@ -20,6 +20,7 @@ CLASS /mbtools/cl_switches DEFINITION
         mbt_transport_request TYPE string VALUE 'MBT Transport Request' ##NO_TEXT,
         mbt_note_assistant    TYPE string VALUE 'MBT Note Assistant' ##NO_TEXT,
         mbt_system_monitor    TYPE string VALUE 'MBT System Monitor' ##NO_TEXT,
+        mbt_listcube          TYPE string VALUE 'MBT Listcube' ##NO_TEXT,
       END OF c_tool.
 
     CLASS-METHODS class_constructor.

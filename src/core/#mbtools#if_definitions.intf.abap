@@ -93,13 +93,18 @@ INTERFACE /mbtools/if_definitions
   TYPES:
     BEGIN OF ty_file.
       INCLUDE TYPE ty_file_signature.
-  TYPES: data TYPE xstring,
+      TYPES: data TYPE xstring,
     END OF ty_file .
   TYPES:
     ty_files_tt TYPE STANDARD TABLE OF ty_file WITH DEFAULT KEY .
 
+  CONSTANTS c_mbt TYPE string VALUE 'Marc Bernard Tools' ##NO_TEXT.
+  CONSTANTS c_namespace TYPE devclass VALUE '/MBTOOLS/' ##NO_TEXT.
+  CONSTANTS c_manifest TYPE seoclsname VALUE '/MBTOOLS/IF_MANIFEST' ##NO_TEXT.
+  CONSTANTS c_rfcdest TYPE rfcdest VALUE 'MBTOOLS' ##NO_TEXT.
   CONSTANTS c_github TYPE string VALUE 'github.com/mbtools' ##NO_TEXT.
   CONSTANTS c_dot_abapgit TYPE string VALUE '.abapgit.xml' ##NO_TEXT.
+  CONSTANTS c_domain TYPE string VALUE 'marcbernardtools.com' ##NO_TEXT.
   CONSTANTS c_www_home TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.
   CONSTANTS c_www_ping TYPE string VALUE 'info/index.html' ##NO_TEXT.
   CONSTANTS c_www_terms TYPE string VALUE 'company/terms-software/' ##NO_TEXT.
@@ -109,6 +114,4 @@ INTERFACE /mbtools/if_definitions
   CONSTANTS c_www_support TYPE string VALUE 'support/ticket/' ##NO_TEXT.
   CONSTANTS c_www_faq TYPE string VALUE 'support/faq/' ##NO_TEXT.
   CONSTANTS c_www_portfolio TYPE string VALUE 'tools/portfolio/' ##NO_TEXT.
-  CONSTANTS c_namespace TYPE devclass VALUE '/MBTOOLS/' ##NO_TEXT.
-  CONSTANTS c_manifest TYPE seoclsname VALUE '/MBTOOLS/IF_MANIFEST' ##NO_TEXT.
 ENDINTERFACE.

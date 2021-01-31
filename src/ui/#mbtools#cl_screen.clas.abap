@@ -116,7 +116,7 @@ CLASS /mbtools/cl_screen IMPLEMENTATION.
       go_banner->set_display_mode( display_mode = cl_gui_picture=>display_mode_normal ).
     ENDIF.
 
-    go_banner->set_position( height = 21
+    go_banner->set_position( height = 20
                              left   = iv_left
                              top    = iv_top
                              width  = 500 ).             "#EC NUMBER_OK

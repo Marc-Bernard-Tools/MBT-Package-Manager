@@ -80,18 +80,18 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD class_setup.
     /mbtools/cl_logger=>new(
-      iv_object = 'ABAPUNIT'
-      iv_subobject = 'LOGGER'
+      iv_object = '/MBTOOLS/'
+      iv_subobject = 'LOG'
       iv_description = 'Log saved in database' )->/mbtools/if_logger~add( 'This message is in the database' ).
   ENDMETHOD.
 
   METHOD setup.
     anon_log  = /mbtools/cl_logger=>new( ).
-    named_log = /mbtools/cl_logger=>new( iv_object = 'ABAPUNIT'
-                                         iv_subobject = 'LOGGER'
+    named_log = /mbtools/cl_logger=>new( iv_object = '/MBTOOLS/'
+                                         iv_subobject = 'LOG'
                                          iv_description = `Hey it's a log` ).
-    reopened_log = /mbtools/cl_logger=>open( iv_object = 'ABAPUNIT'
-                                             iv_subobject = 'LOGGER'
+    reopened_log = /mbtools/cl_logger=>open( iv_object = '/MBTOOLS/'
+                                             iv_subobject = 'LOG'
                                              iv_description = 'Log saved in database' ).
   ENDMETHOD.
 
@@ -113,8 +113,8 @@ CLASS ltcl_test IMPLEMENTATION.
     CONSTANTS days_until_log_can_be_deleted TYPE i VALUE 365.
 
     expiring_log = /mbtools/cl_logger_factory=>create_log(
-      iv_object    = 'ABAPUNIT'
-      iv_subobject = 'LOGGER'
+      iv_object    = '/MBTOOLS/'
+      iv_subobject = 'LOG'
       iv_description      = 'Log that is not deletable and expiring'
       io_settings  = /mbtools/cl_logger_factory=>create_settings(
         )->set_expiry_in_days( days_until_log_can_be_deleted
@@ -153,8 +153,8 @@ CLASS ltcl_test IMPLEMENTATION.
     lv_expire = sy-datum + days_until_log_can_be_deleted.
 
     expiring_log = /mbtools/cl_logger_factory=>create_log(
-      iv_object    = 'ABAPUNIT'
-      iv_subobject = 'LOGGER'
+      iv_object    = '/MBTOOLS/'
+      iv_subobject = 'LOG'
       iv_description      = 'Log that is not deletable and expiring'
       io_settings  = /mbtools/cl_logger_factory=>create_settings(
         )->set_expiry_date( lv_expire
@@ -191,12 +191,12 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA: created_log TYPE REF TO /mbtools/if_logger,
           handles     TYPE bal_t_logh.
     CALL FUNCTION 'BAL_GLB_MEMORY_REFRESH'. "Close Logs
-    reopened_log = /mbtools/cl_logger=>open( iv_object = 'ABAPUNIT'
-                                             iv_subobject = 'LOGGER'
+    reopened_log = /mbtools/cl_logger=>open( iv_object = '/MBTOOLS/'
+                                             iv_subobject = 'LOG'
                                              iv_description = 'Log saved in database'
                                              iv_create_if_does_not_exist = abap_true ).
-    created_log = /mbtools/cl_logger=>open( iv_object = 'ABAPUNIT'
-                                            iv_subobject = 'LOGGER'
+    created_log = /mbtools/cl_logger=>open( iv_object = '/MBTOOLS/'
+                                            iv_subobject = 'LOG'
                                             iv_description = 'Log not in database'
                                             iv_create_if_does_not_exist = abap_true ).
     CALL FUNCTION 'BAL_GLB_SEARCH_LOG'
@@ -271,7 +271,7 @@ CLASS ltcl_test IMPLEMENTATION.
           log_numbers TYPE bal_t_logn,
           msg         TYPE string.
 
-    MESSAGE s000(sabp_unit) WITH 'Testing' 'logger' 'that' 'saves.' INTO dummy.
+    MESSAGE s000(sabp_unit) WITH 'Testing' 'LOG' 'that' 'saves.' INTO dummy.
     named_log->add( ).
     msg = format_message( ).
 

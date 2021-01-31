@@ -11,7 +11,7 @@ TABLES:
 *-----------------------------------------------------------------------
 
 " Function Keys
-SELECTION-SCREEN FUNCTION KEY: 1.
+SELECTION-SCREEN FUNCTION KEY: 1, 2.
 
 *-----------------------------------------------------------------------
 
@@ -92,6 +92,7 @@ DATA:
   gv_tool   TYPE string,
   gv_action TYPE string,
   gv_msg    TYPE string,
+  gv_answer TYPE c LENGTH 1,
   gv_flag   TYPE abap_bool.
 
 *-----------------------------------------------------------------------
@@ -124,6 +125,7 @@ INITIALIZATION.
 
 * Function Keys
   sscrfields-functxt_01 = icon_biw_info_cube && 'Registry'.
+  sscrfields-functxt_02 = icon_settings && 'Setup'.
 
 *-----------------------------------------------------------------------
 
@@ -158,8 +160,25 @@ AT SELECTION-SCREEN.
       SUBMIT /mbtools/registry VIA SELECTION-SCREEN AND RETURN. "#EC CI_SUBMIT
       CLEAR sscrfields-ucomm.
 
-    WHEN 'FC02'. " Reserved
-      ASSERT 0 = 0.
+    WHEN 'FC02'. " Setup
+      CALL FUNCTION 'POPUP_TO_CONFIRM'
+        EXPORTING
+          titlebar              = c_title
+          text_question         = 'Are you sure you want to overwrite the setup?'
+          text_button_1         = 'Ja'(001)
+          text_button_2         = 'Nein'(002)
+          default_button        = '2'
+          display_cancel_button = 'X'
+        IMPORTING
+          answer                = gv_answer
+        EXCEPTIONS
+          text_not_found        = 1
+          OTHERS                = 2.
+      IF sy-subrc <> 0 OR gv_answer <> '1'.
+        RETURN.
+      ENDIF.
+
+      /mbtools/cl_setup=>run( iv_force = abap_true ).
 
   ENDCASE.
 

@@ -243,6 +243,9 @@ INITIALIZATION.
 
   DATA lo_tool TYPE REF TO /mbtools/cl_tools.
 
+  " Perform setup that was not included in installation
+  /mbtools/cl_setup=>run( ).
+
   " Register all installed bundles and tools
   /mbtools/cl_tools=>action_bundles( /mbtools/if_actions=>tool_register ).
   /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_register ).

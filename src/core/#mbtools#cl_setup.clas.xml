@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>/MBTOOLS/CL_SETUP</CLSNAME>
+    <LANGU>E</LANGU>
+    <DESCRIPT>MBT Setup</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+   </VSEOCLASS>
+   <TPOOL>
+    <item>
+     <ID>I</ID>
+     <KEY>001</KEY>
+     <ENTRY>Marc Bernard Tools</ENTRY>
+     <LENGTH>60</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>002</KEY>
+     <ENTRY>Log for EDD API</ENTRY>
+     <LENGTH>60</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>003</KEY>
+     <ENTRY>Log for MBT Installer</ENTRY>
+     <LENGTH>60</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>004</KEY>
+     <ENTRY>General Log</ENTRY>
+     <LENGTH>60</LENGTH>
+    </item>
+   </TPOOL>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_SETUP</CLSNAME>
+     <CMPNAME>RUN</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Run Setup</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_SETUP</CLSNAME>
+     <CMPNAME>_APPLICATION_LOG</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Create application log (SLG1)</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_SETUP</CLSNAME>
+     <CMPNAME>_CERTIFICATES</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Import certificates (STRUST)</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_SETUP</CLSNAME>
+     <CMPNAME>_RFC_DESTINATION</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Create RFC Destination (SM59)</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>
