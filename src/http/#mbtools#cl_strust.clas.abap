@@ -66,7 +66,7 @@ CLASS /mbtools/cl_strust DEFINITION
     DATA mv_context TYPE psecontext .
     DATA mv_applic TYPE ssfappl .
     DATA mv_psename TYPE ssfpsename .
-    DATA mv_psetext TYPE strustappltxt ##NEEDED.
+    DATA mv_psetext TYPE strustappltxt  ##NEEDED.
     DATA mv_distrib TYPE ssfflag .
     DATA mv_tempfile TYPE localfile .
     DATA mv_id TYPE ssfid .
@@ -76,6 +76,7 @@ CLASS /mbtools/cl_strust DEFINITION
     DATA mt_cert_new TYPE ty_certattr_tt .
     DATA ms_cert_old TYPE ty_certattr .
     DATA mt_cert_old TYPE ty_certattr_tt .
+    DATA mv_save TYPE abap_bool .
 
     METHODS _create
       IMPORTING
@@ -101,10 +102,9 @@ CLASS /mbtools/cl_strust IMPLEMENTATION.
   METHOD add.
 
     DATA:
-      lv_certb64     TYPE string,
-      lo_certobj     TYPE REF TO cl_abap_x509_certificate,
-      lv_certificate TYPE xstring,
-      ls_cert_new    TYPE ty_certattr.
+      lv_certb64  TYPE string,
+      lo_certobj  TYPE REF TO cl_abap_x509_certificate,
+      ls_cert_new TYPE ty_certattr.
 
     FIELD-SYMBOLS:
       <lv_data> TYPE any.
@@ -129,11 +129,11 @@ CLASS /mbtools/cl_strust IMPLEMENTATION.
           EXPORTING
             if_certificate = <lv_data>.
 
-        lv_certificate = lo_certobj->get_certificate( ).
+        ls_cert_new-certificate = lo_certobj->get_certificate( ).
 
         CALL FUNCTION 'SSFC_PARSE_CERTIFICATE'
           EXPORTING
-            certificate         = lv_certificate
+            certificate         = ls_cert_new-certificate
           IMPORTING
             subject             = ls_cert_new-subject
             issuer              = ls_cert_new-issuer
@@ -299,6 +299,8 @@ CLASS /mbtools/cl_strust IMPLEMENTATION.
 
   METHOD load.
 
+    CLEAR mv_save.
+
     _lock( ).
 
     CALL FUNCTION 'SSFPSE_LOAD'
@@ -349,6 +351,7 @@ CLASS /mbtools/cl_strust IMPLEMENTATION.
         /mbtools/cx_exception=>raise_t100( ).
       ENDIF.
 
+      mv_save = abap_true.
     ENDLOOP.
 
     _save( ).
@@ -367,26 +370,33 @@ CLASS /mbtools/cl_strust IMPLEMENTATION.
     " Remove expired certificates
     LOOP AT mt_cert_old ASSIGNING <ls_cert_old>.
 
-      LOOP AT mt_cert_new ASSIGNING <ls_cert_new>
-        WHERE subject = <ls_cert_old>-subject AND dateto >= <ls_cert_old>-dateto.
+      LOOP AT mt_cert_new ASSIGNING <ls_cert_new> WHERE subject = <ls_cert_old>-subject.
 
-        CALL FUNCTION 'SSFC_REMOVECERTIFICATE'
-          EXPORTING
-            profile               = mv_profile
-            profilepw             = mv_profilepw
-            subject               = <ls_cert_old>-subject
-            issuer                = <ls_cert_old>-issuer
-            serialno              = <ls_cert_old>-serialno
-          EXCEPTIONS
-            ssf_krn_error         = 1
-            ssf_krn_nomemory      = 2
-            ssf_krn_nossflib      = 3
-            ssf_krn_invalid_par   = 4
-            ssf_krn_nocertificate = 5
-            OTHERS                = 6.
-        IF sy-subrc <> 0.
-          _unlock( ).
-          /mbtools/cx_exception=>raise_t100( ).
+        IF <ls_cert_new>-dateto > <ls_cert_old>-dateto.
+          " Certificate is newer, so remove the old certificate
+          CALL FUNCTION 'SSFC_REMOVECERTIFICATE'
+            EXPORTING
+              profile               = mv_profile
+              profilepw             = mv_profilepw
+              subject               = <ls_cert_old>-subject
+              issuer                = <ls_cert_old>-issuer
+              serialno              = <ls_cert_old>-serialno
+            EXCEPTIONS
+              ssf_krn_error         = 1
+              ssf_krn_nomemory      = 2
+              ssf_krn_nossflib      = 3
+              ssf_krn_invalid_par   = 4
+              ssf_krn_nocertificate = 5
+              OTHERS                = 6.
+          IF sy-subrc <> 0.
+            _unlock( ).
+            /mbtools/cx_exception=>raise_t100( ).
+          ENDIF.
+
+          mv_save = abap_true.
+        ELSE.
+          " Certificate already exists, no update necessary
+          DELETE mt_cert_new.
         ENDIF.
 
       ENDLOOP.
@@ -413,6 +423,7 @@ CLASS /mbtools/cl_strust IMPLEMENTATION.
         /mbtools/cx_exception=>raise_t100( ).
       ENDIF.
 
+      mv_save = abap_true.
     ENDLOOP.
 
     _save( ).
@@ -496,6 +507,8 @@ CLASS /mbtools/cl_strust IMPLEMENTATION.
   METHOD _save.
 
     DATA lv_credname TYPE icm_credname.
+
+    CHECK mv_save = abap_true.
 
     " Store PSE
     CALL FUNCTION 'SSFPSE_STORE'
