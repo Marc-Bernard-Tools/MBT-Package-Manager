@@ -1,5 +1,5 @@
 INTERFACE /mbtools/if_definitions
-  PUBLIC .
+  PUBLIC.
 
 
   TYPES:
@@ -8,30 +8,30 @@ INTERFACE /mbtools/if_definitions
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-    ty_icon     TYPE c LENGTH 4 . " icon_d
+    ty_icon     TYPE c LENGTH 4. " icon_d
   TYPES:
-    ty_text     TYPE c LENGTH 60 . " ddtext
+    ty_text     TYPE c LENGTH 60. " ddtext
   TYPES:
-    ty_longname TYPE c LENGTH 120 . "trobj_name
+    ty_longname TYPE c LENGTH 120. "trobj_name
   TYPES:
     BEGIN OF ty_tadir_key, " adir_key
       pgmid    TYPE c LENGTH 4,
       object   TYPE c LENGTH 4,
       obj_name TYPE c LENGTH 40,
-    END OF ty_tadir_key .
+    END OF ty_tadir_key.
   TYPES:
-    ty_tadir_keys TYPE STANDARD TABLE OF ty_tadir_key WITH DEFAULT KEY .
-  TYPES ty_pgmid TYPE ty_tadir_key-pgmid .
-  TYPES ty_object TYPE ty_tadir_key-object .
+    ty_tadir_keys TYPE STANDARD TABLE OF ty_tadir_key WITH DEFAULT KEY.
+  TYPES ty_pgmid TYPE ty_tadir_key-pgmid.
+  TYPES ty_object TYPE ty_tadir_key-object.
   TYPES:
-    ty_objects      TYPE STANDARD TABLE OF ty_object WITH DEFAULT KEY .
+    ty_objects      TYPE STANDARD TABLE OF ty_object WITH DEFAULT KEY.
   TYPES:
-    ty_object_range TYPE RANGE OF ty_object .
-  TYPES ty_name TYPE ty_tadir_key-obj_name .
+    ty_object_range TYPE RANGE OF ty_object.
+  TYPES ty_name TYPE ty_tadir_key-obj_name.
   TYPES:
-    ty_names      TYPE STANDARD TABLE OF ty_name WITH DEFAULT KEY .
+    ty_names      TYPE STANDARD TABLE OF ty_name WITH DEFAULT KEY.
   TYPES:
-    ty_name_range TYPE RANGE OF ty_name .
+    ty_name_range TYPE RANGE OF ty_name.
   TYPES:
     BEGIN OF ty_object_ext, " /mbtools/object_with_icon_text,
       icon     TYPE ty_icon,
@@ -39,17 +39,17 @@ INTERFACE /mbtools/if_definitions
       object   TYPE ty_tadir_key-object,
       obj_name TYPE ty_tadir_key-obj_name,
       text     TYPE ty_text,
-    END OF ty_object_ext .
+    END OF ty_object_ext.
   TYPES:
-    ty_objects_ext TYPE STANDARD TABLE OF ty_object_ext WITH DEFAULT KEY .
+    ty_objects_ext TYPE STANDARD TABLE OF ty_object_ext WITH DEFAULT KEY.
   TYPES:
     BEGIN OF ty_object_text, " ko100
       pgmid  TYPE ty_tadir_key-pgmid,
       object TYPE ty_tadir_key-object,
       text   TYPE ty_text,
-    END OF ty_object_text .
+    END OF ty_object_text.
   TYPES:
-    ty_object_texts TYPE STANDARD TABLE OF ty_object_text WITH DEFAULT KEY .
+    ty_object_texts TYPE STANDARD TABLE OF ty_object_text WITH DEFAULT KEY.
   TYPES:
     BEGIN OF ty_regs, " /mbtools/regs
       relid  TYPE c LENGTH 2,
@@ -60,7 +60,7 @@ INTERFACE /mbtools/if_definitions
       chname TYPE c LENGTH 12,
       clustr TYPE indx_clstr,
       clustd TYPE indx_clust,
-    END OF ty_regs .
+    END OF ty_regs.
   TYPES:
     BEGIN OF ty_version,
       major           TYPE i,
@@ -68,35 +68,35 @@ INTERFACE /mbtools/if_definitions
       patch           TYPE i,
       prerelase       TYPE string,
       prerelase_patch TYPE i,
-    END OF ty_version .
+    END OF ty_version.
   TYPES:
     BEGIN OF ty_transport_type,
       request TYPE trfunction,
       task    TYPE trfunction,
-    END OF ty_transport_type .
+    END OF ty_transport_type.
   TYPES:
     BEGIN OF ty_alv_column,
       name   TYPE string,
       text   TYPE string,
       length TYPE lvc_outlen,
-    END OF ty_alv_column .
+    END OF ty_alv_column.
   TYPES:
-    ty_alv_column_tt TYPE STANDARD TABLE OF ty_alv_column WITH DEFAULT KEY .
+    ty_alv_column_tt TYPE STANDARD TABLE OF ty_alv_column WITH DEFAULT KEY.
   TYPES:
-    ty_sha1 TYPE c LENGTH 40 .
+    ty_sha1 TYPE c LENGTH 40.
   TYPES:
     BEGIN OF ty_file_signature,
       path     TYPE string,
       filename TYPE string,
       sha1     TYPE ty_sha1,
-    END OF ty_file_signature .
+    END OF ty_file_signature.
   TYPES:
     BEGIN OF ty_file.
       INCLUDE TYPE ty_file_signature.
-      TYPES: data TYPE xstring,
-    END OF ty_file .
+  TYPES: data TYPE xstring,
+    END OF ty_file.
   TYPES:
-    ty_files_tt TYPE STANDARD TABLE OF ty_file WITH DEFAULT KEY .
+    ty_files_tt TYPE STANDARD TABLE OF ty_file WITH DEFAULT KEY.
 
   CONSTANTS c_mbt TYPE string VALUE 'Marc Bernard Tools' ##NO_TEXT.
   CONSTANTS c_namespace TYPE devclass VALUE '/MBTOOLS/' ##NO_TEXT.

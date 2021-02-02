@@ -276,10 +276,10 @@ CLASS /mbtools/cl_tools DEFINITION
   PRIVATE SECTION.
 
     " Sync with zif_abapinst_definitions
-    CONSTANTS lc_name_length TYPE i VALUE 90 ##NO_TEXT.
+    CONSTANTS c_name_length TYPE i VALUE 90 ##NO_TEXT.
 
     TYPES:
-      ty_name TYPE c LENGTH lc_name_length.
+      ty_name TYPE c LENGTH c_name_length.
     TYPES:
       ty_pack TYPE devclass.
     TYPES:
@@ -1748,6 +1748,9 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       " Update
       ls_cont = sync_json( ls_inst ).
       UPDATE (lc_tabname) FROM ls_cont.
+      IF sy-subrc <> 0.
+        /mbtools/cx_exception=>raise( 'Error updating MBT Installer persistence'(003) ).
+      ENDIF.
     ELSE.
       ls_inst-name            = io_tool->get_name( ).
       ls_inst-pack            = io_tool->get_package( ).
@@ -1765,10 +1768,9 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       " Insert
       ls_cont = sync_json( ls_inst ).
       INSERT (lc_tabname) FROM ls_cont.
-    ENDIF.
-
-    IF sy-subrc <> 0.
-      /mbtools/cx_exception=>raise( 'Error updating MBT Installer persistence').
+      IF sy-subrc <> 0.
+        /mbtools/cx_exception=>raise( 'Error inserting MBT Installer persistence'(002) ).
+      ENDIF.
     ENDIF.
 
   ENDMETHOD.
