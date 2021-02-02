@@ -128,7 +128,10 @@
         "check_subrc": {
             "assign": true,
             "authorityCheck": true,
-            "exclude": [],
+            "exclude": [
+                "#mbtools#.*_ajson.*",
+                "#mbtools#.*_logger.*"
+            ],
             "find": true,
             "insertDatabase": true,
             "modifyDatabase": true,
@@ -195,7 +198,9 @@
             "severity": "Error"
         },
         "definitions_top": {
-            "exclude": [],
+            "exclude": [
+                "#mbtools#.*_ajson.*"
+            ],
             "severity": "Error"
         },
         "description_empty": {
@@ -320,7 +325,9 @@
         },
         "indentation": {
             "alignTryCatch": false,
-            "exclude": [],
+            "exclude": [
+                "#mbtools#.*_ajson.*"
+            ],
             "globalClassSkipFirst": false,
             "ignoreExceptions": true,
             "ignoreGlobalClassDefinition": false,
