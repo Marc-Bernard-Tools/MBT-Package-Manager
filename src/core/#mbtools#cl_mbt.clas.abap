@@ -21,7 +21,7 @@ CLASS /mbtools/cl_mbt IMPLEMENTATION.
 
     rv_result = /mbtools/cl_http=>ping( iv_url   = /mbtools/if_definitions=>c_www_home
                                                 && /mbtools/if_definitions=>c_www_ping
-                                        iv_regex = 'Marc Bernard Tools' ).
+                                        iv_regex = /mbtools/if_definitions=>c_mbt ).
 
   ENDMETHOD.
 ENDCLASS.

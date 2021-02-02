@@ -672,7 +672,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
           lv_details = |Version: { lo_tool->get_version( ) } \| | &&
                        |{ lv_details } \| Last update: { lo_tool->get_last_update( ) }|.
 
-          IF NOT lo_tool->get_new_version( ) IS INITIAL.
+          IF lo_tool->get_new_version( ) IS NOT INITIAL.
             lv_changelog = |toggleDisplay('changelog-{ lo_tool->get_name( ) }')|.
             lv_changelog = ri_html->a( iv_act = lv_changelog
                                        iv_typ = /mbtools/if_html=>c_action_type-onclick
@@ -699,7 +699,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
               lv_details = |<span class="has-mbt-green-color">does not expire</span>|.
             ENDIF.
             lv_details = |Your license key { lv_details }|.
-          ELSEIF NOT lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_key ) IS INITIAL.
+          ELSEIF lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_key ) IS NOT INITIAL.
             lv_details = |<span class="has-mbt-red-color">expired</span>|.
             lv_details = |Your license key has { lv_details }. Please enter a valid key.|.
           ELSE.
@@ -708,10 +708,10 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
         ENDIF.
     ENDCASE.
 
-    IF NOT lv_details IS INITIAL.
+    IF lv_details IS NOT INITIAL.
       ri_html->add( |<br><span class="description">{ lv_details }</span>| ).
     ENDIF.
-    IF NOT lv_update IS INITIAL.
+    IF lv_update IS NOT INITIAL.
       ri_html->add( |<br><br><span class="update">{ lv_update }</span>| ).
     ENDIF.
     ri_html->add( '</td>' ).

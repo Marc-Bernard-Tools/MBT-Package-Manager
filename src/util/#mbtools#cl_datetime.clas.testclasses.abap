@@ -75,21 +75,21 @@ CLASS ltcl_datetime IMPLEMENTATION.
   METHOD test_time_1.
 
     mv_result = /mbtools/cl_datetime=>human_time_diff( iv_from = '20200101120000'
-                                                       iv_to   = '20200101120001' ).
+                                                       iv_to   = '20200101120001' ) ##LITERAL.
 
     cl_abap_unit_assert=>assert_equals(
       exp = '1 second'
       act = mv_result ).
 
     mv_result = /mbtools/cl_datetime=>human_time_diff( iv_from = '20200101120000'
-                                                       iv_to   = '20200101120201' ).
+                                                       iv_to   = '20200101120201' ) ##LITERAL.
 
     cl_abap_unit_assert=>assert_equals(
       exp = '2 minutes'
       act = mv_result ).
 
     mv_result = /mbtools/cl_datetime=>human_time_diff( iv_from = '20200101120000'
-                                                       iv_to   = '20200101130000' ).
+                                                       iv_to   = '20200101130000' ) ##LITERAL.
 
     cl_abap_unit_assert=>assert_equals(
       exp = '1 hour'
@@ -100,14 +100,14 @@ CLASS ltcl_datetime IMPLEMENTATION.
   METHOD test_time_2.
 
     mv_result = /mbtools/cl_datetime=>human_time_diff( iv_from = '20200101120000'
-                                                       iv_to   = '20200101133000' ).
+                                                       iv_to   = '20200101133000' ) ##LITERAL.
 
     cl_abap_unit_assert=>assert_equals(
       exp = '2 hours'
       act = mv_result ).
 
     mv_result = /mbtools/cl_datetime=>human_time_diff( iv_from = '20200101120000'
-                                                       iv_to   = '20200103000000' ).
+                                                       iv_to   = '20200103000000' ) ##LITERAL.
 
     cl_abap_unit_assert=>assert_equals(
       exp = '2 days'

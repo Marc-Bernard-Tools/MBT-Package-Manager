@@ -153,33 +153,33 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
     IF lo_json->get_boolean( '/success' ) <> abap_true.
       CASE lo_json->get_string( '/error' ).
         WHEN 'missing'.
-          /mbtools/cx_exception=>raise( 'License doesn''t exist' ).
+          /mbtools/cx_exception=>raise( 'License doesn''t exist'(010) ).
         WHEN 'missing_url'.
-          /mbtools/cx_exception=>raise( 'URL not provided' ).
+          /mbtools/cx_exception=>raise( 'URL not provided'(011) ).
         WHEN 'license_not_activable'.
-          /mbtools/cx_exception=>raise( 'Attempting to activate a bundle''s parent license' ).
+          /mbtools/cx_exception=>raise( 'Attempting to activate a bundle''s parent license'(012) ).
         WHEN 'disabled'.
-          /mbtools/cx_exception=>raise( 'License key revoked' ).
+          /mbtools/cx_exception=>raise( 'License key revoked'(013) ).
         WHEN 'no_activations_left'.
-          /mbtools/cx_exception=>raise( 'No activations left' ).
+          /mbtools/cx_exception=>raise( 'No activations left'(014) ).
         WHEN 'expired'.
-          /mbtools/cx_exception=>raise( 'License has expired' ).
+          /mbtools/cx_exception=>raise( 'License has expired'(015) ).
         WHEN 'key_mismatch'.
-          /mbtools/cx_exception=>raise( 'License is not valid for this product' ).
+          /mbtools/cx_exception=>raise( 'License is not valid for this product'(016) ).
         WHEN 'invalid_item_id'.
-          /mbtools/cx_exception=>raise( 'Invalid item ID' ).
+          /mbtools/cx_exception=>raise( 'Invalid item ID'(017) ).
         WHEN 'item_name_mismatch'.
-          /mbtools/cx_exception=>raise( 'License is not valid for this product' ).
+          /mbtools/cx_exception=>raise( 'License is not valid for this product'(018) ).
         WHEN OTHERS.
-          /mbtools/cx_exception=>raise( 'License is not valid for this product' ).
+          /mbtools/cx_exception=>raise( 'License is not valid for this product'(018) ).
       ENDCASE.
     ENDIF.
 
-    IF lo_json->get_string( '/license' ) = 'valid'.
+    IF lo_json->get_string( '/license' ) = 'valid' ##NO_TEXT.
       ev_valid = abap_true.
     ENDIF.
 
-    ev_expire = lo_json->get_date( '/expires' ).
+    ev_expire = lo_json->get_date( '/expires' ) ##NO_TEXT.
 
   ENDMETHOD.
 
@@ -238,25 +238,25 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
     IF lo_json->get_boolean( '/success' ) <> abap_true.
       CASE lo_json->get_string( '/error' ).
         WHEN 'disabled'.
-          /mbtools/cx_exception=>raise( 'License key revoked' ).
+          /mbtools/cx_exception=>raise( 'License key revoked'(001) ).
         WHEN 'expired'.
-          /mbtools/cx_exception=>raise( 'License has expired' ).
+          /mbtools/cx_exception=>raise( 'License has expired'(002) ).
         WHEN 'key_mismatch'.
-          /mbtools/cx_exception=>raise( 'License is not valid for this product' ).
+          /mbtools/cx_exception=>raise( 'License is not valid for this product'(003) ).
         WHEN 'invalid_item_id'.
-          /mbtools/cx_exception=>raise( 'Invalid item ID' ).
+          /mbtools/cx_exception=>raise( 'Invalid item ID'(004) ).
         WHEN 'item_name_mismatch'.
-          /mbtools/cx_exception=>raise( 'License is not valid for this product' ).
+          /mbtools/cx_exception=>raise( 'License is not valid for this product'(005) ).
         WHEN OTHERS.
-          /mbtools/cx_exception=>raise( 'License is not valid for this product' ).
+          /mbtools/cx_exception=>raise( 'License is not valid for this product'(006) ).
       ENDCASE.
     ENDIF.
 
-    IF lo_json->get_string( '/license' ) = 'valid'.
+    IF lo_json->get_string( '/license' ) = 'valid' ##NO_TEXT.
       ev_valid = abap_true.
     ENDIF.
 
-    ev_expire = lo_json->get_date( 'expires' ).
+    ev_expire = lo_json->get_date( 'expires' ) ##NO_TEXT.
 
   ENDMETHOD.
 
@@ -367,12 +367,12 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
   METHOD get_json.
 
-    DATA lx_exception TYPE REF TO /mbtools/cx_ajson_error.
+    DATA lx_error TYPE REF TO /mbtools/cx_ajson_error.
 
     TRY.
         ro_json = /mbtools/cl_ajson=>parse( iv_data ).
-      CATCH /mbtools/cx_ajson_error INTO lx_exception.
-        /mbtools/cx_exception=>raise( 'Error parsing response from MBT website:' && lx_exception->get_text( ) ).
+      CATCH /mbtools/cx_ajson_error INTO lx_error.
+        /mbtools/cx_exception=>raise( 'Error parsing response from MBT website:'(000) && lx_error->get_text( ) ).
     ENDTRY.
 
   ENDMETHOD.
@@ -398,7 +398,8 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
       lv_endpoint TYPE string,
       lv_data     TYPE string,
       lv_sections TYPE string,
-      lo_json     TYPE REF TO /mbtools/if_ajson_reader.
+      lo_json     TYPE REF TO /mbtools/if_ajson_reader,
+      lx_error    TYPE REF TO /mbtools/cx_ajson_error.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
@@ -435,7 +436,8 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
                            iv_html    = ev_changelog
                            iv_headers = abap_true ).
         ENDIF.
-      CATCH /mbtools/cx_ajson_error.
+      CATCH /mbtools/cx_ajson_error INTO lx_error.
+        /mbtools/cx_exception=>raise( lx_error->get_text( ) ).
     ENDTRY.
 
   ENDMETHOD.

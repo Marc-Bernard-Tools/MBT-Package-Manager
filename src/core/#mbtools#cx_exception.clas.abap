@@ -10,10 +10,10 @@ CLASS /mbtools/cx_exception DEFINITION
 
     CONSTANTS:
       BEGIN OF gc_section_text,
-        cause           TYPE string VALUE `Cause`,
-        system_response TYPE string VALUE `System response`,
-        what_to_do      TYPE string VALUE `Procedure`,
-        sys_admin       TYPE string VALUE `System administration`,
+        cause           TYPE string VALUE `Cause` ##NO_TEXT,
+        system_response TYPE string VALUE `System response` ##NO_TEXT,
+        what_to_do      TYPE string VALUE `Procedure` ##NO_TEXT,
+        sys_admin       TYPE string VALUE `System administration` ##NO_TEXT,
       END OF gc_section_text .
     CONSTANTS:
       BEGIN OF gc_section_token,

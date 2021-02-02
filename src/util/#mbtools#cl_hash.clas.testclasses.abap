@@ -19,7 +19,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     lv_sha1 = /mbtools/cl_hash=>sha1(
       iv_type = 'commit'
-      iv_data = '112211221122' ).
+      iv_data = '112211221122' ) ##LITERAL.
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_sha1
@@ -33,7 +33,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA: lv_sha1  TYPE /mbtools/if_definitions=>ty_sha1,
           lv_input TYPE xstring.
 
-    lv_input = 'C5188BAF86A64A581D2201'.
+    lv_input = 'C5188BAF86A64A581D2201' ##LITERAL.
     lv_sha1 = /mbtools/cl_hash=>sha1_raw( lv_input ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -47,7 +47,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA: lv_sha1  TYPE /mbtools/if_definitions=>ty_sha1,
           lv_input TYPE xstring.
 
-    lv_input = 'LOREM_IPSUM'.
+    lv_input = 'LOREM_IPSUM' ##LITERAL.
     lv_sha1 = /mbtools/cl_hash=>sha1_raw( lv_input ).
 
     cl_abap_unit_assert=>assert_equals(

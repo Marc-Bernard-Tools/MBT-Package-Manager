@@ -81,7 +81,7 @@ INTERFACE /mbtools/if_definitions
       length TYPE lvc_outlen,
     END OF ty_alv_column .
   TYPES:
-    ty_alv_column_tt TYPE TABLE OF ty_alv_column WITH DEFAULT KEY .
+    ty_alv_column_tt TYPE STANDARD TABLE OF ty_alv_column WITH DEFAULT KEY .
   TYPES:
     ty_sha1 TYPE c LENGTH 40 .
   TYPES:

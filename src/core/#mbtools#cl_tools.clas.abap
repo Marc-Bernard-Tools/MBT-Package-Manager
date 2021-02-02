@@ -1,7 +1,7 @@
 CLASS /mbtools/cl_tools DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * MBT Tool Manager
@@ -42,6 +42,9 @@ CLASS /mbtools/cl_tools DEFINITION
         key_lic_expire       TYPE string VALUE 'LicenseExpiration' ##NO_TEXT,
         " Settings
         settings             TYPE string VALUE 'Settings' ##NO_TEXT,
+        key_connected        TYPE string VALUE 'IsConnected' ##NO_TEXT,
+        key_rfcdest          TYPE string VALUE 'RFCDestination' ##NO_TEXT,
+        key_ssl_client       TYPE string VALUE 'SSLClient' ##NO_TEXT,
         " Update
         update               TYPE string VALUE '.Update' ##NO_TEXT,
         key_new_version      TYPE string VALUE 'NewVersion' ##NO_TEXT,
@@ -49,27 +52,27 @@ CLASS /mbtools/cl_tools DEFINITION
         key_changelog_url    TYPE string VALUE 'ChangelogURL' ##NO_TEXT,
         key_changelog_html   TYPE string VALUE 'ChangelogHTML' ##NO_TEXT,
         key_download_url     TYPE string VALUE 'DownloadURL' ##NO_TEXT,
-      END OF c_reg .
+      END OF c_reg.
     " Evaluation
     CONSTANTS c_eval_days TYPE i VALUE 60 ##NO_TEXT.
     CONSTANTS c_eval_users TYPE i VALUE 10 ##NO_TEXT.
-    DATA mbt_manifest TYPE /mbtools/if_manifest=>ty_descriptor READ-ONLY .
+    DATA mbt_manifest TYPE /mbtools/if_manifest=>ty_descriptor READ-ONLY.
 
     " Constructor
-    CLASS-METHODS class_constructor .
+    CLASS-METHODS class_constructor.
     METHODS constructor
       IMPORTING
-        !io_tool TYPE REF TO object .
+        !io_tool TYPE REF TO object.
     " Class Get
     CLASS-METHODS factory
       IMPORTING
         !iv_title      TYPE csequence DEFAULT /mbtools/cl_tool_bc=>c_tool-title
       RETURNING
-        VALUE(ro_tool) TYPE REF TO /mbtools/cl_tools .
+        VALUE(ro_tool) TYPE REF TO /mbtools/cl_tools.
     " Class Manifests
     CLASS-METHODS get_manifests
       RETURNING
-        VALUE(rt_manifests) TYPE /mbtools/manifests .
+        VALUE(rt_manifests) TYPE /mbtools/manifests.
     CLASS-METHODS get_tools
       IMPORTING
         VALUE(iv_pattern)     TYPE csequence OPTIONAL
@@ -78,7 +81,7 @@ CLASS /mbtools/cl_tools DEFINITION
         VALUE(iv_get_tools)   TYPE abap_bool DEFAULT abap_true
         VALUE(iv_admin)       TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(rt_tools)       TYPE /mbtools/tools_with_text .
+        VALUE(rt_tools)       TYPE /mbtools/tools_with_text.
     CLASS-METHODS f4_tools
       IMPORTING
         VALUE(iv_pattern)     TYPE csequence OPTIONAL
@@ -87,182 +90,188 @@ CLASS /mbtools/cl_tools DEFINITION
         VALUE(iv_get_tools)   TYPE abap_bool DEFAULT abap_true
         VALUE(iv_admin)       TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(rv_title)       TYPE string .
+        VALUE(rv_title)       TYPE string.
     CLASS-METHODS action_tools
       IMPORTING
         !iv_action       TYPE string
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
     CLASS-METHODS action_bundles
       IMPORTING
         !iv_action       TYPE string
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
     CLASS-METHODS install
       IMPORTING
         !iv_title        TYPE csequence
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
     CLASS-METHODS update
       IMPORTING
         !io_tool         TYPE REF TO /mbtools/cl_tools
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
     CLASS-METHODS uninstall
       IMPORTING
         !io_tool         TYPE REF TO /mbtools/cl_tools
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
     CLASS-METHODS sync
       IMPORTING
         !io_tool         TYPE REF TO /mbtools/cl_tools
       RETURNING
         VALUE(rv_result) TYPE abap_bool
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     CLASS-METHODS is_base_only
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
     " Tool Manifest
     METHODS build_manifest
       RETURNING
-        VALUE(rs_manifest) TYPE /mbtools/if_manifest=>ty_descriptor .
+        VALUE(rs_manifest) TYPE /mbtools/if_manifest=>ty_descriptor.
     " Tool Register/Unregister
     METHODS register
       IMPORTING
         !iv_update       TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
     METHODS unregister
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
     " Tool Activate/Deactivate
     METHODS activate
       RETURNING
         VALUE(rv_result) TYPE abap_bool
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS deactivate
       RETURNING
         VALUE(rv_result) TYPE abap_bool
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS is_active
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
     METHODS is_debug
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
     METHODS is_trace
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
     METHODS is_base
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
     METHODS is_bundle
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
     METHODS is_last_tool
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
     METHODS has_launch
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
-    METHODS launch .
+        VALUE(rv_result) TYPE abap_bool.
+    METHODS launch.
     METHODS get_license
       IMPORTING
         !iv_param        TYPE string
       RETURNING
-        VALUE(rv_result) TYPE string .
+        VALUE(rv_result) TYPE string.
     " Tool License
     METHODS is_licensed
       IMPORTING
         !iv_check_eval   TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        VALUE(rv_result) TYPE abap_bool.
     METHODS license_add
       IMPORTING
         !iv_license      TYPE string
       RETURNING
         VALUE(rv_result) TYPE abap_bool
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS license_remove
       RETURNING
         VALUE(rv_result) TYPE abap_bool
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     " Tool Get
     METHODS get_id
       RETURNING
-        VALUE(rv_id) TYPE string .
+        VALUE(rv_id) TYPE string.
     METHODS get_slug
       RETURNING
-        VALUE(rv_slug) TYPE string .
+        VALUE(rv_slug) TYPE string.
     METHODS get_name
       RETURNING
-        VALUE(rv_name) TYPE string .
+        VALUE(rv_name) TYPE string.
     METHODS get_title
       RETURNING
-        VALUE(rv_title) TYPE string .
+        VALUE(rv_title) TYPE string.
     METHODS get_version
       RETURNING
-        VALUE(rv_version) TYPE string .
+        VALUE(rv_version) TYPE string.
     METHODS get_bundle_id
       RETURNING
-        VALUE(rv_result) TYPE i .
+        VALUE(rv_result) TYPE i.
     METHODS get_download_id
       RETURNING
-        VALUE(rv_result) TYPE i .
+        VALUE(rv_result) TYPE i.
     METHODS get_html_changelog
       RETURNING
-        VALUE(rv_result) TYPE string .
+        VALUE(rv_result) TYPE string.
     METHODS get_description
       RETURNING
-        VALUE(rv_description) TYPE string .
+        VALUE(rv_description) TYPE string.
     METHODS get_html_description
       RETURNING
-        VALUE(rv_result) TYPE string .
+        VALUE(rv_result) TYPE string.
     METHODS get_class
       RETURNING
-        VALUE(rv_class) TYPE string .
+        VALUE(rv_class) TYPE string.
     METHODS get_package
       RETURNING
-        VALUE(rv_package) TYPE devclass .
+        VALUE(rv_package) TYPE devclass.
     METHODS get_url_repo
       RETURNING
-        VALUE(rv_url) TYPE string .
+        VALUE(rv_url) TYPE string.
     METHODS get_url_tool
       RETURNING
-        VALUE(rv_url) TYPE string .
+        VALUE(rv_url) TYPE string.
     METHODS get_url_docs
       RETURNING
-        VALUE(rv_url) TYPE string .
+        VALUE(rv_url) TYPE string.
     METHODS get_url_download
       RETURNING
-        VALUE(rv_result) TYPE string .
+        VALUE(rv_result) TYPE string.
     METHODS get_url_changelog
       RETURNING
-        VALUE(rv_result) TYPE string .
+        VALUE(rv_result) TYPE string.
     METHODS get_settings
       RETURNING
-        VALUE(ro_reg) TYPE REF TO /mbtools/cl_registry .
+        VALUE(ro_reg) TYPE REF TO /mbtools/cl_registry.
     METHODS get_new_version
       RETURNING
-        VALUE(rv_result) TYPE string .
+        VALUE(rv_result) TYPE string.
     METHODS get_thumbnail
       RETURNING
-        VALUE(rv_thumbnail) TYPE string .
+        VALUE(rv_thumbnail) TYPE string.
     METHODS get_last_update
       IMPORTING
         !iv_internal     TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(rv_result) TYPE string .
+        VALUE(rv_result) TYPE string.
     METHODS check_version
       RETURNING
         VALUE(rv_result) TYPE abap_bool
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
+    METHODS get_command
+      RETURNING
+        VALUE(rv_result) TYPE string.
+    METHODS get_shortcut
+      RETURNING
+        VALUE(rv_result) TYPE string.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -279,6 +288,8 @@ CLASS /mbtools/cl_tools DEFINITION
     DATA mv_version TYPE /mbtools/if_manifest=>ty_descriptor-version .
     DATA mv_description TYPE /mbtools/if_manifest=>ty_descriptor-description .
     DATA mv_has_launch TYPE /mbtools/if_manifest=>ty_descriptor-has_launch .
+    DATA mv_command TYPE /mbtools/if_manifest=>ty_descriptor-command .
+    DATA mv_shortcut TYPE /mbtools/if_manifest=>ty_descriptor-shortcut .
 
     CLASS-METHODS clean_title
       IMPORTING
@@ -338,7 +349,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
               " unknow action
               ASSERT 0 = 1.
           ENDCASE.
-        CATCH /mbtools/cx_exception.
+        CATCH /mbtools/cx_exception ##NO_HANDLER.
       ENDTRY.
 
       IF lv_result = abap_false.
@@ -394,7 +405,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
               " unknow action
               ASSERT 0 = 1.
           ENDCASE.
-        CATCH /mbtools/cx_exception.
+        CATCH /mbtools/cx_exception ##NO_HANDLER.
       ENDTRY.
 
       IF lv_result = abap_false.
@@ -446,6 +457,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     rs_manifest-title       = mv_title.
     rs_manifest-description = mv_description.
     rs_manifest-has_launch  = mv_has_launch.
+    rs_manifest-command     = mv_command.
+    rs_manifest-shortcut    = mv_shortcut.
 
     IF mv_is_bundle IS INITIAL.
       rs_manifest-namespace   = /mbtools/if_definitions=>c_namespace.
@@ -564,7 +577,9 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       <lv_title>       TYPE /mbtools/if_manifest=>ty_descriptor-title,
       <lv_version>     TYPE /mbtools/if_manifest=>ty_descriptor-version,
       <lv_description> TYPE /mbtools/if_manifest=>ty_descriptor-description,
-      <lv_has_launch>  TYPE /mbtools/if_manifest=>ty_descriptor-has_launch.
+      <lv_has_launch>  TYPE /mbtools/if_manifest=>ty_descriptor-has_launch,
+      <lv_command>     TYPE /mbtools/if_manifest=>ty_descriptor-command,
+      <lv_shortcut>    TYPE /mbtools/if_manifest=>ty_descriptor-shortcut.
 
     mo_tool = io_tool.
 
@@ -598,6 +613,17 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     ASSIGN mo_tool->('C_TOOL-HAS_LAUNCH') TO <lv_has_launch>.
     IF sy-subrc = 0. " constant is optional
       mv_has_launch = <lv_has_launch>.
+
+      IF mv_has_launch = abap_true.
+        ASSIGN mo_tool->('C_TOOL-MBT_COMMAND') TO <lv_command>.
+        IF sy-subrc = 0. " constant is optional
+          mv_command = <lv_command>.
+        ENDIF.
+        ASSIGN mo_tool->('C_TOOL-MBT_SHORTCUBE') TO <lv_shortcut>.
+        IF sy-subrc = 0. " constant is optional
+          mv_shortcut = <lv_shortcut>.
+        ENDIF.
+      ENDIF.
     ENDIF.
 
     " Build the full manifest based on these constants
@@ -725,6 +751,11 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     lo_class_desc = cl_abap_classdescr=>describe_by_object_ref( mo_tool ).
     rv_class = lo_class_desc->get_relative_name( ).
 
+  ENDMETHOD.
+
+
+  METHOD get_command.
+    rv_result = mv_command.
   ENDMETHOD.
 
 
@@ -1057,6 +1088,11 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         RETURN.
     ENDTRY.
 
+  ENDMETHOD.
+
+
+  METHOD get_shortcut.
+    rv_result = mv_shortcut.
   ENDMETHOD.
 
 
@@ -1654,7 +1690,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         json TYPE string,
       END OF ty_content.
     TYPES:
-      ty_contents TYPE SORTED TABLE OF ty_content WITH UNIQUE KEY name pack.
+      ty_contents TYPE SORTED TABLE OF ty_content WITH UNIQUE KEY name pack ##NEEDED.
     TYPES:
       BEGIN OF ty_version,
         major           TYPE i,
@@ -1817,7 +1853,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lv_url = io_tool->get_url_download( ).
       TRY.
           lv_file = /mbtools/cl_url=>name( lv_url ).
-        CATCH /mbtools/cx_exception.
+        CATCH /mbtools/cx_exception ##NO_HANDLER.
       ENDTRY.
     ENDIF.
 

@@ -36,16 +36,16 @@ CLASS /mbtools/cl_aphp DEFINITION
         /mbtools/cx_ajson_error.
     CLASS-METHODS unserialize_object
       IMPORTING
-        !iv_path  TYPE string
-        !iv_data  TYPE string
-        !io_ajson TYPE REF TO /mbtools/cl_ajson
+        !iv_path  TYPE string ##NEEDED
+        !iv_data  TYPE string ##NEEDED
+        !io_ajson TYPE REF TO /mbtools/cl_ajson ##NEEDED
       RAISING
         /mbtools/cx_ajson_error.
     CLASS-METHODS unserialize_reference
       IMPORTING
-        !iv_path  TYPE string
-        !iv_data  TYPE string
-        !io_ajson TYPE REF TO /mbtools/cl_ajson
+        !iv_path  TYPE string ##NEEDED
+        !iv_data  TYPE string ##NEEDED
+        !io_ajson TYPE REF TO /mbtools/cl_ajson ##NEEDED
       RAISING
         /mbtools/cx_ajson_error.
     CLASS-METHODS strip
@@ -79,7 +79,6 @@ CLASS /mbtools/cl_aphp DEFINITION
         VALUE(rv_val) TYPE abap_bool
       RAISING
         /mbtools/cx_ajson_error.
-
 ENDCLASS.
 
 

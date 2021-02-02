@@ -198,7 +198,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
         WHEN OTHERS.
           lv_text = |RFC destination { iv_destination }, Error { sy-subrc }|.
       ENDCASE.
-      /mbtools/cx_exception=>raise( 'Error creating connection.' && lv_text ).
+      /mbtools/cx_exception=>raise( 'Error creating connection:'(000) && lv_text ) ##NO_TEXT.
     ENDIF.
 
     CREATE OBJECT ro_client
@@ -209,30 +209,30 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
     li_client->request->set_cdata( '' ).
     li_client->request->set_header_field(
       name  = '~request_method'
-      value = iv_request ).
+      value = iv_request ) ##NO_TEXT.
     li_client->request->set_header_field(
       name  = 'user-agent'
-      value = get_agent( ) ).
+      value = get_agent( ) ) ##NO_TEXT.
     li_client->request->set_header_field(
       name  = '~request_uri'
-      value = iv_path ).
+      value = iv_path ) ##NO_TEXT.
     IF iv_accept IS NOT INITIAL.
       li_client->request->set_header_field(
         name  = 'Accept'
-        value = iv_accept ).
+        value = iv_accept ) ##NO_TEXT.
     ELSEIF it_multipart IS NOT INITIAL.
       li_client->request->set_header_field(
         name  = 'Accept'
-        value = 'multipart/mixed' ).
+        value = 'multipart/mixed' ) ##NO_TEXT.
     ENDIF.
     IF iv_content IS NOT INITIAL.
       li_client->request->set_header_field(
         name  = 'Content-type'
-        value = iv_content ).
+        value = iv_content ) ##NO_TEXT.
     ELSEIF it_multipart IS NOT INITIAL.
       li_client->request->set_header_field(
         name  = 'Content-type'
-        value = 'multipart/mixed' ).
+        value = 'multipart/mixed' ) ##NO_TEXT.
     ENDIF.
 
     " Disable internal auth dialog (due to its unclarity)
@@ -246,10 +246,10 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
 *        value = 'GET' )
       li_part->set_header_field(
         name  = 'Content-type'
-        value = 'application/http' ).
+        value = 'application/http' ) ##NO_TEXT.
       li_part->set_header_field(
         name  = 'Accept'
-        value = ls_multipart-ctype ).
+        value = ls_multipart-ctype ) ##NO_TEXT.
       li_part->append_cdata( ls_multipart-cdata ).
     ENDLOOP.
 
@@ -390,8 +390,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
   METHOD ping.
 
     DATA:
-      lo_client    TYPE REF TO /mbtools/cl_http_client,
-      lx_exception TYPE REF TO /mbtools/cx_exception.
+      lo_client TYPE REF TO /mbtools/cl_http_client.
 
     TRY.
         lo_client = create_by_url( iv_url = iv_url ).
@@ -405,7 +404,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
         lo_client->close( ).
 
         rv_result = abap_true.
-      CATCH /mbtools/cx_exception INTO lx_exception.
+      CATCH /mbtools/cx_exception.
         IF lo_client IS BOUND.
           lo_client->close( ).
         ENDIF.

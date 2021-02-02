@@ -20,6 +20,7 @@ CLASS ltcl_aphp IMPLEMENTATION.
       lv_php    TYPE string,
       lo_json   TYPE REF TO /mbtools/if_ajson_writer,
       lo_json_r TYPE REF TO /mbtools/cl_ajson,
+      lx_error  TYPE REF TO /mbtools/cx_ajson_error,
       lv_exp    TYPE string,
       lv_json   TYPE string.
 
@@ -127,7 +128,8 @@ CLASS ltcl_aphp IMPLEMENTATION.
           act = lv_json
           exp = '{"a":["hello",42,"a":[1,"two"],"apple"]}' ).
 
-      CATCH /mbtools/cx_ajson_error.
+      CATCH /mbtools/cx_ajson_error INTO lx_error.
+        cl_abap_unit_assert=>fail( lx_error->get_text( ) ).
     ENDTRY.
 
   ENDMETHOD.

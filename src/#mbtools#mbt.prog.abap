@@ -123,7 +123,7 @@ CLASS lcl_main IMPLEMENTATION.
             ELSE.
               LEAVE TO SCREEN c_dynnr-main.
             ENDIF.
-          CATCH cx_root.
+          CATCH cx_root ##NO_HANDLER.
         ENDTRY.
     ENDCASE.
 
@@ -131,13 +131,14 @@ CLASS lcl_main IMPLEMENTATION.
 
   METHOD password_popup.
 
+    password_screen_init( ).
+
     CLEAR p_pass.
     p_url      = iv_url.
     p_user     = cv_user.
     gv_confirm = abap_false.
 
-    CLEAR s_title.
-    CONCATENATE 'Login' iv_url INTO s_title SEPARATED BY space.
+    CONCATENATE s_title iv_url INTO s_title SEPARATED BY space.
 
     CALL SELECTION-SCREEN c_dynnr-password STARTING AT 5 5 ENDING AT 60 8.
 
@@ -154,10 +155,10 @@ CLASS lcl_main IMPLEMENTATION.
 
   METHOD password_screen_init.
 
-    s_title = 'Login'     ##NO_TEXT.
-    s_url   = 'URL'       ##NO_TEXT.
-    s_user  = 'User'      ##NO_TEXT.
-    s_pass  = 'Password'  ##NO_TEXT.
+    s_title = 'Login'(001).
+    s_url   = 'URL'(002).
+    s_user  = 'User'(003).
+    s_pass  = 'Password'(004).
 
   ENDMETHOD.
 
@@ -244,7 +245,7 @@ INITIALIZATION.
   DATA lo_tool TYPE REF TO /mbtools/cl_tools.
 
   " Perform setup that was not included in installation
-  /mbtools/cl_setup=>run( ).
+  /mbtools/cl_setup=>install( ).
 
   " Register all installed bundles and tools
   /mbtools/cl_tools=>action_bundles( /mbtools/if_actions=>tool_register ).

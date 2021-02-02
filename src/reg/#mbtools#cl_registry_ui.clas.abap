@@ -264,11 +264,11 @@ CLASS /mbtools/cl_registry_ui IMPLEMENTATION.
 
     CALL FUNCTION 'POPUP_TO_CONFIRM'
       EXPORTING
-        titlebar       = 'Registry Export'
-        text_question  = 'Select file format for the export'
-        text_button_1  = 'Registry'
+        titlebar       = 'Registry Export'(040)
+        text_question  = 'Select file format for the export'(041)
+        text_button_1  = 'Registry'(042)
         icon_button_1  = 'ICON_BIW_INFO_CUBE'
-        text_button_2  = 'Table'
+        text_button_2  = 'Table'(043)
         icon_button_2  = 'ICON_XLS'
       IMPORTING
         answer         = lv_answer
@@ -286,7 +286,7 @@ CLASS /mbtools/cl_registry_ui IMPLEMENTATION.
       APPEND '' TO lt_file.
     ELSE.
       lv_msg = 'Node' && lc_tab && 'Parent Key' && lc_tab && 'Internal Key'
-        && lc_tab && 'Key' && lc_tab && 'Value'.
+        && lc_tab && 'Key' && lc_tab && 'Value' ##NO_TEXT.
       APPEND lv_msg TO lt_file.
     ENDIF.
 
@@ -804,9 +804,9 @@ CLASS /mbtools/cl_registry_ui IMPLEMENTATION.
           gr_sel_reg_entry->ms_regs-chtime
           gr_sel_reg_entry->ms_regs-chname.
         MESSAGE i000(/mbtools/bc) WITH
-          'Parent key:'
+          'Parent key:'(030)
           gr_sel_reg_entry->mv_parent_key
-          ', Internal key:'
+          ', Internal key:'(031)
           gr_sel_reg_entry->mv_internal_key.
 *<<<INS
     ENDCASE.

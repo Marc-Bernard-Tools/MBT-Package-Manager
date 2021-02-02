@@ -56,14 +56,16 @@ INTERFACE /mbtools/if_manifest
       namespace    TYPE namespace,
       package      TYPE devclass,
       class        TYPE seoclsname,
-      group_id     TYPE string,
-      artifact_id  TYPE string,
+      group_id     TYPE string, " not used
+      artifact_id  TYPE string, " not used
       git_url      TYPE string,
-      dependencies TYPE ty_dependencies,
-      components   TYPE ty_components,
-      parameters   TYPE ty_parameters,
-      certificates TYPE ty_certificates,
+      dependencies TYPE ty_dependencies, " not used
+      components   TYPE ty_components, " not used
+      parameters   TYPE ty_parameters, " not used
+      certificates TYPE ty_certificates, " not used
       has_launch   TYPE abap_bool,
+      command      TYPE string,
+      shortcut     TYPE string,
     END OF ty_descriptor .
 
   CONSTANTS co_file_name TYPE string VALUE '.mbt-manifest.xml' ##NO_TEXT.
