@@ -16,8 +16,8 @@
     <item>
      <ID>I</ID>
      <KEY>010</KEY>
-     <ENTRY>Inconsistent certificate format (maybe multiple frames in file)</ENTRY>
-     <LENGTH>100</LENGTH>
+     <ENTRY>Inconsistent certificate format</ENTRY>
+     <LENGTH>50</LENGTH>
     </item>
    </TPOOL>
    <DESCRIPTIONS>

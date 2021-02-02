@@ -17,16 +17,16 @@ CLASS /mbtools/cl_setup DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    CONSTANTS gc_ssla TYPE psecontext VALUE 'SSLA' ##NO_TEXT.
-    CONSTANTS gc_anonym TYPE ssfappl VALUE 'ANONYM' ##NO_TEXT.
-    CONSTANTS gc_id TYPE ssfid
+    CONSTANTS c_ssla TYPE psecontext VALUE 'SSLA' ##NO_TEXT.
+    CONSTANTS c_anonym TYPE ssfappl VALUE 'ANONYM' ##NO_TEXT.
+    CONSTANTS c_id TYPE ssfid
       VALUE 'CN=%SID SSL client SSL Client (Standard), OU=Marc Bernard Tools, O=MBT, C=CA' ##NO_TEXT.
-    CONSTANTS gc_subject TYPE string
+    CONSTANTS c_subject TYPE string
       VALUE 'CN=www.marcbernardtools.com' ##NO_TEXT.
 
-    CLASS-DATA mo_settings TYPE REF TO /mbtools/cl_registry.
-    CLASS-DATA mv_force TYPE abap_bool.
-    CLASS-DATA mv_drop TYPE abap_bool.
+    CLASS-DATA go_settings TYPE REF TO /mbtools/cl_registry.
+    CLASS-DATA gv_force TYPE abap_bool.
+    CLASS-DATA gv_drop TYPE abap_bool.
 
     CLASS-METHODS _application_log.
     CLASS-METHODS _certificates.
@@ -61,15 +61,15 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
 
   METHOD class_constructor.
 
-    mo_settings = /mbtools/cl_tools=>factory( )->get_settings( ).
+    go_settings = /mbtools/cl_tools=>factory( )->get_settings( ).
 
   ENDMETHOD.
 
 
   METHOD install.
 
-    mv_force = iv_force.
-    mv_drop  = abap_false.
+    gv_force = iv_force.
+    gv_drop  = abap_false.
 
     _application_log( ).
 
@@ -82,8 +82,8 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
 
   METHOD uninstall.
 
-    mv_force = abap_true.
-    mv_drop  = abap_true.
+    gv_force = abap_true.
+    gv_drop  = abap_true.
 
     _application_log( ).
 
@@ -100,51 +100,65 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
       ls_balobj  TYPE balobj,
       ls_balobjt TYPE balobjt,
       ls_balsub  TYPE balsub,
-      ls_balsubt TYPE balsubt.
+      lt_balsub  TYPE STANDARD TABLE OF balsub WITH DEFAULT KEY,
+      ls_balsubt TYPE balsubt,
+      lt_balsubt TYPE STANDARD TABLE OF balsubt WITH DEFAULT KEY.
 
     SELECT SINGLE * FROM balobj INTO ls_balobj WHERE object = /mbtools/if_definitions=>c_namespace.
     IF sy-subrc = 0.
-      IF mv_force = abap_true OR mv_drop = abap_true.
+      IF gv_force = abap_true OR gv_drop = abap_true.
         DELETE FROM balobj  WHERE object = /mbtools/if_definitions=>c_namespace.
+        ASSERT sy-subrc >= 0.
         DELETE FROM balobjt WHERE object = /mbtools/if_definitions=>c_namespace.
+        ASSERT sy-subrc >= 0.
         DELETE FROM balsub  WHERE object = /mbtools/if_definitions=>c_namespace.
+        ASSERT sy-subrc >= 0.
         DELETE FROM balsubt WHERE object = /mbtools/if_definitions=>c_namespace.
+        ASSERT sy-subrc >= 0.
       ELSE.
         RETURN.
       ENDIF.
     ENDIF.
 
-    IF mv_drop = abap_true.
+    IF gv_drop = abap_true.
       RETURN.
     ENDIF.
 
     ls_balobj-object  = /mbtools/if_definitions=>c_namespace.
     INSERT balobj FROM ls_balobj.
+    ASSERT sy-subrc >= 0.
 
     ls_balobjt-spras  = sy-langu.
     ls_balobjt-object = /mbtools/if_definitions=>c_namespace.
     ls_balobjt-objtxt = /mbtools/if_definitions=>c_mbt.
     INSERT balobjt FROM ls_balobjt.
+    ASSERT sy-subrc >= 0.
 
     ls_balsub-object    = /mbtools/if_definitions=>c_namespace.
     ls_balsub-subobject = 'EDD'.
-    INSERT balsub FROM ls_balsub.
+    APPEND ls_balsub TO lt_balsub.
     ls_balsub-subobject = 'INIT'.
-    INSERT balsub FROM ls_balsub.
+    APPEND ls_balsub TO lt_balsub.
     ls_balsub-subobject = 'LOG'.
-    INSERT balsub FROM ls_balsub.
+    APPEND ls_balsub TO lt_balsub.
+
+    INSERT balsub FROM TABLE lt_balsub.
+    ASSERT sy-subrc >= 0.
 
     ls_balsubt-spras     = sy-langu.
     ls_balsubt-object    = /mbtools/if_definitions=>c_namespace.
     ls_balsubt-subobject = 'EDD'.
     ls_balsubt-subobjtxt = 'Log for EDD API'(002).
-    INSERT balsubt FROM ls_balsubt.
+    APPEND ls_balsubt TO lt_balsubt.
     ls_balsubt-subobject = 'INST'.
     ls_balsubt-subobjtxt = 'Log for MBT Installer'(003).
-    INSERT balsubt FROM ls_balsubt.
+    APPEND ls_balsubt TO lt_balsubt.
     ls_balsubt-subobject = 'LOG'.
     ls_balsubt-subobjtxt = 'General Log'(004).
-    INSERT balsubt FROM ls_balsubt.
+    APPEND ls_balsubt TO lt_balsubt.
+
+    INSERT balsubt FROM TABLE lt_balsubt.
+    ASSERT sy-subrc >= 0.
 
   ENDMETHOD.
 
@@ -161,19 +175,19 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
 
         CREATE OBJECT lo_strust
           EXPORTING
-            iv_context = gc_ssla
+            iv_context = c_ssla
             iv_applic  = lv_applic.
 
         lo_strust->load(
           iv_create = abap_true
-          iv_id     = gc_id ).
+          iv_id     = c_id ).
 
         lo_strust->get_own_certificate( ).
 
         lo_strust->get_certificate_list( ).
 
-        IF mv_drop = abap_true.
-          lo_strust->remove( gc_subject ).
+        IF gv_drop = abap_true.
+          lo_strust->remove( c_subject ).
         ELSE.
           lo_strust->add( _certificate_ca( ) ).
           lo_strust->add( _certificate_ica( ) ).
@@ -329,7 +343,7 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
     ENDTRY.
 
     IF lv_rfc_exists = abap_true.
-      IF mv_force = abap_true OR mv_drop = abap_true.
+      IF gv_force = abap_true OR gv_drop = abap_true.
         lv_action = 'D'. " delete existing
       ELSE.
         RETURN.
@@ -364,7 +378,7 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    IF mv_drop = abap_true.
+    IF gv_drop = abap_true.
       RETURN.
     ENDIF.
 
@@ -409,8 +423,8 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
 
   METHOD _rfc_destination_mbt.
 
-    IF mo_settings IS BOUND.
-      rv_result = mo_settings->get_value( /mbtools/cl_tools=>c_reg-key_rfcdest ).
+    IF go_settings IS BOUND.
+      rv_result = go_settings->get_value( /mbtools/cl_tools=>c_reg-key_rfcdest ).
     ENDIF.
 
     IF rv_result IS INITIAL.
@@ -422,12 +436,12 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
 
   METHOD _ssl_client.
 
-    IF mo_settings IS BOUND.
-      rv_result = mo_settings->get_value( /mbtools/cl_tools=>c_reg-key_ssl_client ).
+    IF go_settings IS BOUND.
+      rv_result = go_settings->get_value( /mbtools/cl_tools=>c_reg-key_ssl_client ).
     ENDIF.
 
     IF rv_result IS INITIAL.
-      rv_result = gc_anonym.
+      rv_result = c_anonym.
     ENDIF.
 
   ENDMETHOD.

@@ -1690,8 +1690,6 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         json TYPE string,
       END OF ty_content.
     TYPES:
-      ty_contents TYPE SORTED TABLE OF ty_content WITH UNIQUE KEY name pack ##NEEDED.
-    TYPES:
       BEGIN OF ty_version,
         major           TYPE i,
         minor           TYPE i,

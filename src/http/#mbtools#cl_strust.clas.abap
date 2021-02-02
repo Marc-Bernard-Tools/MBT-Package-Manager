@@ -114,10 +114,14 @@ CLASS /mbtools/cl_strust IMPLEMENTATION.
     " Remove Header and Footer
     TRY.
         FIND REGEX '-{5}.{0,}BEGIN.{0,}-{5}(.*)-{5}.{0,}END.{0,}-{5}' IN lv_certb64 SUBMATCHES lv_certb64.
-        ASSIGN lv_certb64 TO <lv_data>.
+        IF sy-subrc = 0.
+          ASSIGN lv_certb64 TO <lv_data>.
+        ELSE.
+          /mbtools/cx_exception=>raise( 'Inconsistent certificate format'(010) ).
+        ENDIF.
       CATCH cx_sy_regex_too_complex.
         " e.g. multiple PEM frames in file
-        /mbtools/cx_exception=>raise( 'Inconsistent certificate format (maybe multiple frames in file)'(010) ).
+        /mbtools/cx_exception=>raise( 'Inconsistent certificate format'(010) ).
     ENDTRY.
 
     TRY.
@@ -553,7 +557,7 @@ CLASS /mbtools/cl_strust IMPLEMENTATION.
         internal_error  = 3
         OTHERS          = 4.
     IF sy-subrc <> 0.
-      " Ignore errors
+      /mbtools/cx_exception=>raise_t100( ).
     ENDIF.
 
   ENDMETHOD.
