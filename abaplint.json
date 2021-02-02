@@ -7,14 +7,7 @@
         }
     ],
     "global": {
-        "exclude": [
-            "#mbtools#cl_ajson*",
-            "#mbtools#cx_ajson*",
-            "#mbtools#if_ajson*",
-            "#mbtools#cl_logger*",
-            "#mbtools#mbt_installer.prog.abap",
-            "#mbtools#mbt_template.prog.abap"
-        ],
+        "exclude": [],
         "files": "/src/**/*.*",
         "skipGeneratedFunctionGroups": true,
         "skipGeneratedGatewayClasses": true,
@@ -699,6 +692,7 @@
             "icon_pattern_exclude_red",
             "icon_ranking",
             "icon_sap",
+            "icon_settings",
             "icon_summarize",
             "icon_system_extended_help",
             "icon_system_help",
