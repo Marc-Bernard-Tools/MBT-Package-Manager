@@ -1,7 +1,7 @@
 CLASS /mbtools/cl_tool_bc DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * MBT Base
@@ -11,10 +11,7 @@ CLASS /mbtools/cl_tool_bc DEFINITION
 
   PUBLIC SECTION.
 
-    INTERFACES /mbtools/if_manifest .
-
-    ALIASES mbt_manifest
-      FOR /mbtools/if_manifest~descriptor .
+    INTERFACES /mbtools/if_tool.
 
     CONSTANTS:
       BEGIN OF c_tool,
@@ -28,14 +25,12 @@ CLASS /mbtools/cl_tool_bc DEFINITION
         mbt_shortcut TYPE string VALUE 'MBT',
       END OF c_tool.
 
-    METHODS constructor .
-
-    METHODS launch.
+    METHODS constructor.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    DATA mo_tool TYPE REF TO /mbtools/cl_tools .
+    DATA mo_tool TYPE REF TO /mbtools/cl_tools.
 
 ENDCLASS.
 
@@ -44,13 +39,13 @@ ENDCLASS.
 CLASS /mbtools/cl_tool_bc IMPLEMENTATION.
 
 
-  METHOD constructor.
-    CREATE OBJECT mo_tool EXPORTING io_tool = me.
-    mbt_manifest = mo_tool->mbt_manifest.
+  METHOD /mbtools/if_tool~launch.
+    /mbtools/cl_sap=>run_program( '/MBTOOLS/MBT' ).
   ENDMETHOD.
 
 
-  METHOD launch.
-    /mbtools/cl_sap=>run_program( '/MBTOOLS/MBT' ).
+  METHOD constructor.
+    CREATE OBJECT mo_tool EXPORTING io_tool = me.
+    /mbtools/if_tool~ms_manifest = mo_tool->ms_manifest.
   ENDMETHOD.
 ENDCLASS.

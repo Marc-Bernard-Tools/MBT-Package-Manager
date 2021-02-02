@@ -17,7 +17,7 @@ CLASS /mbtools/cl_setup DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    CONSTANTS c_ssla TYPE psecontext VALUE 'SSLA' ##NO_TEXT.
+    CONSTANTS c_sslc TYPE psecontext VALUE 'SSLC' ##NO_TEXT.
     CONSTANTS c_anonym TYPE ssfappl VALUE 'ANONYM' ##NO_TEXT.
     CONSTANTS c_id TYPE ssfid
       VALUE 'CN=%SID SSL client SSL Client (Standard), OU=Marc Bernard Tools, O=MBT, C=CA' ##NO_TEXT.
@@ -175,7 +175,7 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
 
         CREATE OBJECT lo_strust
           EXPORTING
-            iv_context = c_ssla
+            iv_context = c_sslc
             iv_applic  = lv_applic.
 
         lo_strust->load(

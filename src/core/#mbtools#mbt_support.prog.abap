@@ -60,6 +60,8 @@ SELECTION-SCREEN:
       SKIP,
       PUSHBUTTON /1(55) b_tool USER-COMMAND tool,
       SKIP,
+      PUSHBUTTON /1(55) b_lice USER-COMMAND lice,
+      SKIP,
       PUSHBUTTON /1(55) b_home USER-COMMAND home,
     END OF BLOCK b910,
   END OF SCREEN 900.
@@ -119,7 +121,8 @@ INITIALIZATION.
       ev_copyright = scr_t902
       ev_docu      = b_docu
       ev_tool      = b_tool
-      ev_home      = b_home ).
+      ev_home      = b_home
+      ev_lice      = b_lice ).
 
 *-----------------------------------------------------------------------
 

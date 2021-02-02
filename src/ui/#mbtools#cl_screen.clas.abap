@@ -39,7 +39,8 @@ CLASS /mbtools/cl_screen DEFINITION
         !ev_copyright TYPE ty_screen_field
         !ev_docu      TYPE ty_screen_field
         !ev_tool      TYPE ty_screen_field
-        !ev_home      TYPE ty_screen_field .
+        !ev_home      TYPE ty_screen_field
+        !ev_lice      TYPE ty_screen_field .
     METHODS header
       IMPORTING
         VALUE(iv_icon)   TYPE icon_d
@@ -166,7 +167,7 @@ CLASS /mbtools/cl_screen IMPLEMENTATION.
     gv_copyright      = |Copyright © { sy-datum(4) } Marc Bernard Tools. All right reserved.|.
     gv_about          = 'About'(001).
     gv_documentation  = 'Documentation'(002).
-    gv_terms          = 'Terms'(003).
+    gv_terms          = 'License Terms'(003).
     gv_tool_page      = 'Tool Page'(004).
     gv_website_name   = 'MBT Website'(005).
     gv_website_domain = 'MarcBernardTools.com' ##NO_TEXT.
@@ -237,6 +238,11 @@ CLASS /mbtools/cl_screen IMPLEMENTATION.
     ev_home = icon(
       iv_icon  = icon_url
       iv_text  = gv_website_domain
+      iv_quick = gv_website_name ).
+
+    ev_lice = icon(
+      iv_icon  = icon_legal_reg
+      iv_text  = gv_terms
       iv_quick = gv_website_name ).
 
   ENDMETHOD.
@@ -387,6 +393,10 @@ CLASS /mbtools/cl_screen IMPLEMENTATION.
 
       WHEN 'HOME'.
         /mbtools/cl_utilities=>call_browser( /mbtools/if_definitions=>c_www_home ).
+
+      WHEN 'LICE'.
+        /mbtools/cl_utilities=>call_browser( /mbtools/if_definitions=>c_www_home &&
+                                             /mbtools/if_definitions=>c_www_terms ).
 
     ENDCASE.
 

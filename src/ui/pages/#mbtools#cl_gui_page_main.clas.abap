@@ -631,13 +631,15 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
   METHOD render_tool.
 
     DATA:
-      lo_tool      TYPE REF TO /mbtools/cl_tools,
-      lv_expire    TYPE d,
-      lv_details   TYPE string,
-      lv_changelog TYPE string,
-      lv_update    TYPE string,
-      lv_class     TYPE string,
-      lv_img       TYPE string.
+      lo_tool         TYPE REF TO /mbtools/cl_tools,
+      lv_expire       TYPE d,
+      lv_details      TYPE string,
+      lv_changelog    TYPE string,
+      lv_update       TYPE string,
+      lv_update_class TYPE string,
+      lv_update_time  TYPE string,
+      lv_class        TYPE string,
+      lv_img          TYPE string.
 
     lo_tool = /mbtools/cl_tools=>factory( iv_title ).
 
@@ -685,6 +687,14 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
             lv_update = ri_html->icon( iv_name  = 'recycle/orange'
                                        iv_hint  = 'Update tool' ) &&
                         |There is a new version available. { lv_changelog } or { lv_update }.|.
+            lv_update_class = 'update'.
+          ELSE.
+            lv_update_time = lo_tool->get_last_update( abap_true ).
+            IF lv_update_time(8) = sy-datum.
+              lv_update = ri_html->icon( iv_name  = 'check/green'
+                                         iv_hint  = 'Tool updated' ) && |Updated today|.
+              lv_update_class = 'update_success'.
+            ENDIF.
           ENDIF.
         ENDIF.
 
@@ -712,7 +722,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
       ri_html->add( |<br><span class="description">{ lv_details }</span>| ).
     ENDIF.
     IF lv_update IS NOT INITIAL.
-      ri_html->add( |<br><br><span class="update">{ lv_update }</span>| ).
+      ri_html->add( |<br><br><span class="{ lv_update_class }">{ lv_update }</span>| ).
     ENDIF.
     ri_html->add( '</td>' ).
 

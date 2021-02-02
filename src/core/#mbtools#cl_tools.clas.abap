@@ -56,7 +56,7 @@ CLASS /mbtools/cl_tools DEFINITION
     " Evaluation
     CONSTANTS c_eval_days TYPE i VALUE 60 ##NO_TEXT.
     CONSTANTS c_eval_users TYPE i VALUE 10 ##NO_TEXT.
-    DATA mbt_manifest TYPE /mbtools/if_manifest=>ty_descriptor READ-ONLY.
+    DATA ms_manifest TYPE /mbtools/if_tool=>ty_manifest READ-ONLY.
 
     " Constructor
     CLASS-METHODS class_constructor.
@@ -129,7 +129,7 @@ CLASS /mbtools/cl_tools DEFINITION
     " Tool Manifest
     METHODS build_manifest
       RETURNING
-        VALUE(rs_manifest) TYPE /mbtools/if_manifest=>ty_descriptor.
+        VALUE(rs_manifest) TYPE /mbtools/if_tool=>ty_manifest.
     " Tool Register/Unregister
     METHODS register
       IMPORTING
@@ -275,42 +275,89 @@ CLASS /mbtools/cl_tools DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    TYPES:
-      ty_classes TYPE STANDARD TABLE OF seoclsname WITH DEFAULT KEY .
+    " Sync with zif_abapinst_definitions
+    CONSTANTS lc_name_length TYPE i VALUE 90 ##NO_TEXT.
 
-    CLASS-DATA go_reg_root TYPE REF TO /mbtools/cl_registry .
-    DATA mo_tool TYPE REF TO object .
-    DATA mv_id TYPE /mbtools/if_manifest=>ty_descriptor-id .
-    DATA mv_bundle_id TYPE /mbtools/if_manifest=>ty_descriptor-bundle_id .
-    DATA mv_is_bundle TYPE /mbtools/if_manifest=>ty_descriptor-is_bundle .
-    DATA mv_title TYPE /mbtools/if_manifest=>ty_descriptor-title .
-    DATA mv_name TYPE /mbtools/if_manifest=>ty_descriptor-name .
-    DATA mv_version TYPE /mbtools/if_manifest=>ty_descriptor-version .
-    DATA mv_description TYPE /mbtools/if_manifest=>ty_descriptor-description .
-    DATA mv_has_launch TYPE /mbtools/if_manifest=>ty_descriptor-has_launch .
-    DATA mv_command TYPE /mbtools/if_manifest=>ty_descriptor-command .
-    DATA mv_shortcut TYPE /mbtools/if_manifest=>ty_descriptor-shortcut .
+    TYPES:
+      ty_name TYPE c LENGTH lc_name_length.
+    TYPES:
+      ty_pack TYPE devclass.
+    TYPES:
+      BEGIN OF ty_content,
+        name TYPE ty_name,
+        pack TYPE ty_pack,
+        json TYPE string,
+      END OF ty_content.
+    TYPES:
+      BEGIN OF ty_version,
+        major           TYPE i,
+        minor           TYPE i,
+        patch           TYPE i,
+        prerelase       TYPE string,
+        prerelase_patch TYPE i,
+      END OF ty_version.
+    TYPES:
+      BEGIN OF ty_inst,
+        name            TYPE ty_name,
+        pack            TYPE devclass,
+        version         TYPE string,
+        sem_version     TYPE ty_version,
+        description     TYPE string,
+        source_type     TYPE string,
+        source_name     TYPE string,
+        transport       TYPE trkorr,
+        folder_logic    TYPE string,
+        installed_langu TYPE sy-langu,
+        installed_by    TYPE xubname,
+        installed_at    TYPE timestamp,
+        updated_by      TYPE xubname,
+        updated_at      TYPE timestamp,
+        status          TYPE sy-msgty,
+      END OF ty_inst.
+
+    TYPES:
+      ty_classes TYPE STANDARD TABLE OF seoclsname WITH DEFAULT KEY.
+
+    CLASS-DATA go_reg_root TYPE REF TO /mbtools/cl_registry.
+    DATA mo_tool TYPE REF TO object.
+    DATA mv_id TYPE /mbtools/if_tool=>ty_manifest-id.
+    DATA mv_bundle_id TYPE /mbtools/if_tool=>ty_manifest-bundle_id.
+    DATA mv_is_bundle TYPE /mbtools/if_tool=>ty_manifest-is_bundle.
+    DATA mv_title TYPE /mbtools/if_tool=>ty_manifest-title.
+    DATA mv_name TYPE /mbtools/if_tool=>ty_manifest-name.
+    DATA mv_version TYPE /mbtools/if_tool=>ty_manifest-version.
+    DATA mv_description TYPE /mbtools/if_tool=>ty_manifest-description.
+    DATA mv_has_launch TYPE /mbtools/if_tool=>ty_manifest-has_launch.
+    DATA mv_command TYPE /mbtools/if_tool=>ty_manifest-command.
+    DATA mv_shortcut TYPE /mbtools/if_tool=>ty_manifest-shortcut.
 
     CLASS-METHODS clean_title
       IMPORTING
         !iv_title        TYPE csequence
       RETURNING
-        VALUE(rv_result) TYPE string .
+        VALUE(rv_result) TYPE string.
     CLASS-METHODS get_implementations
       IMPORTING
         VALUE(iv_quiet)   TYPE abap_bool DEFAULT abap_true
       RETURNING
-        VALUE(rt_classes) TYPE ty_classes .
+        VALUE(rt_classes) TYPE ty_classes.
     CLASS-METHODS get_reg_bundle
       IMPORTING
         !iv_bundle_id    TYPE i
       RETURNING
-        VALUE(ro_result) TYPE REF TO /mbtools/cl_registry .
+        VALUE(ro_result) TYPE REF TO /mbtools/cl_registry.
     CLASS-METHODS get_reg_tool
       IMPORTING
         !iv_name         TYPE string
       RETURNING
-        VALUE(ro_result) TYPE REF TO /mbtools/cl_registry .
+        VALUE(ro_result) TYPE REF TO /mbtools/cl_registry.
+    CLASS-METHODS sync_json
+      IMPORTING
+        !is_inst          TYPE ty_inst
+      RETURNING
+        VALUE(rs_content) TYPE ty_content
+      RAISING
+        /mbtools/cx_exception.
 ENDCLASS.
 
 
@@ -461,13 +508,10 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     rs_manifest-shortcut    = mv_shortcut.
 
     IF mv_is_bundle IS INITIAL.
-      rs_manifest-namespace   = /mbtools/if_definitions=>c_namespace.
-      rs_manifest-package     = get_package( ).
-      rs_manifest-class       = get_class( ).
-      " APACK fields
-      rs_manifest-group_id    = /mbtools/if_definitions=>c_github.
-      rs_manifest-artifact_id = mv_name.
-      rs_manifest-git_url     = get_url_repo( ).
+      rs_manifest-namespace = /mbtools/if_definitions=>c_namespace.
+      rs_manifest-package   = get_package( ).
+      rs_manifest-class     = get_class( ).
+      rs_manifest-git_url   = get_url_repo( ).
     ENDIF.
 
   ENDMETHOD.
@@ -571,15 +615,15 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   METHOD constructor.
 
     FIELD-SYMBOLS:
-      <lv_id>          TYPE /mbtools/if_manifest=>ty_descriptor-id,
-      <lv_bundle_id>   TYPE /mbtools/if_manifest=>ty_descriptor-bundle_id,
-      <lv_is_bundle>   TYPE /mbtools/if_manifest=>ty_descriptor-is_bundle,
-      <lv_title>       TYPE /mbtools/if_manifest=>ty_descriptor-title,
-      <lv_version>     TYPE /mbtools/if_manifest=>ty_descriptor-version,
-      <lv_description> TYPE /mbtools/if_manifest=>ty_descriptor-description,
-      <lv_has_launch>  TYPE /mbtools/if_manifest=>ty_descriptor-has_launch,
-      <lv_command>     TYPE /mbtools/if_manifest=>ty_descriptor-command,
-      <lv_shortcut>    TYPE /mbtools/if_manifest=>ty_descriptor-shortcut.
+      <lv_id>          TYPE /mbtools/if_tool=>ty_manifest-id,
+      <lv_bundle_id>   TYPE /mbtools/if_tool=>ty_manifest-bundle_id,
+      <lv_is_bundle>   TYPE /mbtools/if_tool=>ty_manifest-is_bundle,
+      <lv_title>       TYPE /mbtools/if_tool=>ty_manifest-title,
+      <lv_version>     TYPE /mbtools/if_tool=>ty_manifest-version,
+      <lv_description> TYPE /mbtools/if_tool=>ty_manifest-description,
+      <lv_has_launch>  TYPE /mbtools/if_tool=>ty_manifest-has_launch,
+      <lv_command>     TYPE /mbtools/if_tool=>ty_manifest-command,
+      <lv_shortcut>    TYPE /mbtools/if_tool=>ty_manifest-shortcut.
 
     mo_tool = io_tool.
 
@@ -627,7 +671,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     ENDIF.
 
     " Build the full manifest based on these constants
-    mbt_manifest = build_manifest( ).
+    ms_manifest = build_manifest( ).
 
   ENDMETHOD.
 
@@ -705,7 +749,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lv_implementation  TYPE seoclsname,
       lt_implementations TYPE ty_classes,
       lo_tool            TYPE REF TO object,
-      lo_manifest        TYPE REF TO /mbtools/if_manifest.
+      li_tool            TYPE REF TO /mbtools/if_tool.
 
     lt_implementations = get_implementations( ).
 
@@ -715,12 +759,12 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
           " Get instance of tool
           CREATE OBJECT lo_tool TYPE (lv_implementation).
           IF lo_tool IS BOUND.
-            lo_manifest ?= lo_tool.
+            li_tool ?= lo_tool.
           ELSE.
             CONTINUE. "ignore
           ENDIF.
 
-          IF lo_manifest->descriptor-title = clean_title( iv_title ).
+          IF li_tool->ms_manifest-title = clean_title( iv_title ).
             CREATE OBJECT ro_tool EXPORTING io_tool = lo_tool.
             RETURN.
           ENDIF.
@@ -921,7 +965,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lv_implementation  TYPE seoclsname,
       lt_implementations TYPE ty_classes,
       lo_tool            TYPE REF TO object,
-      lo_manifest        TYPE REF TO /mbtools/if_manifest,
+      li_tool            TYPE REF TO /mbtools/if_tool,
       ls_manifest_descr  TYPE /mbtools/manifest.
 
     lt_implementations = get_implementations( ).
@@ -932,13 +976,13 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
           " Get instance of tool
           CREATE OBJECT lo_tool TYPE (lv_implementation).
           IF lo_tool IS BOUND.
-            lo_manifest ?= lo_tool.
+            li_tool ?= lo_tool.
           ELSE.
             CONTINUE. "ignore
           ENDIF.
 
           CLEAR ls_manifest_descr.
-          MOVE-CORRESPONDING lo_manifest->descriptor TO ls_manifest_descr.
+          MOVE-CORRESPONDING li_tool->ms_manifest TO ls_manifest_descr.
           INSERT ls_manifest_descr INTO TABLE rt_manifests.
 
         CATCH cx_root.
@@ -1126,7 +1170,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lv_implementation  TYPE seoclsname,
       lt_implementations TYPE ty_classes,
       lo_object          TYPE REF TO object,
-      lo_manifest        TYPE REF TO /mbtools/if_manifest,
+      li_tool            TYPE REF TO /mbtools/if_tool,
       lo_tool            TYPE REF TO /mbtools/cl_tools,
       ls_tool_with_text  TYPE /mbtools/tool_with_text.
 
@@ -1138,8 +1182,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
           " Get instance of tool
           CREATE OBJECT lo_object TYPE (lv_implementation).
           IF lo_object IS BOUND.
-            lo_manifest ?= lo_object.
-            lo_tool = factory( lo_manifest->descriptor-title ).
+            li_tool ?= lo_object.
+            lo_tool = factory( li_tool->ms_manifest-title ).
           ELSE.
             CONTINUE. "ignore
           ENDIF.
@@ -1431,9 +1475,14 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
   METHOD launch.
 
+    DATA li_tool TYPE REF TO /mbtools/if_tool.
+
     IF has_launch( ) = abap_true.
-      " Dynamic call since some tools don't have this method
-      CALL METHOD mo_tool->('LAUNCH').
+      TRY.
+          li_tool ?= mo_tool.
+          li_tool->launch( ).
+        CATCH /mbtools/cx_exception ##NO_HANDLER.
+      ENDTRY.
     ENDIF.
 
   ENDMETHOD.
@@ -1671,54 +1720,15 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD sync ##TODO.
+  METHOD sync.
 
     " Installer persistence
     CONSTANTS lc_tabname TYPE tabname VALUE 'ZMBTINST'.
 
-    " Sync with zif_abapinst_definitions
-    CONSTANTS lc_name_length TYPE i VALUE 90 ##NO_TEXT.
-
-    TYPES:
-      ty_name TYPE c LENGTH lc_name_length.
-    TYPES:
-      ty_pack TYPE devclass.
-    TYPES:
-      BEGIN OF ty_content,
-        name TYPE ty_name,
-        pack TYPE ty_pack,
-        json TYPE string,
-      END OF ty_content.
-    TYPES:
-      BEGIN OF ty_version,
-        major           TYPE i,
-        minor           TYPE i,
-        patch           TYPE i,
-        prerelase       TYPE string,
-        prerelase_patch TYPE i,
-      END OF ty_version.
-    TYPES:
-      BEGIN OF ty_inst,
-        name            TYPE ty_name,
-        pack            TYPE devclass,
-        version         TYPE string,
-        sem_version     TYPE ty_version,
-        description     TYPE string,
-        source_type     TYPE string,
-        source_name     TYPE string,
-        transport       TYPE trkorr,
-        folder_logic    TYPE string,
-        installed_langu TYPE sy-langu,
-        installed_by    TYPE xubname,
-        installed_at    TYPE timestamp,
-        updated_by      TYPE xubname,
-        updated_at      TYPE timestamp,
-        status          TYPE sy-msgty,
-      END OF ty_inst.
-
     DATA:
       lv_name TYPE string,
-      ls_inst TYPE ty_inst.
+      ls_inst TYPE ty_inst,
+      ls_cont TYPE ty_content.
 
     lv_name = io_tool->get_name( ).
     SELECT SINGLE * FROM (lc_tabname) INTO ls_inst WHERE name = lv_name.
@@ -1736,6 +1746,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       ls_inst-installed_at    = io_tool->get_last_update( abap_true ).
       ls_inst-status          = 'I'.
       " Update
+      ls_cont = sync_json( ls_inst ).
+      UPDATE (lc_tabname) FROM ls_cont.
     ELSE.
       ls_inst-name            = io_tool->get_name( ).
       ls_inst-pack            = io_tool->get_package( ).
@@ -1751,8 +1763,32 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       ls_inst-installed_at    = io_tool->get_last_update( abap_true ).
       ls_inst-status          = 'I'.
       " Insert
+      ls_cont = sync_json( ls_inst ).
+      INSERT (lc_tabname) FROM ls_cont.
     ENDIF.
 
+    IF sy-subrc <> 0.
+      /mbtools/cx_exception=>raise( 'Error updating MBT Installer persistence').
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD sync_json.
+
+    DATA lo_json TYPE REF TO /mbtools/cl_ajson.
+
+    TRY.
+        lo_json = /mbtools/cl_ajson=>create_empty( ).
+        lo_json->set( iv_path = '/'
+                      iv_val  = is_inst ).
+
+        rs_content-name = is_inst-name.
+        rs_content-pack = is_inst-pack.
+        rs_content-json = lo_json->stringify( 2 ).
+      CATCH /mbtools/cx_ajson_error.
+        /mbtools/cx_exception=>raise( 'Error converting JSON persistency' ).
+    ENDTRY.
   ENDMETHOD.
 
 

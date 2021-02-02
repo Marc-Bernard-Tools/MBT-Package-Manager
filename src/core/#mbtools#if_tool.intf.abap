@@ -26,7 +26,7 @@ INTERFACE /mbtools/if_tool
       shortcut    TYPE string,
     END OF ty_manifest.
 
-  DATA gs_manifest TYPE ty_manifest READ-ONLY.
+  DATA ms_manifest TYPE ty_manifest READ-ONLY.
 
   METHODS launch
     RAISING

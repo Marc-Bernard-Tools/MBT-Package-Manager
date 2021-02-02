@@ -1,7 +1,7 @@
 CLASS /mbtools/cl_bundle_free DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * MBT Free Version
@@ -11,10 +11,7 @@ CLASS /mbtools/cl_bundle_free DEFINITION
 
   PUBLIC SECTION.
 
-    INTERFACES /mbtools/if_manifest .
-
-    ALIASES mbt_manifest
-      FOR /mbtools/if_manifest~descriptor .
+    INTERFACES /mbtools/if_tool.
 
     CONSTANTS:
       BEGIN OF c_tool,
@@ -25,22 +22,29 @@ CLASS /mbtools/cl_bundle_free DEFINITION
         download_id TYPE i VALUE 4480,
         description TYPE string
         VALUE 'Everything you need to get started with Marc Bernard Tools' ##NO_TEXT,
-      END OF c_tool .
+      END OF c_tool.
 
-    METHODS constructor .
+    METHODS constructor.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    DATA mo_tool TYPE REF TO /mbtools/cl_tools .
+    DATA mo_tool TYPE REF TO /mbtools/cl_tools.
+
 ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_BUNDLE_FREE IMPLEMENTATION.
+CLASS /mbtools/cl_bundle_free IMPLEMENTATION.
 
 
-  METHOD constructor .
+  METHOD /mbtools/if_tool~launch.
+    ASSERT 1 = 2.
+  ENDMETHOD.
+
+
+  METHOD constructor.
     CREATE OBJECT mo_tool EXPORTING io_tool = me.
-    mbt_manifest = mo_tool->mbt_manifest.
+    /mbtools/if_tool~ms_manifest = mo_tool->ms_manifest.
   ENDMETHOD.
 ENDCLASS.
