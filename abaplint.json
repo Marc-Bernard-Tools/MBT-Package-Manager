@@ -356,7 +356,9 @@
             "style": "upper"
         },
         "line_break_multiple_parameters": {
-            "exclude": [],
+            "exclude": [
+                "#mbtools#.*_ajson.*"
+            ],
             "severity": "Error"
         },
         "line_break_style": {
@@ -389,6 +391,7 @@
         },
         "local_variable_names": {
             "exclude": [
+                "#mbtools#.*_ajson.*",
                 "#mbtools#cl_string_map.clas.abap"
             ],
             "expectedConstant": "^LC_.+$",
