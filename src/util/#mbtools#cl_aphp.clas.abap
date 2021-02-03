@@ -25,7 +25,7 @@ CLASS /mbtools/cl_aphp DEFINITION
         /mbtools/cx_ajson_error .
   PROTECTED SECTION.
   PRIVATE SECTION.
-    CLASS-DATA mv_ignore_len TYPE abap_bool.
+    CLASS-DATA gv_ignore_len TYPE abap_bool.
 
     CLASS-METHODS unserialize_array
       IMPORTING
@@ -96,11 +96,8 @@ CLASS /mbtools/cl_aphp IMPLEMENTATION.
     IF sy-subrc <> 0.
       /mbtools/cx_ajson_error=>raise( |Data error type "b"| ).
     ENDIF.
-    IF lv_val = '0'.
-      rv_val = abap_false.
-    ELSE.
-      rv_val = abap_true.
-    ENDIF.
+
+    rv_val = boolc( lv_val <> '0' ).
 
   ENDMETHOD.
 
@@ -112,7 +109,8 @@ CLASS /mbtools/cl_aphp IMPLEMENTATION.
     " d:<value>;
     lv_val = shift_right( val = iv_data
                           sub = ';' ).
-    rv_val = round( val = lv_val dec = iv_precision ).
+    rv_val = round( val = lv_val
+                    dec = iv_precision ).
 
   ENDMETHOD.
 
@@ -147,7 +145,7 @@ CLASS /mbtools/cl_aphp IMPLEMENTATION.
                     iv_char = '"' ).
     REPLACE ALL OCCURRENCES OF '\"' IN rv_val WITH '"'.
 
-    IF strlen( rv_val ) <> lv_len_int AND mv_ignore_len IS INITIAL.
+    IF strlen( rv_val ) <> lv_len_int AND gv_ignore_len IS INITIAL.
       /mbtools/cx_ajson_error=>raise( |Data error type "s"; incorrect length| ).
     ENDIF.
 
@@ -192,7 +190,7 @@ CLASS /mbtools/cl_aphp IMPLEMENTATION.
       lv_path TYPE string,
       lv_type TYPE c.
 
-    mv_ignore_len = iv_ignore_len.
+    gv_ignore_len = iv_ignore_len.
 
     ro_ajson = /mbtools/cl_ajson=>create_empty( ).
 

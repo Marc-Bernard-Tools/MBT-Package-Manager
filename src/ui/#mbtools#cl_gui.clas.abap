@@ -278,7 +278,7 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
 
     DATA: ls_stack TYPE ty_page_stack.
 
-    IF iv_replacing = abap_false AND NOT mi_cur_page IS INITIAL.
+    IF iv_replacing = abap_false AND mi_cur_page IS NOT INITIAL.
       ls_stack-page     = mi_cur_page.
       ls_stack-bookmark = iv_with_bookmark.
       APPEND ls_stack TO mt_stack.

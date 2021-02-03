@@ -18,14 +18,6 @@ CLASS /mbtools/cl_html_lib DEFINITION
         method TYPE string,
         name   TYPE string,
       END OF  ty_event_signature .
-    TYPES:
-      BEGIN OF ty_col_spec,
-        tech_name    TYPE string,
-        display_name TYPE string,
-        css_class    TYPE string,
-        add_tz       TYPE abap_bool,
-        title        TYPE string,
-      END OF ty_col_spec .
 
     CLASS-METHODS class_constructor .
     CLASS-METHODS render_error

@@ -50,12 +50,12 @@ CLASS /mbtools/cl_gui_page_about IMPLEMENTATION.
 
 
   METHOD /mbtools/if_gui_event_handler~on_event.
-
+    ASSERT 1 = 1.
   ENDMETHOD.
 
 
   METHOD /mbtools/if_gui_hotkeys~get_hotkey_actions.
-
+    ASSERT 1 = 1.
   ENDMETHOD.
 
 

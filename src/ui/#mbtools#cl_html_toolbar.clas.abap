@@ -56,8 +56,8 @@ CLASS /mbtools/cl_html_toolbar DEFINITION
         act   TYPE string,
         ico   TYPE string,
         sub   TYPE REF TO /mbtools/cl_html_toolbar,
-        opt   TYPE char1,
-        typ   TYPE char1,
+        opt   TYPE c LENGTH 1,
+        typ   TYPE c LENGTH 1,
         cur   TYPE abap_bool,
         chk   TYPE abap_bool,
         aux   TYPE string,
@@ -81,7 +81,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_HTML_TOOLBAR IMPLEMENTATION.
+CLASS /mbtools/cl_html_toolbar IMPLEMENTATION.
 
 
   METHOD add.

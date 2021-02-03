@@ -115,10 +115,6 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
       lo_ctx_type             TYPE REF TO cl_abap_typedescr,
       ls_ctx_ddic_header      TYPE x030l,
       lo_msg_type             TYPE REF TO cl_abap_typedescr,
-      "lo_msg_table_type       TYPE REF TO cl_abap_tabledescr,
-      "lt_log_numbers          TYPE bal_t_lgnm,
-      "lt_log_handles          TYPE bal_t_logh,
-      "ls_log_number           TYPE bal_s_lgnm,
       ls_formatted_context    TYPE bal_s_cont,
       ls_formatted_params     TYPE bal_s_parm.
 
@@ -499,7 +495,6 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
   METHOD add_structure.
 
     DATA:
-      lo_msg_type             TYPE REF TO cl_abap_typedescr,
       lo_msg_struct_type      TYPE REF TO cl_abap_structdescr,
       lo_structure_descriptor TYPE REF TO cl_abap_structdescr,
       lt_components           TYPE cl_abap_structdescr=>component_table,

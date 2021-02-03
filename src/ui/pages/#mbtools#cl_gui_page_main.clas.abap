@@ -186,8 +186,8 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
         rs_handled-state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
       WHEN /mbtools/if_actions=>tool_license.
-        IF ii_event->get_param( 'action' ) = /mbtools/if_actions=>license_add AND NOT
-           ii_event->get_param( 'license' ) IS INITIAL.
+        IF ii_event->get_param( 'action' ) = /mbtools/if_actions=>license_add AND
+           ii_event->get_param( 'license' ) IS NOT INITIAL.
           IF lo_tool->license_add( ii_event->get_param( 'license' ) ) = abap_true.
             MESSAGE 'License saved and activated successfully' TYPE 'S'.
           ENDIF.
@@ -289,7 +289,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
     )->add(
       iv_txt = 'Ticket'
       iv_typ = /mbtools/if_html=>c_action_type-url
-      iv_act = /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_support  ).
+      iv_act = /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_support ).
 
     CREATE OBJECT lo_bar_menu.
 
@@ -420,7 +420,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
     lv_name = iv_name.
     REPLACE ALL OCCURRENCES OF '_' IN lv_name WITH ` `.
     ro_tool = /mbtools/cl_tools=>factory( lv_name ).
-    IF NOT ro_tool IS BOUND.
+    IF ro_tool IS NOT BOUND.
       /mbtools/cx_exception=>raise( |Tool { lv_name } could not be instanciated| ).
     ENDIF.
 

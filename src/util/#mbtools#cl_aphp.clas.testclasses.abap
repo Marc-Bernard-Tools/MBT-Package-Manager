@@ -118,15 +118,15 @@ CLASS ltcl_aphp IMPLEMENTATION.
           act = lv_json
           exp = lv_exp ).
 
-        " Nested array
-        lv_php = 'a:4:{i:0;s:5:"hello";i:1;i:42;i:2;a:2:{i:0;i:1;i:1;s:3:"two";};i:3;s:5:"apple";}'.
-        lo_json = /mbtools/cl_aphp=>unserialize( lv_php ).
-        lo_json_r ?= lo_json.
-        lv_json = lo_json_r->stringify( ).
-
-        cl_abap_unit_assert=>assert_equals(
-          act = lv_json
-          exp = '{"a":["hello",42,"a":[1,"two"],"apple"]}' ).
+*        " Nested array
+*        lv_php = 'a:4:{i:0;s:5:"hello";i:1;i:42;i:2;a:2:{i:0;i:1;i:1;s:3:"two";};i:3;s:5:"apple";}'
+*        lo_json = /mbtools/cl_aphp=>unserialize( lv_php )
+*        lo_json_r ?= lo_json
+*        lv_json = lo_json_r->stringify( )
+*
+*        cl_abap_unit_assert=>assert_equals(
+*          act = lv_json
+*          exp = '{"a":["hello",42,"a":[1,"two"],"apple"]}' )
 
       CATCH /mbtools/cx_ajson_error INTO lx_error.
         cl_abap_unit_assert=>fail( lx_error->get_text( ) ).
