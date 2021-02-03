@@ -47,16 +47,16 @@ CLASS /mbtools/cl_logger DEFINITION
     TYPES:
 * Local type for hrpad_message as it is not available in an ABAP Development System
       BEGIN OF ty_hrpad_message_field_list,
-        scrrprfd TYPE scrrprfd.
-    TYPES: END OF ty_hrpad_message_field_list.
+        scrrprfd TYPE scrrprfd,
+      END OF ty_hrpad_message_field_list.
     TYPES:
       BEGIN OF ty_hrpad_message_alike,
         cause(32)    TYPE c,                          "original: hrpad_message_cause
         detail_level TYPE ballevel.
         INCLUDE TYPE symsg .
-        TYPES: field_list   TYPE STANDARD TABLE OF ty_hrpad_message_field_list
-                        WITH NON-UNIQUE KEY scrrprfd.
-    TYPES: END OF ty_hrpad_message_alike .
+    TYPES: field_list TYPE STANDARD TABLE OF ty_hrpad_message_field_list
+                      WITH NON-UNIQUE KEY scrrprfd,
+      END OF ty_hrpad_message_alike .
 
     DATA mv_sec_connection TYPE abap_bool .
     DATA mv_sec_connect_commit TYPE abap_bool .
@@ -115,10 +115,10 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
       lo_ctx_type             TYPE REF TO cl_abap_typedescr,
       ls_ctx_ddic_header      TYPE x030l,
       lo_msg_type             TYPE REF TO cl_abap_typedescr,
-      lo_msg_table_type       TYPE REF TO cl_abap_tabledescr,
-      lt_log_numbers          TYPE bal_t_lgnm,
-      lt_log_handles          TYPE bal_t_logh,
-      ls_log_number           TYPE bal_s_lgnm,
+      "lo_msg_table_type       TYPE REF TO cl_abap_tabledescr,
+      "lt_log_numbers          TYPE bal_t_lgnm,
+      "lt_log_handles          TYPE bal_t_logh,
+      "ls_log_number           TYPE bal_s_lgnm,
       ls_formatted_context    TYPE bal_s_cont,
       ls_formatted_params     TYPE bal_s_parm.
 
@@ -133,20 +133,20 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
       <ls_bdc_msg>           TYPE bdcmsgcoll,
       <ls_hrpad_msg>         TYPE ty_hrpad_message_alike,
       "<ls_rcomp_msg>         TYPE rcomp,
-      <iv_context_val>       TYPE any.
+      <lv_context_val>       TYPE any.
 
     IF iv_context IS NOT INITIAL.
-      ASSIGN iv_context TO <iv_context_val>.
-      ls_formatted_context-value = <iv_context_val>.
+      ASSIGN iv_context TO <lv_context_val>.
+      ls_formatted_context-value = <lv_context_val>.
       lo_ctx_type                = cl_abap_typedescr=>describe_by_data( iv_context ).
 
-      CALL METHOD lo_ctx_type->get_ddic_header
+      lo_ctx_type->get_ddic_header(
         RECEIVING
           p_header     = ls_ctx_ddic_header
         EXCEPTIONS
           not_found    = 1
           no_ddic_type = 2
-          OTHERS       = 3.
+          OTHERS       = 3 ).
       IF sy-subrc = 0.
         ls_formatted_context-tabname = ls_ctx_ddic_header-tabname.
       ENDIF.
@@ -499,26 +499,26 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
   METHOD add_structure.
 
     DATA:
-      msg_type             TYPE REF TO cl_abap_typedescr,
-      msg_struct_type      TYPE REF TO cl_abap_structdescr,
-      structure_descriptor TYPE REF TO cl_abap_structdescr,
-      components           TYPE cl_abap_structdescr=>component_table,
-      component            LIKE LINE OF components.
+      lo_msg_type             TYPE REF TO cl_abap_typedescr,
+      lo_msg_struct_type      TYPE REF TO cl_abap_structdescr,
+      lo_structure_descriptor TYPE REF TO cl_abap_structdescr,
+      lt_components           TYPE cl_abap_structdescr=>component_table,
+      ls_component            LIKE LINE OF lt_components.
 
-    FIELD-SYMBOLS: <component> TYPE any.
+    FIELD-SYMBOLS: <lv_component> TYPE any.
 
-    msg_struct_type ?= cl_abap_typedescr=>describe_by_data( is_structure_to_log ).
+    lo_msg_struct_type ?= cl_abap_typedescr=>describe_by_data( is_structure_to_log ).
     /mbtools/if_logger~add( '--- Begin of structure ---' ).
 
-    structure_descriptor ?= cl_abap_structdescr=>describe_by_data( is_structure_to_log ).
-    get_structure_fields( EXPORTING io_data_structure   = structure_descriptor
-                          CHANGING  ct_structure_fields = components ).
+    lo_structure_descriptor ?= cl_abap_structdescr=>describe_by_data( is_structure_to_log ).
+    get_structure_fields( EXPORTING io_data_structure   = lo_structure_descriptor
+                          CHANGING  ct_structure_fields = lt_components ).
 
-    LOOP AT components INTO component.
-      CHECK component-type->kind = cl_abap_typedescr=>kind_elem.
-      ASSIGN COMPONENT component-name OF STRUCTURE is_structure_to_log TO <component>.
+    LOOP AT lt_components INTO ls_component.
+      CHECK ls_component-type->kind = cl_abap_typedescr=>kind_elem.
+      ASSIGN COMPONENT ls_component-name OF STRUCTURE is_structure_to_log TO <lv_component>.
       IF sy-subrc = 0.
-        /mbtools/if_logger~add( iv_obj_to_log = |{ to_lower( component-name ) } = { <component> }|
+        /mbtools/if_logger~add( iv_obj_to_log = |{ to_lower( ls_component-name ) } = { <lv_component> }|
            iv_importance = '4' ).
       ENDIF.
     ENDLOOP.
@@ -574,15 +574,15 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
     DATA: lt_log_handle TYPE bal_t_logh,
           ls_filter     TYPE bal_s_mfil.
 
-    FIELD-SYMBOLS <f> LIKE LINE OF ls_filter-msgty.
+    FIELD-SYMBOLS <lv_f> LIKE LINE OF ls_filter-msgty.
 
     INSERT /mbtools/if_logger~mv_handle INTO TABLE lt_log_handle.
 
     IF iv_msgtype IS NOT INITIAL.
-      APPEND INITIAL LINE TO ls_filter-msgty ASSIGNING <f>.
-      <f>-sign   = 'I'.
-      <f>-option = 'EQ'.
-      <f>-low    = iv_msgtype.
+      APPEND INITIAL LINE TO ls_filter-msgty ASSIGNING <lv_f>.
+      <lv_f>-sign   = 'I'.
+      <lv_f>-option = 'EQ'.
+      <lv_f>-low    = iv_msgtype.
     ENDIF.
 
     CALL FUNCTION 'BAL_GLB_SEARCH_MSG'
@@ -616,7 +616,7 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
           CHANGING
             ct_structure_fields = ct_structure_fields ).
       ELSE.
-        IF NOT iv_prefix IS INITIAL.
+        IF iv_prefix IS NOT INITIAL.
           CONCATENATE iv_prefix '-' ls_structure_component-name INTO ls_structure_component-name.
         ENDIF.
         APPEND ls_structure_component TO ct_structure_fields.

@@ -29,12 +29,12 @@ CLASS /mbtools/cl_logger_settings DEFINITION
     DATA mv_expiry_date TYPE aldate_del .
     DATA mv_must_be_kept_until_expiry TYPE del_before.
     DATA mv_max_exception_drill_down TYPE i.
-    DATA mv_use_2nd_db_connection TYPE flag.
+    DATA mv_use_2nd_db_connection TYPE /mbtools/if_logger_settings=>ty_flag.
 ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_LOGGER_SETTINGS IMPLEMENTATION.
+CLASS /mbtools/cl_logger_settings IMPLEMENTATION.
 
 
   METHOD /mbtools/if_logger_settings~get_autosave.

@@ -12,6 +12,7 @@ INTERFACE /mbtools/if_logger_settings
 *
 * Last update: 2020-08-17
 ************************************************************************
+  TYPES ty_flag TYPE c LENGTH 1.
   "! Is the log automatically saved when adding messages?
   "! See setter for more details.
   METHODS get_autosave
@@ -81,13 +82,13 @@ INTERFACE /mbtools/if_logger_settings
   "! See setter for more details.
   METHODS get_usage_of_secondary_db_conn
     RETURNING
-      VALUE(rv_2nd_db_connection_enabled) TYPE flag .
+      VALUE(rv_2nd_db_connection_enabled) TYPE ty_flag.
   "! Set to true if secondary database connection should be used to write the log entries to the database.
   "! This is important if main program does a rollback (on purpose or after a dump).
   "! The default is true.
   METHODS set_usage_of_secondary_db_conn
     IMPORTING
-      !iv_use_2nd_db_connection TYPE flag
+      !iv_use_2nd_db_connection TYPE ty_flag
     RETURNING
       VALUE(ro_self)            TYPE REF TO /mbtools/if_logger_settings .
 ENDINTERFACE.

@@ -47,7 +47,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_LOGGER_FACTORY IMPLEMENTATION.
+CLASS /mbtools/cl_logger_factory IMPLEMENTATION.
 
 
   METHOD create_log.
@@ -128,7 +128,7 @@ CLASS /MBTOOLS/CL_LOGGER_FACTORY IMPLEMENTATION.
       ls_subobj_filter      TYPE bal_s_sub,
       lt_found_headers      TYPE balhdr_t,
       ls_most_recent_header TYPE balhdr,
-      lt_handles_loaded     TYPE bal_t_logh,
+      "lt_handles_loaded     TYPE bal_t_logh,
       lo_log                TYPE REF TO /mbtools/cl_logger.
 
     ls_desc_filter-option = ls_subobj_filter-option = ls_obj_filter-option = 'EQ'.
