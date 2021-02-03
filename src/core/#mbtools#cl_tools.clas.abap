@@ -663,7 +663,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         IF sy-subrc = 0. " constant is optional
           mv_command = <lv_command>.
         ENDIF.
-        ASSIGN mo_tool->('C_TOOL-MBT_SHORTCUBE') TO <lv_shortcut>.
+        ASSIGN mo_tool->('C_TOOL-MBT_SHORTCUT') TO <lv_shortcut>.
         IF sy-subrc = 0. " constant is optional
           mv_shortcut = <lv_shortcut>.
         ENDIF.
@@ -748,7 +748,6 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     DATA:
       lv_implementation  TYPE seoclsname,
       lt_implementations TYPE ty_classes,
-      lo_tool            TYPE REF TO object,
       li_tool            TYPE REF TO /mbtools/if_tool.
 
     lt_implementations = get_implementations( ).
@@ -757,15 +756,13 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
       TRY.
           " Get instance of tool
-          CREATE OBJECT lo_tool TYPE (lv_implementation).
-          IF lo_tool IS BOUND.
-            li_tool ?= lo_tool.
-          ELSE.
+          CREATE OBJECT li_tool TYPE (lv_implementation).
+          IF li_tool IS NOT BOUND.
             CONTINUE. "ignore
           ENDIF.
 
           IF li_tool->ms_manifest-title = clean_title( iv_title ).
-            CREATE OBJECT ro_tool EXPORTING io_tool = lo_tool.
+            CREATE OBJECT ro_tool EXPORTING io_tool = li_tool.
             RETURN.
           ENDIF.
 
@@ -879,8 +876,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     " Get all classes that implement the MBT Manifest
     SELECT clsname FROM seometarel INTO TABLE rt_classes
-      WHERE version    = '1'
-        AND refclsname = /mbtools/if_definitions=>c_manifest. "#EC CI_GENBUFF
+      WHERE version = '1' AND refclsname = /mbtools/if_definitions=>c_interface. "#EC CI_GENBUFF
     IF sy-subrc <> 0 AND iv_quiet IS INITIAL.
       " There are no tools installed
       MESSAGE s002(/mbtools/bc).
@@ -964,7 +960,6 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     DATA:
       lv_implementation  TYPE seoclsname,
       lt_implementations TYPE ty_classes,
-      lo_tool            TYPE REF TO object,
       li_tool            TYPE REF TO /mbtools/if_tool,
       ls_manifest_descr  TYPE /mbtools/manifest.
 
@@ -974,10 +969,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
       TRY.
           " Get instance of tool
-          CREATE OBJECT lo_tool TYPE (lv_implementation).
-          IF lo_tool IS BOUND.
-            li_tool ?= lo_tool.
-          ELSE.
+          CREATE OBJECT li_tool TYPE (lv_implementation).
+          IF li_tool IS BOUND.
             CONTINUE. "ignore
           ENDIF.
 
@@ -1169,7 +1162,6 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     DATA:
       lv_implementation  TYPE seoclsname,
       lt_implementations TYPE ty_classes,
-      lo_object          TYPE REF TO object,
       li_tool            TYPE REF TO /mbtools/if_tool,
       lo_tool            TYPE REF TO /mbtools/cl_tools,
       ls_tool_with_text  TYPE /mbtools/tool_with_text.
@@ -1180,9 +1172,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
       TRY.
           " Get instance of tool
-          CREATE OBJECT lo_object TYPE (lv_implementation).
-          IF lo_object IS BOUND.
-            li_tool ?= lo_object.
+          CREATE OBJECT li_tool TYPE (lv_implementation).
+          IF li_tool IS BOUND.
             lo_tool = factory( li_tool->ms_manifest-title ).
           ELSE.
             CONTINUE. "ignore

@@ -1,13 +1,12 @@
 INTERFACE /mbtools/if_definitions
   PUBLIC.
 
-
-  TYPES:
 ************************************************************************
 * MBT Definitions
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
+  TYPES:
     ty_icon     TYPE c LENGTH 4. " icon_d
   TYPES:
     ty_text     TYPE c LENGTH 60. " ddtext
@@ -93,14 +92,14 @@ INTERFACE /mbtools/if_definitions
   TYPES:
     BEGIN OF ty_file.
       INCLUDE TYPE ty_file_signature.
-  TYPES: data TYPE xstring,
+      TYPES: data TYPE xstring,
     END OF ty_file.
   TYPES:
     ty_files_tt TYPE STANDARD TABLE OF ty_file WITH DEFAULT KEY.
 
   CONSTANTS c_mbt TYPE string VALUE 'Marc Bernard Tools' ##NO_TEXT.
   CONSTANTS c_namespace TYPE devclass VALUE '/MBTOOLS/' ##NO_TEXT.
-  CONSTANTS c_manifest TYPE seoclsname VALUE '/MBTOOLS/IF_TOOL' ##NO_TEXT.
+  CONSTANTS c_interface TYPE seoclsname VALUE '/MBTOOLS/IF_TOOL' ##NO_TEXT.
   CONSTANTS c_rfcdest TYPE rfcdest VALUE 'MBTOOLS' ##NO_TEXT.
   CONSTANTS c_github TYPE string VALUE 'github.com/mbtools' ##NO_TEXT.
   CONSTANTS c_dot_abapgit TYPE string VALUE '.abapgit.xml' ##NO_TEXT.
