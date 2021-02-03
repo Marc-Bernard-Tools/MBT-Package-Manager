@@ -116,6 +116,7 @@ CLASS /mbtools/cl_strust IMPLEMENTATION.
         FIND REGEX '-{5}.{0,}BEGIN.{0,}-{5}(.*)-{5}.{0,}END.{0,}-{5}' IN lv_certb64 SUBMATCHES lv_certb64.
         IF sy-subrc = 0.
           ASSIGN lv_certb64 TO <lv_data>.
+          ASSERT sy-subrc = 0.
         ELSE.
           /mbtools/cx_exception=>raise( 'Inconsistent certificate format'(010) ).
         ENDIF.

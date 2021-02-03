@@ -23,7 +23,6 @@ CLASS ltcl_test DEFINITION FOR TESTING
         EXPORTING
           texts       TYPE table_of_strings
           msg_details TYPE bal_tt_msg,
-
       format_message
         IMPORTING id         LIKE sy-msgid DEFAULT sy-msgid
                   lang       TYPE langu DEFAULT '-'
@@ -33,44 +32,35 @@ CLASS ltcl_test DEFINITION FOR TESTING
                   v3         LIKE sy-msgv3 DEFAULT sy-msgv3
                   v4         LIKE sy-msgv4 DEFAULT sy-msgv4
         RETURNING VALUE(msg) TYPE string,
-
       can_create_anon_log FOR TESTING,
       can_create_named_log FOR TESTING,
       can_reopen_log FOR TESTING,
       can_create_expiring_log_days FOR TESTING,
       can_create_expiring_log_date FOR TESTING,
       can_open_or_create FOR TESTING,
-
       can_add_log_context FOR TESTING,
-
       can_add_to_log FOR TESTING,
       can_add_to_named_log FOR TESTING,
-
       auto_saves_named_log FOR TESTING,
       auto_saves_reopened_log FOR TESTING,
-
       can_log_string FOR TESTING,
-      can_log_char   FOR TESTING,
-      can_log_bapiret1  FOR TESTING,
-      can_log_bapiret2  FOR TESTING,
+      can_log_char FOR TESTING,
+      can_log_bapiret1 FOR TESTING,
+      can_log_bapiret2 FOR TESTING,
       can_log_bapi_coru_return FOR TESTING,
 *      can_log_bapi_order_return for testing,
-*      can_log_rcomp     for testing,
+*      can_log_rcomp for testing,
       can_log_bapirettab FOR TESTING,
       can_log_err FOR TESTING,
       can_log_chained_exceptions FOR TESTING,
       can_log_batch_msgs FOR TESTING,
       can_log_any_simple_structure FOR TESTING,
       can_log_any_deep_structure FOR TESTING,
-
       can_add_msg_context FOR TESTING,
       can_add_callback_sub FOR TESTING,
       can_add_callback_fm  FOR TESTING,
-
       must_use_factory FOR TESTING,
-
       can_use_and_chain_aliases FOR TESTING,
-
       return_proper_status FOR TESTING,
       return_proper_length FOR TESTING.
 

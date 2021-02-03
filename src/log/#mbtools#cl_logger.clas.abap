@@ -89,7 +89,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_LOGGER IMPLEMENTATION.
+CLASS /mbtools/cl_logger IMPLEMENTATION.
 
 
   METHOD /mbtools/if_logger~a.
@@ -469,8 +469,8 @@ CLASS /MBTOOLS/CL_LOGGER IMPLEMENTATION.
     lv_sec = rv_result. " round to 2 decimal places
 
     /mbtools/if_logger~add(
-      iv_obj_to_log    = |Runtime: { lv_sec } seconds|
-      iv_type          = 'I' ).
+      iv_obj_to_log = |Runtime: { lv_sec } seconds|
+      iv_type       = 'I' ).
 
   ENDMETHOD.
 
@@ -512,14 +512,14 @@ CLASS /MBTOOLS/CL_LOGGER IMPLEMENTATION.
 
     structure_descriptor ?= cl_abap_structdescr=>describe_by_data( is_structure_to_log ).
     get_structure_fields( EXPORTING io_data_structure   = structure_descriptor
-                          CHANGING  ct_structure_fields = components  ).
+                          CHANGING  ct_structure_fields = components ).
 
     LOOP AT components INTO component.
       CHECK component-type->kind = cl_abap_typedescr=>kind_elem.
       ASSIGN COMPONENT component-name OF STRUCTURE is_structure_to_log TO <component>.
       IF sy-subrc = 0.
         /mbtools/if_logger~add( iv_obj_to_log = |{ to_lower( component-name ) } = { <component> }|
-             iv_importance = '4' ).
+           iv_importance = '4' ).
       ENDIF.
     ENDLOOP.
 
@@ -535,8 +535,9 @@ CLASS /MBTOOLS/CL_LOGGER IMPLEMENTATION.
       lx_previous_exception TYPE REF TO cx_root,
       lt_exceptions         TYPE ty_exceptions.
 
-    FIELD-SYMBOLS: <ls_ex>  LIKE LINE OF lt_exceptions,
-                   <ls_ret> LIKE LINE OF rt_exception_data_table.
+    FIELD-SYMBOLS:
+      <ls_ex>  LIKE LINE OF lt_exceptions,
+      <ls_ret> LIKE LINE OF rt_exception_data_table.
 
     APPEND INITIAL LINE TO lt_exceptions ASSIGNING <ls_ex>.
     <ls_ex>-level = 1.
