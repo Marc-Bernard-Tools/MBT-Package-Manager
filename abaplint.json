@@ -9,7 +9,8 @@
     "global": {
        "exclude": [
             "#mbtools#mbt_installer.prog.abap",
-            "#mbtools#mbt_template.prog.abap"
+            "#mbtools#mbt_template.prog.abap",
+            "#mbtools#cl_logger.clas.testclasses.abap"
         ],
         "files": "/src/**/*.*",
         "skipGeneratedFunctionGroups": true,
@@ -182,7 +183,9 @@
         },
         "commented_code": {
             "allowIncludeInFugr": true,
-            "exclude": [],
+            "exclude": [
+                "#mbtools#.*_logger.*"
+            ],
             "severity": "Warning"
         },
         "constructor_visibility_public": {
@@ -651,6 +654,7 @@
         },
         "unused_types": {
             "exclude": [
+                "#mbtools#.*_ajson.*",
                 "#mbtools#if_definitions.intf.abap"
             ],
             "severity": "Error",
