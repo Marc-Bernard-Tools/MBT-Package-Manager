@@ -83,8 +83,8 @@ SELECTION-SCREEN:
 
 *-----------------------------------------------------------------------
 
-CONSTANTS:
-  c_title TYPE string VALUE /mbtools/cl_tool_bc=>c_tool-title.
+*CONSTANTS:
+*  c_title TYPE string VALUE /mbtools/cl_tool_bc=>c_tool-title.
 
 DATA:
   go_tool   TYPE REF TO /mbtools/cl_tools,
@@ -109,8 +109,8 @@ INITIALIZATION.
 
   CREATE OBJECT go_app.
 
-  go_tool   = /mbtools/cl_tools=>factory( c_title ).
-  go_screen = /mbtools/cl_screen=>factory( c_title ).
+  go_tool   = /mbtools/cl_tools=>factory( ).
+  go_screen = /mbtools/cl_screen=>factory( ).
 
   go_screen->init(
     IMPORTING
@@ -166,7 +166,7 @@ AT SELECTION-SCREEN.
     WHEN 'FC02'. " Setup
       CALL FUNCTION 'POPUP_TO_CONFIRM'
         EXPORTING
-          titlebar              = c_title
+          titlebar              = /mbtools/cl_tool_bc=>c_tool-title
           text_question         = 'Are you sure you want to overwrite the setup?'(006)
           text_button_1         = 'Yes'(007)
           text_button_2         = 'No'(008)
@@ -214,7 +214,7 @@ AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_title.
 
 START-OF-SELECTION.
 
-  LOG-POINT ID /mbtools/bc SUBKEY c_title FIELDS sy-datum sy-uzeit sy-uname.
+  LOG-POINT ID /mbtools/bc SUBKEY /mbtools/cl_tool_bc=>c_tool-title FIELDS sy-datum sy-uzeit sy-uname.
 
   go_screen->banner( iv_show = abap_false ).
 

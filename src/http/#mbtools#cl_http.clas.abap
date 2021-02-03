@@ -240,7 +240,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
 
     " Multiparts
     LOOP AT it_multipart INTO ls_multipart.
-      li_part = li_client->request->if_http_entity~add_multipart( ).
+      li_part = li_client->request->add_multipart( ).
 *      li_part->set_header_field(
 *        name  = '~request_method'
 *        value = 'GET' )

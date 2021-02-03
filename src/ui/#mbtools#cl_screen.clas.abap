@@ -27,7 +27,7 @@ CLASS /mbtools/cl_screen DEFINITION
         !iv_title TYPE csequence .
     CLASS-METHODS factory
       IMPORTING
-        !iv_title        TYPE csequence OPTIONAL
+        !iv_title        TYPE csequence DEFAULT /mbtools/cl_tool_bc=>c_tool-title
       RETURNING
         VALUE(ro_screen) TYPE REF TO /mbtools/cl_screen .
     METHODS init
