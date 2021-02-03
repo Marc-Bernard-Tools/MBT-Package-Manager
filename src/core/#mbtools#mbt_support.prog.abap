@@ -83,9 +83,6 @@ SELECTION-SCREEN:
 
 *-----------------------------------------------------------------------
 
-*CONSTANTS:
-*  c_title TYPE string VALUE /mbtools/cl_tool_bc=>c_tool-title.
-
 DATA:
   go_tool   TYPE REF TO /mbtools/cl_tools,
   go_screen TYPE REF TO /mbtools/cl_screen,
