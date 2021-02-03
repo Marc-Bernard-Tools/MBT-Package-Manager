@@ -4,7 +4,7 @@
   <asx:values>
    <PROGDIR>
     <NAME>/MBTOOLS/WHERE_USED</NAME>
-    <SUBC>I</SUBC>
+    <SUBC>1</SUBC>
     <RSTAT>K</RSTAT>
     <RLOAD>E</RLOAD>
     <UCCHECK>X</UCCHECK>

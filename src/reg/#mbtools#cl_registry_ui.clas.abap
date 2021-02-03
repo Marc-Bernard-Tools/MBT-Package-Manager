@@ -750,12 +750,15 @@ CLASS /mbtools/cl_registry_ui IMPLEMENTATION.
   METHOD handle_table_toolbar.
 
     " Modify toolbar entries for table/grid
+    DATA: lo_toolbar TYPE REF TO cl_alv_event_toolbar_set.
     DATA: ls_tbe TYPE stb_button.
 
+    lo_toolbar = e_object.
+
     " Keep only the local editing features
-    LOOP AT e_object->mt_toolbar INTO ls_tbe.
+    LOOP AT lo_toolbar->mt_toolbar INTO ls_tbe.
       IF ls_tbe-function(7) <> '&LOCAL&'.
-        DELETE e_object->mt_toolbar.
+        DELETE lo_toolbar->mt_toolbar.
       ENDIF.
     ENDLOOP.
 
@@ -767,7 +770,9 @@ CLASS /mbtools/cl_registry_ui IMPLEMENTATION.
 *>>>INS
     ls_tbe-disabled = gv_read_only.
 *<<<INS
-    APPEND ls_tbe TO e_object->mt_toolbar.
+    APPEND ls_tbe TO lo_toolbar->mt_toolbar.
+
+    e_object = lo_toolbar.
 
   ENDMETHOD.                    "handle_table_toolbar
 
