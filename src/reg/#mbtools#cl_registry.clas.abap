@@ -426,9 +426,6 @@ CLASS /mbtools/cl_registry IMPLEMENTATION.
 
   METHOD export.
 *>>>INS
-    CONSTANTS:
-      lc_tab TYPE c VALUE cl_abap_char_utilities=>horizontal_tab.
-
     DATA:
       lo_reg_entry TYPE REF TO /mbtools/cl_registry,
       ls_kv        TYPE ty_keyval,
@@ -467,8 +464,8 @@ CLASS /mbtools/cl_registry IMPLEMENTATION.
         lv_file_line = |"__intern" = "{ mv_internal_key }"|.
         APPEND lv_file_line TO ct_file.
       ELSE.
-        lv_head_line = lv_head_line && lc_tab && mv_parent_key.
-        lv_head_line = lv_head_line && lc_tab && mv_internal_key.
+        lv_head_line = lv_head_line && cl_abap_char_utilities=>horizontal_tab && mv_parent_key.
+        lv_head_line = lv_head_line && cl_abap_char_utilities=>horizontal_tab && mv_internal_key.
       ENDIF.
     ENDIF.
 
@@ -484,7 +481,8 @@ CLASS /mbtools/cl_registry IMPLEMENTATION.
         ENDIF.
         APPEND lv_file_line TO ct_file.
       ELSE.
-        lv_file_line = lv_head_line && lc_tab && ls_kv-key && lc_tab && ls_kv-value.
+        lv_file_line = lv_head_line && cl_abap_char_utilities=>horizontal_tab &&
+                       ls_kv-key && cl_abap_char_utilities=>horizontal_tab && ls_kv-value.
         APPEND lv_file_line TO ct_file.
       ENDIF.
     ENDLOOP.

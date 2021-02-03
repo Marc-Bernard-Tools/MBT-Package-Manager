@@ -2,8 +2,6 @@
 CLASS ltcl_html DEFINITION FOR TESTING DURATION SHORT RISK LEVEL HARMLESS.
 
   PRIVATE SECTION.
-    CONSTANTS c_newline TYPE abap_char1 VALUE cl_abap_char_utilities=>newline ##NO_TEXT.
-
     DATA: mo_html TYPE REF TO /mbtools/if_html.
 
     METHODS:
@@ -33,8 +31,8 @@ CLASS ltcl_html IMPLEMENTATION.
     mo_html->add( 'hello world' ).
     mo_html->add( '</td>' ).
 
-    lv_exp = '<td>' && c_newline &&
-             '  hello world' && c_newline &&
+    lv_exp = '<td>' && cl_abap_char_utilities=>newline &&
+             '  hello world' && cl_abap_char_utilities=>newline &&
              '</td>'.
 
     cl_abap_unit_assert=>assert_equals(
@@ -51,8 +49,8 @@ CLASS ltcl_html IMPLEMENTATION.
     mo_html->add( '<input name="comment" type="text">' ).
     mo_html->add( '</td>' ).
 
-    lv_exp = '<td>' && c_newline &&
-             '  <input name="comment" type="text">' && c_newline &&
+    lv_exp = '<td>' && cl_abap_char_utilities=>newline &&
+             '  <input name="comment" type="text">' && cl_abap_char_utilities=>newline &&
              '</td>'.
 
     cl_abap_unit_assert=>assert_equals(
@@ -69,8 +67,8 @@ CLASS ltcl_html IMPLEMENTATION.
     mo_html->add( '<textarea name="body" rows="10" cols="72"></textarea>' ).
     mo_html->add( '</td>' ).
 
-    lv_exp = '<td>' && c_newline &&
-             '  <textarea name="body" rows="10" cols="72"></textarea>' && c_newline &&
+    lv_exp = '<td>' && cl_abap_char_utilities=>newline &&
+             '  <textarea name="body" rows="10" cols="72"></textarea>' && cl_abap_char_utilities=>newline &&
              '</td>'.
 
     cl_abap_unit_assert=>assert_equals(
@@ -87,8 +85,8 @@ CLASS ltcl_html IMPLEMENTATION.
     mo_html->add( 'foo<br>bar' ).
     mo_html->add( '</td>' ).
 
-    lv_exp = '<td>' && c_newline &&
-             '  foo<br>bar' && c_newline &&
+    lv_exp = '<td>' && cl_abap_char_utilities=>newline &&
+             '  foo<br>bar' && cl_abap_char_utilities=>newline &&
              '</td>'.
 
     cl_abap_unit_assert=>assert_equals(
@@ -108,11 +106,11 @@ CLASS ltcl_html IMPLEMENTATION.
     mo_html->add( '}' ).
     mo_html->add( '</style>' ).
 
-    lv_exp = '<style type="text/css">' && c_newline &&
-             '  .class1 { color: red }' && c_newline &&
-             '  .class2 {' && c_newline &&
-             '    color: red' && c_newline &&
-             '  }' && c_newline &&
+    lv_exp = '<style type="text/css">' && cl_abap_char_utilities=>newline &&
+             '  .class1 { color: red }' && cl_abap_char_utilities=>newline &&
+             '  .class2 {' && cl_abap_char_utilities=>newline &&
+             '    color: red' && cl_abap_char_utilities=>newline &&
+             '  }' && cl_abap_char_utilities=>newline &&
              '</style>'.
 
     cl_abap_unit_assert=>assert_equals(

@@ -27,10 +27,4 @@ CLASS lcx_error IMPLEMENTATION.
     lx_error->if_t100_message~t100key = c_error_signature.
     RAISE EXCEPTION lx_error.
   ENDMETHOD.
-  METHOD if_t100_message~get_text.
-    result = super->get_text( ).
-  ENDMETHOD.
-  METHOD if_t100_message~get_longtext.
-    result = super->get_longtext( preserve_newlines ).
-  ENDMETHOD.
 ENDCLASS.

@@ -28,10 +28,4 @@ CLASS lcx_t100 IMPLEMENTATION.
     if_t100_message~t100key-attr3 = 'MSGV3'.
     if_t100_message~t100key-attr4 = 'MSGV4'.
   ENDMETHOD.
-  METHOD if_t100_message~get_text.
-    result = super->get_text( ).
-  ENDMETHOD.
-  METHOD if_t100_message~get_longtext.
-    result = super->get_longtext( preserve_newlines ).
-  ENDMETHOD.
 ENDCLASS.

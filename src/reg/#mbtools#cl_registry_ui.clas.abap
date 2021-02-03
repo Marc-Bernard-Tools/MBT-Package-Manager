@@ -248,8 +248,6 @@ CLASS /mbtools/cl_registry_ui IMPLEMENTATION.
 
     CONSTANTS:
       lc_registry_title TYPE string VALUE 'MBT Registry 1.0' ##NO_TEXT.
-    CONSTANTS:
-      lc_tab TYPE c VALUE cl_abap_char_utilities=>horizontal_tab.
 
     DATA:
       lx_exc       TYPE REF TO /mbtools/cx_exception,
@@ -285,8 +283,10 @@ CLASS /mbtools/cl_registry_ui IMPLEMENTATION.
       APPEND lc_registry_title TO lt_file.
       APPEND '' TO lt_file.
     ELSE.
-      lv_msg = 'Node' && lc_tab && 'Parent Key' && lc_tab && 'Internal Key'
-        && lc_tab && 'Key' && lc_tab && 'Value' ##NO_TEXT.
+      lv_msg = 'Node' && cl_abap_char_utilities=>horizontal_tab &&
+               'Parent Key' && cl_abap_char_utilities=>horizontal_tab &&
+               'Internal Key' && cl_abap_char_utilities=>horizontal_tab &&
+               'Key' && cl_abap_char_utilities=>horizontal_tab && 'Value' ##NO_TEXT.
       APPEND lv_msg TO lt_file.
     ENDIF.
 
