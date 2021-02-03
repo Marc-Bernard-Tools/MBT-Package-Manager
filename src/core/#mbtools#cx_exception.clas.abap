@@ -64,7 +64,7 @@ CLASS /mbtools/cx_exception DEFINITION
       IMPORTING
         !ix_previous TYPE REF TO cx_root
       RAISING
-        /mbtools/cx_exception.
+        /mbtools/cx_exception .
     METHODS constructor
       IMPORTING
         !textid   LIKE if_t100_message=>t100key OPTIONAL
@@ -77,6 +77,8 @@ CLASS /mbtools/cx_exception DEFINITION
     METHODS get_source_position
         REDEFINITION .
     METHODS if_message~get_longtext
+        REDEFINITION .
+    METHODS if_message~get_text
         REDEFINITION .
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -194,7 +196,7 @@ CLASS /mbtools/cx_exception IMPLEMENTATION.
 
   METHOD if_message~get_longtext.
 
-    result = super->get_longtext( ).
+    result = super->get_longtext( preserve_newlines ).
 
     IF if_t100_message~t100key IS NOT INITIAL.
 
@@ -202,6 +204,11 @@ CLASS /mbtools/cx_exception IMPLEMENTATION.
 
     ENDIF.
 
+  ENDMETHOD.
+
+
+  METHOD if_message~get_text.
+    result = super->get_text( ).
   ENDMETHOD.
 
 

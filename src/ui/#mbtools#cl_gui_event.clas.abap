@@ -43,7 +43,7 @@ CLASS /mbtools/cl_gui_event IMPLEMENTATION.
 
   METHOD /mbtools/if_gui_event~get_params.
 
-    mo_params->to_struc( CHANGING cs_container = is_params ).
+    mo_params->to_struc( CHANGING cs_container = cs_params ).
 
   ENDMETHOD.
 

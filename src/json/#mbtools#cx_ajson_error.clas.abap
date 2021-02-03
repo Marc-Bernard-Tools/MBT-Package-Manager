@@ -1,57 +1,62 @@
-class /MBTOOLS/CX_AJSON_ERROR definition
-  public
-  inheriting from CX_STATIC_CHECK
-  final
-  create public .
+CLASS /mbtools/cx_ajson_error DEFINITION
+  PUBLIC
+  INHERITING FROM cx_static_check
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  interfaces IF_T100_MESSAGE .
+    INTERFACES if_t100_message .
 
-  types:
-    ty_rc TYPE c LENGTH 4 .
+    TYPES:
+      ty_rc TYPE c LENGTH 4 .
 
-  constants:
-    begin of /MBTOOLS/CX_AJSON_ERROR,
-      msgid type symsgid value '00',
-      msgno type symsgno value '001',
-      attr1 type scx_attrname value 'A1',
-      attr2 type scx_attrname value 'A2',
-      attr3 type scx_attrname value 'A3',
-      attr4 type scx_attrname value 'A4',
-    end of /MBTOOLS/CX_AJSON_ERROR .
-  data RC type TY_RC read-only .
-  data MESSAGE type STRING read-only .
-  data LOCATION type STRING read-only .
-  data A1 type SYMSGV .
-  data A2 type SYMSGV .
-  data A3 type SYMSGV .
-  data A4 type SYMSGV .
+    CONSTANTS:
+      BEGIN OF /mbtools/cx_ajson_error,
+        msgid TYPE symsgid VALUE '00',
+        msgno TYPE symsgno VALUE '001',
+        attr1 TYPE scx_attrname VALUE 'A1',
+        attr2 TYPE scx_attrname VALUE 'A2',
+        attr3 TYPE scx_attrname VALUE 'A3',
+        attr4 TYPE scx_attrname VALUE 'A4',
+      END OF /mbtools/cx_ajson_error .
+    DATA rc TYPE ty_rc READ-ONLY .
+    DATA message TYPE string READ-ONLY .
+    DATA location TYPE string READ-ONLY .
+    DATA a1 TYPE symsgv .
+    DATA a2 TYPE symsgv .
+    DATA a3 TYPE symsgv .
+    DATA a4 TYPE symsgv .
 
-  methods CONSTRUCTOR
-    importing
-      !TEXTID like IF_T100_MESSAGE=>T100KEY optional
-      !PREVIOUS like PREVIOUS optional
-      !RC type TY_RC optional
-      !MESSAGE type STRING optional
-      !LOCATION type STRING optional
-      !A1 type SYMSGV optional
-      !A2 type SYMSGV optional
-      !A3 type SYMSGV optional
-      !A4 type SYMSGV optional .
-  class-methods RAISE
-    importing
-      !IV_MSG type STRING
-      !IV_LOCATION type STRING optional
-    raising
-      /MBTOOLS/CX_AJSON_ERROR .
-protected section.
+    METHODS constructor
+      IMPORTING
+        !textid   LIKE if_t100_message=>t100key OPTIONAL
+        !previous LIKE previous OPTIONAL
+        !rc       TYPE ty_rc OPTIONAL
+        !message  TYPE string OPTIONAL
+        !location TYPE string OPTIONAL
+        !a1       TYPE symsgv OPTIONAL
+        !a2       TYPE symsgv OPTIONAL
+        !a3       TYPE symsgv OPTIONAL
+        !a4       TYPE symsgv OPTIONAL .
+    CLASS-METHODS raise
+      IMPORTING
+        !iv_msg      TYPE string
+        !iv_location TYPE string OPTIONAL
+      RAISING
+        /mbtools/cx_ajson_error .
+
+    METHODS if_message~get_text
+        REDEFINITION .
+    METHODS if_message~get_longtext
+        REDEFINITION .
+  PROTECTED SECTION.
 private section.
 ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CX_AJSON_ERROR IMPLEMENTATION.
+CLASS /mbtools/cx_ajson_error IMPLEMENTATION.
 
 
   method CONSTRUCTOR.
@@ -73,6 +78,16 @@ else.
   IF_T100_MESSAGE~T100KEY = TEXTID.
 endif.
   endmethod.
+
+
+  METHOD if_message~get_longtext.
+    result = super->get_longtext( preserve_newlines ).
+  ENDMETHOD.
+
+
+  METHOD if_message~get_text.
+    result = super->get_text( ).
+  ENDMETHOD.
 
 
   METHOD raise.

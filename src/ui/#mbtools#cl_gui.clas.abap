@@ -350,6 +350,7 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
     ELSE.
       IF lines( mt_stack ) > 0.
         READ TABLE mt_stack INTO ls_stack INDEX 1.
+        ASSERT sy-subrc = 0.
         mi_cur_page = ls_stack-page.
       ENDIF.
       render( ).
