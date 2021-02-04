@@ -420,6 +420,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
     ev_changelog_url = lo_json->get_string( '/url' ).
     ev_download_url = lo_json->get_string( '/download_link' ).
     lv_sections = lo_json->get_string( '/sections' ).
+    REPLACE ALL OCCURRENCES OF '&nbsp;' IN lv_sections WITH ` `.
 
     TRY.
         lo_json = /mbtools/cl_aphp=>unserialize(
@@ -429,6 +430,9 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
         IF lo_json->get_string( '/a/1/key' ) = 'description'.
           ev_description = lo_json->get_string( '/a/1/val' ).
           ev_description = adjust_html( ev_description ).
+          IF ev_description CS '<p>Requirements'.
+            ev_description = ev_description(sy-fdpos).
+          ENDIF.
         ENDIF.
         IF lo_json->get_string( '/a/2/key' ) = 'changelog'.
           ev_changelog = lo_json->get_string( '/a/2/val' ).

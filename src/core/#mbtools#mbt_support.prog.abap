@@ -314,7 +314,7 @@ START-OF-SELECTION.
 
             WHEN p_check.
 
-              gv_flag   = go_tool->check_version( ).
+              gv_flag   = go_tool->check_version( abap_true ).
               gv_action = 'version checked'(017).
 
             WHEN p_update.

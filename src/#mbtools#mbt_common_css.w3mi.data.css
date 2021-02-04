@@ -1145,12 +1145,19 @@ div.debug_container p {
     height: 64px;
 }
 .tool-details .update {
-    border: 1px solid #666;
+    border: 1px solid #f70;
     border-left: 5px solid #f70;
     background-color: #ffd;
     padding: 5px;
 }
-.tool-details .update i {
+.tool-details .update_success {
+    border: 1px solid #0b0;
+    border-left: 5px solid #0b0;
+    background-color: #dfd;
+    padding: 5px;
+}
+.tool-details .update i,
+.tool-details .update_success i {
     margin: 5px 5px 10px;
 }
 td.tool-actions {

@@ -67,12 +67,105 @@ CLASS ltcl_parser_test DEFINITION FINAL
         VALUE(rv_json) TYPE string.
 
   PRIVATE SECTION.
+    DATA mo_cut TYPE REF TO lcl_json_parser.
+    DATA mo_nodes TYPE REF TO lcl_nodes_helper.
 
+    METHODS setup.
     METHODS parse FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS parse_string FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS parse_number FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS parse_float FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS parse_boolean FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS parse_false FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS parse_null FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS parse_date FOR TESTING RAISING /mbtools/cx_ajson_error.
 
 ENDCLASS.
 
 CLASS ltcl_parser_test IMPLEMENTATION.
+
+  METHOD setup.
+    CREATE OBJECT mo_cut.
+    CREATE OBJECT mo_nodes.
+  ENDMETHOD.
+
+  METHOD parse_string.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
+
+    DATA lt_act TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    lt_act = mo_cut->parse( '{"string": "abc"}' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+  ENDMETHOD.
+
+  METHOD parse_number.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |number   |num    |123                     |  |0' ).
+
+    DATA lt_act TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    lt_act = mo_cut->parse( '{"number": 123}' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+  ENDMETHOD.
+
+  METHOD parse_float.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |float    |num    |123.45                  |  |0' ).
+
+    DATA lt_act TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    CREATE OBJECT mo_cut.
+    lt_act = mo_cut->parse( '{"float": 123.45}' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+  ENDMETHOD.
+
+  METHOD parse_boolean.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
+
+    DATA lt_act TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    lt_act = mo_cut->parse( '{"boolean": true}' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+  ENDMETHOD.
+
+  METHOD parse_false.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |false    |bool   |false                   |  |0' ).
+
+    DATA lt_act TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    lt_act = mo_cut->parse( '{"false": false}' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+  ENDMETHOD.
+
+  METHOD parse_null.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |null     |null   |                        |  |0' ).
+
+    DATA lt_act TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    lt_act = mo_cut->parse( '{"null": null}' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+  ENDMETHOD.
+
+  METHOD parse_date.
+    mo_nodes->add( '                 |         |object |                        |  |1' ).
+    mo_nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
+
+    DATA lt_act TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    lt_act = mo_cut->parse( '{"date": "2020-03-15"}' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lt_act
+      exp = mo_nodes->mt_nodes ).
+  ENDMETHOD.
 
   METHOD sample_json.
 
@@ -1097,15 +1190,18 @@ CLASS ltcl_json_to_abap DEFINITION
       END OF ty_struc,
       tty_struc TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
       BEGIN OF ty_complex,
-        str   TYPE string,
-        int   TYPE i,
-        float TYPE f,
-        bool  TYPE abap_bool,
-        obj   TYPE ty_struc,
-        tab   TYPE tty_struc,
-        oref  TYPE REF TO object,
-        date1 TYPE d,
-        date2 TYPE d,
+        str        TYPE string,
+        int        TYPE i,
+        float      TYPE f,
+        bool       TYPE abap_bool,
+        obj        TYPE ty_struc,
+        tab        TYPE tty_struc,
+        oref       TYPE REF TO object,
+        date1      TYPE d,
+        date2      TYPE d,
+        timestamp1 TYPE timestamp,
+        timestamp2 TYPE timestamp,
+        timestamp3 TYPE timestamp,
       END OF ty_complex.
 
     METHODS find_loc FOR TESTING RAISING /mbtools/cx_ajson_error.
@@ -1323,6 +1419,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     DATA lo_cut TYPE REF TO lcl_json_to_abap.
     DATA ls_mock TYPE ty_complex.
     DATA lv_exp_date TYPE d VALUE '20200728'.
+    DATA lv_exp_timestamp TYPE timestamp VALUE '20200728000000'.
     lcl_json_to_abap=>bind(
       CHANGING
         c_obj = ls_mock
@@ -1330,20 +1427,23 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
 
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
     CREATE OBJECT lo_nodes.
-    lo_nodes->add( '/      |      |object |       | ' ).
-    lo_nodes->add( '/      |str   |str    |hello  | ' ).
-    lo_nodes->add( '/      |int   |num    |5      | ' ).
-    lo_nodes->add( '/      |float |num    |5.5    | ' ).
-    lo_nodes->add( '/      |bool  |bool   |true   | ' ).
-    lo_nodes->add( '/      |obj   |object |       | ' ).
-    lo_nodes->add( '/obj   |a     |str    |world  | ' ).
-    lo_nodes->add( '/      |tab   |array  |       | ' ).
-    lo_nodes->add( '/tab   |1     |object |       |1' ).
-    lo_nodes->add( '/tab/1 |a     |str    | One   | ' ).
-    lo_nodes->add( '/tab   |2     |object |       |2' ).
-    lo_nodes->add( '/tab/2 |a     |str    | Two   | ' ).
-    lo_nodes->add( '/      |date1 |str    |2020-07-28 | ' ).
-    lo_nodes->add( '/      |date2 |str    |2020-07-28T00:00:00Z | ' ).
+    lo_nodes->add( '/      |           |object |                          | ' ).
+    lo_nodes->add( '/      |str        |str    |hello                     | ' ).
+    lo_nodes->add( '/      |int        |num    |5                         | ' ).
+    lo_nodes->add( '/      |float      |num    |5.5                       | ' ).
+    lo_nodes->add( '/      |bool       |bool   |true                      | ' ).
+    lo_nodes->add( '/      |obj        |object |                          | ' ).
+    lo_nodes->add( '/obj   |a          |str    |world                     | ' ).
+    lo_nodes->add( '/      |tab        |array  |                          | ' ).
+    lo_nodes->add( '/tab   |1          |object |                          |1' ).
+    lo_nodes->add( '/tab/1 |a          |str    | One                      | ' ).
+    lo_nodes->add( '/tab   |2          |object |                          |2' ).
+    lo_nodes->add( '/tab/2 |a          |str    | Two                      | ' ).
+    lo_nodes->add( '/      |date1      |str    |2020-07-28                | ' ).
+    lo_nodes->add( '/      |date2      |str    |2020-07-28T00:00:00Z      | ' ).
+    lo_nodes->add( '/      |timestamp1 |str    |2020-07-28T00:00:00       | ' ).
+    lo_nodes->add( '/      |timestamp2 |str    |2020-07-28T00:00:00Z      | ' ).
+    lo_nodes->add( '/      |timestamp3 |str    |2020-07-28T01:00:00+01:00 | ' ).
 
     lo_cut->to_abap( lo_nodes->sorted( ) ).
 
@@ -1368,6 +1468,15 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = ls_mock-date2
       exp = lv_exp_date ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_mock-timestamp1
+      exp = lv_exp_timestamp ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_mock-timestamp2
+      exp = lv_exp_timestamp ).
+    cl_abap_unit_assert=>assert_equals(
+      act = ls_mock-timestamp3
+      exp = lv_exp_timestamp ).
 
     DATA ls_elem LIKE LINE OF ls_mock-tab.
     cl_abap_unit_assert=>assert_equals(

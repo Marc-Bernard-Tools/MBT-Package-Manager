@@ -53,6 +53,8 @@ CLASS /mbtools/cl_tools DEFINITION
         key_changelog_html   TYPE string VALUE 'ChangelogHTML' ##NO_TEXT,
         key_download_url     TYPE string VALUE 'DownloadURL' ##NO_TEXT,
       END OF c_reg.
+    " Length of MBT Installer package name
+    CONSTANTS c_name_length TYPE i VALUE 90 ##NO_TEXT.
     " Evaluation
     CONSTANTS c_eval_days TYPE i VALUE 60 ##NO_TEXT.
     CONSTANTS c_eval_users TYPE i VALUE 10 ##NO_TEXT.
@@ -195,6 +197,13 @@ CLASS /mbtools/cl_tools DEFINITION
         VALUE(rv_result) TYPE abap_bool
       RAISING
         /mbtools/cx_exception.
+    METHODS check_version
+      IMPORTING
+        !iv_force        TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool
+      RAISING
+        /mbtools/cx_exception.
     " Tool Get
     METHODS get_id
       RETURNING
@@ -261,11 +270,6 @@ CLASS /mbtools/cl_tools DEFINITION
         !iv_internal     TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(rv_result) TYPE string.
-    METHODS check_version
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool
-      RAISING
-        /mbtools/cx_exception.
     METHODS get_command
       RETURNING
         VALUE(rv_result) TYPE string.
@@ -275,13 +279,9 @@ CLASS /mbtools/cl_tools DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    " Sync with zif_abapinst_definitions
-    CONSTANTS c_name_length TYPE i VALUE 90 ##NO_TEXT.
-
     TYPES:
       ty_name TYPE c LENGTH c_name_length.
-    TYPES:
-      ty_pack TYPE devclass.
+    TYPES ty_pack TYPE devclass.
     TYPES:
       BEGIN OF ty_content,
         name TYPE ty_name,
@@ -314,10 +314,11 @@ CLASS /mbtools/cl_tools DEFINITION
         updated_at      TYPE timestamp,
         status          TYPE sy-msgty,
       END OF ty_inst.
-
     TYPES:
       ty_classes TYPE STANDARD TABLE OF seoclsname WITH DEFAULT KEY.
 
+    " Sync with zif_abapinst_definitions
+    CLASS-DATA gt_classes TYPE ty_classes.
     CLASS-DATA go_reg_root TYPE REF TO /mbtools/cl_registry.
     DATA mo_tool TYPE REF TO object.
     DATA mv_id TYPE /mbtools/if_tool=>ty_manifest-id.
@@ -439,7 +440,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
             WHEN /mbtools/if_actions=>tool_deactivate.
               lv_result = factory( ls_tool-name )->deactivate( ).
             WHEN /mbtools/if_actions=>tool_check.
-              lv_result = factory( ls_tool-name )->check_version( ).
+              lv_result = factory( ls_tool-name )->check_version( abap_true ).
             WHEN /mbtools/if_actions=>tool_install.
               lv_result = install( ls_tool-name ).
             WHEN /mbtools/if_actions=>tool_update.
@@ -560,7 +561,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     " If newer version is available, save info
     IF /mbtools/cl_version=>compare( iv_current = get_version( )
-                                     iv_compare = lv_version ) < 0 OR lv_version = '1.0.0'.
+                                     iv_compare = lv_version ) < 0
+      OR lv_version = '1.0.0' OR iv_force = abap_true.
 
       lo_reg_entry = lo_reg_tool->get_subentry( c_reg-update ).
       CHECK lo_reg_entry IS BOUND.
@@ -578,9 +580,9 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
       lo_reg_entry->save( ).
 
-      rv_result = abap_true.
-
     ENDIF.
+
+    rv_result = abap_true.
 
   ENDMETHOD.
 
@@ -874,10 +876,20 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
   METHOD get_implementations.
 
-    " Get all classes that implement the MBT Manifest
-    SELECT clsname FROM seometarel INTO TABLE rt_classes
-      WHERE version = '1' AND refclsname = /mbtools/if_definitions=>c_interface. "#EC CI_GENBUFF
-    IF sy-subrc <> 0 AND iv_quiet IS INITIAL.
+    " Get all classes that implement the MBT Interface
+    IF gt_classes IS INITIAL.
+      SELECT clsname FROM seometarel INTO TABLE gt_classes
+        WHERE version = '1' AND refclsname = /mbtools/if_definitions=>c_interface. "#EC CI_GENBUFF
+      IF sy-subrc = 0.
+        SELECT clsname FROM seometarel APPENDING TABLE gt_classes
+          FOR ALL ENTRIES IN gt_classes
+          WHERE version = '1' AND refclsname = gt_classes-table_line. "#EC CI_GENBUFF
+      ENDIF.
+    ENDIF.
+
+    rt_classes = gt_classes.
+
+    IF rt_classes IS INITIAL AND iv_quiet IS INITIAL.
       " There are no tools installed
       MESSAGE s002(/mbtools/bc).
       RETURN.
@@ -1876,13 +1888,23 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lv_url  TYPE string,
       lv_file TYPE string.
 
-    IF io_tool->get_new_version( ) IS NOT INITIAL.
-      lv_url = io_tool->get_url_download( ).
-      TRY.
-          lv_file = /mbtools/cl_url=>name( lv_url ).
-        CATCH /mbtools/cx_exception ##NO_HANDLER.
-      ENDTRY.
+    IF io_tool->get_new_version( ) IS INITIAL.
+      RETURN.
     ENDIF.
+
+    lv_url = io_tool->get_url_download( ).
+
+    " Safety checks
+    IF lv_url IS INITIAL.
+      RETURN.
+    ELSEIF lv_url NS /mbtools/if_definitions=>c_www_home.
+      RETURN.
+    ENDIF.
+
+    TRY.
+        lv_file = /mbtools/cl_url=>name( lv_url ).
+      CATCH /mbtools/cx_exception ##NO_HANDLER.
+    ENDTRY.
 
     IF /mbtools/cl_mbt=>is_online( ) = abap_true.
       " URL and no selection screen

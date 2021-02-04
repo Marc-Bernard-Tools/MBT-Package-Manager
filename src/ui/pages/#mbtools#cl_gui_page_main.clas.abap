@@ -40,74 +40,95 @@ CLASS /mbtools/cl_gui_page_main DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    DATA mv_mode TYPE c .
-    DATA mo_asset_manager TYPE REF TO /mbtools/if_gui_asset_manager .
+    DATA mv_mode TYPE c.
+    DATA mo_asset_manager TYPE REF TO /mbtools/if_gui_asset_manager.
 
-    METHODS restart .
+    METHODS get_description_admin
+      IMPORTING
+        !io_tool       TYPE REF TO /mbtools/cl_tools
+      RETURNING
+        VALUE(rv_text) TYPE string
+      RAISING
+        /mbtools/cx_exception.
+    METHODS get_description_license
+      IMPORTING
+        !io_tool       TYPE REF TO /mbtools/cl_tools
+      RETURNING
+        VALUE(rv_text) TYPE string
+      RAISING
+        /mbtools/cx_exception.
+    METHODS get_update_admin
+      IMPORTING
+        !io_tool       TYPE REF TO /mbtools/cl_tools
+      RETURNING
+        VALUE(rv_text) TYPE string
+      RAISING
+        /mbtools/cx_exception.
+    METHODS restart.
     METHODS get_tool_from_param
       IMPORTING
         !iv_name       TYPE string
       RETURNING
         VALUE(ro_tool) TYPE REF TO /mbtools/cl_tools
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS validate_tool
       IMPORTING
         !iv_action TYPE clike
         !io_tool   TYPE REF TO /mbtools/cl_tools
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     CLASS-METHODS build_menu
       IMPORTING
         !iv_mode       TYPE c OPTIONAL
       RETURNING
-        VALUE(ro_menu) TYPE REF TO /mbtools/cl_html_toolbar .
+        VALUE(ro_menu) TYPE REF TO /mbtools/cl_html_toolbar.
     METHODS register_header
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS register_thumbnail
       IMPORTING
         !io_tool         TYPE REF TO /mbtools/cl_tools
       RETURNING
         VALUE(rv_result) TYPE string
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS render_actions
       IMPORTING
         !io_tool       TYPE REF TO /mbtools/cl_tools
       RETURNING
         VALUE(ri_html) TYPE REF TO /mbtools/if_html
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS render_bundle
       IMPORTING
         !iv_title      TYPE string
       RETURNING
         VALUE(ri_html) TYPE REF TO /mbtools/if_html
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS render_bundles
       RETURNING
         VALUE(ri_html) TYPE REF TO /mbtools/if_html
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS render_tools
       RETURNING
         VALUE(ri_html) TYPE REF TO /mbtools/if_html
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS render_tool
       IMPORTING
         !iv_title      TYPE string
       RETURNING
         VALUE(ri_html) TYPE REF TO /mbtools/if_html
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS render_tool_details
       RETURNING
         VALUE(ri_html) TYPE REF TO /mbtools/if_html
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
 ENDCLASS.
 
 
@@ -409,6 +430,63 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_description_admin.
+
+    DATA:
+      li_html        TYPE REF TO /mbtools/if_html,
+      lv_version     TYPE string,
+      lv_description TYPE string.
+
+    li_html = /mbtools/cl_html=>create( ).
+
+    IF io_tool->get_new_version( ) IS INITIAL.
+      lv_version = |toggleDisplay('changelog-{ io_tool->get_name( ) }')|.
+      lv_version = li_html->a( iv_act = lv_version
+                               iv_typ = /mbtools/if_html=>c_action_type-onclick
+                               iv_txt = io_tool->get_version( ) ).
+    ELSE.
+      lv_version = io_tool->get_version( ).
+    ENDIF.
+
+    lv_description = |toggleDisplay('details-{ io_tool->get_name( ) }')|.
+    lv_description = li_html->a( iv_act = lv_description
+                                 iv_typ = /mbtools/if_html=>c_action_type-onclick
+                                 iv_txt = |View description| ).
+
+    rv_text = |Version: { lv_version } \| { lv_description } \| Last update: { io_tool->get_last_update( ) }|.
+
+  ENDMETHOD.
+
+
+  METHOD get_description_license.
+
+    DATA lv_expire TYPE d.
+
+    IF io_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_valid ) = abap_true.
+
+      lv_expire = io_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_expire ).
+      IF lv_expire IS NOT INITIAL.
+        rv_text = /mbtools/cl_datetime=>get_long_date( lv_expire ).
+        rv_text = |expires <span class="has-mbt-green-color">{ rv_text }</span>|.
+      ELSE.
+        rv_text = |<span class="has-mbt-green-color">does not expire</span>|.
+      ENDIF.
+      rv_text = |Your license key { rv_text }|.
+
+    ELSEIF io_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_key ) IS NOT INITIAL.
+
+      rv_text = |<span class="has-mbt-red-color">expired</span>|.
+      rv_text = |Your license key has { rv_text }. Please enter a valid key.|.
+
+    ELSE.
+
+      rv_text = 'To receive updates, please enter your valid license key'.
+
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD get_tool_from_param.
 
     DATA lv_name TYPE string.
@@ -422,6 +500,48 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
     ro_tool = /mbtools/cl_tools=>factory( lv_name ).
     IF ro_tool IS NOT BOUND.
       /mbtools/cx_exception=>raise( |Tool { lv_name } could not be instanciated| ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD get_update_admin.
+
+    DATA:
+      li_html        TYPE REF TO /mbtools/if_html,
+      lv_version     TYPE string,
+      lv_update_time TYPE string,
+      lv_changelog   TYPE string,
+      lv_update      TYPE string.
+
+    li_html = /mbtools/cl_html=>create( ).
+
+    lv_version = io_tool->get_new_version( ).
+
+    IF lv_version IS INITIAL.
+
+      lv_update_time = io_tool->get_last_update( abap_true ).
+
+      IF lv_update_time(8) = sy-datum.
+        rv_text = li_html->icon( iv_name = 'check/green'
+                                 iv_hint = 'Tool updated' ) && |Updated today|.
+      ENDIF.
+
+    ELSE.
+
+      lv_changelog = |toggleDisplay('changelog-{ io_tool->get_name( ) }')|.
+      lv_changelog = li_html->a( iv_act = lv_changelog
+                                 iv_typ = /mbtools/if_html=>c_action_type-onclick
+                                 iv_txt = |View version { lv_version } details| ).
+
+      lv_update = li_html->a(
+        iv_act = |{ /mbtools/if_actions=>tool_update }?name={ io_tool->get_name( ) }|
+        iv_txt = |update now| ).
+
+      rv_text = li_html->icon( iv_name = 'recycle/orange'
+                               iv_hint = 'Update tool' ) && |There is a new version available.|.
+      rv_text = rv_text && | { lv_changelog } or { lv_update }.|.
+
     ENDIF.
 
   ENDMETHOD.
@@ -631,15 +751,11 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
   METHOD render_tool.
 
     DATA:
-      lo_tool         TYPE REF TO /mbtools/cl_tools,
-      lv_expire       TYPE d,
-      lv_details      TYPE string,
-      lv_changelog    TYPE string,
-      lv_update       TYPE string,
-      lv_update_class TYPE string,
-      lv_update_time  TYPE string,
-      lv_class        TYPE string,
-      lv_img          TYPE string.
+      lo_tool        TYPE REF TO /mbtools/cl_tools,
+      lv_description TYPE string,
+      lv_update      TYPE string,
+      lv_class       TYPE string,
+      lv_img         TYPE string.
 
     lo_tool = /mbtools/cl_tools=>factory( iv_title ).
 
@@ -663,66 +779,29 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     CASE mv_mode.
       WHEN c_mode-user.
-        lv_details = lo_tool->get_description( ).
+        lv_description = lo_tool->get_description( ).
 
       WHEN c_mode-admin.
         IF lo_tool->is_bundle( ) = abap_false.
-          lv_details = |toggleDisplay('details-{ lo_tool->get_name( ) }')|.
-          lv_details = ri_html->a( iv_act = lv_details
-                                   iv_typ = /mbtools/if_html=>c_action_type-onclick
-                                   iv_txt = |View details| ).
-          lv_details = |Version: { lo_tool->get_version( ) } \| | &&
-                       |{ lv_details } \| Last update: { lo_tool->get_last_update( ) }|.
-
-          IF lo_tool->get_new_version( ) IS NOT INITIAL.
-            lv_changelog = |toggleDisplay('changelog-{ lo_tool->get_name( ) }')|.
-            lv_changelog = ri_html->a( iv_act = lv_changelog
-                                       iv_typ = /mbtools/if_html=>c_action_type-onclick
-                                       iv_txt = |View version { lo_tool->get_new_version( ) } details| ).
-
-            lv_update = ri_html->a(
-              iv_act = |{ /mbtools/if_actions=>tool_update }?name={ lo_tool->get_name( ) }|
-              iv_txt = |update now| ).
-
-            lv_update = ri_html->icon( iv_name  = 'recycle/orange'
-                                       iv_hint  = 'Update tool' ) &&
-                        |There is a new version available. { lv_changelog } or { lv_update }.|.
-            lv_update_class = 'update'.
-          ELSE.
-            lv_update_time = lo_tool->get_last_update( abap_true ).
-            IF lv_update_time(8) = sy-datum.
-              lv_update = ri_html->icon( iv_name  = 'check/green'
-                                         iv_hint  = 'Tool updated' ) && |Updated today|.
-              lv_update_class = 'update_success'.
-            ENDIF.
-          ENDIF.
+          lv_description = get_description_admin( lo_tool ).
+          lv_update = get_update_admin( lo_tool ).
         ENDIF.
 
       WHEN c_mode-license.
         IF lo_tool->is_bundle( ) = abap_false.
-          IF lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_valid ) = abap_true.
-            lv_expire = lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_expire ).
-            IF lv_expire IS NOT INITIAL.
-              lv_details = /mbtools/cl_datetime=>get_long_date( lv_expire ).
-              lv_details = |expires <span class="has-mbt-green-color">{ lv_details }</span>|.
-            ELSE.
-              lv_details = |<span class="has-mbt-green-color">does not expire</span>|.
-            ENDIF.
-            lv_details = |Your license key { lv_details }|.
-          ELSEIF lo_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_key ) IS NOT INITIAL.
-            lv_details = |<span class="has-mbt-red-color">expired</span>|.
-            lv_details = |Your license key has { lv_details }. Please enter a valid key.|.
-          ELSE.
-            lv_details = 'To receive updates, please enter your valid license key'.
-          ENDIF.
+          lv_description = get_description_license( lo_tool ).
         ENDIF.
     ENDCASE.
 
-    IF lv_details IS NOT INITIAL.
-      ri_html->add( |<br><span class="description">{ lv_details }</span>| ).
+    IF lv_description IS NOT INITIAL.
+      ri_html->add( |<br><span class="description">{ lv_description }</span>| ).
     ENDIF.
     IF lv_update IS NOT INITIAL.
-      ri_html->add( |<br><br><span class="{ lv_update_class }">{ lv_update }</span>| ).
+      lv_class = 'update'.
+      IF lv_update NS 'href'.
+        lv_class = 'update_success'.
+      ENDIF.
+      ri_html->add( |<br><br><span class="{ lv_class }">{ lv_update }</span>| ).
     ENDIF.
     ri_html->add( '</td>' ).
 

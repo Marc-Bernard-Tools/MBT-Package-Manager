@@ -37,6 +37,18 @@
     </item>
     <item>
      <ID>S</ID>
+     <KEY>P_DROP_N</KEY>
+     <ENTRY>abapGit Package</ENTRY>
+     <LENGTH>23</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_DROP_P</KEY>
+     <ENTRY>SAP Package</ENTRY>
+     <LENGTH>19</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
      <KEY>P_FILE_F</KEY>
      <ENTRY>Your Computer</ENTRY>
      <LENGTH>21</LENGTH>
