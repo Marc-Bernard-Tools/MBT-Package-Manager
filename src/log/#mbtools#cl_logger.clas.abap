@@ -44,19 +44,19 @@ CLASS /mbtools/cl_logger DEFINITION
 
   PRIVATE SECTION.
 
-    TYPES:
-* Local type for hrpad_message as it is not available in an ABAP Development System
-      BEGIN OF ty_hrpad_message_field_list,
-        scrrprfd TYPE scrrprfd,
-      END OF ty_hrpad_message_field_list.
-    TYPES:
-      BEGIN OF ty_hrpad_message_alike,
-        cause(32)    TYPE c,                          "original: hrpad_message_cause
-        detail_level TYPE ballevel.
-        INCLUDE TYPE symsg .
-    TYPES: field_list TYPE STANDARD TABLE OF ty_hrpad_message_field_list
-                      WITH NON-UNIQUE KEY scrrprfd,
-      END OF ty_hrpad_message_alike .
+*    TYPES:
+** Local type for hrpad_message as it is not available in an ABAP Development System
+*      BEGIN OF ty_hrpad_message_field_list,
+*        scrrprfd TYPE scrrprfd,
+*      END OF ty_hrpad_message_field_list.
+*    TYPES:
+*      BEGIN OF ty_hrpad_message_alike,
+*        cause(32)    TYPE c,                          "original: hrpad_message_cause
+*        detail_level TYPE ballevel.
+*        INCLUDE TYPE symsg .
+*    TYPES: field_list TYPE STANDARD TABLE OF ty_hrpad_message_field_list
+*                      WITH NON-UNIQUE KEY scrrprfd,
+*      END OF ty_hrpad_message_alike .
 
     DATA mv_sec_connection TYPE abap_bool .
     DATA mv_sec_connect_commit TYPE abap_bool .
@@ -127,7 +127,7 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
       <ls_bapi_coru_msg>     TYPE bapi_coru_return,
       "<ls_bapi_order_msg>    TYPE bapi_order_return,
       <ls_bdc_msg>           TYPE bdcmsgcoll,
-      <ls_hrpad_msg>         TYPE ty_hrpad_message_alike,
+      "<ls_hrpad_msg>         TYPE ty_hrpad_message_alike,
       "<ls_rcomp_msg>         TYPE rcomp,
       <lv_context_val>       TYPE any.
 
@@ -213,15 +213,15 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
       ls_detailed_msg-msgv2 = <ls_bdc_msg>-msgv2.
       ls_detailed_msg-msgv3 = <ls_bdc_msg>-msgv3.
       ls_detailed_msg-msgv4 = <ls_bdc_msg>-msgv4.
-    ELSEIF lo_msg_type->absolute_name = '\TYPE=HRPAD_MESSAGE'.
-      ASSIGN iv_obj_to_log TO <ls_hrpad_msg>.
-      ls_detailed_msg-msgty = <ls_hrpad_msg>-msgty.
-      ls_detailed_msg-msgid = <ls_hrpad_msg>-msgid.
-      ls_detailed_msg-msgno = <ls_hrpad_msg>-msgno.
-      ls_detailed_msg-msgv1 = <ls_hrpad_msg>-msgv1.
-      ls_detailed_msg-msgv2 = <ls_hrpad_msg>-msgv2.
-      ls_detailed_msg-msgv3 = <ls_hrpad_msg>-msgv3.
-      ls_detailed_msg-msgv4 = <ls_hrpad_msg>-msgv4.
+*    ELSEIF lo_msg_type->absolute_name = '\TYPE=HRPAD_MESSAGE'.
+*      ASSIGN iv_obj_to_log TO <ls_hrpad_msg>.
+*      ls_detailed_msg-msgty = <ls_hrpad_msg>-msgty.
+*      ls_detailed_msg-msgid = <ls_hrpad_msg>-msgid.
+*      ls_detailed_msg-msgno = <ls_hrpad_msg>-msgno.
+*      ls_detailed_msg-msgv1 = <ls_hrpad_msg>-msgv1.
+*      ls_detailed_msg-msgv2 = <ls_hrpad_msg>-msgv2.
+*      ls_detailed_msg-msgv3 = <ls_hrpad_msg>-msgv3.
+*      ls_detailed_msg-msgv4 = <ls_hrpad_msg>-msgv4.
 *    ELSEIF lo_msg_type->absolute_name = '\TYPE=RCOMP'.
 *      ASSIGN iv_obj_to_log TO <ls_rcomp_msg>.
 *      ls_detailed_msg-msgty = <ls_rcomp_msg>-msgty.

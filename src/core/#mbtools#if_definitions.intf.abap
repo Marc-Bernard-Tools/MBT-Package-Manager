@@ -7,9 +7,9 @@ INTERFACE /mbtools/if_definitions
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
   TYPES:
-    ty_icon     TYPE c LENGTH 4. " icon_d
+    ty_icon TYPE c LENGTH 4. " icon_d
   TYPES:
-    ty_text     TYPE c LENGTH 60. " ddtext
+    ty_text TYPE c LENGTH 60. " ddtext
   TYPES:
     ty_longname TYPE c LENGTH 120. "trobj_name
   TYPES:
@@ -20,15 +20,18 @@ INTERFACE /mbtools/if_definitions
     END OF ty_tadir_key.
   TYPES:
     ty_tadir_keys TYPE STANDARD TABLE OF ty_tadir_key WITH DEFAULT KEY.
-  TYPES ty_pgmid TYPE ty_tadir_key-pgmid.
-  TYPES ty_object TYPE ty_tadir_key-object.
   TYPES:
-    ty_objects      TYPE STANDARD TABLE OF ty_object WITH DEFAULT KEY.
+     ty_pgmid TYPE ty_tadir_key-pgmid.
+  TYPES:
+   ty_object TYPE ty_tadir_key-object.
+  TYPES:
+    ty_objects TYPE STANDARD TABLE OF ty_object WITH DEFAULT KEY.
   TYPES:
     ty_object_range TYPE RANGE OF ty_object.
-  TYPES ty_name TYPE ty_tadir_key-obj_name.
   TYPES:
-    ty_names      TYPE STANDARD TABLE OF ty_name WITH DEFAULT KEY.
+    ty_name TYPE ty_tadir_key-obj_name.
+  TYPES:
+    ty_names TYPE STANDARD TABLE OF ty_name WITH DEFAULT KEY.
   TYPES:
     ty_name_range TYPE RANGE OF ty_name.
   TYPES:
@@ -92,7 +95,7 @@ INTERFACE /mbtools/if_definitions
   TYPES:
     BEGIN OF ty_file.
       INCLUDE TYPE ty_file_signature.
-      TYPES: data TYPE xstring,
+  TYPES: data TYPE xstring,
     END OF ty_file.
   TYPES:
     ty_files_tt TYPE STANDARD TABLE OF ty_file WITH DEFAULT KEY.
