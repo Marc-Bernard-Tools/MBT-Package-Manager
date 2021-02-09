@@ -182,8 +182,7 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
             iv_id     = c_id
             iv_org    = c_org ).
         ELSE.
-          lo_strust->load(
-            iv_create = abap_true ).
+          lo_strust->load( iv_create = abap_true ).
         ENDIF.
 
         lo_strust->get_own_certificate( ).
