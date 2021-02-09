@@ -220,7 +220,7 @@ CLASS /mbtools/cl_gui_page IMPLEMENTATION.
                     iv_act = /mbtools/if_definitions=>c_www_home
                     iv_typ = /mbtools/if_html=>c_action_type-url ).
     ri_html->add( '</div>' ).
-    ri_html->add( |<div class="version">{ /mbtools/cl_tool_bc=>c_tool-version }</div>| ).
+    ri_html->add( |<div class="version" style="display:none">{ /mbtools/cl_tool_bc=>c_tool-version }</div>| ).
     ri_html->add( '</td>' ).
 
     ri_html->add( '<td id="debug-output" class="w40"></td>' ).

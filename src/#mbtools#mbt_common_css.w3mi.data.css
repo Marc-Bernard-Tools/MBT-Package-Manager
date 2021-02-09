@@ -345,6 +345,16 @@ LAYOUT
     font-size: 12px;
 }
 
+.about {
+    background: #ddd;
+    width: 600px;
+    height: 400px;
+    max-width: 100%;
+    padding: 30px;
+    border: 1px solid #999;
+    border-radius: 5px;
+}
+
 /* TABLES */
 
 table {
@@ -763,21 +773,26 @@ div.log .icon {
 }
 
 /* INFO PANEL */
+/* https://css-tricks.com/considerations-styling-modal/ */
 
 .info-panel {
-    position: absolute;
-    z-index: 99;
-    top: 150px;
+    position: fixed;
+    top: 50%;
     left: 50%;
-    width: 40em;
-    margin-left: -20em;
+    transform: translate(-50%, -50%);
+    z-index: 99;
+    width: 800px;
+    max-width: 100%;
+    height: 500px;
+    max-height: 100%;    
     background-color: #fff;
     border: 1px solid;
-    border-radius: 3px;
+    border-radius: 5px;
+    box-shadow: 3px 3px 5px 0px hsla(0, 0%, 0%, .1);
 }
 .info-panel-fixed {
     position: fixed;
-    top: 15%;
+    top: 15%; 
 }
 .info-panel .info-hint {
     font-size: small;
@@ -786,22 +801,31 @@ div.log .icon {
 }
 .info-panel .info-title {
     background-color: #ddd;
+    border: 0px;
     font-size: medium;
     padding: 6px;
     text-align: center;
 }
 .info-panel .info-title a.close-btn {
     padding-left: 12px;
-    padding-right: 2px;
+    padding-right: 5px;
     position: relative;
     bottom: 1px;
 }
 .info-panel .info-list {
-    padding: 0.8em 0.7em 1em;
+    position: absolute;
+    top: 36px;
+    left: 0;
+    width: 780px;
+    max-width: 100%;
+    height: 442px;
+    max-height: 100%;    
+    padding: 10px;
+    overflow: auto;
 }
 .info-panel li {
     padding-left: 10px;
-    list-style-type: none;
+    /* list-style-type: none; */
 }
 .info-panel h1:first-child {
     margin: auto; 
@@ -818,10 +842,10 @@ div.log .icon {
     margin-left: 20px;
     border-radius: 3px;
     padding: 0px 6px;
-    border:  1px solid;
+    border: 1px solid;
 }
 .info-panel .update { 
-    border:  1px solid; 
+    border: 1px solid; 
 }
 .info-panel .info-list td { 
     padding-right: 1em 
@@ -905,6 +929,7 @@ ul.hotkeys {
     font-size: smaller;
 }
 ul.hotkeys span.key-id {
+    background-color: #999;
     border: 1px solid;
     border-radius: 3px;
     padding: 1px 7px;

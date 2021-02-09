@@ -50,7 +50,16 @@ CLASS /mbtools/cl_gui_page_about IMPLEMENTATION.
 
 
   METHOD /mbtools/if_gui_event_handler~on_event.
-    ASSERT 1 = 1.
+
+    CASE ii_event->mv_action.
+      WHEN /mbtools/if_actions=>go_license.
+        /mbtools/cl_utilities=>call_browser(
+          /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_terms ).
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
+      WHEN /mbtools/if_actions=>go_back.
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-go_back.
+    ENDCASE.
+
   ENDMETHOD.
 
 
@@ -161,9 +170,27 @@ CLASS /mbtools/cl_gui_page_about IMPLEMENTATION.
 
     ri_html = /mbtools/cl_html=>create( ).
 
-    ri_html->add( '<div class="bundles">' ).
+    ri_html->add( '<div class="about auto-center wmax600px">' ).
 
-    ri_html->add( '<p>About MBT</p>' ).
+    ri_html->add( '<img src="img/banner_header.png" alt="MBT Banner">' ).
+
+    ri_html->add( |<p>Version: { /mbtools/cl_tool_bc=>c_tool-version }</p>| ).
+
+    ri_html->add( |<p>Copyright &copy; { sy-datum(4) } Marc Bernard Tools. All rights reserved.</p>| ).
+
+    ri_html->add( |<p><a href="{ ri_html->a( iv_typ = /mbtools/if_html=>c_action_type-url
+                                             iv_act = /mbtools/if_definitions=>c_www_home
+                                             iv_txt = /mbtools/if_definitions=>c_www_home ) }</p>| ).
+
+    ri_html->add( |<form method="post">| ).
+
+    ri_html->add( |<input type="submit" name="action" value="License Terms" formaction="sapevent:{
+      /mbtools/if_actions=>go_license }">| ).
+
+    ri_html->add( |<input type="submit" name="action" value="Back" formaction="sapevent:{
+      /mbtools/if_actions=>go_back }" class="main">| ).
+
+    ri_html->add( |</form>| ).
 
     ri_html->add( '</div>' ).
 

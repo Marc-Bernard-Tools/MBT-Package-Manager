@@ -885,7 +885,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
       ri_html->add( /mbtools/cl_html_lib=>render_infopanel(
         iv_div_id  = |details-{ lo_tool->get_name( ) }|
-        iv_title   = |Details of { lo_tool->get_title( ) }|
+        iv_title   = |Description of { lo_tool->get_title( ) }|
         ii_content = li_html ) ).
 
       " Changelog
