@@ -14,6 +14,12 @@
    <DESCRIPTIONS>
     <SEOCOMPOTX>
      <CLSNAME>/MBTOOLS/CL_MBT</CLSNAME>
+     <CMPNAME>IS_MBT_SYSTEM</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Is system owned by MBT?</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_MBT</CLSNAME>
      <CMPNAME>IS_ONLINE</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Is system online (able to access marcbernardtools.com)?</DESCRIPT>

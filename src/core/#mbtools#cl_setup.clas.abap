@@ -1,50 +1,51 @@
 CLASS /mbtools/cl_setup DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
-    CLASS-METHODS class_constructor .
+    CLASS-METHODS class_constructor.
     CLASS-METHODS install
       IMPORTING
         !iv_force TYPE abap_bool DEFAULT abap_false
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     CLASS-METHODS uninstall
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
     CONSTANTS c_sslc TYPE psecontext VALUE 'SSLC' ##NO_TEXT.
     CONSTANTS c_anonym TYPE ssfappl VALUE 'ANONYM' ##NO_TEXT.
-    CONSTANTS c_id TYPE ssfid VALUE 'CN=%SID SSL client SSL Client (Standard), OU=Marc Bernard Tools, O=MBT, C=CA' ##NO_TEXT.
-    CONSTANTS c_subject TYPE string VALUE 'CN=www.marcbernardtools.com' ##NO_TEXT.
+    CONSTANTS c_id TYPE ssfid VALUE 'CN=%SID SSL client SSL Client (Standard), OU=%ORG, O=MBT, C=CA' ##NO_TEXT.
+    CONSTANTS c_org TYPE string VALUE /mbtools/if_definitions=>c_mbt ##NO_TEXT.
+    CONSTANTS c_subject TYPE string VALUE 'CN=marcbernardtools.com' ##NO_TEXT.
     CLASS-DATA go_settings TYPE REF TO /mbtools/cl_registry.
     CLASS-DATA gv_force TYPE abap_bool.
     CLASS-DATA gv_drop TYPE abap_bool.
 
     CLASS-METHODS _application_log.
     CLASS-METHODS _certificates.
-    CLASS-METHODS _certificate_ca
+    CLASS-METHODS _get_certificate_ca
       RETURNING
         VALUE(rt_result) TYPE /mbtools/cl_strust=>ty_certificate.
-    CLASS-METHODS _certificate_ica
+    CLASS-METHODS _get_certificate_ica
       RETURNING
         VALUE(rt_result) TYPE /mbtools/cl_strust=>ty_certificate.
-    CLASS-METHODS _certificate_mbt
+    CLASS-METHODS _get_certificate_mbt
       RETURNING
         VALUE(rt_result) TYPE /mbtools/cl_strust=>ty_certificate.
     CLASS-METHODS _rfc_destinations
       RAISING
         /mbtools/cx_exception.
-    CLASS-METHODS _rfc_destination_mbt
+    CLASS-METHODS _get_rfc_destination
       RETURNING
         VALUE(rv_result) TYPE rfcdest
       RAISING
         /mbtools/cx_exception.
-    CLASS-METHODS _ssl_client
+    CLASS-METHODS _get_ssl_client
       RETURNING
         VALUE(rv_result) TYPE ssfapplssl
       RAISING
@@ -168,16 +169,22 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
       lx_error  TYPE REF TO /mbtools/cx_exception.
 
     TRY.
-        lv_applic = _ssl_client( ).
+        lv_applic = _get_ssl_client( ).
 
         CREATE OBJECT lo_strust
           EXPORTING
             iv_context = c_sslc
             iv_applic  = lv_applic.
 
-        lo_strust->load(
-          iv_create = abap_true
-          iv_id     = c_id ).
+        IF /mbtools/cl_mbt=>is_mbt_system( ) = abap_true.
+          lo_strust->load(
+            iv_create = abap_true
+            iv_id     = c_id
+            iv_org    = c_org ).
+        ELSE.
+          lo_strust->load(
+            iv_create = abap_true ).
+        ENDIF.
 
         lo_strust->get_own_certificate( ).
 
@@ -186,9 +193,9 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
         IF gv_drop = abap_true.
           lo_strust->remove( c_subject ).
         ELSE.
-          lo_strust->add( _certificate_ca( ) ).
-          lo_strust->add( _certificate_ica( ) ).
-          lo_strust->add( _certificate_mbt( ) ).
+          lo_strust->add( _get_certificate_ca( ) ).
+          lo_strust->add( _get_certificate_ica( ) ).
+          lo_strust->add( _get_certificate_mbt( ) ).
           lo_strust->update( ).
         ENDIF.
 
@@ -199,7 +206,7 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD _certificate_ca.
+  METHOD _get_certificate_ca.
 
     " subject=C = US, O = DigiCert Inc, OU = www.digicert.com, CN = DigiCert Global Root CA
     " issuer=C = US, O = DigiCert Inc, OU = www.digicert.com, CN = DigiCert Global Root CA
@@ -232,7 +239,7 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD _certificate_ica.
+  METHOD _get_certificate_ica.
 
     " subject=C = US, O = DigiCert Inc, OU = www.digicert.com, CN = Encryption Everywhere DV TLS CA - G1
     " issuer=C = US, O = DigiCert Inc, OU = www.digicert.com, CN = DigiCert Global Root CA
@@ -270,7 +277,7 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD _certificate_mbt.
+  METHOD _get_certificate_mbt.
 
     " subject=CN = marcbernardtools.com
     " issuer=C = US, O = DigiCert Inc, OU = www.digicert.com, CN = Encryption Everywhere DV TLS CA - G1
@@ -313,6 +320,32 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD _get_rfc_destination.
+
+    IF go_settings IS BOUND.
+      rv_result = go_settings->get_value( /mbtools/cl_tools=>c_reg-key_rfcdest ).
+    ENDIF.
+
+    IF rv_result IS INITIAL.
+      rv_result = /mbtools/if_definitions=>c_rfcdest.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD _get_ssl_client.
+
+    IF go_settings IS BOUND.
+      rv_result = go_settings->get_value( /mbtools/cl_tools=>c_reg-key_ssl_client ).
+    ENDIF.
+
+    IF rv_result IS INITIAL.
+      rv_result = c_anonym.
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD _rfc_destinations.
 
     DATA:
@@ -327,8 +360,8 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
       lv_path         TYPE string.
 
     TRY.
-        lv_applic = _ssl_client( ).
-        lv_rfcdest = _rfc_destination_mbt( ).
+        lv_applic = _get_ssl_client( ).
+        lv_rfcdest = _get_rfc_destination( ).
 
         CREATE OBJECT lo_dest_factory.
         lv_rfc_exists = lo_dest_factory->exists( lv_rfcdest ).
@@ -410,32 +443,6 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
       IF sy-subrc <> 0.
         /mbtools/cx_exception=>raise_t100( ).
       ENDIF.
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD _rfc_destination_mbt.
-
-    IF go_settings IS BOUND.
-      rv_result = go_settings->get_value( /mbtools/cl_tools=>c_reg-key_rfcdest ).
-    ENDIF.
-
-    IF rv_result IS INITIAL.
-      rv_result = /mbtools/if_definitions=>c_rfcdest.
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD _ssl_client.
-
-    IF go_settings IS BOUND.
-      rv_result = go_settings->get_value( /mbtools/cl_tools=>c_reg-key_ssl_client ).
-    ENDIF.
-
-    IF rv_result IS INITIAL.
-      rv_result = c_anonym.
     ENDIF.
 
   ENDMETHOD.

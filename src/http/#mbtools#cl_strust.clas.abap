@@ -33,6 +33,7 @@ CLASS /mbtools/cl_strust DEFINITION
       IMPORTING
         !iv_create TYPE abap_bool DEFAULT abap_false
         !iv_id     TYPE ssfid OPTIONAL
+        !iv_org    TYPE string OPTIONAL
       RAISING
         /mbtools/cx_exception .
     METHODS add
@@ -80,7 +81,8 @@ CLASS /mbtools/cl_strust DEFINITION
 
     METHODS _create
       IMPORTING
-        !iv_id TYPE ssfid OPTIONAL
+        !iv_id  TYPE ssfid OPTIONAL
+        !iv_org TYPE string OPTIONAL
       RAISING
         /mbtools/cx_exception .
     METHODS _lock
@@ -316,7 +318,9 @@ CLASS /mbtools/cl_strust IMPLEMENTATION.
         OTHERS            = 3.
     IF sy-subrc <> 0.
       IF iv_create = abap_true.
-        _create( iv_id ).
+        _create(
+          iv_id  = iv_id
+          iv_org = iv_org ).
       ELSE.
         /mbtools/cx_exception=>raise_t100( ).
       ENDIF.
@@ -463,6 +467,7 @@ CLASS /mbtools/cl_strust IMPLEMENTATION.
 
     REPLACE '%SID' WITH sy-sysid INTO lv_id.
     REPLACE '%LIC' WITH lv_license_num INTO lv_id.
+    REPLACE '%ORG' WITH iv_org INTO lv_id.
     CONDENSE lv_id.
 
     lv_subject = lv_id.
