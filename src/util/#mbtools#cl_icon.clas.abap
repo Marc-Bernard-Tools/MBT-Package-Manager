@@ -33,7 +33,7 @@ CLASS /mbtools/cl_icon IMPLEMENTATION.
       WHEN 'application/x-zip-compressed' OR 'application/zip' OR 'application/vnd.rar'.
         rv_result = icon_include_objects.
       WHEN 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        OR 'application/msword' OR 'application/rtf'.
+        OR 'application/msword'.
         rv_result = icon_doc.
       WHEN 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         OR 'application/vnd.ms-excel'.
