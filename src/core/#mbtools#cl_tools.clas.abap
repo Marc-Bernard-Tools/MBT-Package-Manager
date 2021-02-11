@@ -982,7 +982,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       TRY.
           " Get instance of tool
           CREATE OBJECT li_tool TYPE (lv_implementation).
-          IF li_tool IS BOUND.
+          IF li_tool IS NOT BOUND.
             CONTINUE. "ignore
           ENDIF.
 
