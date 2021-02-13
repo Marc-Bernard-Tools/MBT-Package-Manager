@@ -1,763 +1,763 @@
 {
-    "dependencies": [
-        {
-           "url": "https://github.com/abaplint/deps",
-           "folder": "/deps",
-           "files": "/src/**/*.*"
-       }
-    ],
-    "global": {
-       "exclude": [
-            "#mbtools#mbt_installer.prog.abap",
-            "#mbtools#mbt_template.prog.abap",
-            "#mbtools#cl_logger.clas.testclasses.abap"
-        ],
-        "files": "/src/**/*.*",
-        "skipGeneratedFunctionGroups": true,
-        "skipGeneratedGatewayClasses": true,
-        "skipGeneratedPersistentClasses": true,
-        "useApackDependencies": false
-    },
-    "rules": {
-        "7bit_ascii": {
-            "exclude": [
-                "#mbtools#cl_screen.clas.abap"
-            ],
-            "severity": "Error"
-        },
-        "abapdoc": {
-            "checkLocal": false,
-            "exclude": [
-                ".*"
-            ],
-            "severity": "Error"
-        },
-        "allowed_object_naming": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "allowed_object_types": {
-            "allowed": [
-                "ACID",
-                "AVAR",
-                "CLAS",
-                "DSYS",
-                "DTEL",
-                "DEVC",
-                "DOMA",
-                "ENHO",
-                "ENHS",
-                "ENQU",
-                "FUGR",
-                "INTF",
-                "MSAG",
-                "NSPC",
-                "PARA",
-                "PROG",
-                "SOTS",
-                "TABL",
-                "TRAN",
-                "TTYP",
-                "W3MI"
-            ],
-            "exclude": [],
-            "severity": "Error"
-        },
-        "ambiguous_statement": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "avoid_use": {
-            "break": true,
-            "communication": true,
-            "defaultKey": false,
-            "define": true,
-            "describeLines": true,
-            "endselect": false,
-            "exclude": [
-                "#mbtools#.*_logger.*",
-                "#mbtools#cl_utilities.clas.abap"
-            ],
-            "execSQL": true,
-            "kernelCall": true,
-            "severity": "Error",
-            "statics": true,
-            "systemCall": true
-        },
-        "begin_end_names": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "begin_single_include": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "chain_mainly_declarations": {
-            "check": true,
-            "clear": true,
-            "definitions": true,
-            "exclude": [],
-            "free": true,
-            "hide": true,
-            "include": true,
-            "move": true,
-            "refresh": true,
-            "severity": "Error",
-            "unassign": true,
-            "write": true
-        },
-        "check_abstract": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "check_comments": {
-            "allowEndOfLine": true,
-            "exclude": [],
-            "severity": "Error"
-        },
-        "check_ddic": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "check_include": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "check_no_handler_pragma": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "check_subrc": {
-            "assign": true,
-            "authorityCheck": true,
-            "exclude": [
-                "#mbtools#.*_ajson.*",
-                "#mbtools#.*_logger.*"
-            ],
-            "find": true,
-            "insertDatabase": true,
-            "modifyDatabase": true,
-            "openDataset": true,
-            "readTable": true,
-            "selectSingle": false,
-            "severity": "Error",
-            "updateDatabase": true
-        },
-        "check_syntax": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "check_text_elements": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "check_transformation_exists": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "class_attribute_names": {
-            "constants": "^C_.+$",
-            "exclude": [
-                "#mbtools#.*_ajson.*",
-                "#mbtools#cl_tree_level.clas.abap",
-                "#mbtools#if_actions.intf.abap",
-                "#mbtools#if_manifest.intf.abap"
-            ],
-            "ignoreExceptions": true,
-            "ignoreInterfaces": false,
-            "ignoreLocal": false,
-            "ignoreNames": [],
-            "ignorePatterns": [],
-            "instance": "^M._.+$",
-            "patternKind": "required",
-            "severity": "Error",
-            "statics": "^G._.+$"
-        },
-        "cloud_types": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "colon_missing_space": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "commented_code": {
-            "allowIncludeInFugr": true,
-            "exclude": [
-                "#mbtools#.*_logger.*"
-            ],
-            "severity": "Warning"
-        },
-        "constructor_visibility_public": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "contains_tab": {
-            "exclude": [],
-            "severity": "Error",
-            "spaces": 1
-        },
-        "cyclomatic_complexity": {
-            "exclude": [],
-            "max": 20,
-            "severity": "Error"
-        },
-        "definitions_top": {
-            "exclude": [
-                "#mbtools#.*_ajson.*"
-            ],
-            "severity": "Error"
-        },
-        "description_empty": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "double_space": {
-            "afterColon": true,
-            "endParen": true,
-            "exclude": [],
-            "keywords": true,
-            "severity": "Error",
-            "startParen": true
-        },
-        "downport": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "empty_line_in_statement": {
-            "allowChained": false,
-            "exclude": [],
-            "severity": "Error"
-        },
-        "empty_statement": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "empty_structure": {
-            "at": true,
-            "case": true,
-            "do": true,
-            "exclude": [],
-            "if": true,
-            "loop": true,
-            "select": true,
-            "severity": "Error",
-            "try": true,
-            "while": true
-        },
-        "exit_or_check": {
-            "exclude": [
-                ".*"
-            ],
-            "severity": "Error"
-        },
-        "exporting": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "forbidden_identifier": {
-            "check": [],
-            "exclude": [],
-            "severity": "Error"
-        },
-        "forbidden_pseudo_and_pragma": {
-            "exclude": [],
-            "ignoreGlobalClassDefinition": false,
-            "ignoreGlobalInterface": false,
-            "pragmas": [],
-            "pseudo": [],
-            "severity": "Error"
-        },
-        "forbidden_void_type": {
-            "check": [
-                "^stringtab$",
-                "^char1$",
-                "^int4$",
-                "^rs_c_true$",
-                "^rs_c_false$",
-                "^flag$",
-                "^sydatum$",
-                "^syindex$",
-                "^sytabix$",
-                "^syuzeit$"
-            ],
-            "exclude": [
-                "#mbtools#cl_registry_ui.clas.abap",
-                "#mbtools#cl_tree.clas.abap"
-            ],
-            "severity": "Error"
-        },
-        "form_tables_obsolete": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "fully_type_constants": {
-            "checkData": true,
-            "exclude": [],
-            "severity": "Error"
-        },
-        "functional_writing": {
-            "exclude": [],
-            "ignoreExceptions": true,
-            "severity": "Error"
-        },
-        "global_class": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "identical_conditions": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "identical_form_names": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "if_in_if": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "implement_methods": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "in_statement_indentation": {
-            "exclude": [
-                ".*"
-            ],
-            "ignoreExceptions": true,
-            "severity": "Error"
-        },
-        "indentation": {
-            "alignTryCatch": false,
-            "exclude": [
-                "#mbtools#.*_ajson.*"
-            ],
-            "globalClassSkipFirst": false,
-            "ignoreExceptions": true,
-            "ignoreGlobalClassDefinition": false,
-            "ignoreGlobalInterface": false,
-            "severity": "Error"
-        },
-        "inline_data_old_versions": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "keep_single_parameter_on_one_line": {
-            "exclude": [],
-            "length": 120,
-            "severity": "Error"
-        },
-        "keyword_case": {
-            "exclude": [],
-            "ignoreExceptions": true,
-            "ignoreFunctionModuleName": false,
-            "ignoreGlobalClassBoundaries": false,
-            "ignoreGlobalClassDefinition": false,
-            "ignoreGlobalInterface": false,
-            "ignoreKeywords": [],
-            "ignoreLowerClassImplmentationStatement": true,
-            "severity": "Error",
-            "style": "upper"
-        },
-        "line_break_multiple_parameters": {
-            "exclude": [
-                "#mbtools#.*_ajson.*"
-            ],
-            "severity": "Error"
-        },
-        "line_break_style": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "line_length": {
-            "exclude": [],
-            "length": 120,
-            "severity": "Error"
-        },
-        "line_only_punc": {
-            "exclude": [],
-            "ignoreExceptions": true,
-            "severity": "Error"
-        },
-        "local_class_naming": {
-            "exception": "^LCX_.+$",
-            "exclude": [],
-            "ignoreNames": [],
-            "ignorePatterns": [],
-            "local": "^LCL_.+$",
-            "patternKind": "required",
-            "severity": "Error",
-            "test": "^LTCL_.+$"
-        },
-        "local_testclass_location": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "local_variable_names": {
-            "exclude": [
-                "#mbtools#.*_ajson.*",
-                "#mbtools#cl_string_map.clas.abap"
-            ],
-            "expectedConstant": "^LC_.+$",
-            "expectedData": "^L._.+$",
-            "expectedFS": "^<L._.+>$",
-            "ignoreNames": [],
-            "ignorePatterns": [],
-            "patternKind": "required",
-            "severity": "Error"
-        },
-        "main_file_contents": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "max_one_statement": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "message_exists": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "method_length": {
-            "errorWhenEmpty": true,
-            "exclude": [
-                "#mbtools#.*_logger.*"
-            ],
-            "ignoreTestClasses": true,
-            "severity": "Warning",
-            "statements": 100
-        },
-        "method_parameter_names": {
-            "changing": "^C._.+$",
-            "exclude": [
-                "#mbtools#.*_ajson.*"
-            ],
-            "exporting": "^E._.+$",
-            "ignoreExceptions": true,
-            "ignoreNames": [
-                "P_TASK"
-            ],
-            "ignorePatterns": [],
-            "importing": "^I._.+$",
-            "patternKind": "required",
-            "returning": "^R._.+$",
-            "severity": "Error"
-        },
-        "mix_returning": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "msag_consistency": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "names_no_dash": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "nesting": {
-            "depth": 5,
-            "exclude": [
-                "#mbtools#.*_ajson.*"
-            ],
-            "severity": "Error"
-        },
-        "newline_between_methods": {
-            "count": 3,
-            "exclude": [],
-            "logic": "less",
-            "severity": "Error"
-        },
-        "no_public_attributes": {
-            "allowReadOnly": true,
-            "exclude": [
-                "#mbtools#.*_ajson.*",
-                "#mbtools#cl_registry_ui.clas.abap",
-                "#mbtools#cl_tree_level.clas.abap"
-            ],
-            "severity": "Error"
-        },
-        "object_naming": {
-            "auth": "^/MBTOOLS/",
-            "clas": "^/MBTOOLS/C(L|X)\\_",
-            "doma": "^/MBTOOLS/",
-            "dtel": "^/MBTOOLS/",
-            "enqu": "^/MBTOOLS/E_",
-            "exclude": [],
-            "fugr": "^/MBTOOLS/",
-            "idoc": "^/MBTOOLS/",
-            "ignoreNames": [],
-            "ignorePatterns": [],
-            "intf": "^/MBTOOLS/IF\\_",
-            "msag": "^/MBTOOLS/",
-            "patternKind": "required",
-            "pinf": "^/MBTOOLS/",
-            "prog": "^/MBTOOLS/",
-            "severity": "Error",
-            "shlp": "^/MBTOOLS/",
-            "ssfo": "^/MBTOOLS/",
-            "ssst": "^/MBTOOLS/",
-            "tabl": "^/MBTOOLS/",
-            "tran": "^/MBTOOLS/",
-            "ttyp": "^/MBTOOLS/",
-            "xslt": "^/MBTOOLS/"
-        },
-        "obsolete_statement": {
-            "add": true,
-            "compute": true,
-            "divide": true,
-            "exclude": [],
-            "fieldSymbolStructure": true,
-            "load": true,
-            "move": true,
-            "multiply": true,
-            "occurs": true,
-            "refresh": true,
-            "requested": true,
-            "setExtended": true,
-            "severity": "Error",
-            "subtract": true,
-            "typePools": true,
-            "withHeaderLine": true
-        },
-        "parser_error": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "parser_missing_space": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "prefer_inline": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "prefer_is_not": {
-            "exclude": [
-                "#mbtools#.*_ajson.*"
-            ],
-            "severity": "Error"
-        },
-        "prefer_returning_to_exporting": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "preferred_compare_operator": {
-            "badOperators": [
-                "EQ",
-                "><",
-                "NE",
-                "GE",
-                "GT",
-                "LT",
-                "LE"
-            ],
-            "exclude": [],
-            "severity": "Error"
-        },
-        "prefix_is_current_class": {
-            "exclude": [],
-            "omitMeInstanceCalls": true,
-            "severity": "Error"
-        },
-        "reduce_string_templates": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "release_idoc": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "remove_descriptions": {
-            "exclude": [
-                ".*"
-            ],
-            "ignoreExceptions": false,
-            "ignoreWorkflow": true,
-            "severity": "Error"
-        },
-        "rfc_error_handling": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "selection_screen_naming": {
-            "exclude": [],
-            "ignoreNames": [],
-            "ignorePatterns": [],
-            "parameter": "^P_.+$",
-            "patternKind": "required",
-            "selectOption": "^S_.+$",
-            "severity": "Error"
-        },
-        "sequential_blank": {
-            "exclude": [],
-            "lines": 4,
-            "severity": "Error"
-        },
-        "short_case": {
-            "allow": [],
-            "exclude": [],
-            "length": 1,
-            "severity": "Error"
-        },
-        "sicf_consistency": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "space_before_colon": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "space_before_dot": {
-            "exclude": [],
-            "ignoreExceptions": true,
-            "ignoreGlobalDefinition": true,
-            "severity": "Error"
-        },
-        "sql_escape_host_variables": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "start_at_tab": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "superclass_final": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "tabl_enhancement_category": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "try_without_catch": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "type_form_parameters": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "types_naming": {
-            "exclude": [
-                "#mbtools#.*_ajson.*"
-            ],
-            "pattern": "^TY_.+$",
-            "severity": "Error"
-        },
-        "unknown_types": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "unreachable_code": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "unused_types": {
-            "exclude": [
-                "#mbtools#.*_ajson.*",
-                "#mbtools#if_definitions.intf.abap"
-            ],
-            "severity": "Error",
-            "skipNames": []
-        },
-        "unused_variables": {
-            "exclude": [
-                "#mbtools#cl_datetime.clas.abap",
-                "#mbtools#cl_tree.clas.abap"
-            ],
-            "severity": "Error",
-            "skipNames": [
-                "C_TITLE",
-                "C_TOOL",
-                "IO_TOOL",
-                "RV_RESULT"
-            ]
-        },
-        "use_bool_expression": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "use_line_exists": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "use_new": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "when_others_last": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "whitespace_end": {
-            "exclude": [],
-            "severity": "Error"
-        },
-        "xml_consistency": {
-            "exclude": [],
-            "severity": "Error"
-        }
-    },
-    "syntax": {
-        "errorNamespace": "^(/MBTOOLS/|LCL_|LIF_|Y|Z)",
-        "globalConstants": [
-            "cl_abap_char_utilities=>horizontal_tab",
-            "cndp_lifetime_transaction",
-            "cndp_sap_subtype_unknown",
-            "icon_any_document",
-            "icon_binary_document",            
-            "icon_biw_info_cube",
-            "icon_biw_report",
-            "icon_biw_virtual_info_provider",
-            "icon_bw_exception_monitor",
-            "icon_content_object",
-            "icon_doc",
-            "icon_dummy",
-            "icon_equal_green",
-            "icon_export",
-            "icon_filter",
-            "icon_generate",
-            "icon_gif",
-            "icon_hierarchy_act",
-            "icon_htm",
-            "icon_include_objects",
-            "icon_information",
-            "icon_jpg",
-            "icon_legal_reg",
-            "icon_master_data_act",
-            "icon_parameter",
-            "icon_pattern_exclude_red",
-            "icon_pdf",
-            "icon_ppt",
-            "icon_ranking",
-            "icon_rtf",
-            "icon_sap",
-            "icon_settings",
-            "icon_summarize",
-            "icon_system_extended_help",
-            "icon_system_help",
-            "icon_text_act",
-            "icon_tools",
-            "icon_transport",
-            "icon_url",
-            "icon_wri",
-            "icon_write_file",
-            "icon_xls",
-            "icon_xml_doc",
-            "rs_c_obj_dtel",
-            "rs_c_obj_nrob",
-            "rs_c_obj_tabl",
-            "rs_c_objvers",
-            "rs_c_tlogo",
-            "rsd_c_cubetype",
-            "rzd1_c_deftp",
-            "seoc_version_inactive",
-            "seok_access_free",
-            "seok_access_modify"
-        ],
-        "globalMacros": [],
-        "version": "v702"
-    }
+	"dependencies": [
+		{
+			"url": "https://github.com/abaplint/deps",
+			"folder": "/deps",
+			"files": "/src/**/*.*"
+		}
+	],
+	"global": {
+		"exclude": [
+			"#mbtools#mbt_installer.prog.abap",
+			"#mbtools#mbt_template.prog.abap",
+			"#mbtools#cl_logger.clas.testclasses.abap"
+		],
+		"files": "/src/**/*.*",
+		"skipGeneratedFunctionGroups": true,
+		"skipGeneratedGatewayClasses": true,
+		"skipGeneratedPersistentClasses": true,
+		"useApackDependencies": false
+	},
+	"rules": {
+		"7bit_ascii": {
+			"exclude": [
+				"#mbtools#cl_screen.clas.abap"
+			],
+			"severity": "Error"
+		},
+		"abapdoc": {
+			"checkLocal": false,
+			"exclude": [
+				".*"
+			],
+			"severity": "Error"
+		},
+		"allowed_object_naming": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"allowed_object_types": {
+			"allowed": [
+				"ACID",
+				"AVAR",
+				"CLAS",
+				"DSYS",
+				"DTEL",
+				"DEVC",
+				"DOMA",
+				"ENHO",
+				"ENHS",
+				"ENQU",
+				"FUGR",
+				"INTF",
+				"MSAG",
+				"NSPC",
+				"PARA",
+				"PROG",
+				"SOTS",
+				"TABL",
+				"TRAN",
+				"TTYP",
+				"W3MI"
+			],
+			"exclude": [],
+			"severity": "Error"
+		},
+		"ambiguous_statement": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"avoid_use": {
+			"break": true,
+			"communication": true,
+			"defaultKey": false,
+			"define": true,
+			"describeLines": true,
+			"endselect": false,
+			"exclude": [
+				"#mbtools#.*_logger.*",
+				"#mbtools#cl_utilities.clas.abap"
+			],
+			"execSQL": true,
+			"kernelCall": true,
+			"severity": "Error",
+			"statics": true,
+			"systemCall": true
+		},
+		"begin_end_names": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"begin_single_include": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"chain_mainly_declarations": {
+			"check": true,
+			"clear": true,
+			"definitions": true,
+			"exclude": [],
+			"free": true,
+			"hide": true,
+			"include": true,
+			"move": true,
+			"refresh": true,
+			"severity": "Error",
+			"unassign": true,
+			"write": true
+		},
+		"check_abstract": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"check_comments": {
+			"allowEndOfLine": true,
+			"exclude": [],
+			"severity": "Error"
+		},
+		"check_ddic": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"check_include": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"check_no_handler_pragma": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"check_subrc": {
+			"assign": true,
+			"authorityCheck": true,
+			"exclude": [
+				"#mbtools#.*_ajson.*",
+				"#mbtools#.*_logger.*"
+			],
+			"find": true,
+			"insertDatabase": true,
+			"modifyDatabase": true,
+			"openDataset": true,
+			"readTable": true,
+			"selectSingle": false,
+			"severity": "Error",
+			"updateDatabase": true
+		},
+		"check_syntax": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"check_text_elements": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"check_transformation_exists": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"class_attribute_names": {
+			"constants": "^C_.+$",
+			"exclude": [
+				"#mbtools#.*_ajson.*",
+				"#mbtools#cl_tree_level.clas.abap",
+				"#mbtools#if_actions.intf.abap",
+				"#mbtools#if_manifest.intf.abap"
+			],
+			"ignoreExceptions": true,
+			"ignoreInterfaces": false,
+			"ignoreLocal": false,
+			"ignoreNames": [],
+			"ignorePatterns": [],
+			"instance": "^M._.+$",
+			"patternKind": "required",
+			"severity": "Error",
+			"statics": "^G._.+$"
+		},
+		"cloud_types": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"colon_missing_space": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"commented_code": {
+			"allowIncludeInFugr": true,
+			"exclude": [
+				"#mbtools#.*_logger.*"
+			],
+			"severity": "Warning"
+		},
+		"constructor_visibility_public": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"contains_tab": {
+			"exclude": [],
+			"severity": "Error",
+			"spaces": 1
+		},
+		"cyclomatic_complexity": {
+			"exclude": [],
+			"max": 20,
+			"severity": "Error"
+		},
+		"definitions_top": {
+			"exclude": [
+				"#mbtools#.*_ajson.*"
+			],
+			"severity": "Error"
+		},
+		"description_empty": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"double_space": {
+			"afterColon": true,
+			"endParen": true,
+			"exclude": [],
+			"keywords": true,
+			"severity": "Error",
+			"startParen": true
+		},
+		"downport": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"empty_line_in_statement": {
+			"allowChained": false,
+			"exclude": [],
+			"severity": "Error"
+		},
+		"empty_statement": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"empty_structure": {
+			"at": true,
+			"case": true,
+			"do": true,
+			"exclude": [],
+			"if": true,
+			"loop": true,
+			"select": true,
+			"severity": "Error",
+			"try": true,
+			"while": true
+		},
+		"exit_or_check": {
+			"exclude": [
+				".*"
+			],
+			"severity": "Error"
+		},
+		"exporting": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"forbidden_identifier": {
+			"check": [],
+			"exclude": [],
+			"severity": "Error"
+		},
+		"forbidden_pseudo_and_pragma": {
+			"exclude": [],
+			"ignoreGlobalClassDefinition": false,
+			"ignoreGlobalInterface": false,
+			"pragmas": [],
+			"pseudo": [],
+			"severity": "Error"
+		},
+		"forbidden_void_type": {
+			"check": [
+				"^stringtab$",
+				"^char1$",
+				"^int4$",
+				"^rs_c_true$",
+				"^rs_c_false$",
+				"^flag$",
+				"^sydatum$",
+				"^syindex$",
+				"^sytabix$",
+				"^syuzeit$"
+			],
+			"exclude": [
+				"#mbtools#cl_registry_ui.clas.abap",
+				"#mbtools#cl_tree.clas.abap"
+			],
+			"severity": "Error"
+		},
+		"form_tables_obsolete": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"fully_type_constants": {
+			"checkData": true,
+			"exclude": [],
+			"severity": "Error"
+		},
+		"functional_writing": {
+			"exclude": [],
+			"ignoreExceptions": true,
+			"severity": "Error"
+		},
+		"global_class": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"identical_conditions": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"identical_form_names": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"if_in_if": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"implement_methods": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"in_statement_indentation": {
+			"exclude": [
+				".*"
+			],
+			"ignoreExceptions": true,
+			"severity": "Error"
+		},
+		"indentation": {
+			"alignTryCatch": false,
+			"exclude": [
+				"#mbtools#.*_ajson.*"
+			],
+			"globalClassSkipFirst": false,
+			"ignoreExceptions": true,
+			"ignoreGlobalClassDefinition": false,
+			"ignoreGlobalInterface": false,
+			"severity": "Error"
+		},
+		"inline_data_old_versions": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"keep_single_parameter_on_one_line": {
+			"exclude": [],
+			"length": 120,
+			"severity": "Error"
+		},
+		"keyword_case": {
+			"exclude": [],
+			"ignoreExceptions": true,
+			"ignoreFunctionModuleName": false,
+			"ignoreGlobalClassBoundaries": false,
+			"ignoreGlobalClassDefinition": false,
+			"ignoreGlobalInterface": false,
+			"ignoreKeywords": [],
+			"ignoreLowerClassImplmentationStatement": true,
+			"severity": "Error",
+			"style": "upper"
+		},
+		"line_break_multiple_parameters": {
+			"exclude": [
+				"#mbtools#.*_ajson.*"
+			],
+			"severity": "Error"
+		},
+		"line_break_style": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"line_length": {
+			"exclude": [],
+			"length": 120,
+			"severity": "Error"
+		},
+		"line_only_punc": {
+			"exclude": [],
+			"ignoreExceptions": true,
+			"severity": "Error"
+		},
+		"local_class_naming": {
+			"exception": "^LCX_.+$",
+			"exclude": [],
+			"ignoreNames": [],
+			"ignorePatterns": [],
+			"local": "^LCL_.+$",
+			"patternKind": "required",
+			"severity": "Error",
+			"test": "^LTCL_.+$"
+		},
+		"local_testclass_location": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"local_variable_names": {
+			"exclude": [
+				"#mbtools#.*_ajson.*",
+				"#mbtools#cl_string_map.clas.abap"
+			],
+			"expectedConstant": "^LC_.+$",
+			"expectedData": "^L._.+$",
+			"expectedFS": "^<L._.+>$",
+			"ignoreNames": [],
+			"ignorePatterns": [],
+			"patternKind": "required",
+			"severity": "Error"
+		},
+		"main_file_contents": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"max_one_statement": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"message_exists": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"method_length": {
+			"errorWhenEmpty": true,
+			"exclude": [
+				"#mbtools#.*_logger.*"
+			],
+			"ignoreTestClasses": true,
+			"severity": "Warning",
+			"statements": 100
+		},
+		"method_parameter_names": {
+			"changing": "^C._.+$",
+			"exclude": [
+				"#mbtools#.*_ajson.*"
+			],
+			"exporting": "^E._.+$",
+			"ignoreExceptions": true,
+			"ignoreNames": [
+				"P_TASK"
+			],
+			"ignorePatterns": [],
+			"importing": "^I._.+$",
+			"patternKind": "required",
+			"returning": "^R._.+$",
+			"severity": "Error"
+		},
+		"mix_returning": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"msag_consistency": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"names_no_dash": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"nesting": {
+			"depth": 5,
+			"exclude": [
+				"#mbtools#.*_ajson.*"
+			],
+			"severity": "Error"
+		},
+		"newline_between_methods": {
+			"count": 3,
+			"exclude": [],
+			"logic": "less",
+			"severity": "Error"
+		},
+		"no_public_attributes": {
+			"allowReadOnly": true,
+			"exclude": [
+				"#mbtools#.*_ajson.*",
+				"#mbtools#cl_registry_ui.clas.abap",
+				"#mbtools#cl_tree_level.clas.abap"
+			],
+			"severity": "Error"
+		},
+		"object_naming": {
+			"auth": "^/MBTOOLS/",
+			"clas": "^/MBTOOLS/C(L|X)\\_",
+			"doma": "^/MBTOOLS/",
+			"dtel": "^/MBTOOLS/",
+			"enqu": "^/MBTOOLS/E_",
+			"exclude": [],
+			"fugr": "^/MBTOOLS/",
+			"idoc": "^/MBTOOLS/",
+			"ignoreNames": [],
+			"ignorePatterns": [],
+			"intf": "^/MBTOOLS/IF\\_",
+			"msag": "^/MBTOOLS/",
+			"patternKind": "required",
+			"pinf": "^/MBTOOLS/",
+			"prog": "^/MBTOOLS/",
+			"severity": "Error",
+			"shlp": "^/MBTOOLS/",
+			"ssfo": "^/MBTOOLS/",
+			"ssst": "^/MBTOOLS/",
+			"tabl": "^/MBTOOLS/",
+			"tran": "^/MBTOOLS/",
+			"ttyp": "^/MBTOOLS/",
+			"xslt": "^/MBTOOLS/"
+		},
+		"obsolete_statement": {
+			"add": true,
+			"compute": true,
+			"divide": true,
+			"exclude": [],
+			"fieldSymbolStructure": true,
+			"load": true,
+			"move": true,
+			"multiply": true,
+			"occurs": true,
+			"refresh": true,
+			"requested": true,
+			"setExtended": true,
+			"severity": "Error",
+			"subtract": true,
+			"typePools": true,
+			"withHeaderLine": true
+		},
+		"parser_error": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"parser_missing_space": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"prefer_inline": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"prefer_is_not": {
+			"exclude": [
+				"#mbtools#.*_ajson.*"
+			],
+			"severity": "Error"
+		},
+		"prefer_returning_to_exporting": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"preferred_compare_operator": {
+			"badOperators": [
+				"EQ",
+				"><",
+				"NE",
+				"GE",
+				"GT",
+				"LT",
+				"LE"
+			],
+			"exclude": [],
+			"severity": "Error"
+		},
+		"prefix_is_current_class": {
+			"exclude": [],
+			"omitMeInstanceCalls": true,
+			"severity": "Error"
+		},
+		"reduce_string_templates": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"release_idoc": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"remove_descriptions": {
+			"exclude": [
+				".*"
+			],
+			"ignoreExceptions": false,
+			"ignoreWorkflow": true,
+			"severity": "Error"
+		},
+		"rfc_error_handling": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"selection_screen_naming": {
+			"exclude": [],
+			"ignoreNames": [],
+			"ignorePatterns": [],
+			"parameter": "^P_.+$",
+			"patternKind": "required",
+			"selectOption": "^S_.+$",
+			"severity": "Error"
+		},
+		"sequential_blank": {
+			"exclude": [],
+			"lines": 4,
+			"severity": "Error"
+		},
+		"short_case": {
+			"allow": [],
+			"exclude": [],
+			"length": 1,
+			"severity": "Error"
+		},
+		"sicf_consistency": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"space_before_colon": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"space_before_dot": {
+			"exclude": [],
+			"ignoreExceptions": true,
+			"ignoreGlobalDefinition": true,
+			"severity": "Error"
+		},
+		"sql_escape_host_variables": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"start_at_tab": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"superclass_final": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"tabl_enhancement_category": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"try_without_catch": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"type_form_parameters": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"types_naming": {
+			"exclude": [
+				"#mbtools#.*_ajson.*"
+			],
+			"pattern": "^TY_.+$",
+			"severity": "Error"
+		},
+		"unknown_types": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"unreachable_code": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"unused_types": {
+			"exclude": [
+				"#mbtools#.*_ajson.*",
+				"#mbtools#if_definitions.intf.abap"
+			],
+			"severity": "Error",
+			"skipNames": []
+		},
+		"unused_variables": {
+			"exclude": [
+				"#mbtools#cl_datetime.clas.abap",
+				"#mbtools#cl_tree.clas.abap"
+			],
+			"severity": "Error",
+			"skipNames": [
+				"C_TITLE",
+				"C_TOOL",
+				"IO_TOOL",
+				"RV_RESULT"
+			]
+		},
+		"use_bool_expression": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"use_line_exists": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"use_new": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"when_others_last": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"whitespace_end": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"xml_consistency": {
+			"exclude": [],
+			"severity": "Error"
+		}
+	},
+	"syntax": {
+		"errorNamespace": "^(/MBTOOLS/|LCL_|LIF_|Y|Z)",
+		"globalConstants": [
+			"cl_abap_char_utilities=>horizontal_tab",
+			"cndp_lifetime_transaction",
+			"cndp_sap_subtype_unknown",
+			"icon_any_document",
+			"icon_binary_document",
+			"icon_biw_info_cube",
+			"icon_biw_report",
+			"icon_biw_virtual_info_provider",
+			"icon_bw_exception_monitor",
+			"icon_content_object",
+			"icon_doc",
+			"icon_dummy",
+			"icon_equal_green",
+			"icon_export",
+			"icon_filter",
+			"icon_generate",
+			"icon_gif",
+			"icon_hierarchy_act",
+			"icon_htm",
+			"icon_include_objects",
+			"icon_information",
+			"icon_jpg",
+			"icon_legal_reg",
+			"icon_master_data_act",
+			"icon_parameter",
+			"icon_pattern_exclude_red",
+			"icon_pdf",
+			"icon_ppt",
+			"icon_ranking",
+			"icon_rtf",
+			"icon_sap",
+			"icon_settings",
+			"icon_summarize",
+			"icon_system_extended_help",
+			"icon_system_help",
+			"icon_text_act",
+			"icon_tools",
+			"icon_transport",
+			"icon_url",
+			"icon_wri",
+			"icon_write_file",
+			"icon_xls",
+			"icon_xml_doc",
+			"rs_c_obj_dtel",
+			"rs_c_obj_nrob",
+			"rs_c_obj_tabl",
+			"rs_c_objvers",
+			"rs_c_tlogo",
+			"rsd_c_cubetype",
+			"rzd1_c_deftp",
+			"seoc_version_inactive",
+			"seok_access_free",
+			"seok_access_modify"
+		],
+		"globalMacros": [],
+		"version": "v702"
+	}
 }
