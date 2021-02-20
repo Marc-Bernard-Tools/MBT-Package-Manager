@@ -42,7 +42,7 @@ CLASS /mbtools/cl_tools DEFINITION
         key_lic_expire       TYPE string VALUE 'LicenseExpiration' ##NO_TEXT,
         " Settings
         settings             TYPE string VALUE 'Settings' ##NO_TEXT,
-        key_connected        TYPE string VALUE 'IsConnected' ##NO_TEXT,
+        key_offline          TYPE string VALUE 'IsOffline' ##NO_TEXT,
         key_rfcdest          TYPE string VALUE 'RFCDestination' ##NO_TEXT,
         key_ssl_client       TYPE string VALUE 'SSLClient' ##NO_TEXT,
         " Update

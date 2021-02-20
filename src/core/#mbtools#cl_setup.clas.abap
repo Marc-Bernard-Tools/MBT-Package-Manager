@@ -71,6 +71,10 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
 
     _application_log( ).
 
+    IF /mbtools/cl_mbt=>is_offline( ) = abap_true.
+      RETURN.
+    ENDIF.
+
     _certificates( ).
 
     _rfc_destinations( ).

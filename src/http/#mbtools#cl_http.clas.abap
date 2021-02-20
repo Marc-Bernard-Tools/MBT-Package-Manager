@@ -397,8 +397,8 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
 
         IF iv_regex IS SUPPLIED.
           lo_client->check_smart_response(
-              iv_expected_content_type = 'text/html*'
-              iv_content_regex         = iv_regex ).
+            iv_expected_content_type = 'text/html'
+            iv_content_regex         = iv_regex ).
         ENDIF.
 
         lo_client->close( ).
