@@ -1146,11 +1146,11 @@ CLASS zcl_abapgit_xml_pretty DEFINITION DEFERRED.
 CLASS zcl_abapinst_factory DEFINITION DEFERRED.
 CLASS zcl_abapinst_file DEFINITION DEFERRED.
 CLASS zcl_abapinst_file_status DEFINITION DEFERRED.
+CLASS zcl_abapinst_popups DEFINITION DEFERRED.
 CLASS zcl_abapinst_installer DEFINITION DEFERRED.
 CLASS zcl_abapinst_log_viewer DEFINITION DEFERRED.
 CLASS zcl_abapinst_objects DEFINITION DEFERRED.
 CLASS zcl_abapinst_persistence DEFINITION DEFERRED.
-CLASS zcl_abapinst_popups DEFINITION DEFERRED.
 CLASS zcl_abapinst_screen DEFINITION DEFERRED.
 CLASS zcl_abapinst_setup DEFINITION DEFERRED.
 CLASS zcl_abapinst_textpool DEFINITION DEFERRED.
@@ -2360,6 +2360,7 @@ INTERFACE zif_abapinst_definitions
       pack            TYPE devclass,
       version         TYPE string,
       sem_version     TYPE ty_version,
+      status          TYPE icon_d,
       description     TYPE string,
       source_type     TYPE string,
       source_name     TYPE string,
@@ -2370,7 +2371,6 @@ INTERFACE zif_abapinst_definitions
       installed_at    TYPE timestamp,
       updated_by      TYPE xubname,
       updated_at      TYPE timestamp,
-      status          TYPE sy-msgty,
     END OF ty_inst .
   TYPES:
     ty_list TYPE STANDARD TABLE OF ty_inst WITH KEY name pack .
@@ -4074,18 +4074,27 @@ CLASS zcl_abapgit_oo_base DEFINITION  ABSTRACT.
         RETURNING VALUE(rt_vseoattrib) TYPE seoo_attributes_r.
 
   PRIVATE SECTION.
-    DATA mv_skip_test_classes TYPE abap_bool.
 
+    DATA mv_skip_test_classes TYPE abap_bool .
+
+    METHODS deserialize_abap_source_lock
+      IMPORTING
+        !is_clskey TYPE seoclskey
+      RAISING
+        zcx_abapgit_exception .
     METHODS deserialize_abap_source_old
-      IMPORTING is_clskey TYPE seoclskey
-                it_source TYPE zif_abapgit_definitions=>ty_string_tt
-      RAISING   zcx_abapgit_exception.
-
+      IMPORTING
+        !is_clskey TYPE seoclskey
+        !it_source TYPE zif_abapgit_definitions=>ty_string_tt
+      RAISING
+        zcx_abapgit_exception .
     METHODS deserialize_abap_source_new
-      IMPORTING is_clskey TYPE seoclskey
-                it_source TYPE zif_abapgit_definitions=>ty_string_tt
-      RAISING   zcx_abapgit_exception
-                cx_sy_dyn_call_error.
+      IMPORTING
+        !is_clskey TYPE seoclskey
+        !it_source TYPE zif_abapgit_definitions=>ty_string_tt
+      RAISING
+        zcx_abapgit_exception
+        cx_sy_dyn_call_error .
 ENDCLASS.
 CLASS zcl_abapgit_oo_class DEFINITION
 
@@ -4805,7 +4814,9 @@ CLASS zcl_abapgit_object_idoc DEFINITION  INHERITING FROM zcl_abapgit_objects_su
 
     DATA: mv_idoctyp TYPE edi_iapi00-idoctyp.
 
-    CLASS-METHODS clear_idoc_segement_field  IMPORTING iv_fieldname TYPE csequence CHANGING cg_structure TYPE any.
+    CLASS-METHODS clear_idoc_segement_field
+      IMPORTING iv_fieldname TYPE csequence
+      CHANGING cg_structure TYPE any.
 
 ENDCLASS.
 CLASS zcl_abapgit_object_intf DEFINITION  FINAL INHERITING FROM zcl_abapgit_objects_program.
@@ -4942,6 +4953,10 @@ CLASS zcl_abapgit_object_para DEFINITION  INHERITING FROM zcl_abapgit_objects_su
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+
+    METHODS unlock
+      IMPORTING
+        !iv_paramid TYPE memoryid .
 ENDCLASS.
 CLASS zcl_abapgit_object_prog DEFINITION  INHERITING FROM zcl_abapgit_objects_program FINAL.
 
@@ -5086,22 +5101,26 @@ CLASS zcl_abapgit_object_tabl DEFINITION
 
     TYPES:
       ty_dd03p_tt TYPE STANDARD TABLE OF dd03p .
-
     TYPES:
       BEGIN OF ty_dd02_text,
         ddlanguage TYPE dd02t-ddlanguage,
         ddtext     TYPE dd02t-ddtext,
-      END OF ty_dd02_text,
-      ty_dd02_texts TYPE STANDARD TABLE OF ty_dd02_text.
+      END OF ty_dd02_text .
+    TYPES:
+      ty_dd02_texts TYPE STANDARD TABLE OF ty_dd02_text .
 
     CONSTANTS c_longtext_id_tabl TYPE dokil-id VALUE 'TB' ##NO_TEXT.
     CONSTANTS:
       BEGIN OF c_s_dataname,
         segment_definition TYPE string VALUE 'SEGMENT_DEFINITION',
         tabl_extras        TYPE string VALUE 'TABL_EXTRAS',
-      END OF c_s_dataname.
+      END OF c_s_dataname .
 
-
+    METHODS deserialize_indexes
+      IMPORTING
+        !io_xml TYPE REF TO zif_abapgit_xml_input
+      RAISING
+        zcx_abapgit_exception .
     METHODS clear_dd03p_fields
       CHANGING
         !ct_dd03p TYPE ty_dd03p_tt .
@@ -5109,26 +5128,29 @@ CLASS zcl_abapgit_object_tabl DEFINITION
     "! @parameter rv_is_idoc_segment | It's an IDoc segment or not
     METHODS is_idoc_segment
       RETURNING
-        VALUE(rv_is_idoc_segment) TYPE abap_bool.
+        VALUE(rv_is_idoc_segment) TYPE abap_bool .
     METHODS clear_dd03p_fields_common
       CHANGING
         !cs_dd03p TYPE dd03p .
     METHODS clear_dd03p_fields_dataelement
       CHANGING
         !cs_dd03p TYPE dd03p .
-
-    METHODS:
-      serialize_texts
-        IMPORTING io_xml TYPE REF TO zif_abapgit_xml_output
-        RAISING   zcx_abapgit_exception,
-      deserialize_texts
-        IMPORTING io_xml   TYPE REF TO zif_abapgit_xml_input
-                  is_dd02v TYPE dd02v
-        RAISING   zcx_abapgit_exception,
-      is_db_table_category
-        IMPORTING iv_tabclass                TYPE dd02l-tabclass
-        RETURNING VALUE(rv_is_db_table_type) TYPE dd02l-tabclass.
-
+    METHODS serialize_texts
+      IMPORTING
+        !io_xml TYPE REF TO zif_abapgit_xml_output
+      RAISING
+        zcx_abapgit_exception .
+    METHODS deserialize_texts
+      IMPORTING
+        !io_xml   TYPE REF TO zif_abapgit_xml_input
+        !is_dd02v TYPE dd02v
+      RAISING
+        zcx_abapgit_exception .
+    METHODS is_db_table_category
+      IMPORTING
+        !iv_tabclass               TYPE dd02l-tabclass
+      RETURNING
+        VALUE(rv_is_db_table_type) TYPE dd02l-tabclass .
 ENDCLASS.
 CLASS zcl_abapgit_object_tobj DEFINITION  INHERITING FROM zcl_abapgit_objects_super FINAL.
 
@@ -6026,6 +6048,95 @@ CLASS zcl_abapinst_file_status DEFINITION
       RAISING
         zcx_abapgit_exception .
 ENDCLASS.
+CLASS zcl_abapinst_popups DEFINITION
+
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+
+    TYPES:
+      BEGIN OF ty_alv_column,
+        name   TYPE string,
+        text   TYPE string,
+        length TYPE lvc_outlen,
+        key    TYPE abap_bool,
+      END OF ty_alv_column .
+    TYPES:
+      ty_alv_column_tt TYPE STANDARD TABLE OF ty_alv_column WITH KEY name .
+
+    CONSTANTS c_default_column TYPE lvc_fname VALUE `DEFAULT_COLUMN` ##NO_TEXT.
+
+    METHODS popup_to_enter_packaging
+      IMPORTING
+        !iv_name            TYPE csequence OPTIONAL
+        !iv_version         TYPE csequence OPTIONAL
+      RETURNING
+        VALUE(rs_packaging) TYPE zif_abapgit_dot_abapgit=>ty_packaging
+      RAISING
+        zcx_abapinst_exception .
+    METHODS popup_to_confirm
+      IMPORTING
+        !iv_title                 TYPE csequence
+        !iv_question              TYPE csequence
+        !iv_text_button_1         TYPE csequence DEFAULT 'Yes'
+        !iv_icon_button_1         TYPE icon-name DEFAULT space
+        !iv_text_button_2         TYPE csequence DEFAULT 'No'
+        !iv_icon_button_2         TYPE icon-name DEFAULT space
+        !iv_default_button        TYPE sy-input DEFAULT '1'
+        !iv_display_cancel_button TYPE sy-input DEFAULT abap_true
+      RETURNING
+        VALUE(rv_answer)          TYPE sy-input
+      RAISING
+        zcx_abapinst_exception .
+    METHODS popup_to_select_from_list
+      IMPORTING
+        !it_list               TYPE STANDARD TABLE
+        !iv_title              TYPE lvc_title DEFAULT space
+        !iv_header_text        TYPE csequence DEFAULT space
+        !iv_start_column       TYPE i DEFAULT 2
+        !iv_end_column         TYPE i DEFAULT 65
+        !iv_start_line         TYPE i DEFAULT 8
+        !iv_end_line           TYPE i DEFAULT 20
+        !iv_striped_pattern    TYPE abap_bool DEFAULT abap_false
+        !iv_optimize_col_width TYPE abap_bool DEFAULT abap_true
+        !iv_selection_mode     TYPE salv_de_constant DEFAULT if_salv_c_selection_mode=>multiple
+        !iv_select_column_text TYPE csequence DEFAULT space
+        !it_columns_to_display TYPE ty_alv_column_tt
+      EXPORTING
+        VALUE(et_list)         TYPE STANDARD TABLE
+      RAISING
+        zcx_abapinst_exception .
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+
+    CONSTANTS c_fieldname_selected TYPE lvc_fname VALUE `SELECTED` ##NO_TEXT.
+    DATA mo_select_list_popup TYPE REF TO cl_salv_table .
+    DATA mr_table TYPE REF TO data .
+    DATA mv_cancel TYPE abap_bool VALUE abap_false ##NO_TEXT.
+    DATA mo_table_descr TYPE REF TO cl_abap_tabledescr .
+
+    METHODS _create_new_table
+      IMPORTING
+        !it_list TYPE STANDARD TABLE .
+    METHODS _get_selected_rows
+      EXPORTING
+        !et_list TYPE INDEX TABLE .
+    METHODS _on_select_list_link_click
+        FOR EVENT link_click OF cl_salv_events_table
+      IMPORTING
+        !row
+        !column .
+    METHODS _on_select_list_function_click
+        FOR EVENT added_function OF cl_salv_events_table
+      IMPORTING
+        !e_salv_function .
+    METHODS _on_double_click
+        FOR EVENT double_click OF cl_salv_events_table
+      IMPORTING
+        !row
+        !column .
+ENDCLASS.
 CLASS zcl_abapinst_installer DEFINITION
 
   FINAL
@@ -6102,6 +6213,11 @@ CLASS zcl_abapinst_installer DEFINITION
     CLASS-METHODS list
       RAISING
         zcx_abapinst_exception .
+    CLASS-METHODS f4
+      RETURNING
+        VALUE(rs_inst) TYPE zif_abapinst_definitions=>ty_inst
+      RAISING
+        zcx_abapinst_exception .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -6117,8 +6233,11 @@ CLASS zcl_abapinst_installer DEFINITION
     CONSTANTS gc_warning TYPE sy-msgty VALUE 'W' ##NO_TEXT.
     CONSTANTS gc_error TYPE sy-msgty VALUE 'E' ##NO_TEXT.
 
-    CLASS-METHODS _transport_reset .
-    CLASS-METHODS _log_start .
+    CLASS-METHODS _nothing_found
+      IMPORTING
+        !it_list         TYPE ANY TABLE
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool .
     CLASS-METHODS _files
       IMPORTING
         !iv_enum_zip       TYPE i
@@ -6145,6 +6264,8 @@ CLASS zcl_abapinst_installer DEFINITION
         zcx_abapgit_exception
         zcx_abapinst_exception .
     CLASS-METHODS _check
+      IMPORTING
+        !iv_force TYPE abap_bool DEFAULT abap_false
       RAISING
         zcx_abapinst_exception .
     CLASS-METHODS _folder_logic
@@ -6155,7 +6276,10 @@ CLASS zcl_abapinst_installer DEFINITION
     CLASS-METHODS _transport
       IMPORTING
         !iv_enum_transport TYPE i
-        !iv_transport      TYPE trkorr OPTIONAL .
+        !iv_transport      TYPE trkorr OPTIONAL
+      RAISING
+        zcx_abapinst_exception .
+    CLASS-METHODS _transport_reset .
     CLASS-METHODS _namespaces
       RAISING
         zcx_abapgit_exception .
@@ -6169,6 +6293,10 @@ CLASS zcl_abapinst_installer DEFINITION
         !iv_pack TYPE zif_abapinst_definitions=>ty_pack
       RAISING
         zcx_abapinst_exception .
+    CLASS-METHODS _check_uninstalled
+      IMPORTING
+        !it_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt .
+    CLASS-METHODS _log_start .
     CLASS-METHODS _log_end
       RAISING
         zcx_abapinst_exception .
@@ -6506,95 +6634,6 @@ CLASS zcl_abapinst_persistence DEFINITION
       RAISING
         zcx_abapinst_exception .
 ENDCLASS.
-CLASS zcl_abapinst_popups DEFINITION
-
-  FINAL
-  CREATE PUBLIC .
-
-  PUBLIC SECTION.
-
-    TYPES:
-      BEGIN OF ty_alv_column,
-        name   TYPE string,
-        text   TYPE string,
-        length TYPE lvc_outlen,
-        key    TYPE abap_bool,
-      END OF ty_alv_column .
-    TYPES:
-      ty_alv_column_tt TYPE STANDARD TABLE OF ty_alv_column WITH KEY name .
-
-    CONSTANTS c_default_column TYPE lvc_fname VALUE `DEFAULT_COLUMN` ##NO_TEXT.
-
-    METHODS popup_to_enter_packaging
-      IMPORTING
-        !iv_name            TYPE csequence OPTIONAL
-        !iv_version         TYPE csequence OPTIONAL
-      RETURNING
-        VALUE(rs_packaging) TYPE zif_abapgit_dot_abapgit=>ty_packaging
-      RAISING
-        zcx_abapinst_exception .
-    METHODS popup_to_confirm
-      IMPORTING
-        !iv_title                 TYPE csequence
-        !iv_question              TYPE csequence
-        !iv_text_button_1         TYPE csequence DEFAULT 'Yes'
-        !iv_icon_button_1         TYPE icon-name DEFAULT space
-        !iv_text_button_2         TYPE csequence DEFAULT 'No'
-        !iv_icon_button_2         TYPE icon-name DEFAULT space
-        !iv_default_button        TYPE sy-input DEFAULT '1'
-        !iv_display_cancel_button TYPE sy-input DEFAULT abap_true
-      RETURNING
-        VALUE(rv_answer)          TYPE sy-input
-      RAISING
-        zcx_abapinst_exception .
-    METHODS popup_to_select_from_list
-      IMPORTING
-        !it_list               TYPE STANDARD TABLE
-        !iv_title              TYPE lvc_title DEFAULT space
-        !iv_header_text        TYPE csequence DEFAULT space
-        !iv_start_column       TYPE i DEFAULT 2
-        !iv_end_column         TYPE i DEFAULT 65
-        !iv_start_line         TYPE i DEFAULT 8
-        !iv_end_line           TYPE i DEFAULT 20
-        !iv_striped_pattern    TYPE abap_bool DEFAULT abap_false
-        !iv_optimize_col_width TYPE abap_bool DEFAULT abap_true
-        !iv_selection_mode     TYPE salv_de_constant DEFAULT if_salv_c_selection_mode=>multiple
-        !iv_select_column_text TYPE csequence DEFAULT space
-        !it_columns_to_display TYPE ty_alv_column_tt
-      EXPORTING
-        VALUE(et_list)         TYPE STANDARD TABLE
-      RAISING
-        zcx_abapinst_exception .
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-
-    CONSTANTS c_fieldname_selected TYPE lvc_fname VALUE `SELECTED` ##NO_TEXT.
-    DATA mo_select_list_popup TYPE REF TO cl_salv_table .
-    DATA mr_table TYPE REF TO data .
-    DATA mv_cancel TYPE abap_bool VALUE abap_false ##NO_TEXT.
-    DATA mo_table_descr TYPE REF TO cl_abap_tabledescr .
-
-    METHODS _create_new_table
-      IMPORTING
-        !it_list TYPE STANDARD TABLE .
-    METHODS _get_selected_rows
-      EXPORTING
-        !et_list TYPE INDEX TABLE .
-    METHODS _on_select_list_link_click
-        FOR EVENT link_click OF cl_salv_events_table
-      IMPORTING
-        !row
-        !column .
-    METHODS _on_select_list_function_click
-        FOR EVENT added_function OF cl_salv_events_table
-      IMPORTING
-        !e_salv_function .
-    METHODS _on_double_click
-        FOR EVENT double_click OF cl_salv_events_table
-      IMPORTING
-        !row
-        !column .
-ENDCLASS.
 CLASS zcl_abapinst_screen DEFINITION
 
   FINAL
@@ -6639,9 +6678,6 @@ CLASS zcl_abapinst_screen DEFINITION
         !iv_layer           TYPE devlayer OPTIONAL
       RETURNING
         VALUE(rv_transport) TYPE trkorr .
-    CLASS-METHODS f4_inst
-      RETURNING
-        VALUE(rs_inst) TYPE zif_abapinst_definitions=>ty_inst .
     CLASS-METHODS banner
       IMPORTING
         !iv_show TYPE abap_bool DEFAULT abap_true
@@ -9734,6 +9770,9 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
 
   METHOD activate.
 
+    " Make sure that all changes are committed since any activation error will lead to a rollback
+    COMMIT WORK AND WAIT.
+
     IF use_new_activation_logic( ) = abap_true.
       activate_new( iv_ddic ).
     ELSE.
@@ -11469,6 +11508,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
   METHOD deserialize_program.
 
     DATA: lv_exists      TYPE abap_bool,
+          lt_empty_src   LIKE it_source,
           lv_progname    TYPE reposrc-progname,
           ls_tpool       LIKE LINE OF it_tpool,
           lv_title       TYPE rglif-title,
@@ -11538,14 +11578,13 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
 * to the current user which avoids the check
           zcx_abapgit_exception=>raise( |Delete function group and pull again, { is_progdir-name } (EU522)| ).
         ELSE.
-          zcx_abapgit_exception=>raise( |PROG { is_progdir-name }, updating error: { sy-msgid } { sy-msgno }| ).
+          zcx_abapgit_exception=>raise_t100( ).
         ENDIF.
       ENDIF.
 
       zcl_abapgit_language=>restore_login_language( ).
     ELSEIF strlen( is_progdir-name ) > 30.
 * function module RPY_PROGRAM_INSERT cannot handle function group includes
-
       " special treatment for extensions
       " if the program name exceeds 30 characters it is not a usual
       " ABAP program but might be some extension, which requires the internal
@@ -11565,7 +11604,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
         STATE 'I'
         PROGRAM TYPE is_progdir-subc.
       IF sy-subrc <> 0.
-        zcx_abapgit_exception=>raise( 'error from INSERT REPORT' ).
+        zcx_abapgit_exception=>raise_t100( ).
       ENDIF.
     ENDIF.
 
@@ -12465,10 +12504,34 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD deserialize_abap_source_lock.
+
+    " This method will be called if the modification assistant can't be suppressed via
+    " IF_OO_CLIF_SOURCE_SETTINGS (which is necessary for namespaced clif objects)
+    CALL FUNCTION 'SEO_CLIF_ACCESS_PERMISSION'
+      EXPORTING
+        cifkey                        = is_clskey
+        mode                          = seok_access_modify
+        suppress_langu_check          = abap_true
+        suppress_language_dialog      = abap_true
+        suppress_modification_support = abap_true
+        suppress_modification_popups  = abap_true
+        suppress_dialog               = 'D'
+      EXCEPTIONS
+        no_access                     = 1
+        OTHERS                        = 2.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise( 'source_lock, access permission exception' ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD deserialize_abap_source_new.
     DATA: lo_factory  TYPE REF TO object,
           lo_source   TYPE REF TO object,
           lo_settings TYPE REF TO object,
+          lv_par_err  TYPE abap_bool,
           lr_settings TYPE REF TO data.
 
     FIELD-SYMBOLS <lg_settings> TYPE any.
@@ -12488,11 +12551,19 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
 
     "Enable modification mode to avoid exception CX_OO_ACCESS_PERMISSON when
     "dealing with objects in foreign namespaces (namespace role = C)
-    CALL METHOD lo_factory->('CREATE_SETTINGS')
-      EXPORTING
-        modification_mode_enabled = abap_true
-      RECEIVING
-        result                    = lo_settings.
+    TRY.
+        CALL METHOD lo_factory->('CREATE_SETTINGS')
+          EXPORTING
+            modification_mode_enabled = abap_true
+          RECEIVING
+            result                    = lo_settings.
+      CATCH cx_sy_dyn_call_parameter_error.
+        " modification_mode_enable does not exist in older releases
+        lv_par_err = abap_true.
+        CALL METHOD lo_factory->('CREATE_SETTINGS')
+          RECEIVING
+            result = lo_settings.
+    ENDTRY.
 
     CREATE DATA lr_settings TYPE REF TO ('IF_OO_CLIF_SOURCE_SETTINGS').
     ASSIGN lr_settings->* TO <lg_settings>.
@@ -12507,7 +12578,11 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
         result    = lo_source.
 
     TRY.
-        CALL METHOD lo_source->('IF_OO_CLIF_SOURCE~LOCK').
+        IF lv_par_err = abap_true AND is_clskey-clsname CP '/*'.
+          deserialize_abap_source_lock( is_clskey ).
+        ELSE.
+          CALL METHOD lo_source->('IF_OO_CLIF_SOURCE~LOCK').
+        ENDIF.
       CATCH cx_oo_access_permission.
         zcx_abapgit_exception=>raise( 'source_new, access permission exception' ).
     ENDTRY.
@@ -12527,6 +12602,7 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
     "for backwards compatability down to 702
 
     DATA: lo_source TYPE REF TO cl_oo_source.
+    DATA lo_helper TYPE REF TO cl_oo_exception_class.
 
     CREATE OBJECT lo_source
       EXPORTING
@@ -12539,14 +12615,33 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        lo_source->access_permission( seok_access_modify ).
+        IF is_clskey-clsname CP '/*'.
+          deserialize_abap_source_lock( is_clskey ).
+        ELSE.
+          lo_source->access_permission( seok_access_modify ).
+        ENDIF.
+      CATCH cx_oo_access_permission.
+        zcx_abapgit_exception=>raise( 'permission error' ).
+    ENDTRY.
+
+    TRY.
         lo_source->set_source( it_source ).
         lo_source->save( ).
         lo_source->access_permission( seok_access_free ).
-      CATCH cx_oo_access_permission.
-        zcx_abapgit_exception=>raise( 'permission error' ).
       CATCH cx_oo_source_save_failure.
         zcx_abapgit_exception=>raise( 'save failure' ).
+    ENDTRY.
+
+    " Repair subclasses of exception class
+    TRY.
+        CREATE OBJECT lo_helper
+          EXPORTING
+            clskey = is_clskey.
+
+        IF lo_helper->is_t100_exception( ) = abap_true.
+          lo_helper->repair_subclasses( ).
+        ENDIF.
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
   ENDMETHOD.
@@ -14099,7 +14194,8 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
     ENDLOOP.
 
     " Remove TADIR entries for objects that do not exist anymore
-    SELECT * FROM tadir INTO CORRESPONDING FIELDS OF TABLE lt_tadir WHERE devclass = iv_package_name.
+    SELECT * FROM tadir INTO CORRESPONDING FIELDS OF TABLE lt_tadir
+      WHERE devclass = iv_package_name ##TOO_MANY_ITAB_FIELDS.
 
     LOOP AT lt_tadir INTO ls_tadir.
       ls_item-obj_type = ls_tadir-object.
@@ -19813,6 +19909,17 @@ ENDCLASS.
 CLASS zcl_abapgit_object_para IMPLEMENTATION.
 
 
+  METHOD unlock.
+
+    CALL FUNCTION 'RS_ACCESS_PERMISSION'
+      EXPORTING
+        mode         = 'FREE'
+        object       = iv_paramid
+        object_class = 'PARA'.
+
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_object~changed_by.
 * looks like "changed by user" is not stored in the database
     rv_user = c_user_unknown.
@@ -19854,12 +19961,14 @@ CLASS zcl_abapgit_object_para IMPLEMENTATION.
     SELECT COUNT(*) FROM cross
       WHERE ( type = 'P' OR type = 'Q' ) AND name = lv_paramid.
     IF sy-subrc = 0.
+      unlock( lv_paramid ).
       zcx_abapgit_exception=>raise( 'PARA: Parameter is still used' ).
     ELSE.
       SELECT COUNT(*) FROM dd04l BYPASSING BUFFER
         WHERE memoryid = lv_paramid
         AND as4local = 'A'.
       IF sy-subrc = 0.
+        unlock( lv_paramid ).
         zcx_abapgit_exception=>raise( 'PARA: Parameter is still used' ).
       ENDIF.
     ENDIF.
@@ -19889,14 +19998,11 @@ CLASS zcl_abapgit_object_para IMPLEMENTATION.
             type      = 'CR'.
       ENDIF.
     ELSE.
+      unlock( lv_paramid ).
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    CALL FUNCTION 'RS_ACCESS_PERMISSION'
-      EXPORTING
-        mode         = 'FREE'
-        object       = lv_paramid
-        object_class = 'PARA'.
+    unlock( lv_paramid ).
 
   ENDMETHOD.
 
@@ -20534,6 +20640,11 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
 
     ENDLOOP.
 
+    " Clear position to avoid issues with include structures that contain different number of fields
+    LOOP AT ct_dd03p ASSIGNING <ls_dd03p>.
+      CLEAR: <ls_dd03p>-position, <ls_dd03p>-tabname, <ls_dd03p>-ddlanguage.
+    ENDLOOP.
+
   ENDMETHOD.
 
 
@@ -20704,6 +20815,65 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
     IF sy-subrc <> 0.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
+  ENDMETHOD.
+
+
+  METHOD deserialize_indexes.
+
+    DATA:
+      lv_tname     TYPE trobj_name,
+      lt_dd12v     TYPE dd12vtab,
+      ls_dd12v     LIKE LINE OF lt_dd12v,
+      lt_dd17v     TYPE dd17vtab,
+      ls_dd17v     LIKE LINE OF lt_dd17v,
+      lt_secondary LIKE lt_dd17v.
+
+    io_xml->read( EXPORTING iv_name = 'DD12V'
+                  CHANGING cg_data = lt_dd12v ).
+    io_xml->read( EXPORTING iv_name = 'DD17V'
+                  CHANGING cg_data = lt_dd17v ).
+
+    LOOP AT lt_dd12v INTO ls_dd12v.
+
+* todo, call corr_insert?
+
+      CLEAR lt_secondary.
+      LOOP AT lt_dd17v INTO ls_dd17v
+          WHERE sqltab = ls_dd12v-sqltab AND indexname = ls_dd12v-indexname.
+        APPEND ls_dd17v TO lt_secondary.
+      ENDLOOP.
+
+      CALL FUNCTION 'DDIF_INDX_PUT'
+        EXPORTING
+          name              = ls_dd12v-sqltab
+          id                = ls_dd12v-indexname
+          dd12v_wa          = ls_dd12v
+        TABLES
+          dd17v_tab         = lt_secondary
+        EXCEPTIONS
+          indx_not_found    = 1
+          name_inconsistent = 2
+          indx_inconsistent = 3
+          put_failure       = 4
+          put_refused       = 5
+          OTHERS            = 6.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise_t100( ).
+      ENDIF.
+
+      CALL FUNCTION 'DD_DD_TO_E071'
+        EXPORTING
+          type     = 'INDX'
+          name     = ls_dd12v-sqltab
+          id       = ls_dd12v-indexname
+        IMPORTING
+          obj_name = lv_tname.
+
+      zcl_abapgit_objects_activation=>add( iv_type = 'INDX'
+                                           iv_name = lv_tname ).
+
+    ENDLOOP.
+
   ENDMETHOD.
 
 
@@ -21027,25 +21197,25 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    DATA: lv_name      TYPE ddobjname,
-          lv_tname     TYPE trobj_name,
-          ls_dd02v     TYPE dd02v,
-          ls_dd09l     TYPE dd09l,
-          lt_dd03p     TYPE TABLE OF dd03p,
-          lt_dd05m     TYPE TABLE OF dd05m,
-          lt_dd08v     TYPE TABLE OF dd08v,
-          lt_dd12v     TYPE dd12vtab,
-          lt_dd17v     TYPE dd17vtab,
-          ls_dd17v     LIKE LINE OF lt_dd17v,
-          lt_secondary LIKE lt_dd17v,
-          lt_dd35v     TYPE TABLE OF dd35v,
-          lt_dd36m     TYPE dd36mttyp,
-          ls_dd12v     LIKE LINE OF lt_dd12v,
-          lv_refs      TYPE abap_bool,
-          ls_extras    TYPE ty_tabl_extras.
+    DATA: lv_name   TYPE ddobjname,
+          ls_dd02v  TYPE dd02v,
+          ls_dd09l  TYPE dd09l,
+          lt_dd03p  TYPE TABLE OF dd03p,
+          lt_dd05m  TYPE TABLE OF dd05m,
+          lt_dd08v  TYPE TABLE OF dd08v,
+          lt_dd35v  TYPE TABLE OF dd35v,
+          lt_dd36m  TYPE dd36mttyp,
+          lv_refs   TYPE abap_bool,
+          ls_extras TYPE ty_tabl_extras.
 
-    FIELD-SYMBOLS: <ls_dd03p> TYPE dd03p,
+    FIELD-SYMBOLS: <ls_dd03p>      TYPE dd03p,
+                   <ls_dd05m>      TYPE dd05m,
+                   <ls_dd08v>      TYPE dd08v,
+                   <ls_dd35v>      TYPE dd35v,
+                   <ls_dd36m>      TYPE dd36m,
                    <lg_roworcolst> TYPE any.
+
+    lv_name = ms_item-obj_name. " type conversion
 
     IF deserialize_idoc_segment( io_xml     = io_xml
                                  iv_package = iv_package ) = abap_false.
@@ -21070,18 +21240,35 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
         ENDIF.
       ENDLOOP.
 
+      " Number fields sequentially and fill table name
+      LOOP AT lt_dd03p ASSIGNING <ls_dd03p>.
+        <ls_dd03p>-position   = sy-tabix.
+        <ls_dd03p>-tabname    = lv_name.
+        <ls_dd03p>-ddlanguage = mv_language.
+      ENDLOOP.
+
       io_xml->read( EXPORTING iv_name = 'DD05M_TABLE'
                     CHANGING cg_data = lt_dd05m ).
       io_xml->read( EXPORTING iv_name = 'DD08V_TABLE'
                     CHANGING cg_data = lt_dd08v ).
-      io_xml->read( EXPORTING iv_name = 'DD12V'
-                    CHANGING cg_data = lt_dd12v ).
-      io_xml->read( EXPORTING iv_name = 'DD17V'
-                    CHANGING cg_data = lt_dd17v ).
       io_xml->read( EXPORTING iv_name = 'DD35V_TALE'
                     CHANGING cg_data = lt_dd35v ).
       io_xml->read( EXPORTING iv_name = 'DD36M'
                     CHANGING cg_data = lt_dd36m ).
+
+      LOOP AT lt_dd05m ASSIGNING <ls_dd05m>.
+        <ls_dd05m>-tabname = lv_name.
+      ENDLOOP.
+      LOOP AT lt_dd08v ASSIGNING <ls_dd08v>.
+        <ls_dd08v>-tabname = lv_name.
+        <ls_dd08v>-ddlanguage = mv_language.
+      ENDLOOP.
+      LOOP AT lt_dd35v ASSIGNING <ls_dd35v>.
+        <ls_dd35v>-tabname = lv_name.
+      ENDLOOP.
+      LOOP AT lt_dd36m ASSIGNING <ls_dd36m>.
+        <ls_dd36m>-tabname = lv_name.
+      ENDLOOP.
 
       " DDIC Step: Remove references to search helps and foreign keys
       IF iv_step = zif_abapgit_object=>gc_step_id-ddic.
@@ -21095,8 +21282,6 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
 
       corr_insert( iv_package = iv_package
                    ig_object_class = 'DICT' ).
-
-      lv_name = ms_item-obj_name. " type conversion
 
       CALL FUNCTION 'DDIF_TABL_PUT'
         EXPORTING
@@ -21122,47 +21307,7 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
 
       zcl_abapgit_objects_activation=>add_item( ms_item ).
 
-* handle indexes
-      LOOP AT lt_dd12v INTO ls_dd12v.
-
-* todo, call corr_insert?
-
-        CLEAR lt_secondary.
-        LOOP AT lt_dd17v INTO ls_dd17v
-            WHERE sqltab = ls_dd12v-sqltab AND indexname = ls_dd12v-indexname.
-          APPEND ls_dd17v TO lt_secondary.
-        ENDLOOP.
-
-        CALL FUNCTION 'DDIF_INDX_PUT'
-          EXPORTING
-            name              = ls_dd12v-sqltab
-            id                = ls_dd12v-indexname
-            dd12v_wa          = ls_dd12v
-          TABLES
-            dd17v_tab         = lt_secondary
-          EXCEPTIONS
-            indx_not_found    = 1
-            name_inconsistent = 2
-            indx_inconsistent = 3
-            put_failure       = 4
-            put_refused       = 5
-            OTHERS            = 6.
-        IF sy-subrc <> 0.
-          zcx_abapgit_exception=>raise_t100( ).
-        ENDIF.
-
-        CALL FUNCTION 'DD_DD_TO_E071'
-          EXPORTING
-            type     = 'INDX'
-            name     = ls_dd12v-sqltab
-            id       = ls_dd12v-indexname
-          IMPORTING
-            obj_name = lv_tname.
-
-        zcl_abapgit_objects_activation=>add( iv_type = 'INDX'
-                                             iv_name = lv_tname ).
-
-      ENDLOOP.
+      deserialize_indexes( io_xml ).
 
       deserialize_texts( io_xml   = io_xml
                          is_dd02v = ls_dd02v ).
@@ -21273,9 +21418,10 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
 
     FIELD-SYMBOLS: <ls_dd12v>      LIKE LINE OF lt_dd12v,
                    <ls_dd05m>      LIKE LINE OF lt_dd05m,
+                   <ls_dd08v>      LIKE LINE OF lt_dd08v,
+                   <ls_dd35v>      LIKE LINE OF lt_dd35v,
                    <ls_dd36m>      LIKE LINE OF lt_dd36m,
                    <lg_roworcolst> TYPE any.
-
 
     lv_name = ms_item-obj_name.
 
@@ -21343,6 +21489,7 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
 * remove foreign keys inherited from .INCLUDEs
     DELETE lt_dd08v WHERE noinherit = 'N'.
     LOOP AT lt_dd05m ASSIGNING <ls_dd05m>.
+      CLEAR <ls_dd05m>-tabname.
       lv_index = sy-tabix.
       READ TABLE lt_dd08v WITH KEY fieldname = <ls_dd05m>-fieldname TRANSPORTING NO FIELDS.
       IF sy-subrc <> 0.
@@ -21350,9 +21497,17 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
       ENDIF.
     ENDLOOP.
 
+    LOOP AT lt_dd08v ASSIGNING <ls_dd08v>.
+      CLEAR: <ls_dd08v>-tabname, <ls_dd08v>-ddlanguage.
+    ENDLOOP.
+    LOOP AT lt_dd35v ASSIGNING <ls_dd35v>.
+      CLEAR <ls_dd35v>-tabname.
+    ENDLOOP.
+
 * remove inherited search helps
     DELETE lt_dd35v WHERE shlpinher = abap_true.
     LOOP AT lt_dd36m ASSIGNING <ls_dd36m>.
+      CLEAR <ls_dd36m>-tabname.
       lv_index = sy-tabix.
       READ TABLE lt_dd35v WITH KEY fieldname = <ls_dd36m>-fieldname TRANSPORTING NO FIELDS.
       IF sy-subrc <> 0.
@@ -26131,6 +26286,464 @@ ENDCLASS.
 
 
 
+CLASS zcl_abapinst_popups IMPLEMENTATION.
+
+
+  METHOD popup_to_confirm.
+
+    CALL FUNCTION 'POPUP_TO_CONFIRM'
+      EXPORTING
+        titlebar              = iv_title
+        text_question         = iv_question
+        text_button_1         = iv_text_button_1
+        icon_button_1         = iv_icon_button_1
+        text_button_2         = iv_text_button_2
+        icon_button_2         = iv_icon_button_2
+        default_button        = iv_default_button
+        display_cancel_button = iv_display_cancel_button
+      IMPORTING
+        answer                = rv_answer
+      EXCEPTIONS
+        text_not_found        = 1
+        OTHERS                = 2.
+    IF sy-subrc <> 0.
+      zcx_abapinst_exception=>raise( 'Error from POPUP_TO_CONFIRM' ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD popup_to_enter_packaging.
+
+    DATA:
+      lt_fields TYPE zcl_abapgit_free_sel_dialog=>ty_free_sel_field_tab,
+      lo_dialog TYPE REF TO zcl_abapgit_free_sel_dialog,
+      lx_error  TYPE REF TO zcx_abapgit_exception.
+
+    FIELD-SYMBOLS:
+      <ls_field> TYPE zcl_abapgit_free_sel_dialog=>ty_free_sel_field.
+
+    APPEND INITIAL LINE TO lt_fields ASSIGNING <ls_field>.
+    <ls_field>-name             = 'NAME'.
+    <ls_field>-text             = 'Name'.
+    <ls_field>-only_parameter   = abap_true.
+    <ls_field>-ddic_tabname     = 'E071'.
+    <ls_field>-ddic_fieldname   = 'OBJ_NAME'.
+    <ls_field>-param_obligatory = abap_true.
+    <ls_field>-value            = iv_name.
+
+    APPEND INITIAL LINE TO lt_fields ASSIGNING <ls_field>.
+    <ls_field>-name             = 'VERSION'.
+    <ls_field>-text             = 'Version'.
+    <ls_field>-only_parameter   = abap_true.
+    <ls_field>-ddic_tabname     = 'TTREV'.
+    <ls_field>-ddic_fieldname   = 'VERSION'.
+    <ls_field>-param_obligatory = abap_true.
+    <ls_field>-value            = iv_version.
+
+    TRY.
+        CREATE OBJECT lo_dialog
+          EXPORTING
+            iv_title      = |abapinst|
+            iv_frame_text = |Packaging Details|.
+
+        lo_dialog->set_fields( CHANGING ct_fields = lt_fields ).
+        lo_dialog->show( ).
+
+        LOOP AT lt_fields ASSIGNING <ls_field>.
+          CASE <ls_field>-name.
+            WHEN 'NAME'.
+              rs_packaging-name = <ls_field>-value.
+            WHEN 'VERSION'.
+              rs_packaging-version = <ls_field>-value.
+              rs_packaging-sem_version = zcl_abapgit_version=>conv_str_to_version( rs_packaging-version ).
+          ENDCASE.
+        ENDLOOP.
+
+      CATCH zcx_abapgit_cancel.
+        RETURN.
+      CATCH zcx_abapgit_exception INTO lx_error.
+        zcx_abapinst_exception=>raise( lx_error->get_text( ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD popup_to_select_from_list.
+
+    DATA:
+      lv_pfstatus     TYPE sypfkey,
+      lo_events       TYPE REF TO cl_salv_events_table,
+      lo_columns      TYPE REF TO cl_salv_columns_table,
+      lt_columns      TYPE salv_t_column_ref,
+      ls_column       TYPE salv_s_column_ref,
+      lo_column       TYPE REF TO cl_salv_column_list,
+      lo_table_header TYPE REF TO cl_salv_form_text.
+
+    FIELD-SYMBOLS:
+      <lt_table>             TYPE STANDARD TABLE,
+      <ls_column_to_display> TYPE ty_alv_column.
+
+    CLEAR: et_list.
+
+    _create_new_table( it_list ).
+
+    ASSIGN mr_table->* TO <lt_table>.
+    ASSERT sy-subrc = 0.
+
+    TRY.
+        cl_salv_table=>factory( IMPORTING r_salv_table = mo_select_list_popup
+                                CHANGING  t_table = <lt_table> ).
+
+        CASE iv_selection_mode.
+          WHEN if_salv_c_selection_mode=>single.
+            lv_pfstatus = '110'.
+
+          WHEN OTHERS.
+            lv_pfstatus = '102'.
+
+        ENDCASE.
+
+        mo_select_list_popup->set_screen_status( pfstatus = lv_pfstatus
+                                                 report = 'SAPMSVIM' ).
+
+        mo_select_list_popup->set_screen_popup( start_column = iv_start_column
+                                                end_column   = iv_end_column
+                                                start_line   = iv_start_line
+                                                end_line     = iv_end_line ).
+
+        lo_events = mo_select_list_popup->get_event( ).
+
+        SET HANDLER _on_select_list_link_click FOR lo_events.
+        SET HANDLER _on_select_list_function_click FOR lo_events.
+        SET HANDLER _on_double_click FOR lo_events.
+
+        IF iv_title CN ' _0'.
+          mo_select_list_popup->get_display_settings( )->set_list_header( iv_title ).
+        ENDIF.
+
+        IF iv_header_text CN ' _0'.
+          CREATE OBJECT lo_table_header
+            EXPORTING
+              text = iv_header_text.
+          mo_select_list_popup->set_top_of_list( lo_table_header ).
+        ENDIF.
+
+        mo_select_list_popup->get_display_settings( )->set_striped_pattern( iv_striped_pattern ).
+        mo_select_list_popup->get_selections( )->set_selection_mode( iv_selection_mode ).
+
+        lo_columns = mo_select_list_popup->get_columns( ).
+        lt_columns = lo_columns->get( ).
+        lo_columns->set_optimize( iv_optimize_col_width ).
+
+        LOOP AT lt_columns INTO ls_column.
+
+          lo_column ?= ls_column-r_column.
+
+          IF    iv_selection_mode    = if_salv_c_selection_mode=>multiple
+            AND ls_column-columnname = c_fieldname_selected.
+            lo_column->set_cell_type( if_salv_c_cell_type=>checkbox_hotspot ).
+            lo_column->set_output_length( 20 ).
+            lo_column->set_short_text( |{ iv_select_column_text }| ).
+            lo_column->set_medium_text( |{ iv_select_column_text }| ).
+            lo_column->set_long_text( |{ iv_select_column_text }| ).
+            CONTINUE.
+          ENDIF.
+
+          READ TABLE it_columns_to_display
+            ASSIGNING <ls_column_to_display>
+            WITH KEY name = ls_column-columnname.
+
+          CASE sy-subrc.
+            WHEN 0.
+              IF <ls_column_to_display>-text CN ' _0'.
+                lo_column->set_short_text( |{ <ls_column_to_display>-text }| ).
+                lo_column->set_medium_text( |{ <ls_column_to_display>-text }| ).
+                lo_column->set_long_text( |{ <ls_column_to_display>-text }| ).
+              ENDIF.
+
+              IF <ls_column_to_display>-length > 0.
+                lo_column->set_output_length( <ls_column_to_display>-length ).
+              ENDIF.
+
+              lo_column->set_key( <ls_column_to_display>-key ).
+
+            WHEN OTHERS.
+              " Hide column
+              lo_column->set_technical( abap_true ).
+
+          ENDCASE.
+
+        ENDLOOP.
+
+        mo_select_list_popup->display( ).
+
+      CATCH cx_salv_msg.
+        zcx_abapinst_exception=>raise( 'Error from POPUP_TO_SELECT_FROM_LIST' ).
+    ENDTRY.
+
+    IF mv_cancel = abap_true.
+      mv_cancel = abap_false.
+      RETURN.
+    ENDIF.
+
+    _get_selected_rows( IMPORTING et_list = et_list ).
+
+    CLEAR: mo_select_list_popup,
+           mr_table,
+           mo_table_descr.
+
+  ENDMETHOD.
+
+
+  METHOD _create_new_table.
+
+    " create and populate a table on the fly derived from
+    " it_data with a select column
+
+    DATA:
+      lr_struct        TYPE REF TO data,
+      lt_components    TYPE cl_abap_structdescr=>component_table,
+      lo_data_descr    TYPE REF TO cl_abap_datadescr,
+      lo_elem_descr    TYPE REF TO cl_abap_elemdescr,
+      lo_struct_descr  TYPE REF TO cl_abap_structdescr,
+      lo_struct_descr2 TYPE REF TO cl_abap_structdescr.
+
+    FIELD-SYMBOLS:
+      <lt_table>     TYPE STANDARD TABLE,
+      <ls_component> TYPE abap_componentdescr,
+      <lg_line>      TYPE data,
+      <lg_data>      TYPE any,
+      <lg_value>     TYPE any.
+
+    mo_table_descr ?= cl_abap_tabledescr=>describe_by_data( it_list ).
+    lo_data_descr = mo_table_descr->get_table_line_type( ).
+
+    CASE lo_data_descr->kind.
+      WHEN cl_abap_elemdescr=>kind_elem.
+        lo_elem_descr ?= mo_table_descr->get_table_line_type( ).
+        INSERT INITIAL LINE INTO lt_components ASSIGNING <ls_component> INDEX 1.
+        <ls_component>-name = c_default_column.
+        <ls_component>-type = lo_elem_descr.
+
+      WHEN cl_abap_elemdescr=>kind_struct.
+        lo_struct_descr ?= mo_table_descr->get_table_line_type( ).
+        lt_components = lo_struct_descr->get_components( ).
+
+    ENDCASE.
+
+    IF lt_components IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    INSERT INITIAL LINE INTO lt_components ASSIGNING <ls_component> INDEX 1.
+    <ls_component>-name = c_fieldname_selected.
+    <ls_component>-type ?= cl_abap_datadescr=>describe_by_name( 'FLAG' ).
+
+    lo_struct_descr2 = cl_abap_structdescr=>create( lt_components ).
+    mo_table_descr = cl_abap_tabledescr=>create( lo_struct_descr2 ).
+
+    CREATE DATA mr_table TYPE HANDLE mo_table_descr.
+    ASSIGN mr_table->* TO <lt_table>.
+    ASSERT sy-subrc = 0.
+
+    CREATE DATA lr_struct TYPE HANDLE lo_struct_descr2.
+    ASSIGN lr_struct->* TO <lg_line>.
+    ASSERT sy-subrc = 0.
+
+    LOOP AT it_list ASSIGNING <lg_data>.
+      CLEAR <lg_line>.
+      CASE lo_data_descr->kind.
+        WHEN cl_abap_elemdescr=>kind_elem.
+          ASSIGN COMPONENT c_default_column OF STRUCTURE <lg_data> TO <lg_value>.
+          ASSERT <lg_value> IS ASSIGNED.
+          <lg_line> = <lg_value>.
+
+        WHEN OTHERS.
+          MOVE-CORRESPONDING <lg_data> TO <lg_line>.
+
+      ENDCASE.
+      INSERT <lg_line> INTO TABLE <lt_table>.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD _get_selected_rows.
+
+    DATA:
+      lv_condition TYPE string,
+      lr_exporting TYPE REF TO data.
+
+    FIELD-SYMBOLS:
+      <lg_exporting>    TYPE any,
+      <lt_table>        TYPE STANDARD TABLE,
+      <lg_line>         TYPE any,
+      <lg_value>        TYPE any,
+      <lv_selected>     TYPE abap_bool,
+      <lv_selected_row> TYPE LINE OF salv_t_row.
+
+    DATA: lo_data_descr    TYPE REF TO cl_abap_datadescr,
+          lo_selections    TYPE REF TO cl_salv_selections,
+          lt_selected_rows TYPE salv_t_row.
+
+    ASSIGN mr_table->* TO <lt_table>.
+    ASSERT sy-subrc = 0.
+
+    lo_selections = mo_select_list_popup->get_selections( ).
+
+    IF lo_selections->get_selection_mode( ) = if_salv_c_selection_mode=>single.
+
+      lt_selected_rows = lo_selections->get_selected_rows( ).
+
+      LOOP AT lt_selected_rows ASSIGNING <lv_selected_row>.
+
+        READ TABLE <lt_table>
+          ASSIGNING <lg_line>
+          INDEX <lv_selected_row>.
+        CHECK <lg_line> IS ASSIGNED.
+
+        ASSIGN COMPONENT c_fieldname_selected
+           OF STRUCTURE <lg_line>
+           TO <lv_selected>.
+        CHECK <lv_selected> IS ASSIGNED.
+
+        <lv_selected> = abap_true.
+
+      ENDLOOP.
+
+    ENDIF.
+
+    lv_condition = |{ c_fieldname_selected } = ABAP_TRUE|.
+
+    CREATE DATA lr_exporting LIKE LINE OF et_list.
+    ASSIGN lr_exporting->* TO <lg_exporting>.
+
+    mo_table_descr ?= cl_abap_tabledescr=>describe_by_data( et_list ).
+    lo_data_descr = mo_table_descr->get_table_line_type( ).
+
+    LOOP AT <lt_table> ASSIGNING <lg_line> WHERE (lv_condition).
+      CLEAR <lg_exporting>.
+
+      CASE lo_data_descr->kind.
+        WHEN cl_abap_elemdescr=>kind_elem.
+          ASSIGN COMPONENT c_default_column OF STRUCTURE <lg_line> TO <lg_value>.
+          ASSERT <lg_value> IS ASSIGNED.
+          <lg_exporting> = <lg_value>.
+
+        WHEN OTHERS.
+          MOVE-CORRESPONDING <lg_line> TO <lg_exporting>.
+
+      ENDCASE.
+      APPEND <lg_exporting> TO et_list.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD _on_double_click.
+
+    DATA lo_selections TYPE REF TO cl_salv_selections.
+
+    lo_selections = mo_select_list_popup->get_selections( ).
+
+    IF lo_selections->get_selection_mode( ) = if_salv_c_selection_mode=>single.
+      mo_select_list_popup->close_screen( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD _on_select_list_function_click.
+
+    FIELD-SYMBOLS:
+      <lt_table>    TYPE STANDARD TABLE,
+      <lg_line>     TYPE any,
+      <lv_selected> TYPE abap_bool.
+
+    ASSIGN mr_table->* TO <lt_table>.
+    ASSERT sy-subrc = 0.
+
+    CASE e_salv_function.
+      WHEN 'O.K.'.
+        mv_cancel = abap_false.
+        mo_select_list_popup->close_screen( ).
+
+      WHEN 'ABR'.
+        "Canceled: clear list to overwrite nothing
+        CLEAR <lt_table>.
+        mv_cancel = abap_true.
+        mo_select_list_popup->close_screen( ).
+
+      WHEN 'SALL'.
+        LOOP AT <lt_table> ASSIGNING <lg_line>.
+
+          ASSIGN COMPONENT c_fieldname_selected
+                 OF STRUCTURE <lg_line>
+                 TO <lv_selected>.
+          ASSERT sy-subrc = 0.
+
+          <lv_selected> = abap_true.
+
+        ENDLOOP.
+
+        mo_select_list_popup->refresh( ).
+
+      WHEN 'DSEL'.
+        LOOP AT <lt_table> ASSIGNING <lg_line>.
+
+          ASSIGN COMPONENT c_fieldname_selected
+                 OF STRUCTURE <lg_line>
+                 TO <lv_selected>.
+          ASSERT sy-subrc = 0.
+
+          <lv_selected> = abap_false.
+
+        ENDLOOP.
+
+        mo_select_list_popup->refresh( ).
+
+      WHEN OTHERS.
+        CLEAR <lt_table>.
+        mo_select_list_popup->close_screen( ).
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD _on_select_list_link_click.
+
+    FIELD-SYMBOLS:
+      <lt_table>    TYPE STANDARD TABLE,
+      <lg_line>     TYPE any,
+      <lv_selected> TYPE abap_bool.
+
+    ASSIGN mr_table->* TO <lt_table>.
+    ASSERT sy-subrc = 0.
+
+    READ TABLE <lt_table> ASSIGNING <lg_line> INDEX row.
+    IF sy-subrc = 0.
+
+      ASSIGN COMPONENT c_fieldname_selected
+             OF STRUCTURE <lg_line>
+             TO <lv_selected>.
+      ASSERT sy-subrc = 0.
+
+      IF <lv_selected> = abap_true.
+        <lv_selected> = abap_false.
+      ELSE.
+        <lv_selected> = abap_true.
+      ENDIF.
+
+    ENDIF.
+
+    mo_select_list_popup->refresh( ).
+
+  ENDMETHOD.
+ENDCLASS.
+
+
+
 CLASS zcl_abapinst_installer IMPLEMENTATION.
 
 
@@ -26168,6 +26781,90 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
         rv_result = abap_true.
       ENDIF.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD f4.
+
+    DATA:
+      lt_list     TYPE zif_abapinst_definitions=>ty_list,
+      lt_selected LIKE lt_list,
+      lo_popup    TYPE REF TO zcl_abapinst_popups,
+      lt_columns  TYPE zcl_abapinst_popups=>ty_alv_column_tt,
+      lv_question TYPE string,
+      lv_answer   TYPE sy-input,
+      lx_error    TYPE REF TO zcx_abapinst_exception.
+
+    FIELD-SYMBOLS:
+      <ls_column> TYPE zcl_abapinst_popups=>ty_alv_column.
+
+    init( ).
+
+    lt_list = go_db->list( ).
+
+    CHECK _nothing_found( lt_list ) IS INITIAL.
+
+    APPEND INITIAL LINE TO lt_columns ASSIGNING <ls_column>.
+    <ls_column>-name   = 'NAME'.
+    <ls_column>-text   = 'Name'.
+    <ls_column>-length = 30.
+    <ls_column>-key    = abap_true.
+    APPEND INITIAL LINE TO lt_columns ASSIGNING <ls_column>.
+    <ls_column>-name   = 'PACK'.
+    <ls_column>-text   = 'Package'.
+    <ls_column>-length = 30.
+    <ls_column>-key    = abap_true.
+    APPEND INITIAL LINE TO lt_columns ASSIGNING <ls_column>.
+    <ls_column>-name   = 'VERSION'.
+    <ls_column>-text   = 'Version'.
+    <ls_column>-length = 15.
+    APPEND INITIAL LINE TO lt_columns ASSIGNING <ls_column>.
+    <ls_column>-name   = 'DESCRIPTION'.
+    <ls_column>-text   = 'Description'.
+    <ls_column>-length = 60.
+
+    CREATE OBJECT lo_popup.
+
+    TRY.
+        lo_popup->popup_to_select_from_list(
+          EXPORTING
+            it_list               = lt_list
+            iv_title              = sy-title
+            iv_header_text        = |Select the { gv_name } that you want to uninstall:|
+            iv_end_column         = 150
+            iv_striped_pattern    = abap_true
+            iv_optimize_col_width = abap_false
+            iv_selection_mode     = if_salv_c_selection_mode=>single
+            it_columns_to_display = lt_columns
+          IMPORTING
+            et_list               = lt_selected ).
+      CATCH zcx_abapinst_exception.
+        RETURN.
+    ENDTRY.
+
+    IF lt_selected IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    READ TABLE lt_selected INTO rs_inst INDEX 1.
+    ASSERT sy-subrc = 0.
+
+    TRY.
+        lv_question = |Are you sure, you want to uninstall { rs_inst-description } ({ rs_inst-name })?|.
+
+        lv_answer = lo_popup->popup_to_confirm(
+          iv_title          = sy-title
+          iv_question       = lv_question
+          iv_default_button = '2' ).
+
+        IF lv_answer <> '1'.
+          CLEAR rs_inst.
+        ENDIF.
+
+      CATCH zcx_abapinst_exception.
+        RETURN.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -26248,7 +26945,6 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-
         _log_end( ).
 
         _save( ).
@@ -26265,7 +26961,6 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
   METHOD list.
 
     DATA:
-      lv_msg                 TYPE string,
       lt_list                TYPE zif_abapinst_definitions=>ty_list,
       lo_list                TYPE REF TO cl_salv_table,
       lo_display_settings    TYPE REF TO cl_salv_display_settings,
@@ -26279,15 +26974,27 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       lr_column              TYPE REF TO cl_salv_column_table,
       lx_error               TYPE REF TO cx_salv_error.
 
+    FIELD-SYMBOLS:
+      <ls_list> LIKE LINE OF lt_list.
+
     init( ).
 
     lt_list = go_db->list( ).
 
-    IF lt_list IS INITIAL.
-      lv_msg = |No { gv_names } found|.
-      MESSAGE lv_msg TYPE 'S'.
-      RETURN.
-    ENDIF.
+    CHECK _nothing_found( lt_list ) IS INITIAL.
+
+    LOOP AT lt_list ASSIGNING <ls_list>.
+      CASE <ls_list>-status.
+        WHEN space.
+          <ls_list>-status = icon_led_inactive.
+        WHEN 'I' OR 'S'.
+          <ls_list>-status = icon_led_green.
+        WHEN 'W'.
+          <ls_list>-status = icon_led_yellow.
+        WHEN OTHERS.
+          <ls_list>-status = icon_led_red.
+      ENDCASE.
+    ENDLOOP.
 
     TRY.
         cl_salv_table=>factory(
@@ -26325,6 +27032,10 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
         LOOP AT lt_columns INTO ls_column WHERE columnname CP 'SEM_VERSION-*'.
           ls_column-r_column->set_technical( ).
         ENDLOOP.
+
+        lo_column = lo_columns->get_column( 'STATUS' ).
+        lo_column->set_medium_text( 'Status' ).
+        lo_column->set_output_length( 6 ).
 
         lo_column = lo_columns->get_column( 'DESCRIPTION' ).
         lo_column->set_medium_text( 'Description' ).
@@ -26409,6 +27120,8 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
           iv_transport = gs_inst-transport
           ii_log       = gi_log ).
 
+        _check_uninstalled( lt_tadir ).
+
       CATCH zcx_abapgit_exception INTO lx_error.
         _transport_reset( ).
 
@@ -26416,7 +27129,6 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-
         _log_end( ).
 
         IF gs_inst-status = 'S'.
@@ -26436,12 +27148,67 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
   METHOD _check.
 
+    DATA:
+      lv_msg      TYPE string,
+      lv_question TYPE string,
+      lv_answer   TYPE c LENGTH 1.
+
     IF check( iv_name        = gs_inst-name
               iv_pack        = gs_inst-pack
               is_sem_version = gs_inst-sem_version ) = abap_true.
-      zcx_abapinst_exception=>raise( |{ gv_name } is already installed (with same or newer version)| ).
+
+      lv_msg = |{ gv_name } is already installed (with same or newer version)|.
+      lv_question = lv_msg  && '. Do you want to overwrite it?'.
+
+      IF gs_inst-status = 'S' AND iv_force IS INITIAL.
+        CALL FUNCTION 'POPUP_TO_CONFIRM'
+          EXPORTING
+            titlebar              = sy-title
+            text_question         = lv_question
+            text_button_1         = 'Yes'
+            icon_button_1         = icon_checked
+            text_button_2         = 'No'
+            icon_button_2         = icon_cancel
+            default_button        = '2'
+            display_cancel_button = 'X'
+          IMPORTING
+            answer                = lv_answer
+          EXCEPTIONS
+            text_not_found        = 1
+            OTHERS                = 2.
+        IF sy-subrc <> 0.
+          zcx_abapinst_exception=>raise( 'Popup error' ).
+        ENDIF.
+
+        IF lv_answer <> '1'.
+          zcx_abapinst_exception=>raise( lv_msg ).
+        ENDIF.
+      ENDIF.
+
     ELSEIF check( iv_pack = gs_inst-pack ) = abap_true.
       zcx_abapinst_exception=>raise( |SAP package { gs_inst-pack } already contains a different { gv_name }| ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD _check_uninstalled.
+
+    DATA:
+      lv_msg   TYPE string,
+      lt_tadir LIKE it_tadir.
+
+    CHECK it_tadir IS NOT INITIAL.
+
+    SELECT pgmid object obj_name FROM tadir INTO CORRESPONDING FIELDS OF TABLE lt_tadir
+      FOR ALL ENTRIES IN it_tadir
+      WHERE pgmid = it_tadir-pgmid AND object = it_tadir-object AND obj_name = it_tadir-obj_name.
+    IF sy-subrc = 0.
+      gi_log->add_warning( 'Incomplete uninstall' ).
+
+      lv_msg = 'Some objects could not be uninstalled. Release the transport run the uninstall again' &&
+               'to remove the remaining objects.'.
+      MESSAGE lv_msg TYPE 'I'.
     ENDIF.
 
   ENDMETHOD.
@@ -26633,7 +27400,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
   METHOD _log_end.
     gs_inst-status = gi_log->get_status( ).
-    IF gs_inst-status = 'E'.
+    IF gs_inst-status <> 'S'.
       zcl_abapinst_log_viewer=>show_log( gi_log ).
     ENDIF.
   ENDMETHOD.
@@ -26663,6 +27430,19 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
         ii_log       = gi_log ).
 
       COMMIT WORK.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD _nothing_found.
+
+    DATA lv_msg TYPE string.
+
+    IF it_list IS INITIAL.
+      lv_msg = |No { gv_names } found|.
+      MESSAGE lv_msg TYPE 'S'.
+      rv_result = abap_true.
     ENDIF.
 
   ENDMETHOD.
@@ -26785,6 +27565,10 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
           gs_inst-transport = iv_transport.
         WHEN ty_enum_transport-prompt.
           gs_inst-transport = zcl_abapinst_screen=>f4_transport( gs_inst-pack ).
+
+          IF gs_inst-transport IS INITIAL.
+            zcx_abapinst_exception=>raise( 'No transport selected. Installation cancelled' ).
+          ENDIF.
       ENDCASE.
     ENDIF.
 
@@ -28091,12 +28875,12 @@ CLASS zcl_abapinst_persistence IMPLEMENTATION.
         li_ajson = zcl_ajson=>parse( is_content-json ).
         li_ajson->to_abap( IMPORTING ev_container = rs_inst ).
       CATCH zcx_ajson_error.
-        zcx_abapinst_exception=>raise( 'Error converting JSON persistency' ).
+        zcx_abapinst_exception=>raise( 'Error converting JSON persistence' ).
     ENDTRY.
 
     " Validate name and package
     IF rs_inst-name <> is_content-name OR rs_inst-pack <> is_content-pack.
-      zcx_abapinst_exception=>raise( 'Inconsistent JSON persistency' ).
+      zcx_abapinst_exception=>raise( 'Inconsistent JSON persistence' ).
     ENDIF.
 
   ENDMETHOD.
@@ -28181,464 +28965,6 @@ CLASS zcl_abapinst_persistence IMPLEMENTATION.
     ENDIF.
 
     rv_funcname = mv_update_function.
-
-  ENDMETHOD.
-ENDCLASS.
-
-
-
-CLASS zcl_abapinst_popups IMPLEMENTATION.
-
-
-  METHOD popup_to_confirm.
-
-    CALL FUNCTION 'POPUP_TO_CONFIRM'
-      EXPORTING
-        titlebar              = iv_title
-        text_question         = iv_question
-        text_button_1         = iv_text_button_1
-        icon_button_1         = iv_icon_button_1
-        text_button_2         = iv_text_button_2
-        icon_button_2         = iv_icon_button_2
-        default_button        = iv_default_button
-        display_cancel_button = iv_display_cancel_button
-      IMPORTING
-        answer                = rv_answer
-      EXCEPTIONS
-        text_not_found        = 1
-        OTHERS                = 2.
-    IF sy-subrc <> 0.
-      zcx_abapinst_exception=>raise( 'Error from POPUP_TO_CONFIRM' ).
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD popup_to_enter_packaging.
-
-    DATA:
-      lt_fields TYPE zcl_abapgit_free_sel_dialog=>ty_free_sel_field_tab,
-      lo_dialog TYPE REF TO zcl_abapgit_free_sel_dialog,
-      lx_error  TYPE REF TO zcx_abapgit_exception.
-
-    FIELD-SYMBOLS:
-      <ls_field> TYPE zcl_abapgit_free_sel_dialog=>ty_free_sel_field.
-
-    APPEND INITIAL LINE TO lt_fields ASSIGNING <ls_field>.
-    <ls_field>-name             = 'NAME'.
-    <ls_field>-text             = 'Name'.
-    <ls_field>-only_parameter   = abap_true.
-    <ls_field>-ddic_tabname     = 'E071'.
-    <ls_field>-ddic_fieldname   = 'OBJ_NAME'.
-    <ls_field>-param_obligatory = abap_true.
-    <ls_field>-value            = iv_name.
-
-    APPEND INITIAL LINE TO lt_fields ASSIGNING <ls_field>.
-    <ls_field>-name             = 'VERSION'.
-    <ls_field>-text             = 'Version'.
-    <ls_field>-only_parameter   = abap_true.
-    <ls_field>-ddic_tabname     = 'TTREV'.
-    <ls_field>-ddic_fieldname   = 'VERSION'.
-    <ls_field>-param_obligatory = abap_true.
-    <ls_field>-value            = iv_version.
-
-    TRY.
-        CREATE OBJECT lo_dialog
-          EXPORTING
-            iv_title      = |abapinst|
-            iv_frame_text = |Packaging Details|.
-
-        lo_dialog->set_fields( CHANGING ct_fields = lt_fields ).
-        lo_dialog->show( ).
-
-        LOOP AT lt_fields ASSIGNING <ls_field>.
-          CASE <ls_field>-name.
-            WHEN 'NAME'.
-              rs_packaging-name = <ls_field>-value.
-            WHEN 'VERSION'.
-              rs_packaging-version = <ls_field>-value.
-              rs_packaging-sem_version = zcl_abapgit_version=>conv_str_to_version( rs_packaging-version ).
-          ENDCASE.
-        ENDLOOP.
-
-      CATCH zcx_abapgit_cancel.
-        RETURN.
-      CATCH zcx_abapgit_exception INTO lx_error.
-        zcx_abapinst_exception=>raise( lx_error->get_text( ) ).
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD popup_to_select_from_list.
-
-    DATA:
-      lv_pfstatus     TYPE sypfkey,
-      lo_events       TYPE REF TO cl_salv_events_table,
-      lo_columns      TYPE REF TO cl_salv_columns_table,
-      lt_columns      TYPE salv_t_column_ref,
-      ls_column       TYPE salv_s_column_ref,
-      lo_column       TYPE REF TO cl_salv_column_list,
-      lo_table_header TYPE REF TO cl_salv_form_text.
-
-    FIELD-SYMBOLS:
-      <lt_table>             TYPE STANDARD TABLE,
-      <ls_column_to_display> TYPE ty_alv_column.
-
-    CLEAR: et_list.
-
-    _create_new_table( it_list ).
-
-    ASSIGN mr_table->* TO <lt_table>.
-    ASSERT sy-subrc = 0.
-
-    TRY.
-        cl_salv_table=>factory( IMPORTING r_salv_table = mo_select_list_popup
-                                CHANGING  t_table = <lt_table> ).
-
-        CASE iv_selection_mode.
-          WHEN if_salv_c_selection_mode=>single.
-            lv_pfstatus = '110'.
-
-          WHEN OTHERS.
-            lv_pfstatus = '102'.
-
-        ENDCASE.
-
-        mo_select_list_popup->set_screen_status( pfstatus = lv_pfstatus
-                                                 report = 'SAPMSVIM' ).
-
-        mo_select_list_popup->set_screen_popup( start_column = iv_start_column
-                                                end_column   = iv_end_column
-                                                start_line   = iv_start_line
-                                                end_line     = iv_end_line ).
-
-        lo_events = mo_select_list_popup->get_event( ).
-
-        SET HANDLER _on_select_list_link_click FOR lo_events.
-        SET HANDLER _on_select_list_function_click FOR lo_events.
-        SET HANDLER _on_double_click FOR lo_events.
-
-        IF iv_title CN ' _0'.
-          mo_select_list_popup->get_display_settings( )->set_list_header( iv_title ).
-        ENDIF.
-
-        IF iv_header_text CN ' _0'.
-          CREATE OBJECT lo_table_header
-            EXPORTING
-              text = iv_header_text.
-          mo_select_list_popup->set_top_of_list( lo_table_header ).
-        ENDIF.
-
-        mo_select_list_popup->get_display_settings( )->set_striped_pattern( iv_striped_pattern ).
-        mo_select_list_popup->get_selections( )->set_selection_mode( iv_selection_mode ).
-
-        lo_columns = mo_select_list_popup->get_columns( ).
-        lt_columns = lo_columns->get( ).
-        lo_columns->set_optimize( iv_optimize_col_width ).
-
-        LOOP AT lt_columns INTO ls_column.
-
-          lo_column ?= ls_column-r_column.
-
-          IF    iv_selection_mode    = if_salv_c_selection_mode=>multiple
-            AND ls_column-columnname = c_fieldname_selected.
-            lo_column->set_cell_type( if_salv_c_cell_type=>checkbox_hotspot ).
-            lo_column->set_output_length( 20 ).
-            lo_column->set_short_text( |{ iv_select_column_text }| ).
-            lo_column->set_medium_text( |{ iv_select_column_text }| ).
-            lo_column->set_long_text( |{ iv_select_column_text }| ).
-            CONTINUE.
-          ENDIF.
-
-          READ TABLE it_columns_to_display
-            ASSIGNING <ls_column_to_display>
-            WITH KEY name = ls_column-columnname.
-
-          CASE sy-subrc.
-            WHEN 0.
-              IF <ls_column_to_display>-text CN ' _0'.
-                lo_column->set_short_text( |{ <ls_column_to_display>-text }| ).
-                lo_column->set_medium_text( |{ <ls_column_to_display>-text }| ).
-                lo_column->set_long_text( |{ <ls_column_to_display>-text }| ).
-              ENDIF.
-
-              IF <ls_column_to_display>-length > 0.
-                lo_column->set_output_length( <ls_column_to_display>-length ).
-              ENDIF.
-
-              lo_column->set_key( <ls_column_to_display>-key ).
-
-            WHEN OTHERS.
-              " Hide column
-              lo_column->set_technical( abap_true ).
-
-          ENDCASE.
-
-        ENDLOOP.
-
-        mo_select_list_popup->display( ).
-
-      CATCH cx_salv_msg.
-        zcx_abapinst_exception=>raise( 'Error from POPUP_TO_SELECT_FROM_LIST' ).
-    ENDTRY.
-
-    IF mv_cancel = abap_true.
-      mv_cancel = abap_false.
-      RETURN.
-    ENDIF.
-
-    _get_selected_rows( IMPORTING et_list = et_list ).
-
-    CLEAR: mo_select_list_popup,
-           mr_table,
-           mo_table_descr.
-
-  ENDMETHOD.
-
-
-  METHOD _create_new_table.
-
-    " create and populate a table on the fly derived from
-    " it_data with a select column
-
-    DATA:
-      lr_struct        TYPE REF TO data,
-      lt_components    TYPE cl_abap_structdescr=>component_table,
-      lo_data_descr    TYPE REF TO cl_abap_datadescr,
-      lo_elem_descr    TYPE REF TO cl_abap_elemdescr,
-      lo_struct_descr  TYPE REF TO cl_abap_structdescr,
-      lo_struct_descr2 TYPE REF TO cl_abap_structdescr.
-
-    FIELD-SYMBOLS:
-      <lt_table>     TYPE STANDARD TABLE,
-      <ls_component> TYPE abap_componentdescr,
-      <lg_line>      TYPE data,
-      <lg_data>      TYPE any,
-      <lg_value>     TYPE any.
-
-    mo_table_descr ?= cl_abap_tabledescr=>describe_by_data( it_list ).
-    lo_data_descr = mo_table_descr->get_table_line_type( ).
-
-    CASE lo_data_descr->kind.
-      WHEN cl_abap_elemdescr=>kind_elem.
-        lo_elem_descr ?= mo_table_descr->get_table_line_type( ).
-        INSERT INITIAL LINE INTO lt_components ASSIGNING <ls_component> INDEX 1.
-        <ls_component>-name = c_default_column.
-        <ls_component>-type = lo_elem_descr.
-
-      WHEN cl_abap_elemdescr=>kind_struct.
-        lo_struct_descr ?= mo_table_descr->get_table_line_type( ).
-        lt_components = lo_struct_descr->get_components( ).
-
-    ENDCASE.
-
-    IF lt_components IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    INSERT INITIAL LINE INTO lt_components ASSIGNING <ls_component> INDEX 1.
-    <ls_component>-name = c_fieldname_selected.
-    <ls_component>-type ?= cl_abap_datadescr=>describe_by_name( 'FLAG' ).
-
-    lo_struct_descr2 = cl_abap_structdescr=>create( lt_components ).
-    mo_table_descr = cl_abap_tabledescr=>create( lo_struct_descr2 ).
-
-    CREATE DATA mr_table TYPE HANDLE mo_table_descr.
-    ASSIGN mr_table->* TO <lt_table>.
-    ASSERT sy-subrc = 0.
-
-    CREATE DATA lr_struct TYPE HANDLE lo_struct_descr2.
-    ASSIGN lr_struct->* TO <lg_line>.
-    ASSERT sy-subrc = 0.
-
-    LOOP AT it_list ASSIGNING <lg_data>.
-      CLEAR <lg_line>.
-      CASE lo_data_descr->kind.
-        WHEN cl_abap_elemdescr=>kind_elem.
-          ASSIGN COMPONENT c_default_column OF STRUCTURE <lg_data> TO <lg_value>.
-          ASSERT <lg_value> IS ASSIGNED.
-          <lg_line> = <lg_value>.
-
-        WHEN OTHERS.
-          MOVE-CORRESPONDING <lg_data> TO <lg_line>.
-
-      ENDCASE.
-      INSERT <lg_line> INTO TABLE <lt_table>.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD _get_selected_rows.
-
-    DATA:
-      lv_condition TYPE string,
-      lr_exporting TYPE REF TO data.
-
-    FIELD-SYMBOLS:
-      <lg_exporting>    TYPE any,
-      <lt_table>        TYPE STANDARD TABLE,
-      <lg_line>         TYPE any,
-      <lg_value>        TYPE any,
-      <lv_selected>     TYPE abap_bool,
-      <lv_selected_row> TYPE LINE OF salv_t_row.
-
-    DATA: lo_data_descr    TYPE REF TO cl_abap_datadescr,
-          lo_selections    TYPE REF TO cl_salv_selections,
-          lt_selected_rows TYPE salv_t_row.
-
-    ASSIGN mr_table->* TO <lt_table>.
-    ASSERT sy-subrc = 0.
-
-    lo_selections = mo_select_list_popup->get_selections( ).
-
-    IF lo_selections->get_selection_mode( ) = if_salv_c_selection_mode=>single.
-
-      lt_selected_rows = lo_selections->get_selected_rows( ).
-
-      LOOP AT lt_selected_rows ASSIGNING <lv_selected_row>.
-
-        READ TABLE <lt_table>
-          ASSIGNING <lg_line>
-          INDEX <lv_selected_row>.
-        CHECK <lg_line> IS ASSIGNED.
-
-        ASSIGN COMPONENT c_fieldname_selected
-           OF STRUCTURE <lg_line>
-           TO <lv_selected>.
-        CHECK <lv_selected> IS ASSIGNED.
-
-        <lv_selected> = abap_true.
-
-      ENDLOOP.
-
-    ENDIF.
-
-    lv_condition = |{ c_fieldname_selected } = ABAP_TRUE|.
-
-    CREATE DATA lr_exporting LIKE LINE OF et_list.
-    ASSIGN lr_exporting->* TO <lg_exporting>.
-
-    mo_table_descr ?= cl_abap_tabledescr=>describe_by_data( et_list ).
-    lo_data_descr = mo_table_descr->get_table_line_type( ).
-
-    LOOP AT <lt_table> ASSIGNING <lg_line> WHERE (lv_condition).
-      CLEAR <lg_exporting>.
-
-      CASE lo_data_descr->kind.
-        WHEN cl_abap_elemdescr=>kind_elem.
-          ASSIGN COMPONENT c_default_column OF STRUCTURE <lg_line> TO <lg_value>.
-          ASSERT <lg_value> IS ASSIGNED.
-          <lg_exporting> = <lg_value>.
-
-        WHEN OTHERS.
-          MOVE-CORRESPONDING <lg_line> TO <lg_exporting>.
-
-      ENDCASE.
-      APPEND <lg_exporting> TO et_list.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD _on_double_click.
-
-    DATA lo_selections TYPE REF TO cl_salv_selections.
-
-    lo_selections = mo_select_list_popup->get_selections( ).
-
-    IF lo_selections->get_selection_mode( ) = if_salv_c_selection_mode=>single.
-      mo_select_list_popup->close_screen( ).
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD _on_select_list_function_click.
-
-    FIELD-SYMBOLS:
-      <lt_table>    TYPE STANDARD TABLE,
-      <lg_line>     TYPE any,
-      <lv_selected> TYPE abap_bool.
-
-    ASSIGN mr_table->* TO <lt_table>.
-    ASSERT sy-subrc = 0.
-
-    CASE e_salv_function.
-      WHEN 'O.K.'.
-        mv_cancel = abap_false.
-        mo_select_list_popup->close_screen( ).
-
-      WHEN 'ABR'.
-        "Canceled: clear list to overwrite nothing
-        CLEAR <lt_table>.
-        mv_cancel = abap_true.
-        mo_select_list_popup->close_screen( ).
-
-      WHEN 'SALL'.
-        LOOP AT <lt_table> ASSIGNING <lg_line>.
-
-          ASSIGN COMPONENT c_fieldname_selected
-                 OF STRUCTURE <lg_line>
-                 TO <lv_selected>.
-          ASSERT sy-subrc = 0.
-
-          <lv_selected> = abap_true.
-
-        ENDLOOP.
-
-        mo_select_list_popup->refresh( ).
-
-      WHEN 'DSEL'.
-        LOOP AT <lt_table> ASSIGNING <lg_line>.
-
-          ASSIGN COMPONENT c_fieldname_selected
-                 OF STRUCTURE <lg_line>
-                 TO <lv_selected>.
-          ASSERT sy-subrc = 0.
-
-          <lv_selected> = abap_false.
-
-        ENDLOOP.
-
-        mo_select_list_popup->refresh( ).
-
-      WHEN OTHERS.
-        CLEAR <lt_table>.
-        mo_select_list_popup->close_screen( ).
-    ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD _on_select_list_link_click.
-
-    FIELD-SYMBOLS:
-      <lt_table>    TYPE STANDARD TABLE,
-      <lg_line>     TYPE any,
-      <lv_selected> TYPE abap_bool.
-
-    ASSIGN mr_table->* TO <lt_table>.
-    ASSERT sy-subrc = 0.
-
-    READ TABLE <lt_table> ASSIGNING <lg_line> INDEX row.
-    IF sy-subrc = 0.
-
-      ASSIGN COMPONENT c_fieldname_selected
-             OF STRUCTURE <lg_line>
-             TO <lv_selected>.
-      ASSERT sy-subrc = 0.
-
-      IF <lv_selected> = abap_true.
-        <lv_selected> = abap_false.
-      ELSE.
-        <lv_selected> = abap_true.
-      ENDIF.
-
-    ENDIF.
-
-    mo_select_list_popup->refresh( ).
 
   ENDMETHOD.
 ENDCLASS.
@@ -28814,96 +29140,6 @@ CLASS zcl_abapinst_screen IMPLEMENTATION.
     ASSERT sy-subrc = 0.
 
     rv_file = ls_file_table-filename.
-
-  ENDMETHOD.
-
-
-  METHOD f4_inst.
-
-    DATA:
-      lt_list     TYPE zif_abapinst_definitions=>ty_list,
-      lt_selected LIKE lt_list,
-      lo_popup    TYPE REF TO zcl_abapinst_popups,
-      lt_columns  TYPE zcl_abapinst_popups=>ty_alv_column_tt,
-      lv_question TYPE string,
-      lv_answer   TYPE sy-input,
-      lx_error    TYPE REF TO zcx_abapinst_exception.
-
-    FIELD-SYMBOLS:
-      <ls_column> TYPE zcl_abapinst_popups=>ty_alv_column.
-
-    TRY.
-        lt_list = zcl_abapinst_persistence=>get_instance( )->list( ).
-      CATCH zcx_abapinst_exception INTO lx_error.
-        MESSAGE lx_error TYPE 'S' DISPLAY LIKE 'E'.
-        RETURN.
-    ENDTRY.
-
-    IF lt_list IS INITIAL.
-      MESSAGE 'No abapGit packages found' TYPE 'S'.
-      RETURN.
-    ENDIF.
-
-    APPEND INITIAL LINE TO lt_columns ASSIGNING <ls_column>.
-    <ls_column>-name   = 'NAME'.
-    <ls_column>-text   = 'Name'.
-    <ls_column>-length = 30.
-    <ls_column>-key    = abap_true.
-    APPEND INITIAL LINE TO lt_columns ASSIGNING <ls_column>.
-    <ls_column>-name   = 'PACK'.
-    <ls_column>-text   = 'Package'.
-    <ls_column>-length = 30.
-    <ls_column>-key    = abap_true.
-    APPEND INITIAL LINE TO lt_columns ASSIGNING <ls_column>.
-    <ls_column>-name   = 'VERSION'.
-    <ls_column>-text   = 'Version'.
-    <ls_column>-length = 15.
-    APPEND INITIAL LINE TO lt_columns ASSIGNING <ls_column>.
-    <ls_column>-name   = 'DESCRIPTION'.
-    <ls_column>-text   = 'Description'.
-    <ls_column>-length = 60.
-
-    CREATE OBJECT lo_popup.
-
-    TRY.
-        lo_popup->popup_to_select_from_list(
-          EXPORTING
-            it_list               = lt_list
-            iv_title              = 'abapinst - Uninstall'
-            iv_header_text        = |Select the abapGit package that you want to uninstall.|
-            iv_end_column         = 150
-            iv_striped_pattern    = abap_true
-            iv_optimize_col_width = abap_false
-            iv_selection_mode     = if_salv_c_selection_mode=>single
-            it_columns_to_display = lt_columns
-          IMPORTING
-            et_list               = lt_selected ).
-      CATCH zcx_abapinst_exception.
-        RETURN.
-    ENDTRY.
-
-    IF lt_selected IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    READ TABLE lt_selected INTO rs_inst INDEX 1.
-    ASSERT sy-subrc = 0.
-
-    TRY.
-        lv_question = |Are you sure, you want to uninstall { rs_inst-description } ({ rs_inst-name })?|.
-
-        lv_answer = lo_popup->popup_to_confirm(
-          iv_title          = 'abapinst - Uninstall'
-          iv_question       = lv_question
-          iv_default_button = '2' ).
-
-        IF lv_answer <> '1'.
-          CLEAR rs_inst.
-        ENDIF.
-
-      CATCH zcx_abapinst_exception.
-        RETURN.
-    ENDTRY.
 
   ENDMETHOD.
 
@@ -32253,7 +32489,7 @@ AT SELECTION-SCREEN.
     WHEN 'FC02'. " Uninstall Package
       zcl_abapinst_screen=>banner( iv_show = abap_false ).
       TRY.
-          gs_inst = zcl_abapinst_screen=>f4_inst( ).
+          gs_inst = zcl_abapinst_installer=>f4( ).
 
           IF gs_inst IS NOT INITIAL.
             zcl_abapinst_installer=>uninstall(
