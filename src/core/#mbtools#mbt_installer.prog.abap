@@ -12620,14 +12620,11 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
         ELSE.
           lo_source->access_permission( seok_access_modify ).
         ENDIF.
-      CATCH cx_oo_access_permission.
-        zcx_abapgit_exception=>raise( 'permission error' ).
-    ENDTRY.
-
-    TRY.
         lo_source->set_source( it_source ).
         lo_source->save( ).
         lo_source->access_permission( seok_access_free ).
+      CATCH cx_oo_access_permission.
+        zcx_abapgit_exception=>raise( 'permission error' ).
       CATCH cx_oo_source_save_failure.
         zcx_abapgit_exception=>raise( 'save failure' ).
     ENDTRY.
@@ -27202,7 +27199,9 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
     SELECT pgmid object obj_name FROM tadir INTO CORRESPONDING FIELDS OF TABLE lt_tadir
       FOR ALL ENTRIES IN it_tadir
-      WHERE pgmid = it_tadir-pgmid AND object = it_tadir-object AND obj_name = it_tadir-obj_name.
+      WHERE pgmid    = it_tadir-pgmid
+        AND object   = it_tadir-object
+        AND obj_name = it_tadir-obj_name ##TOO_MANY_ITAB_FIELDS.
     IF sy-subrc = 0.
       gi_log->add_warning( 'Incomplete uninstall' ).
 
