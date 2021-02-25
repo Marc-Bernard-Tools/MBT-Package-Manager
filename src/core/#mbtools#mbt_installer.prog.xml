@@ -4,11 +4,11 @@
   <asx:values>
    <PROGDIR>
     <NAME>/MBTOOLS/MBT_INSTALLER</NAME>
-    <DBAPL>S</DBAPL>
     <SUBC>1</SUBC>
-    <APPL>X</APPL>
+    <APPL>S</APPL>
+    <RSTAT>K</RSTAT>
+    <RLOAD>E</RLOAD>
     <FIXPT>X</FIXPT>
-    <LDBNAME>D$S</LDBNAME>
     <UCCHECK>X</UCCHECK>
    </PROGDIR>
    <TPOOL>
