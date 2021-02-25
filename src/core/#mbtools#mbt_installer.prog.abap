@@ -6366,10 +6366,13 @@ CLASS zcl_abapinst_installer DEFINITION
     CLASS-METHODS _save
       RAISING
         zcx_abapinst_exception .
-    CLASS-METHODS _delete
+    CLASS-METHODS _load
       IMPORTING
         !iv_name TYPE zif_abapinst_definitions=>ty_name
         !iv_pack TYPE zif_abapinst_definitions=>ty_pack
+      RAISING
+        zcx_abapinst_exception .
+    CLASS-METHODS _delete
       RAISING
         zcx_abapinst_exception .
     CLASS-METHODS _check_uninstalled
@@ -27384,15 +27387,16 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       lv_transport TYPE trkorr,
       lt_tadir     TYPE zif_abapgit_definitions=>ty_tadir_tt.
 
-    CLEAR: gs_inst.
+    CLEAR: gs_inst, gs_packaging, go_dot.
 
     init( ).
 
     TRY.
         _log_start( ).
 
-        gs_inst-name = iv_name.
-        gs_inst-pack = iv_pack.
+        _load(
+          iv_name = iv_name
+          iv_pack = iv_pack ).
 
         _transport( ty_enum_transport-prompt ).
 
@@ -27422,9 +27426,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
         _check_uninstalled( lt_tadir ).
 
         IF gs_inst-status = 'S'.
-          _delete(
-            iv_name = gs_inst-name
-            iv_pack = gs_inst-pack ).
+          _delete( ).
         ELSE.
           _save( ).
         ENDIF.
@@ -27553,8 +27555,9 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
   METHOD _delete.
 
-    go_db->delete( iv_name = iv_name
-                   iv_pack = iv_pack ).
+    go_db->delete(
+      iv_name = gs_inst-name
+      iv_pack = gs_inst-pack ).
 
   ENDMETHOD.
 
@@ -27680,6 +27683,15 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD _load.
+
+    gs_inst = go_db->select(
+      iv_name = iv_name
+      iv_pack = iv_pack ).
+
+  ENDMETHOD.
+
+
   METHOD _log_end.
     gs_inst-status = gi_log->get_status( ).
     IF gs_inst-status <> 'S'.
@@ -27801,8 +27813,9 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
     GET TIME STAMP FIELD lv_timestamp.
 
-    ls_inst = go_db->select( iv_name = gs_inst-name
-                             iv_pack = gs_inst-pack ).
+    ls_inst = go_db->select(
+      iv_name = gs_inst-name
+      iv_pack = gs_inst-pack ).
 
     IF ls_inst IS INITIAL.
       ls_inst-name            = gs_inst-name.
