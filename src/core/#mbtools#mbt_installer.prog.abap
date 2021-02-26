@@ -6308,10 +6308,13 @@ CLASS zcl_abapinst_installer DEFINITION
     CLASS-DATA gs_packaging TYPE zif_abapgit_dot_abapgit=>ty_packaging .
     CLASS-DATA gv_name TYPE string .
     CLASS-DATA gv_names TYPE string .
+    CLASS-DATA:
+      gt_clmcus TYPE STANDARD TABLE OF clmcus WITH DEFAULT KEY .
     CONSTANTS gc_success TYPE sy-msgty VALUE 'S' ##NO_TEXT.
     CONSTANTS gc_warning TYPE sy-msgty VALUE 'W' ##NO_TEXT.
     CONSTANTS gc_error TYPE sy-msgty VALUE 'E' ##NO_TEXT.
 
+    CLASS-METHODS _clear .
     CLASS-METHODS _nothing_found
       IMPORTING
         !it_list         TYPE ANY TABLE
@@ -6358,11 +6361,15 @@ CLASS zcl_abapinst_installer DEFINITION
         !iv_transport      TYPE trkorr OPTIONAL
       RAISING
         zcx_abapinst_exception .
+    CLASS-METHODS _transport_check
+      RAISING
+        zcx_abapinst_exception .
     CLASS-METHODS _transport_reset .
     CLASS-METHODS _namespaces
       RAISING
         zcx_abapgit_exception .
     CLASS-METHODS _confirm_messages .
+    CLASS-METHODS _restore_messages .
     CLASS-METHODS _save
       RAISING
         zcx_abapinst_exception .
@@ -6392,9 +6399,6 @@ CLASS zcl_abapinst_installer DEFINITION
         VALUE(ro_dot) TYPE REF TO zcl_abapgit_dot_abapgit
       RAISING
         zcx_abapinst_exception .
-    CLASS-METHODS _find_remote_namespaces
-      RETURNING
-        VALUE(rt_remote) TYPE zif_abapgit_definitions=>ty_files_tt .
     CLASS-METHODS _find_remote_dot_apack
       IMPORTING
         !it_remote    TYPE zif_abapgit_definitions=>ty_files_tt
@@ -6402,6 +6406,9 @@ CLASS zcl_abapinst_installer DEFINITION
         VALUE(ro_dot) TYPE REF TO zcl_abapgit_dot_abapgit
       RAISING
         zcx_abapinst_exception .
+    CLASS-METHODS _find_remote_namespaces
+      RETURNING
+        VALUE(rt_remote) TYPE zif_abapgit_definitions=>ty_files_tt .
 ENDCLASS.
 CLASS zcl_abapinst_log_viewer DEFINITION
 
@@ -6651,7 +6658,7 @@ CLASS zcl_abapinst_persistence DEFINITION
       IMPORTING
         !is_inst TYPE zif_abapinst_definitions=>ty_inst
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception ##SHADOW[INSERT].
     METHODS update
       IMPORTING
         !is_inst TYPE zif_abapinst_definitions=>ty_inst
@@ -6758,6 +6765,7 @@ CLASS zcl_abapinst_screen DEFINITION
       IMPORTING
         !iv_package         TYPE devclass
         !iv_layer           TYPE devlayer OPTIONAL
+        !iv_transport       TYPE trkorr OPTIONAL
       RETURNING
         VALUE(rv_transport) TYPE trkorr .
     CLASS-METHODS banner
@@ -6772,7 +6780,6 @@ CLASS zcl_abapinst_screen DEFINITION
 
     TYPES: ty_url TYPE c LENGTH 255.
 
-    DATA mv_options TYPE abap_bool .
     CLASS-DATA go_banner_dock TYPE REF TO cl_gui_docking_container .
     CLASS-DATA go_banner TYPE REF TO cl_gui_picture .
     CLASS-DATA gv_banner_url TYPE ty_url.
@@ -8322,7 +8329,6 @@ CLASS zcl_abapgit_exit IMPLEMENTATION.
 
     IF gi_exit IS INITIAL.
       TRY.
-          CREATE OBJECT gi_exit TYPE ('ZCL_ABAPGIT_USER_EXIT').
         CATCH cx_sy_create_object_error ##NO_HANDLER.
       ENDTRY.
     ENDIF.
@@ -14529,45 +14535,8 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      TRY.
-          CALL METHOD li_package->('SET_CHANGEABLE')
-            EXPORTING
-              i_changeable                = abap_true
-              i_suppress_dialog           = abap_true " Parameter missing in 702
-            EXCEPTIONS
-              object_locked_by_other_user = 1
-              permission_failure          = 2
-              object_already_changeable   = 3
-              object_already_unlocked     = 4
-              object_just_created         = 5
-              object_deleted              = 6
-              object_modified             = 7
-              object_not_existing         = 8
-              object_invalid              = 9
-              unexpected_error            = 10
-              OTHERS                      = 11.
-
-        CATCH cx_root.
-          li_package->set_changeable(
-            EXPORTING
-              i_changeable                = abap_true
-            EXCEPTIONS
-              object_locked_by_other_user = 1
-              permission_failure          = 2
-              object_already_changeable   = 3
-              object_already_unlocked     = 4
-              object_just_created         = 5
-              object_deleted              = 6
-              object_modified             = 7
-              object_not_existing         = 8
-              object_invalid              = 9
-              unexpected_error            = 10
-              OTHERS                      = 11 ).
-      ENDTRY.
-
-      IF sy-subrc <> 0.
-        zcx_abapgit_exception=>raise_t100( ).
-      ENDIF.
+      set_lock( ii_package = li_package
+                iv_lock    = abap_true ).
 
       TRY.
           CALL METHOD li_package->('DELETE')
@@ -14593,6 +14562,8 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
       ENDTRY.
 
       IF sy-subrc <> 0.
+        set_lock( ii_package = li_package
+                  iv_lock    = abap_false ).
         zcx_abapgit_exception=>raise_t100( ).
       ENDIF.
 
@@ -14623,6 +14594,8 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
 
       ENDTRY.
       IF sy-subrc <> 0.
+        set_lock( ii_package = li_package
+                  iv_lock    = abap_false ).
         zcx_abapgit_exception=>raise_t100( ).
       ENDIF.
 
@@ -14694,7 +14667,7 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
     IF li_package IS BOUND.
       " Package already exists, change it
       set_lock( ii_package = li_package
-                iv_lock = abap_true ).
+                iv_lock    = abap_true ).
 
       li_package->set_all_attributes(
         EXPORTING
@@ -14720,6 +14693,8 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
 *          superpackage_invalid       = 17  downport, does not exist in 7.30
           OTHERS                     = 18 ).
       IF sy-subrc <> 0.
+        set_lock( ii_package = li_package
+                  iv_lock    = abap_false ).
         zcx_abapgit_exception=>raise_t100( ).
       ENDIF.
 
@@ -14788,11 +14763,14 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
         object_invalid        = 4
         OTHERS                = 5 ).
     IF sy-subrc <> 0.
+      set_lock( ii_package = li_package
+                iv_lock    = abap_false ).
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
     set_lock( ii_package = li_package
-              iv_lock = abap_false ).
+              iv_lock    = abap_false ).
+
   ENDMETHOD.
 
 
@@ -27042,7 +27020,6 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
     DATA:
       ls_inst TYPE zif_abapinst_definitions=>ty_inst,
-      ls_vers TYPE zif_abapgit_definitions=>ty_version,
       lv_comp TYPE i.
 
     init( ).
@@ -27063,8 +27040,8 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
     " Version comparison
     IF is_sem_version IS SUPPLIED.
       lv_comp = zcl_abapgit_version=>compare(
-                  is_a = is_sem_version         " new version
-                  is_b = ls_inst-sem_version ). " installed version
+        is_a = is_sem_version         " new version
+        is_b = ls_inst-sem_version ). " installed version
       IF lv_comp <= 0.
         rv_result = abap_true.
       ENDIF.
@@ -27081,11 +27058,10 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       lo_popup    TYPE REF TO zcl_abapinst_popups,
       lt_columns  TYPE zcl_abapinst_popups=>ty_alv_column_tt,
       lv_question TYPE string,
-      lv_answer   TYPE sy-input,
-      lx_error    TYPE REF TO zcx_abapinst_exception.
+      lv_answer   TYPE sy-input.
 
     FIELD-SYMBOLS:
-      <ls_column> TYPE zcl_abapinst_popups=>ty_alv_column.
+      <ls_column> LIKE LINE OF lt_columns.
 
     init( ).
 
@@ -27139,7 +27115,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
     ASSERT sy-subrc = 0.
 
     TRY.
-        lv_question = |Are you sure, you want to uninstall { rs_inst-description } ({ rs_inst-name })?|.
+        lv_question = |Are you sure, you want to uninstall "{ rs_inst-description } ({ rs_inst-name })"?|.
 
         lv_answer = lo_popup->popup_to_confirm(
           iv_title          = sy-title
@@ -27180,14 +27156,13 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
   METHOD install.
 
     DATA:
-      lx_error TYPE REF TO zcx_abapgit_exception,
-      lv_msg   TYPE string.
-
-    CLEAR: gs_inst, gs_packaging, go_dot.
+      lx_error TYPE REF TO zcx_abapgit_exception.
 
     init( ).
 
     TRY.
+        _clear( ).
+
         _log_start( ).
 
         _files(
@@ -27237,6 +27212,8 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
         _save( ).
 
+        _restore_messages( ).
+
         _final_message( 'Installation' ).
 
       CATCH zcx_abapgit_exception INTO lx_error.
@@ -27249,18 +27226,16 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
   METHOD list.
 
     DATA:
-      lt_list                TYPE zif_abapinst_definitions=>ty_list,
-      lo_list                TYPE REF TO cl_salv_table,
-      lo_display_settings    TYPE REF TO cl_salv_display_settings,
-      lo_functions           TYPE REF TO cl_salv_functions,
-      lo_functional_settings TYPE REF TO cl_salv_functional_settings,
-      lo_hyperlinks          TYPE REF TO cl_salv_hyperlinks,
-      lo_columns             TYPE REF TO cl_salv_columns_table,
-      ls_column              TYPE salv_s_column_ref,
-      lt_columns             TYPE salv_t_column_ref,
-      lo_column              TYPE REF TO cl_salv_column,
-      lr_column              TYPE REF TO cl_salv_column_table,
-      lx_error               TYPE REF TO cx_salv_error.
+      lt_list          TYPE zif_abapinst_definitions=>ty_list,
+      lo_list          TYPE REF TO cl_salv_table,
+      lo_disp_settings TYPE REF TO cl_salv_display_settings,
+      lo_functions     TYPE REF TO cl_salv_functions,
+      lo_columns       TYPE REF TO cl_salv_columns_table,
+      ls_column        TYPE salv_s_column_ref,
+      lt_columns       TYPE salv_t_column_ref,
+      lo_column        TYPE REF TO cl_salv_column,
+      lr_column        TYPE REF TO cl_salv_column_table,
+      lx_error         TYPE REF TO cx_salv_error.
 
     FIELD-SYMBOLS:
       <ls_list> LIKE LINE OF lt_list.
@@ -27275,9 +27250,9 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       CASE <ls_list>-status.
         WHEN space.
           <ls_list>-status = icon_led_inactive.
-        WHEN 'I' OR 'S'.
+        WHEN gc_success.
           <ls_list>-status = icon_led_green.
-        WHEN 'W'.
+        WHEN gc_warning.
           <ls_list>-status = icon_led_yellow.
         WHEN OTHERS.
           <ls_list>-status = icon_led_red.
@@ -27293,9 +27268,6 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
         lo_functions = lo_list->get_functions( ).
         lo_functions->set_all( ).
-
-        lo_functional_settings = lo_list->get_functional_settings( ).
-        lo_hyperlinks = lo_functional_settings->get_hyperlinks( ).
 
         lo_columns = lo_list->get_columns( ).
         lo_columns->set_optimize( ).
@@ -27367,9 +27339,9 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
         lo_column->set_medium_text( 'Updated At' ).
         lo_column->set_output_length( 18 ).
 
-        lo_display_settings = lo_list->get_display_settings( ).
-        lo_display_settings->set_list_header( sy-title ).
-        lo_display_settings->set_fit_column_to_table_size( ).
+        lo_disp_settings = lo_list->get_display_settings( ).
+        lo_disp_settings->set_list_header( sy-title ).
+        lo_disp_settings->set_fit_column_to_table_size( ).
 
         lo_list->display( ).
       CATCH cx_salv_error INTO lx_error.
@@ -27382,16 +27354,16 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
   METHOD uninstall.
 
     DATA:
-      lx_error     TYPE REF TO zcx_abapgit_exception,
-      lv_msg       TYPE string,
-      lv_transport TYPE trkorr,
-      lt_tadir     TYPE zif_abapgit_definitions=>ty_tadir_tt.
+      lx_error TYPE REF TO zcx_abapgit_exception,
+      lt_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt.
 
     CLEAR: gs_inst, gs_packaging, go_dot.
 
     init( ).
 
     TRY.
+        _clear( ).
+
         _log_start( ).
 
         _load(
@@ -27425,11 +27397,13 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
         _check_uninstalled( lt_tadir ).
 
-        IF gs_inst-status = 'S'.
+        IF gs_inst-status = gc_success.
           _delete( ).
         ELSE.
           _save( ).
         ENDIF.
+
+        _restore_messages( ).
 
         _final_message( 'Uninstall' ).
 
@@ -27455,7 +27429,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       lv_msg = |{ gv_name } is already installed (with same or newer version)|.
       lv_question = lv_msg  && '. Do you want to overwrite it?'.
 
-      IF gs_inst-status = 'S' AND iv_force IS INITIAL.
+      IF gs_inst-status = gc_success AND iv_force IS INITIAL.
         CREATE OBJECT lo_popup.
 
         lv_answer = lo_popup->popup_to_confirm(
@@ -27479,7 +27453,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
     DATA:
       lv_msg   TYPE string,
-      lt_tadir LIKE it_tadir.
+      lt_tadir LIKE it_tadir ##NEEDED.
 
     CHECK it_tadir IS NOT INITIAL.
 
@@ -27489,7 +27463,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
         AND object   = it_tadir-object
         AND obj_name = it_tadir-obj_name ##TOO_MANY_ITAB_FIELDS.
     IF sy-subrc = 0.
-      gs_inst-status = 'W'.
+      gs_inst-status = gc_warning.
       lv_msg = `Some objects could not be uninstalled yet. Release the transport and run the uninstall again` &&
                ` to remove the remaining objects.`.
       MESSAGE lv_msg TYPE 'I'.
@@ -27498,7 +27472,14 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD _clear.
+    CLEAR: gs_inst, gs_packaging, go_dot.
+  ENDMETHOD.
+
+
   METHOD _confirm_messages.
+
+    " Temporarily suppress certain messages that are not relevant for installation
 
     CONSTANTS lc_toolflag_set TYPE funcname VALUE 'SCWG_TOOLFLAG_SET'.
 
@@ -27513,7 +27494,9 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
         v4 TYPE symsgv,
       END OF ty_message.
 
-    DATA ls_msg TYPE ty_message.
+    DATA:
+      ls_msg    TYPE ty_message,
+      ls_clmcus TYPE clmcus.
 
     FIELD-SYMBOLS <lt_msg> TYPE STANDARD TABLE.
 
@@ -27549,6 +27532,14 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
     IF sy-subrc = 0.
       CALL FUNCTION lc_toolflag_set.
     ENDIF.
+
+    " Confirm message about modification mode (DT, CLM_INFORMATION)
+    SELECT * FROM clmcus INTO TABLE gt_clmcus WHERE username = sy-uname. "backup old state
+    ls_clmcus-username = sy-uname.
+    ls_clmcus-obj_type = 'CLAS'.
+    INSERT clmcus FROM ls_clmcus ##SUBRC_OK.
+    ls_clmcus-obj_type = 'INTF'.
+    INSERT clmcus FROM ls_clmcus ##SUBRC_OK.
 
   ENDMETHOD.
 
@@ -27606,15 +27597,15 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
     DATA lv_msg TYPE string.
 
     CASE gs_inst-status.
-      WHEN 'S'.
-        lv_msg = |{ iv_type } of { gs_inst-name } successfully completed|.
-        MESSAGE lv_msg TYPE 'S'.
-      WHEN 'W'.
-        lv_msg = |{ iv_type } of { gs_inst-name } finished with warnings|.
-        MESSAGE lv_msg TYPE 'W'.
-      WHEN 'E'.
-        lv_msg = |{ iv_type } of { gs_inst-name } finshed with errors|.
-        MESSAGE lv_msg TYPE 'S' DISPLAY LIKE 'E'.
+      WHEN gc_success.
+        lv_msg = |{ iv_type } of "{ gs_inst-name }" successfully completed|.
+        MESSAGE lv_msg TYPE gc_success.
+      WHEN gc_warning.
+        lv_msg = |{ iv_type } of "{ gs_inst-name }" finished with warnings|.
+        MESSAGE lv_msg TYPE gc_success DISPLAY LIKE gc_warning.
+      WHEN gc_error.
+        lv_msg = |{ iv_type } of "{ gs_inst-name }" finshed with errors|.
+        MESSAGE lv_msg TYPE gc_success DISPLAY LIKE gc_error.
       WHEN OTHERS.
         ASSERT 1 = 2.
     ENDCASE.
@@ -27694,7 +27685,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
   METHOD _log_end.
     gs_inst-status = gi_log->get_status( ).
-    IF gs_inst-status <> 'S'.
+    IF gs_inst-status <> gc_success.
       zcl_abapinst_log_viewer=>show_log( gi_log ).
     ENDIF.
   ENDMETHOD.
@@ -27735,7 +27726,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
     IF it_list IS INITIAL.
       lv_msg = |No { gv_names } found|.
-      MESSAGE lv_msg TYPE 'S'.
+      MESSAGE lv_msg TYPE gc_success.
       rv_result = abap_true.
     ENDIF.
 
@@ -27779,6 +27770,14 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
     ENDIF.
 
     MOVE-CORRESPONDING gs_packaging TO gs_inst.
+
+  ENDMETHOD.
+
+
+  METHOD _restore_messages.
+
+    DELETE FROM clmcus WHERE username = sy-uname ##SUBRC_OK.
+    INSERT clmcus FROM TABLE gt_clmcus ##SUBRC_OK.
 
   ENDMETHOD.
 
@@ -27854,17 +27853,102 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
   METHOD _transport.
 
-    IF gs_inst-pack(1) <> '$'.
-      CASE iv_enum_transport.
-        WHEN ty_enum_transport-existing.
-          gs_inst-transport = iv_transport.
-        WHEN ty_enum_transport-prompt.
-          gs_inst-transport = zcl_abapinst_screen=>f4_transport( gs_inst-pack ).
+    DATA lv_trkorr TYPE trkorr.
 
-          IF gs_inst-transport IS INITIAL.
-            zcx_abapinst_exception=>raise( 'No transport selected. Installation cancelled' ).
-          ENDIF.
-      ENDCASE.
+    CHECK gs_inst-pack(1) <> '$'.
+
+    CASE iv_enum_transport.
+      WHEN ty_enum_transport-existing.
+        gs_inst-transport = iv_transport.
+      WHEN ty_enum_transport-prompt.
+        TRY.
+            lv_trkorr = zcl_abapgit_default_transport=>get_instance( )->get( ).
+          CATCH zcx_abapgit_exception ##NO_HANDLER.
+        ENDTRY.
+
+        gs_inst-transport = zcl_abapinst_screen=>f4_transport(
+          iv_package   = gs_inst-pack
+          iv_transport = lv_trkorr ).
+
+        IF gs_inst-transport IS INITIAL.
+          zcx_abapinst_exception=>raise( 'No transport selected. Installation cancelled' ).
+        ENDIF.
+    ENDCASE.
+
+    _transport_check( ).
+
+  ENDMETHOD.
+
+
+  METHOD _transport_check.
+
+    DATA:
+      lv_text            TYPE as4text,
+      ls_request_header  TYPE trwbo_request_header,
+      lt_request_headers TYPE trwbo_request_headers.
+
+    CHECK gs_inst-pack(1) <> '$'.
+
+    lv_text = gs_inst-name && ':' && gs_inst-description.
+
+    CALL FUNCTION 'TR_READ_REQUEST_WITH_TASKS'
+      EXPORTING
+        iv_trkorr          = gs_inst-transport
+      IMPORTING
+        et_request_headers = lt_request_headers
+      EXCEPTIONS
+        invalid_input      = 1
+        OTHERS             = 2.
+    IF sy-subrc <> 0.
+      zcx_abapinst_exception=>raise_t100( ).
+    ENDIF.
+
+    " Request Type: Workbench
+    READ TABLE lt_request_headers INTO ls_request_header
+      WITH KEY trfunction = 'K' trstatus = 'D' korrdev = 'SYST'.
+    IF sy-subrc <> 0.
+      zcx_abapinst_exception=>raise( |Transport { gs_inst-transport } is not a changeable "workbench request"| ).
+    ENDIF.
+
+    " Task Type: Unclassified (ok)
+    READ TABLE lt_request_headers TRANSPORTING NO FIELDS
+      WITH KEY trfunction = 'X' trstatus = 'D' korrdev = 'SYST'.
+    IF sy-subrc = 0.
+      RETURN.
+    ENDIF.
+
+    " Task Type: Development
+    READ TABLE lt_request_headers TRANSPORTING NO FIELDS
+      WITH KEY trfunction = 'S' trstatus = 'D' korrdev = 'SYST'.
+    IF sy-subrc <> 0.
+      CALL FUNCTION 'TRINT_INSERT_NEW_COMM'
+        EXPORTING
+          wi_kurztext   = lv_text
+          wi_trfunction = 'S'
+          wi_strkorr    = ls_request_header-trkorr
+        EXCEPTIONS
+          OTHERS        = 1.
+      IF sy-subrc <> 0.
+        zcx_abapinst_exception=>raise_t100( ).
+      ENDIF.
+    ENDIF.
+
+    " Task Type: Repair (for namespaced projects)
+    IF gs_inst-pack(1) = '/'.
+      READ TABLE lt_request_headers TRANSPORTING NO FIELDS
+        WITH KEY trfunction = 'R' trstatus = 'D' korrdev = 'SYST'.
+      IF sy-subrc <> 0.
+        CALL FUNCTION 'TRINT_INSERT_NEW_COMM'
+          EXPORTING
+            wi_kurztext   = lv_text
+            wi_trfunction = 'R'
+            wi_strkorr    = ls_request_header-trkorr
+          EXCEPTIONS
+            OTHERS        = 1.
+        IF sy-subrc <> 0.
+          zcx_abapinst_exception=>raise_t100( ).
+        ENDIF.
+      ENDIF.
     ENDIF.
 
   ENDMETHOD.
@@ -29273,7 +29357,7 @@ CLASS zcl_abapinst_screen IMPLEMENTATION.
 
     DATA:
       lv_base           TYPE string,
-      lt_base           TYPE TABLE OF string,
+      lt_base           TYPE TABLE OF string ##NEEDED,
       lv_xstr           TYPE xstring,
       lv_content_type   TYPE w3param-cont_type,
       lv_content_lenght TYPE w3param-cont_len,
@@ -29339,6 +29423,7 @@ CLASS zcl_abapinst_screen IMPLEMENTATION.
           RETURN.
         ENDIF.
 
+        " Convert to base64 (not used, just fyi in case you want to paste it somewhere)
         LOOP AT lt_pic INTO ls_pic.
           lv_xstr = lv_xstr && ls_pic-line.
         ENDLOOP.
@@ -29447,9 +29532,7 @@ CLASS zcl_abapinst_screen IMPLEMENTATION.
       lv_task_type  TYPE trfunction,
       lv_tarsystem  TYPE tr_target,
       lt_e071       TYPE TABLE OF e071,
-      lt_e071k      TYPE TABLE OF e071k,
-      ls_fields     TYPE dynpread,
-      lt_fields     TYPE TABLE OF dynpread.
+      lt_e071k      TYPE TABLE OF e071k.
 
     lv_obj_name = iv_package.
 
@@ -29504,6 +29587,7 @@ CLASS zcl_abapinst_screen IMPLEMENTATION.
         wi_order_type          = lv_order_type
         wi_task_type           = lv_task_type
         wi_client              = sy-mandt
+        wi_order               = iv_transport
         iv_tarsystem           = lv_tarsystem
       IMPORTING
         we_order               = rv_transport
@@ -29760,7 +29844,7 @@ CLASS zcl_abapinst_setup IMPLEMENTATION.
 
     DATA: lv_viewname TYPE dd25l-viewname.
 
-    SELECT SINGLE viewname FROM dd25l INTO lv_viewname WHERE viewname = gv_lock.
+    SELECT SINGLE viewname FROM dd25l INTO lv_viewname WHERE viewname = gv_lock ##WARN_OK.
     rv_exists = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
@@ -29871,7 +29955,7 @@ CLASS zcl_abapinst_setup IMPLEMENTATION.
 
     DATA: lv_tabname TYPE dd02l-tabname.
 
-    SELECT SINGLE tabname FROM dd02l INTO lv_tabname WHERE tabname = gv_tabname.
+    SELECT SINGLE tabname FROM dd02l INTO lv_tabname WHERE tabname = gv_tabname ##WARN_OK.
     rv_exists = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
