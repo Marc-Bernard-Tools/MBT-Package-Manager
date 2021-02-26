@@ -14,8 +14,8 @@ CLASS /mbtools/cl_ajson DEFINITION
 
   PUBLIC SECTION.
 
-    INTERFACES /mbtools/if_ajson_reader .
-    INTERFACES /mbtools/if_ajson_writer .
+*    INTERFACES /mbtools/if_ajson_reader
+*    INTERFACES /mbtools/if_ajson_writer
     INTERFACES /mbtools/if_ajson .
 
     ALIASES:
