@@ -110,9 +110,9 @@ CLASS /mbtools/cl_sap DEFINITION
 
     CONSTANTS c_note_min TYPE cwbntnumm VALUE '1' ##NO_TEXT.
     CONSTANTS c_note_max TYPE cwbntnumm VALUE '3999999' ##NO_TEXT.
-    CLASS-DATA gt_object_texts TYPE /mbtools/if_definitions=>ty_object_texts .
+    CLASS-DATA gt_object_texts TYPE /mbtools/if_definitions=>ty_object_texts.
 
-    CLASS-METHODS map_object
+    CLASS-METHODS _map_object
       IMPORTING
         !iv_pgmid    TYPE csequence DEFAULT 'R3TR'
         !iv_object   TYPE csequence
@@ -120,7 +120,7 @@ CLASS /mbtools/cl_sap DEFINITION
       EXPORTING
         !ev_pgmid    TYPE e071-pgmid
         !ev_object   TYPE e071-object
-        !ev_obj_name TYPE e071-obj_name .
+        !ev_obj_name TYPE e071-obj_name.
 ENDCLASS.
 
 
@@ -464,38 +464,6 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD map_object.
-
-    DATA:
-      lv_len    TYPE i,
-      lv_iobjnm TYPE rsiobjnm.
-
-    ev_pgmid    = iv_pgmid.
-    ev_object   = iv_object.
-    ev_obj_name = iv_obj_name.
-
-    CASE iv_object.
-      WHEN /mbtools/if_objects=>c_dimension.
-        " Map Dimension to Base InfoCube
-        lv_len = strlen( iv_obj_name ) - 1.
-        ev_object   = /mbtools/if_objects=>c_infocube.
-        ev_obj_name = iv_obj_name(lv_len).
-
-      WHEN /mbtools/if_objects=>c_infoobject.
-        " Map InfoSet and Attribute Fields to Base InfoObject
-        lv_iobjnm = iv_obj_name.
-        CALL FUNCTION 'RSD_IOBJNM_PARSE'
-          EXPORTING
-            i_iobjnm = lv_iobjnm
-          IMPORTING
-            e_iobjnm = lv_iobjnm.
-        ev_obj_name = lv_iobjnm.
-
-    ENDCASE.
-
-  ENDMETHOD.
-
-
   METHOD object_name_check.
 
     DATA:
@@ -683,7 +651,7 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
     ENDIF.
 
     " Transport tools
-    map_object(
+    _map_object(
       EXPORTING
         iv_pgmid    = lv_pgmid
         iv_object   = iv_object
@@ -707,6 +675,38 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
     ELSE.
       MESSAGE s000 WITH 'Navigation not available'(001).
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD _map_object.
+
+    DATA:
+      lv_len    TYPE i,
+      lv_iobjnm TYPE rsiobjnm.
+
+    ev_pgmid    = iv_pgmid.
+    ev_object   = iv_object.
+    ev_obj_name = iv_obj_name.
+
+    CASE iv_object.
+      WHEN /mbtools/if_objects=>c_dimension.
+        " Map Dimension to Base InfoCube
+        lv_len = strlen( iv_obj_name ) - 1.
+        ev_object   = /mbtools/if_objects=>c_infocube.
+        ev_obj_name = iv_obj_name(lv_len).
+
+      WHEN /mbtools/if_objects=>c_infoobject.
+        " Map InfoSet and Attribute Fields to Base InfoObject
+        lv_iobjnm = iv_obj_name.
+        CALL FUNCTION 'RSD_IOBJNM_PARSE'
+          EXPORTING
+            i_iobjnm = lv_iobjnm
+          IMPORTING
+            e_iobjnm = lv_iobjnm.
+        ev_obj_name = lv_iobjnm.
+
+    ENDCASE.
 
   ENDMETHOD.
 ENDCLASS.

@@ -74,17 +74,17 @@ CLASS /mbtools/cl_edd DEFINITION
 
   PRIVATE SECTION.
 
-    CLASS-DATA gi_log TYPE REF TO /mbtools/if_logger .
+    CLASS-DATA gi_log TYPE REF TO /mbtools/if_logger.
 
-    CLASS-METHODS get_data
+    CLASS-METHODS _get_data
       IMPORTING
         !iv_url        TYPE string
         !iv_check      TYPE string DEFAULT '"success"'
       RETURNING
         VALUE(rv_data) TYPE string
       RAISING
-        /mbtools/cx_exception .
-    CLASS-METHODS get_endpoint
+        /mbtools/cx_exception.
+    CLASS-METHODS _get_endpoint
       IMPORTING
         !iv_action         TYPE string
         !iv_id             TYPE string
@@ -92,20 +92,20 @@ CLASS /mbtools/cl_edd DEFINITION
       RETURNING
         VALUE(rv_endpoint) TYPE string
       RAISING
-        /mbtools/cx_exception .
-    CLASS-METHODS get_json
+        /mbtools/cx_exception.
+    CLASS-METHODS _get_json
       IMPORTING
         !iv_data       TYPE string
       RETURNING
         VALUE(ro_json) TYPE REF TO /mbtools/if_ajson_reader
       RAISING
-        /mbtools/cx_exception .
-    CLASS-METHODS adjust_html
+        /mbtools/cx_exception.
+    CLASS-METHODS _adjust_html
       IMPORTING
         !iv_html         TYPE string
         !iv_headers      TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(rv_result) TYPE string .
+        VALUE(rv_result) TYPE string.
 ENDCLASS.
 
 
@@ -142,13 +142,13 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     gi_log->i( |EDD API ActivateLicense for ID { iv_id }| ).
 
-    lv_endpoint = get_endpoint( iv_action  = c_edd_action-activate
+    lv_endpoint = _get_endpoint( iv_action  = c_edd_action-activate
                                 iv_id      = iv_id
                                 iv_license = iv_license ).
 
-    lv_data = get_data( lv_endpoint ).
+    lv_data = _get_data( lv_endpoint ).
 
-    lo_json = get_json( lv_data ).
+    lo_json = _get_json( lv_data ).
 
     IF lo_json->get_boolean( '/success' ) <> abap_true.
       CASE lo_json->get_string( '/error' ).
@@ -184,20 +184,6 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD adjust_html.
-
-    rv_result = iv_html.
-
-    REPLACE ALL OCCURRENCES OF 'href="/' IN rv_result WITH 'href="' && /mbtools/if_definitions=>c_www_home.
-
-    IF iv_headers = abap_true.
-      REPLACE ALL OCCURRENCES OF '<p>' IN rv_result WITH '<h4>'.
-      REPLACE ALL OCCURRENCES OF '</p>' IN rv_result WITH '</h4>'.
-    ENDIF.
-
-  ENDMETHOD.
-
-
   METHOD check_license.
 
 *{
@@ -227,13 +213,13 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     gi_log->i( |EDD API CheckLicense for ID { iv_id }| ).
 
-    lv_endpoint = get_endpoint( iv_action  = c_edd_action-check
+    lv_endpoint = _get_endpoint( iv_action  = c_edd_action-check
                                 iv_id      = iv_id
                                 iv_license = iv_license ).
 
-    lv_data = get_data( lv_endpoint ).
+    lv_data = _get_data( lv_endpoint ).
 
-    lo_json = get_json( lv_data ).
+    lo_json = _get_json( lv_data ).
 
     IF lo_json->get_boolean( '/success' ) <> abap_true.
       CASE lo_json->get_string( '/error' ).
@@ -279,13 +265,13 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     gi_log->i( |EDD API DeactivateLicense for ID { iv_id }| ).
 
-    lv_endpoint = get_endpoint( iv_action  = c_edd_action-deactivate
+    lv_endpoint = _get_endpoint( iv_action  = c_edd_action-deactivate
                                 iv_id      = iv_id
                                 iv_license = iv_license ).
 
-    lv_data = get_data( lv_endpoint ).
+    lv_data = _get_data( lv_endpoint ).
 
-    lo_json = get_json( lv_data ).
+    lo_json = _get_json( lv_data ).
 
     IF lo_json->get_boolean( '/success' ) <> abap_true.
       " Probably wasn't a valid license in the first place. Ignore errors.
@@ -297,7 +283,90 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_data.
+  METHOD get_version.
+
+*{
+*  "new_version": "2.0",
+*  "stable_version": "2.0",
+*  "name": "Restrict Content Pro",
+*  "slug": "restrict-content-pro",
+*  "url": "https://edd.com/downloads/restrict-content-pro/?changelog=1",
+*  "last_updated": "2017-01-03 11:59:46",
+*  "homepage": "https://edd.com/downloads/restrict-content-pro/",
+*  "package": "",
+*  "download_link": "",
+*  "sections": "...",
+*  "banners": "..."
+*}
+
+    DATA:
+      lv_endpoint TYPE string,
+      lv_data     TYPE string,
+      lv_sections TYPE string,
+      lo_json     TYPE REF TO /mbtools/if_ajson_reader,
+      lx_error    TYPE REF TO /mbtools/cx_ajson_error.
+
+    LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
+
+    CLEAR: ev_version, ev_description, ev_changelog_url, ev_changelog, ev_download_url.
+
+    gi_log->i( |EDD API GetVersion for ID { iv_id }| ).
+
+    lv_endpoint = _get_endpoint( iv_action  = c_edd_action-version
+                                iv_id      = iv_id
+                                iv_license = iv_license ).
+
+    lv_data = _get_data( iv_url   = lv_endpoint
+                        iv_check = '"new_version"' ).
+
+    lo_json = _get_json( lv_data ).
+
+    ev_version = lo_json->get_string( '/new_version' ).
+    ev_changelog_url = lo_json->get_string( '/url' ).
+    ev_download_url = lo_json->get_string( '/download_link' ).
+    lv_sections = lo_json->get_string( '/sections' ).
+    REPLACE ALL OCCURRENCES OF '&nbsp;' IN lv_sections WITH ` `.
+
+    TRY.
+        lo_json = /mbtools/cl_aphp=>unserialize(
+                    iv_data       = lv_sections
+                    iv_ignore_len = abap_true ).
+
+        IF lo_json->get_string( '/a/1/key' ) = 'description'.
+          ev_description = lo_json->get_string( '/a/1/val' ).
+          ev_description = _adjust_html( ev_description ).
+          IF ev_description CS '<p>Requirements'.
+            ev_description = ev_description(sy-fdpos).
+          ENDIF.
+        ENDIF.
+        IF lo_json->get_string( '/a/2/key' ) = 'changelog'.
+          ev_changelog = lo_json->get_string( '/a/2/val' ).
+          ev_changelog = _adjust_html(
+            iv_html    = ev_changelog
+            iv_headers = abap_true ).
+        ENDIF.
+      CATCH /mbtools/cx_ajson_error INTO lx_error.
+        /mbtools/cx_exception=>raise( lx_error->get_text( ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD _adjust_html.
+
+    rv_result = iv_html.
+
+    REPLACE ALL OCCURRENCES OF 'href="/' IN rv_result WITH 'href="' && /mbtools/if_definitions=>c_www_home.
+
+    IF iv_headers = abap_true.
+      REPLACE ALL OCCURRENCES OF '<p>' IN rv_result WITH '<h4>'.
+      REPLACE ALL OCCURRENCES OF '</p>' IN rv_result WITH '</h4>'.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD _get_data.
 
     DATA:
       lo_client    TYPE REF TO /mbtools/cl_http_client,
@@ -333,7 +402,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_endpoint.
+  METHOD _get_endpoint.
 
     DATA: lv_system_no TYPE slic_sysid.
 
@@ -365,7 +434,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_json.
+  METHOD _get_json.
 
     DATA lx_error TYPE REF TO /mbtools/cx_ajson_error.
 
@@ -373,75 +442,6 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
         ro_json = /mbtools/cl_ajson=>parse( iv_data ).
       CATCH /mbtools/cx_ajson_error INTO lx_error.
         /mbtools/cx_exception=>raise( 'Error parsing response from MBT website:'(000) && lx_error->get_text( ) ).
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD get_version.
-
-*{
-*  "new_version": "2.0",
-*  "stable_version": "2.0",
-*  "name": "Restrict Content Pro",
-*  "slug": "restrict-content-pro",
-*  "url": "https://edd.com/downloads/restrict-content-pro/?changelog=1",
-*  "last_updated": "2017-01-03 11:59:46",
-*  "homepage": "https://edd.com/downloads/restrict-content-pro/",
-*  "package": "",
-*  "download_link": "",
-*  "sections": "...",
-*  "banners": "..."
-*}
-
-    DATA:
-      lv_endpoint TYPE string,
-      lv_data     TYPE string,
-      lv_sections TYPE string,
-      lo_json     TYPE REF TO /mbtools/if_ajson_reader,
-      lx_error    TYPE REF TO /mbtools/cx_ajson_error.
-
-    LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
-
-    CLEAR: ev_version, ev_description, ev_changelog_url, ev_changelog, ev_download_url.
-
-    gi_log->i( |EDD API GetVersion for ID { iv_id }| ).
-
-    lv_endpoint = get_endpoint( iv_action  = c_edd_action-version
-                                iv_id      = iv_id
-                                iv_license = iv_license ).
-
-    lv_data = get_data( iv_url   = lv_endpoint
-                        iv_check = '"new_version"' ).
-
-    lo_json = get_json( lv_data ).
-
-    ev_version = lo_json->get_string( '/new_version' ).
-    ev_changelog_url = lo_json->get_string( '/url' ).
-    ev_download_url = lo_json->get_string( '/download_link' ).
-    lv_sections = lo_json->get_string( '/sections' ).
-    REPLACE ALL OCCURRENCES OF '&nbsp;' IN lv_sections WITH ` `.
-
-    TRY.
-        lo_json = /mbtools/cl_aphp=>unserialize(
-                    iv_data       = lv_sections
-                    iv_ignore_len = abap_true ).
-
-        IF lo_json->get_string( '/a/1/key' ) = 'description'.
-          ev_description = lo_json->get_string( '/a/1/val' ).
-          ev_description = adjust_html( ev_description ).
-          IF ev_description CS '<p>Requirements'.
-            ev_description = ev_description(sy-fdpos).
-          ENDIF.
-        ENDIF.
-        IF lo_json->get_string( '/a/2/key' ) = 'changelog'.
-          ev_changelog = lo_json->get_string( '/a/2/val' ).
-          ev_changelog = adjust_html(
-                           iv_html    = ev_changelog
-                           iv_headers = abap_true ).
-        ENDIF.
-      CATCH /mbtools/cx_ajson_error INTO lx_error.
-        /mbtools/cx_exception=>raise( lx_error->get_text( ) ).
     ENDTRY.
 
   ENDMETHOD.

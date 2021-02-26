@@ -50,10 +50,9 @@ CLASS /mbtools/cl_switches DEFINITION
         key_debug  TYPE string VALUE 'Debug' ##NO_TEXT,
         key_trace  TYPE string VALUE 'Trace' ##NO_TEXT,
       END OF c_reg.
-
     CLASS-DATA go_reg_root TYPE REF TO /mbtools/cl_registry.
 
-    CLASS-METHODS check_switch
+    CLASS-METHODS _check_switch
       IMPORTING
         !iv_title        TYPE string
         !iv_key          TYPE string
@@ -66,7 +65,48 @@ ENDCLASS.
 CLASS /mbtools/cl_switches IMPLEMENTATION.
 
 
-  METHOD check_switch.
+  METHOD class_constructor.
+
+    TRY.
+        " Get root of registry
+        go_reg_root = /mbtools/cl_registry=>get_root( ).
+
+      CATCH /mbtools/cx_exception.
+        " MBT Base is not installed properly. Contact Marc Bernard Tools
+        ASSERT 0 = 1.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD is_active.
+
+    rv_result = _check_switch(
+      iv_title = iv_title
+      iv_key   = c_reg-key_active ).
+
+  ENDMETHOD.
+
+
+  METHOD is_debug.
+
+    rv_result = _check_switch(
+      iv_title = iv_title
+      iv_key   = c_reg-key_debug ).
+
+  ENDMETHOD.
+
+
+  METHOD is_trace.
+
+    rv_result = _check_switch(
+      iv_title = iv_title
+      iv_key   = c_reg-key_trace ).
+
+  ENDMETHOD.
+
+
+  METHOD _check_switch.
 
     DATA:
       lv_name      TYPE string,
@@ -113,44 +153,6 @@ CLASS /mbtools/cl_switches IMPLEMENTATION.
       CATCH cx_root.
         rv_result = abap_false.
     ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD class_constructor.
-
-    TRY.
-        " Get root of registry
-        go_reg_root = /mbtools/cl_registry=>get_root( ).
-
-      CATCH /mbtools/cx_exception.
-        " MBT Base is not installed properly. Contact Marc Bernard Tools
-        ASSERT 0 = 1.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD is_active.
-
-    rv_result = check_switch( iv_title = iv_title
-                              iv_key   = c_reg-key_active ).
-
-  ENDMETHOD.
-
-
-  METHOD is_debug.
-
-    rv_result = check_switch( iv_title = iv_title
-                              iv_key   = c_reg-key_debug ).
-
-  ENDMETHOD.
-
-
-  METHOD is_trace.
-
-    rv_result = check_switch( iv_title = iv_title
-                              iv_key   = c_reg-key_trace ).
 
   ENDMETHOD.
 ENDCLASS.

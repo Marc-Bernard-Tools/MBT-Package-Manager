@@ -41,13 +41,13 @@ CLASS /mbtools/cl_datetime DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    CLASS-METHODS print
+    CLASS-METHODS _print
       IMPORTING
         !iv_single       TYPE string
         !iv_plural       TYPE string
         !iv_number       TYPE numeric
       RETURNING
-        VALUE(rv_result) TYPE string .
+        VALUE(rv_result) TYPE string.
 ENDCLASS.
 
 
@@ -115,7 +115,7 @@ CLASS /mbtools/cl_datetime IMPLEMENTATION.
       IF lv_val <= 1.
         lv_val = 1.
       ENDIF.
-      rv_result = print( iv_single = 'second'
+      rv_result = _print( iv_single = 'second'
                          iv_plural = 'seconds'
                          iv_number  = lv_val ).
     ELSEIF lv_diff < c_hour_in_seconds AND lv_diff >= c_minute_in_seconds.
@@ -123,7 +123,7 @@ CLASS /mbtools/cl_datetime IMPLEMENTATION.
       IF ( lv_val <= 1 ).
         lv_val = 1.
       ENDIF.
-      rv_result = print( iv_single = 'minute'
+      rv_result = _print( iv_single = 'minute'
                          iv_plural = 'minutes'
                          iv_number  = lv_val ).
     ELSEIF lv_diff < c_day_in_seconds AND lv_diff >= c_hour_in_seconds.
@@ -131,7 +131,7 @@ CLASS /mbtools/cl_datetime IMPLEMENTATION.
       IF ( lv_val <= 1 ).
         lv_val = 1.
       ENDIF.
-      rv_result = print( iv_single = 'hour'
+      rv_result = _print( iv_single = 'hour'
                          iv_plural = 'hours'
                          iv_number  = lv_val ).
     ELSEIF lv_diff < c_week_in_seconds AND lv_diff >= c_day_in_seconds.
@@ -139,39 +139,43 @@ CLASS /mbtools/cl_datetime IMPLEMENTATION.
       IF ( lv_val <= 1 ).
         lv_val = 1.
       ENDIF.
-      rv_result = print( iv_single = 'day'
-                         iv_plural = 'days'
-                         iv_number  = lv_val ).
+      rv_result = _print(
+        iv_single = 'day'
+        iv_plural = 'days'
+        iv_number  = lv_val ).
     ELSEIF lv_diff < c_month_in_seconds AND lv_diff >= c_week_in_seconds.
       lv_val = lv_diff / c_week_in_seconds.
       IF ( lv_val <= 1 ).
         lv_val = 1.
       ENDIF.
-      rv_result = print( iv_single = 'week'
-                         iv_plural = 'weeks'
-                         iv_number  = lv_val ).
+      rv_result = _print(
+        iv_single = 'week'
+        iv_plural = 'weeks'
+        iv_number  = lv_val ).
     ELSEIF lv_diff < c_year_in_seconds AND lv_diff >= c_month_in_seconds.
       lv_val = lv_diff / c_month_in_seconds.
       IF ( lv_val <= 1 ).
         lv_val = 1.
       ENDIF.
-      rv_result = print( iv_single = 'month'
-                         iv_plural = 'months'
-                         iv_number  = lv_val ).
+      rv_result = _print(
+        iv_single = 'month'
+        iv_plural = 'months'
+        iv_number  = lv_val ).
     ELSEIF lv_diff >= c_year_in_seconds.
       lv_val = lv_diff / c_year_in_seconds.
       IF ( lv_val <= 1 ).
         lv_val = 1.
       ENDIF.
-      rv_result = print( iv_single = 'year'
-                         iv_plural = 'years'
-                         iv_number  = lv_val ).
+      rv_result = _print(
+        iv_single = 'year'
+        iv_plural = 'years'
+        iv_number  = lv_val ).
     ENDIF.
 
   ENDMETHOD.
 
 
-  METHOD print.
+  METHOD _print.
 
     DATA: lv_number TYPE c LENGTH 40.
 

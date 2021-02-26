@@ -69,30 +69,30 @@ CLASS /mbtools/cl_tree DEFINITION
   PRIVATE SECTION.
 
     DATA mv_container_name TYPE char25 VALUE 'GO_TREE_CONTAINER' ##NO_TEXT.
-    DATA mo_custom_container TYPE REF TO cl_gui_custom_container .
-    DATA mo_tree TYPE REF TO cl_gui_alv_tree .
+    DATA mo_custom_container TYPE REF TO cl_gui_custom_container.
+    DATA mo_tree TYPE REF TO cl_gui_alv_tree.
     DATA mv_tree_structure TYPE tabname VALUE '/MBTOOLS/TREE_CONTROL' ##NO_TEXT.
-    DATA ms_outtab TYPE /mbtools/tree_control .
+    DATA ms_outtab TYPE /mbtools/tree_control.
     DATA:
-      mt_outtab TYPE STANDARD TABLE OF /mbtools/tree_control .
-    DATA mv_node_key TYPE lvc_nkey .
-    DATA mv_relat_key TYPE lvc_nkey .
-    DATA mt_fieldcat TYPE lvc_t_fcat .
-    DATA mt_item_layout TYPE lvc_t_layi .
-    DATA mt_typtab TYPE lvc_t_chit .
+      mt_outtab TYPE STANDARD TABLE OF /mbtools/tree_control.
+    DATA mv_node_key TYPE lvc_nkey.
+    DATA mv_relat_key TYPE lvc_nkey.
+    DATA mt_fieldcat TYPE lvc_t_fcat.
+    DATA mt_item_layout TYPE lvc_t_layi.
+    DATA mt_typtab TYPE lvc_t_chit.
     DATA mv_tree_level TYPE i VALUE 0 ##NO_TEXT.
-    DATA mv_done TYPE abap_bool .
+    DATA mv_done TYPE abap_bool.
 
-    METHODS init .
-    METHODS add_node
+    METHODS _init.
+    METHODS _add_node
       IMPORTING
         VALUE(is_outtab) TYPE any
         VALUE(iv_icon)   TYPE icon_d OPTIONAL
         VALUE(iv_color)  TYPE i OPTIONAL
         VALUE(iv_level)  TYPE i OPTIONAL
         VALUE(iv_sign)   TYPE abap_bool DEFAULT abap_false
-        VALUE(iv_hidden) TYPE abap_bool DEFAULT abap_false .
-    METHODS add
+        VALUE(iv_hidden) TYPE abap_bool DEFAULT abap_false.
+    METHODS _add
       IMPORTING
         VALUE(iv_title)  TYPE csequence
         VALUE(iv_icon)   TYPE icon_d OPTIONAL
@@ -102,7 +102,7 @@ CLASS /mbtools/cl_tree DEFINITION
         VALUE(iv_level)  TYPE i OPTIONAL
         VALUE(iv_sign)   TYPE abap_bool DEFAULT abap_false
         VALUE(iv_hidden) TYPE abap_bool DEFAULT abap_false
-        VALUE(iv_type)   TYPE csequence OPTIONAL .
+        VALUE(iv_type)   TYPE csequence OPTIONAL.
 ENDCLASS.
 
 
@@ -110,184 +110,34 @@ ENDCLASS.
 CLASS /mbtools/cl_tree IMPLEMENTATION.
 
 
-  METHOD add.
-
-    DATA:
-      ls_typtab TYPE lvc_s_chit,
-      lv_type    TYPE c.
-
-    " Node types
-    ls_typtab-nodekey   = mv_node_key.
-    ls_typtab-fieldname = iv_type.
-    INSERT ls_typtab INTO TABLE mt_typtab.
-
-    " Output data
-    " - convert text and value to type char 255
-    "   although ALV tree currently limits output to char 128
-    " - format numeric data
-    CLEAR ms_outtab.
-    ms_outtab-object = iv_title.
-
-    DESCRIBE FIELD iv_text TYPE lv_type.
-    IF lv_type CA 'bspdfDT'.
-      WRITE iv_text TO ms_outtab-text LEFT-JUSTIFIED.
-    ELSE.
-      ms_outtab-text = iv_text.
-    ENDIF.
-
-    DESCRIBE FIELD iv_value TYPE lv_type.
-    IF lv_type CA 'bspdf'.
-      ms_outtab-value = iv_value.
-      SHIFT ms_outtab-value LEFT DELETING LEADING space.
-    ELSE.
-      ms_outtab-value = iv_value.
-    ENDIF.
-
-    " Add node to tree
-    add_node( is_outtab = ms_outtab
-              iv_icon   = iv_icon
-              iv_color  = iv_color
-              iv_level  = iv_level
-              iv_sign   = iv_sign
-              iv_hidden = iv_hidden ).
-
-  ENDMETHOD.
-
-
   METHOD add_detail.
 
-    add( iv_icon   = iv_icon
-         iv_title  = iv_title
-         iv_text   = iv_text
-         iv_value  = iv_value
-         iv_color  = 3
-         iv_level  = iv_level
-         iv_sign   = iv_sign
-         iv_hidden = iv_hidden
-         iv_type   = iv_type ).
-
-  ENDMETHOD.
-
-
-  METHOD add_node.
-
-    DATA:
-      lv_node_text   TYPE lvc_value,
-      ls_node_layout TYPE lvc_s_layn.
-
-    FIELD-SYMBOLS:
-      <lv_field>       TYPE any,
-      <ls_fieldcat>    TYPE lvc_s_fcat,
-      <ls_item_layout> TYPE lvc_s_layi.
-
-    " Out data
-    ms_outtab = is_outtab.
-    ms_outtab-node_key   = mv_node_key.
-    ms_outtab-relatkey   = mv_relat_key.
-    ms_outtab-tree_level = iv_level.
-
-    IF iv_sign = abap_true.
-      LOOP AT mt_fieldcat ASSIGNING <ls_fieldcat> FROM 4.
-        ASSIGN COMPONENT <ls_fieldcat>-fieldname OF STRUCTURE ms_outtab TO <lv_field>.
-        IF sy-subrc = 0 AND <lv_field> IS NOT INITIAL.
-          CONCATENATE '- (' <lv_field> ')' INTO <lv_field> SEPARATED BY space.
-        ENDIF.
-      ENDLOOP.
-    ENDIF.
-
-    " Output layout
-    LOOP AT mt_item_layout ASSIGNING <ls_item_layout>.
-      IF iv_hidden IS INITIAL.
-        CASE iv_color.
-          WHEN 0.
-            <ls_item_layout>-style = cl_gui_column_tree=>style_inherited.
-          WHEN 1.
-            <ls_item_layout>-style = cl_gui_column_tree=>style_default.
-          WHEN 2.
-            <ls_item_layout>-style = cl_gui_column_tree=>style_intensified.
-          WHEN OTHERS.
-            <ls_item_layout>-style = cl_gui_column_tree=>style_default.
-        ENDCASE.
-      ELSE.
-        <ls_item_layout>-style = cl_gui_column_tree=>style_inactive.
-      ENDIF.
-
-      IF <ls_item_layout>-fieldname = 'TEXT' AND ms_outtab-text CS '3.x'.
-        <ls_item_layout>-t_image = icon_parameter.
-      ELSE.
-        <ls_item_layout>-t_image = ''.
-      ENDIF.
-    ENDLOOP.
-
-    " Get node text
-    ASSIGN COMPONENT 3 OF STRUCTURE ms_outtab TO <lv_field>.
-    IF sy-subrc = 0.
-      lv_node_text = <lv_field>.
-    ENDIF.
-
-    " Get node icon
-    CLEAR ls_node_layout.
-
-    IF iv_icon BETWEEN icon_equal_green AND icon_pattern_exclude_red.
-      CALL FUNCTION 'ICON_CREATE'
-        EXPORTING
-          name                  = iv_icon
-        IMPORTING
-          result                = ls_node_layout-n_image
-        EXCEPTIONS
-          icon_not_found        = 0
-          outputfield_too_short = 0
-          OTHERS                = 0.
-    ELSE.
-      CALL FUNCTION 'ICON_CREATE'
-        EXPORTING
-          name                  = iv_icon
-          info                  = lv_node_text
-        IMPORTING
-          result                = ls_node_layout-n_image
-        EXCEPTIONS
-          icon_not_found        = 0
-          outputfield_too_short = 0
-          OTHERS                = 0.
-    ENDIF.
-
-    ls_node_layout-exp_image = ls_node_layout-n_image.
-
-    " Add node to tree
-    mo_tree->add_node(
-      EXPORTING
-        i_relat_node_key     = mv_relat_key
-        i_relationship       = cl_gui_column_tree=>relat_last_child
-        is_outtab_line       = ms_outtab
-        is_node_layout       = ls_node_layout
-        it_item_layout       = mt_item_layout
-        i_node_text          = lv_node_text
-      IMPORTING
-        e_new_node_key       = mv_node_key
-      EXCEPTIONS
-        relat_node_not_found = 1
-        node_not_found       = 2
-        OTHERS               = 3 ).
-    IF sy-subrc <> 0.
-      MESSAGE e000 WITH 'Error in ADD_NODE' ##NO_TEXT.
-    ENDIF.
-
-    mv_node_key = mv_node_key + 1.
+    _add(
+      iv_icon   = iv_icon
+      iv_title  = iv_title
+      iv_text   = iv_text
+      iv_value  = iv_value
+      iv_color  = 3
+      iv_level  = iv_level
+      iv_sign   = iv_sign
+      iv_hidden = iv_hidden
+      iv_type   = iv_type ).
 
   ENDMETHOD.
 
 
   METHOD add_sub_node.
 
-    add( iv_icon   = iv_icon
-         iv_title  = iv_title
-         iv_text   = iv_text
-         iv_value  = iv_value
-         iv_color  = 2
-         iv_level  = 1
-         iv_sign   = space
-         iv_hidden = space
-         iv_type   = iv_type ).
+    _add(
+      iv_icon   = iv_icon
+      iv_title  = iv_title
+      iv_text   = iv_text
+      iv_value  = iv_value
+      iv_color  = 2
+      iv_level  = 1
+      iv_sign   = space
+      iv_hidden = space
+      iv_type   = iv_type ).
 
   ENDMETHOD.
 
@@ -297,15 +147,16 @@ CLASS /mbtools/cl_tree IMPLEMENTATION.
     " Link to root
     CLEAR mv_relat_key.
 
-    add( iv_icon   = iv_icon
-         iv_title  = iv_title
-         iv_text   = iv_text
-         iv_value  = iv_value
-         iv_color  = 1
-         iv_level  = 0
-         iv_sign   = space
-         iv_hidden = space
-         iv_type   = iv_type ).
+    _add(
+      iv_icon   = iv_icon
+      iv_title  = iv_title
+      iv_text   = iv_text
+      iv_value  = iv_value
+      iv_color  = 1
+      iv_level  = 0
+      iv_sign   = space
+      iv_hidden = space
+      iv_type   = iv_type ).
 
     " Initialize relationship counter
     mv_relat_key = 1.
@@ -317,7 +168,7 @@ CLASS /mbtools/cl_tree IMPLEMENTATION.
 
     mv_tree_level = 2.
 
-    init( ).
+    _init( ).
 
   ENDMETHOD.
 
@@ -586,7 +437,289 @@ CLASS /mbtools/cl_tree IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD init.
+  METHOD next_key.
+
+    mv_relat_key = mv_node_key - 1.
+
+  ENDMETHOD.
+
+
+  METHOD pai.
+
+    CASE iv_ok_code.
+
+        " Finish program
+      WHEN 'BACK' OR 'EXIT' OR 'CANC'.
+        destroy( ).
+        LEAVE TO SCREEN 0.
+
+        " Pick node/item
+      WHEN 'PICK'.
+        pick_node( ).
+
+        " Find node/item
+      WHEN 'FIND'.
+        find_node( ).
+
+        " Download
+      WHEN 'DOWN'.
+        download( ).
+
+        " Print
+      WHEN 'PRINT'.
+        print( ).
+
+        " Dispatch to tree control
+      WHEN OTHERS.
+        cl_gui_cfw=>dispatch( ).
+
+    ENDCASE.
+
+    cl_gui_cfw=>flush( ).
+
+  ENDMETHOD.
+
+
+  METHOD pbo.
+
+    display( ).
+
+  ENDMETHOD.
+
+
+  METHOD pick_node.
+
+    DATA:
+      ls_selected_nodes TYPE lvc_s_nkey,
+      lt_selected_nodes TYPE lvc_t_nkey,
+      lv_node_key       TYPE lvc_nkey,
+      lv_fieldname      TYPE lvc_fname.                     "#EC NEEDED
+
+    " Get node selection
+    mo_tree->get_selected_nodes(
+      CHANGING
+        ct_selected_nodes = lt_selected_nodes
+      EXCEPTIONS
+        cntl_system_error = 1
+        dp_error          = 2
+        failed            = 3
+        OTHERS            = 4 ).
+    IF sy-subrc <> 0.
+      MESSAGE e000 WITH 'Error in PICK_NODE Selected Nodes' ##NO_TEXT.
+    ENDIF.
+
+    CASE lines( lt_selected_nodes ).
+      WHEN 0.
+        " No node selected, now check item selection
+        mo_tree->get_selected_item(
+          IMPORTING
+            e_selected_node   = lv_node_key
+            e_fieldname       = lv_fieldname
+          EXCEPTIONS
+            no_item_selection = 1
+            cntl_system_error = 2
+            failed            = 3
+            OTHERS            = 4 ).
+
+        CASE sy-subrc.
+          WHEN 0.
+            handle_node_double_click( node_key = lv_node_key ).
+          WHEN 1.
+            MESSAGE i227(0h).
+        ENDCASE.
+
+      WHEN 1.
+        " Exactly one node selected
+        READ TABLE lt_selected_nodes INTO ls_selected_nodes INDEX 1.
+        IF sy-subrc = 0.
+          handle_node_double_click( node_key = ls_selected_nodes-node_key ).
+        ENDIF.
+
+      WHEN OTHERS.
+        " Too many nodes selected
+        MESSAGE i227(0h).
+
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD print.
+
+    mo_tree->set_function_code(
+      EXPORTING
+        i_ucomm            = cl_gui_alv_tree=>mc_fc_print_back
+      EXCEPTIONS
+        function_not_found = 1
+        OTHERS             = 2 ).
+    IF sy-subrc <> 0.
+      MESSAGE i000 WITH 'Function not available'(t02).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD set_key.
+
+    mv_relat_key = iv_key.
+
+  ENDMETHOD.
+
+
+  METHOD _add.
+
+    DATA:
+      ls_typtab TYPE lvc_s_chit,
+      lv_type   TYPE c.
+
+    " Node types
+    ls_typtab-nodekey   = mv_node_key.
+    ls_typtab-fieldname = iv_type.
+    INSERT ls_typtab INTO TABLE mt_typtab.
+
+    " Output data
+    " - convert text and value to type char 255
+    "   although ALV tree currently limits output to char 128
+    " - format numeric data
+    CLEAR ms_outtab.
+    ms_outtab-object = iv_title.
+
+    DESCRIBE FIELD iv_text TYPE lv_type.
+    IF lv_type CA 'bspdfDT'.
+      WRITE iv_text TO ms_outtab-text LEFT-JUSTIFIED.
+    ELSE.
+      ms_outtab-text = iv_text.
+    ENDIF.
+
+    DESCRIBE FIELD iv_value TYPE lv_type.
+    IF lv_type CA 'bspdf'.
+      ms_outtab-value = iv_value.
+      SHIFT ms_outtab-value LEFT DELETING LEADING space.
+    ELSE.
+      ms_outtab-value = iv_value.
+    ENDIF.
+
+    " Add node to tree
+    _add_node(
+      is_outtab = ms_outtab
+      iv_icon   = iv_icon
+      iv_color  = iv_color
+      iv_level  = iv_level
+      iv_sign   = iv_sign
+      iv_hidden = iv_hidden ).
+
+  ENDMETHOD.
+
+
+  METHOD _add_node.
+
+    DATA:
+      lv_node_text   TYPE lvc_value,
+      ls_node_layout TYPE lvc_s_layn.
+
+    FIELD-SYMBOLS:
+      <lv_field>       TYPE any,
+      <ls_fieldcat>    TYPE lvc_s_fcat,
+      <ls_item_layout> TYPE lvc_s_layi.
+
+    " Out data
+    ms_outtab = is_outtab.
+    ms_outtab-node_key   = mv_node_key.
+    ms_outtab-relatkey   = mv_relat_key.
+    ms_outtab-tree_level = iv_level.
+
+    IF iv_sign = abap_true.
+      LOOP AT mt_fieldcat ASSIGNING <ls_fieldcat> FROM 4.
+        ASSIGN COMPONENT <ls_fieldcat>-fieldname OF STRUCTURE ms_outtab TO <lv_field>.
+        IF sy-subrc = 0 AND <lv_field> IS NOT INITIAL.
+          CONCATENATE '- (' <lv_field> ')' INTO <lv_field> SEPARATED BY space.
+        ENDIF.
+      ENDLOOP.
+    ENDIF.
+
+    " Output layout
+    LOOP AT mt_item_layout ASSIGNING <ls_item_layout>.
+      IF iv_hidden IS INITIAL.
+        CASE iv_color.
+          WHEN 0.
+            <ls_item_layout>-style = cl_gui_column_tree=>style_inherited.
+          WHEN 1.
+            <ls_item_layout>-style = cl_gui_column_tree=>style_default.
+          WHEN 2.
+            <ls_item_layout>-style = cl_gui_column_tree=>style_intensified.
+          WHEN OTHERS.
+            <ls_item_layout>-style = cl_gui_column_tree=>style_default.
+        ENDCASE.
+      ELSE.
+        <ls_item_layout>-style = cl_gui_column_tree=>style_inactive.
+      ENDIF.
+
+      IF <ls_item_layout>-fieldname = 'TEXT' AND ms_outtab-text CS '3.x'.
+        <ls_item_layout>-t_image = icon_parameter.
+      ELSE.
+        <ls_item_layout>-t_image = ''.
+      ENDIF.
+    ENDLOOP.
+
+    " Get node text
+    ASSIGN COMPONENT 3 OF STRUCTURE ms_outtab TO <lv_field>.
+    IF sy-subrc = 0.
+      lv_node_text = <lv_field>.
+    ENDIF.
+
+    " Get node icon
+    CLEAR ls_node_layout.
+
+    IF iv_icon BETWEEN icon_equal_green AND icon_pattern_exclude_red.
+      CALL FUNCTION 'ICON_CREATE'
+        EXPORTING
+          name                  = iv_icon
+        IMPORTING
+          result                = ls_node_layout-n_image
+        EXCEPTIONS
+          icon_not_found        = 0
+          outputfield_too_short = 0
+          OTHERS                = 0.
+    ELSE.
+      CALL FUNCTION 'ICON_CREATE'
+        EXPORTING
+          name                  = iv_icon
+          info                  = lv_node_text
+        IMPORTING
+          result                = ls_node_layout-n_image
+        EXCEPTIONS
+          icon_not_found        = 0
+          outputfield_too_short = 0
+          OTHERS                = 0.
+    ENDIF.
+
+    ls_node_layout-exp_image = ls_node_layout-n_image.
+
+    " Add node to tree
+    mo_tree->add_node(
+      EXPORTING
+        i_relat_node_key     = mv_relat_key
+        i_relationship       = cl_gui_column_tree=>relat_last_child
+        is_outtab_line       = ms_outtab
+        is_node_layout       = ls_node_layout
+        it_item_layout       = mt_item_layout
+        i_node_text          = lv_node_text
+      IMPORTING
+        e_new_node_key       = mv_node_key
+      EXCEPTIONS
+        relat_node_not_found = 1
+        node_not_found       = 2
+        OTHERS               = 3 ).
+    IF sy-subrc <> 0.
+      MESSAGE e000 WITH 'Error in ADD_NODE' ##NO_TEXT.
+    ENDIF.
+
+    mv_node_key = mv_node_key + 1.
+
+  ENDMETHOD.
+
+
+  METHOD _init.
 
     CONSTANTS: lc_width_header TYPE i VALUE 60.
 
@@ -722,135 +855,6 @@ CLASS /mbtools/cl_tree IMPLEMENTATION.
 
     " Initialize node counter
     mv_node_key = 1.
-
-  ENDMETHOD.
-
-
-  METHOD next_key.
-
-    mv_relat_key = mv_node_key - 1.
-
-  ENDMETHOD.
-
-
-  METHOD pai.
-
-    CASE iv_ok_code.
-
-        " Finish program
-      WHEN 'BACK' OR 'EXIT' OR 'CANC'.
-        destroy( ).
-        LEAVE TO SCREEN 0.
-
-        " Pick node/item
-      WHEN 'PICK'.
-        pick_node( ).
-
-        " Find node/item
-      WHEN 'FIND'.
-        find_node( ).
-
-        " Download
-      WHEN 'DOWN'.
-        download( ).
-
-        " Print
-      WHEN 'PRINT'.
-        print( ).
-
-        " Dispatch to tree control
-      WHEN OTHERS.
-        cl_gui_cfw=>dispatch( ).
-
-    ENDCASE.
-
-    cl_gui_cfw=>flush( ).
-
-  ENDMETHOD.
-
-
-  METHOD pbo.
-
-    display( ).
-
-  ENDMETHOD.
-
-
-  METHOD pick_node.
-
-    DATA:
-      ls_selected_nodes TYPE lvc_s_nkey,
-      lt_selected_nodes TYPE lvc_t_nkey,
-      lv_node_key       TYPE lvc_nkey,
-      lv_fieldname      TYPE lvc_fname.                     "#EC NEEDED
-
-    " Get node selection
-    mo_tree->get_selected_nodes(
-      CHANGING
-        ct_selected_nodes = lt_selected_nodes
-      EXCEPTIONS
-        cntl_system_error = 1
-        dp_error          = 2
-        failed            = 3
-        OTHERS            = 4 ).
-    IF sy-subrc <> 0.
-      MESSAGE e000 WITH 'Error in PICK_NODE Selected Nodes' ##NO_TEXT.
-    ENDIF.
-
-    CASE lines( lt_selected_nodes ).
-      WHEN 0.
-        " No node selected, now check item selection
-        mo_tree->get_selected_item(
-          IMPORTING
-            e_selected_node   = lv_node_key
-            e_fieldname       = lv_fieldname
-          EXCEPTIONS
-            no_item_selection = 1
-            cntl_system_error = 2
-            failed            = 3
-            OTHERS            = 4 ).
-
-        CASE sy-subrc.
-          WHEN 0.
-            handle_node_double_click( node_key = lv_node_key ).
-          WHEN 1.
-            MESSAGE i227(0h).
-        ENDCASE.
-
-      WHEN 1.
-        " Exactly one node selected
-        READ TABLE lt_selected_nodes INTO ls_selected_nodes INDEX 1.
-        IF sy-subrc = 0.
-          handle_node_double_click( node_key = ls_selected_nodes-node_key ).
-        ENDIF.
-
-      WHEN OTHERS.
-        " Too many nodes selected
-        MESSAGE i227(0h).
-
-    ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD print.
-
-    mo_tree->set_function_code(
-      EXPORTING
-        i_ucomm            = cl_gui_alv_tree=>mc_fc_print_back
-      EXCEPTIONS
-        function_not_found = 1
-        OTHERS             = 2 ).
-    IF sy-subrc <> 0.
-      MESSAGE i000 WITH 'Function not available'(t02).
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD set_key.
-
-    mv_relat_key = iv_key.
 
   ENDMETHOD.
 ENDCLASS.

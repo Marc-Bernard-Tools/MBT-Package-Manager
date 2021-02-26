@@ -35,68 +35,17 @@ CLASS /mbtools/cl_version DEFINITION
 
   PRIVATE SECTION.
 
-    CLASS-METHODS check_dependent_version
+    CLASS-METHODS _check_dependent_version
       IMPORTING
         !is_current TYPE /mbtools/if_definitions=>ty_version
         !is_compare TYPE /mbtools/if_definitions=>ty_version
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
 ENDCLASS.
 
 
 
 CLASS /mbtools/cl_version IMPLEMENTATION.
-
-
-  METHOD check_dependent_version.
-
-    CONSTANTS: lc_message TYPE string VALUE 'Current version is older than required' ##NO_TEXT.
-
-    IF is_compare-major > is_current-major.
-      /mbtools/cx_exception=>raise( lc_message ).
-    ELSEIF is_compare-major < is_current-major.
-      RETURN.
-    ENDIF.
-
-    IF is_compare-minor > is_current-minor.
-      /mbtools/cx_exception=>raise( lc_message ).
-    ELSEIF is_compare-minor < is_current-minor.
-      RETURN.
-    ENDIF.
-
-    IF is_compare-patch > is_current-patch.
-      /mbtools/cx_exception=>raise( lc_message ).
-    ELSEIF is_compare-patch < is_current-patch.
-      RETURN.
-    ENDIF.
-
-    IF is_current-prerelase IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    CASE is_current-prerelase.
-      WHEN 'rc'.
-        IF is_compare-prerelase = ''.
-          /mbtools/cx_exception=>raise( lc_message ).
-        ENDIF.
-
-      WHEN 'beta'.
-        IF is_compare-prerelase = '' OR is_compare-prerelase = 'rc'.
-          /mbtools/cx_exception=>raise( lc_message ).
-        ENDIF.
-
-      WHEN 'alpha'.
-        IF is_compare-prerelase = '' OR is_compare-prerelase = 'rc' OR is_compare-prerelase = 'beta'.
-          /mbtools/cx_exception=>raise( lc_message ).
-        ENDIF.
-
-    ENDCASE.
-
-    IF is_compare-prerelase = is_current-prerelase AND is_compare-prerelase_patch > is_current-prerelase_patch.
-      /mbtools/cx_exception=>raise( lc_message ).
-    ENDIF.
-
-  ENDMETHOD.
 
 
   METHOD compare.
@@ -125,8 +74,8 @@ CLASS /mbtools/cl_version IMPLEMENTATION.
       rv_result = 0.
     ELSE.
       TRY.
-          check_dependent_version( is_current = ls_version_a
-                                   is_compare = ls_version_b ).
+          _check_dependent_version( is_current = ls_version_a
+                                    is_compare = ls_version_b ).
           rv_result = +1.
         CATCH /mbtools/cx_exception.
           rv_result = -1.
@@ -227,6 +176,57 @@ CLASS /mbtools/cl_version IMPLEMENTATION.
 
     IF lv_prerelease_n IS NOT INITIAL.
       CONCATENATE rv_version '-' lv_prerelease_n INTO rv_version.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD _check_dependent_version.
+
+    CONSTANTS: lc_message TYPE string VALUE 'Current version is older than required' ##NO_TEXT.
+
+    IF is_compare-major > is_current-major.
+      /mbtools/cx_exception=>raise( lc_message ).
+    ELSEIF is_compare-major < is_current-major.
+      RETURN.
+    ENDIF.
+
+    IF is_compare-minor > is_current-minor.
+      /mbtools/cx_exception=>raise( lc_message ).
+    ELSEIF is_compare-minor < is_current-minor.
+      RETURN.
+    ENDIF.
+
+    IF is_compare-patch > is_current-patch.
+      /mbtools/cx_exception=>raise( lc_message ).
+    ELSEIF is_compare-patch < is_current-patch.
+      RETURN.
+    ENDIF.
+
+    IF is_current-prerelase IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    CASE is_current-prerelase.
+      WHEN 'rc'.
+        IF is_compare-prerelase = ''.
+          /mbtools/cx_exception=>raise( lc_message ).
+        ENDIF.
+
+      WHEN 'beta'.
+        IF is_compare-prerelase = '' OR is_compare-prerelase = 'rc'.
+          /mbtools/cx_exception=>raise( lc_message ).
+        ENDIF.
+
+      WHEN 'alpha'.
+        IF is_compare-prerelase = '' OR is_compare-prerelase = 'rc' OR is_compare-prerelase = 'beta'.
+          /mbtools/cx_exception=>raise( lc_message ).
+        ENDIF.
+
+    ENDCASE.
+
+    IF is_compare-prerelase = is_current-prerelase AND is_compare-prerelase_patch > is_current-prerelase_patch.
+      /mbtools/cx_exception=>raise( lc_message ).
     ENDIF.
 
   ENDMETHOD.
