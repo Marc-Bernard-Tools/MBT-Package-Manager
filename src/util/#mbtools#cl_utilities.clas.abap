@@ -111,7 +111,11 @@ CLASS /mbtools/cl_utilities DEFINITION
   PRIVATE SECTION.
 
     CLASS-DATA:
-      gt_cvers TYPE SORTED TABLE OF cvers WITH UNIQUE KEY component .
+      gt_cvers TYPE SORTED TABLE OF cvers WITH UNIQUE KEY component.
+
+    CLASS-METHODS _get_all_profile_parameters
+      RETURNING
+        VALUE(rt_parameters) TYPE spfl_parameter_list_t.
 ENDCLASS.
 
 
@@ -253,7 +257,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
     FIELD-SYMBOLS:
       <ls_parameter> TYPE spfl_parameter_list.
 
-    cl_spfl_profile_parameter=>get_all_parameter( IMPORTING parameter_sub = lt_parameters ).
+    lt_parameters = _get_all_profile_parameters( ).
 
     LOOP AT lt_parameters ASSIGNING <ls_parameter>.
       TRANSLATE <ls_parameter>-name TO UPPER CASE.
@@ -556,4 +560,43 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
         ev_upg_running = rv_upgrade_running.
 
   ENDMETHOD.                    "is_spam_in_progress
+
+
+  METHOD _get_all_profile_parameters.
+
+    TYPES:
+      BEGIN OF ty_par,
+        status       TYPE sy-index,
+        pname        TYPE c LENGTH 60,
+        user_wert    TYPE c LENGTH 60,
+        default_wert TYPE c LENGTH 60,
+      END OF ty_par.
+
+    DATA:
+      lt_par_sub TYPE STANDARD TABLE OF ty_par WITH DEFAULT KEY.
+
+    FIELD-SYMBOLS:
+      <ls_par_sub>   LIKE LINE OF lt_par_sub,
+      <ls_parameter> LIKE LINE OF rt_parameters.
+
+    TRY.
+        " Dynamic call since class is not available in lower releases
+        CALL METHOD ('CL_SPFL_PROFILE_PARAMETER')=>('GET_ALL_PARAMETER')
+          IMPORTING
+            parameter_sub = rt_parameters.
+      CATCH cx_dynamic_check.
+        " For lower releases resort to kernel call
+        CALL 'C_SAPGALLPARAM'                             "#EC CI_CCALL
+          ID 'PAR_SUB' FIELD lt_par_sub.
+
+        LOOP AT lt_par_sub ASSIGNING <ls_par_sub>.
+          APPEND INITIAL LINE TO rt_parameters ASSIGNING <ls_parameter>.
+          <ls_parameter>-name          = <ls_par_sub>-pname.
+          <ls_parameter>-state         = <ls_par_sub>-status.
+          <ls_parameter>-user_value    = <ls_par_sub>-user_wert.
+          <ls_parameter>-default_value = <ls_par_sub>-default_wert.
+        ENDLOOP.
+    ENDTRY.
+
+  ENDMETHOD.
 ENDCLASS.

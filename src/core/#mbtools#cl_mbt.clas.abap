@@ -34,7 +34,11 @@ CLASS /mbtools/cl_mbt IMPLEMENTATION.
 
   METHOD is_mbt_system.
 
-    rv_result = boolc( cl_spfl_profile_parameter=>saplocalhost CP 'MBT*' ).
+    DATA lv_host TYPE string.
+
+    lv_host = /mbtools/cl_utilities=>get_profile_parameter( 'SAPLOCALHOST' ).
+
+    rv_result = boolc( lv_host CP 'MBT*' ).
 
   ENDMETHOD.
 

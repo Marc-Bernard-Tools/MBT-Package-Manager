@@ -121,6 +121,12 @@
      <LANGU>E</LANGU>
      <DESCRIPT>Is an upgrade running?</DESCRIPT>
     </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_UTILITIES</CLSNAME>
+     <CMPNAME>_GET_ALL_PROFILE_PARAMETERS</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Read all profile parameters</DESCRIPT>
+    </SEOCOMPOTX>
    </DESCRIPTIONS>
   </asx:values>
  </asx:abap>
