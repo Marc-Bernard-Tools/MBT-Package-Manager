@@ -382,6 +382,7 @@ CLASS ltcl_string_map IMPLEMENTATION.
     DATA ls_struc_exp TYPE ty_struc.
     DATA lx_error TYPE REF TO cx_root.
     DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
+    DATA lo_strict TYPE REF TO /mbtools/cl_string_map.
     lo_cut = /mbtools/cl_string_map=>create( ).
 
     lo_cut->set(
@@ -410,7 +411,8 @@ CLASS ltcl_string_map IMPLEMENTATION.
           act = lx_error->get_text( ) ).
     ENDTRY.
 
-    lo_cut->strict( abap_false )->to_struc( CHANGING cs_container = ls_struc_act ).
+    lo_strict = lo_cut->strict( abap_false ).
+    lo_strict->to_struc( CHANGING cs_container = ls_struc_act ).
 
     cl_abap_unit_assert=>assert_equals(
       exp = ls_struc_exp

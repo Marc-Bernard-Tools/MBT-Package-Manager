@@ -1665,7 +1665,7 @@ INTERFACE zif_abapgit_definitions
     END OF c_method .
 
   TYPES:
-    ty_languages TYPE STANDARD TABLE OF sy-langu WITH DEFAULT KEY.
+    ty_languages TYPE STANDARD TABLE OF laiso WITH DEFAULT KEY.
   TYPES:
     BEGIN OF ty_i18n_params,
       main_language         TYPE sy-langu,
@@ -1927,7 +1927,6 @@ ENDINTERFACE.
 INTERFACE zif_abapgit_lxe_texts
    .
 
-
   TYPES:
     BEGIN OF ty_lxe_i18n,
       source_lang TYPE lxeisolang,
@@ -1956,6 +1955,7 @@ INTERFACE zif_abapgit_lxe_texts
       !ii_xml           TYPE REF TO zif_abapgit_xml_input
     RAISING
       zcx_abapgit_exception .
+
 ENDINTERFACE.
 INTERFACE zif_abapgit_object
    .
@@ -2101,8 +2101,6 @@ INTERFACE zif_abapgit_oo_object_fnc
     ty_includes_tt TYPE STANDARD TABLE OF ty_includes WITH DEFAULT KEY .
   TYPES:
     ty_seocompotx_tt TYPE STANDARD TABLE OF seocompotx WITH DEFAULT KEY .
-
-  DATA mv_object_type TYPE trobjtype .
 
   METHODS create
     IMPORTING
@@ -2367,31 +2365,6 @@ INTERFACE zif_abapinst_definitions
   TYPES:
     ty_list TYPE STANDARD TABLE OF ty_inst WITH KEY name pack .
 
-  " Former APACK
-  TYPES:
-    BEGIN OF ty_dependency,
-      name           TYPE string,
-      version        TYPE string,
-      sem_version    TYPE zif_abapgit_definitions=>ty_version,
-      git_url        TYPE string,
-      target_package TYPE devclass,
-    END OF ty_dependency .
-  TYPES:
-    ty_dependencies TYPE STANDARD TABLE OF ty_dependency WITH NON-UNIQUE DEFAULT KEY .
-  TYPES:
-    BEGIN OF ty_descriptor,
-      name           TYPE string,
-      version        TYPE string,
-      sem_version    TYPE zif_abapgit_definitions=>ty_version,
-      description    TYPE string,
-      git_url        TYPE string,
-      target_package TYPE devclass,
-    END OF ty_descriptor .
-  TYPES:
-    BEGIN OF ty_packaging.
-      INCLUDE TYPE ty_descriptor.
-  TYPES: dependencies TYPE ty_dependencies,
-    END OF ty_packaging .
 
 ENDINTERFACE.
 INTERFACE zif_abapgit_objects
@@ -2809,7 +2782,7 @@ INTERFACE zif_abapgit_version
    .
 
   CONSTANTS gc_xml_version TYPE string VALUE 'v1.0.0' ##NO_TEXT.
-  CONSTANTS gc_abap_version TYPE string VALUE '1.105.0' ##NO_TEXT.
+  CONSTANTS gc_abap_version TYPE string VALUE '1.106.0' ##NO_TEXT.
 
 ENDINTERFACE.
 CLASS zcl_abapgit_adt_link DEFINITION
@@ -3122,22 +3095,13 @@ CLASS zcl_abapgit_dot_abapgit DEFINITION
     METHODS set_requirements
       IMPORTING
         !it_requirements TYPE zif_abapgit_dot_abapgit=>ty_requirement_tt .
-    METHODS get_i18n_langs
-      RETURNING
-        VALUE(rv_langs) TYPE string
-      RAISING
-        zcx_abapgit_exception .
-    METHODS set_i18n_langs
-      IMPORTING
-        !iv_langs TYPE string
-      RAISING
-        zcx_abapgit_exception .
     METHODS get_packaging
       RETURNING
         VALUE(rt_packaging) TYPE zif_abapgit_dot_abapgit=>ty_packaging .
     METHODS set_packaging
       IMPORTING
         !it_packaging TYPE zif_abapgit_dot_abapgit=>ty_packaging .
+
   PROTECTED SECTION.
   PRIVATE SECTION.
     DATA: ms_data TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit.
@@ -3463,14 +3427,18 @@ CLASS zcl_abapgit_lxe_texts DEFINITION
         !iv_main_language   TYPE spras
         !it_i18n_languages  TYPE zif_abapgit_definitions=>ty_languages
       RETURNING
-        VALUE(rt_languages) TYPE zif_abapgit_definitions=>ty_languages .
+        VALUE(rt_languages) TYPE zif_abapgit_definitions=>ty_languages
+      RAISING
+        zcx_abapgit_exception.
     CLASS-METHODS get_installed_languages
       RETURNING
-        VALUE(rt_languages) TYPE zif_abapgit_definitions=>ty_languages .
+        VALUE(rt_languages) TYPE zif_abapgit_definitions=>ty_languages
+      RAISING
+        zcx_abapgit_exception.
     CLASS-METHODS convert_lang_string_to_table
       IMPORTING
         !iv_langs              TYPE string
-        !iv_skip_main_language TYPE spras
+        !iv_skip_main_language TYPE spras OPTIONAL
       RETURNING
         VALUE(rt_languages)    TYPE zif_abapgit_definitions=>ty_languages
       RAISING
@@ -3482,15 +3450,27 @@ CLASS zcl_abapgit_lxe_texts DEFINITION
         VALUE(rv_langs) TYPE string
       RAISING
         zcx_abapgit_exception .
+    CLASS-METHODS detect_unsupported_languages
+      IMPORTING
+        !it_languages TYPE zif_abapgit_definitions=>ty_languages
+      RETURNING
+        VALUE(rt_unsupported_languages) TYPE zif_abapgit_definitions=>ty_languages
+      RAISING
+        zcx_abapgit_exception .
+
   PROTECTED SECTION.
   PRIVATE SECTION.
+
+    CLASS-DATA gt_installed_languages_cache TYPE zif_abapgit_definitions=>ty_languages.
 
     METHODS
       get_lang_iso4
         IMPORTING
-          iv_src         TYPE spras
+          iv_src         TYPE laiso
         RETURNING
-          VALUE(rv_iso4) TYPE lxeisolang .
+          VALUE(rv_iso4) TYPE lxeisolang
+        RAISING
+          zcx_abapgit_exception.
     METHODS
       get_lxe_object_list
         IMPORTING
@@ -3498,6 +3478,22 @@ CLASS zcl_abapgit_lxe_texts DEFINITION
           iv_object_name     TYPE sobj_name
         RETURNING
           VALUE(rt_obj_list) TYPE lxe_tt_colob .
+    CLASS-METHODS
+      langu_to_laiso_safe
+        IMPORTING
+          iv_langu TYPE sy-langu
+        RETURNING
+          VALUE(rv_laiso) TYPE laiso
+        RAISING
+          zcx_abapgit_exception.
+    CLASS-METHODS
+      check_langs_versus_installed
+        IMPORTING
+          it_languages TYPE zif_abapgit_definitions=>ty_languages
+          it_installed TYPE zif_abapgit_definitions=>ty_languages
+        EXPORTING
+          et_intersection TYPE zif_abapgit_definitions=>ty_languages
+          et_missfits TYPE zif_abapgit_definitions=>ty_languages.
 
 ENDCLASS.
 CLASS zcl_abapgit_objects_activation DEFINITION
@@ -6175,7 +6171,7 @@ CLASS zcl_abapinst_popups DEFINITION
         !iv_name            TYPE csequence OPTIONAL
         !iv_version         TYPE csequence OPTIONAL
       RETURNING
-        VALUE(rs_packaging) TYPE zif_abapinst_definitions=>ty_packaging
+        VALUE(rs_packaging) TYPE zif_abapgit_dot_abapgit=>ty_packaging
       RAISING
         zcx_abapinst_exception .
     METHODS popup_to_confirm
@@ -6308,7 +6304,7 @@ CLASS zcl_abapinst_installer DEFINITION
       IMPORTING
         !iv_name         TYPE zif_abapinst_definitions=>ty_name OPTIONAL
         !iv_pack         TYPE zif_abapinst_definitions=>ty_pack OPTIONAL
-        !is_sem_version  TYPE zif_abapgit_definitions=>ty_version OPTIONAL
+        !is_sem_version  TYPE zif_abapinst_definitions=>ty_version OPTIONAL
       RETURNING
         VALUE(rv_result) TYPE abap_bool
       RAISING
@@ -6329,7 +6325,7 @@ CLASS zcl_abapinst_installer DEFINITION
     CLASS-DATA gs_inst TYPE zif_abapinst_definitions=>ty_inst .
     CLASS-DATA go_dot TYPE REF TO zcl_abapgit_dot_abapgit .
     CLASS-DATA gi_log TYPE REF TO zif_abapgit_log .
-    CLASS-DATA gs_packaging TYPE zif_abapinst_definitions=>ty_packaging .
+    CLASS-DATA gs_packaging TYPE zif_abapgit_dot_abapgit=>ty_packaging .
     CLASS-DATA gv_name TYPE string .
     CLASS-DATA gv_names TYPE string .
     CLASS-DATA:
@@ -8088,13 +8084,6 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_i18n_langs.
-    " todo, replace with get_i18n_languages
-    rv_langs = zcl_abapgit_lxe_texts=>convert_table_to_lang_string( ms_data-i18n_languages ).
-
-  ENDMETHOD.
-
-
   METHOD get_i18n_languages.
     rt_languages = ms_data-i18n_languages.
   ENDMETHOD.
@@ -8210,16 +8199,6 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
 
   METHOD set_folder_logic.
     ms_data-folder_logic = iv_logic.
-  ENDMETHOD.
-
-
-  METHOD set_i18n_langs.
-
-    " todo, replace with set_i18n_languages
-    ms_data-i18n_languages = zcl_abapgit_lxe_texts=>convert_lang_string_to_table(
-                              iv_langs              = iv_langs
-                              iv_skip_main_language = ms_data-master_language ).
-
   ENDMETHOD.
 
 
@@ -9616,7 +9595,27 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_LXE_TEXTS IMPLEMENTATION.
+
+
+  METHOD check_langs_versus_installed.
+
+    DATA lt_installed_hash TYPE HASHED TABLE OF laiso WITH UNIQUE KEY table_line.
+    FIELD-SYMBOLS <lv_lang> LIKE LINE OF it_languages.
+
+    CLEAR: et_intersection, et_missfits.
+    lt_installed_hash = it_installed.
+
+    LOOP AT it_languages ASSIGNING <lv_lang>.
+      READ TABLE lt_installed_hash WITH KEY table_line = <lv_lang> TRANSPORTING NO FIELDS.
+      IF sy-subrc = 0.
+        APPEND <lv_lang> TO et_intersection.
+      ELSE.
+        APPEND <lv_lang> TO et_missfits.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
 
 
   METHOD convert_lang_string_to_table.
@@ -9624,11 +9623,11 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
     DATA:
       lt_langs_str TYPE string_table,
       lv_laiso     TYPE laiso,
-      lv_langu     TYPE spras.
+      lv_langu     TYPE spras,
+      lv_skip_main_lang_iso TYPE laiso.
 
     FIELD-SYMBOLS:
-      <lv_str>  LIKE LINE OF lt_langs_str,
-      <lv_lang> LIKE LINE OF rt_languages.
+      <lv_str>  LIKE LINE OF lt_langs_str.
 
     " Keep * as indicator for 'all installed languages'
     IF iv_langs = '*'.
@@ -9641,25 +9640,13 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
 
     LOOP AT lt_langs_str ASSIGNING <lv_str>.
       lv_laiso = condense( to_upper( <lv_str> ) ).
-
-      cl_i18n_languages=>sap2_to_sap1(
-        EXPORTING
-          im_lang_sap2      = lv_laiso
-        RECEIVING
-          re_lang_sap1      = lv_langu
-        EXCEPTIONS
-          no_assignment     = 1
-          no_representation = 2
-          OTHERS            = 3 ).
-      IF sy-subrc <> 0.
-        zcx_abapgit_exception=>raise( |Unknown language code { <lv_str> }| ).
-      ENDIF.
-
-      APPEND INITIAL LINE TO rt_languages ASSIGNING <lv_lang>.
-      <lv_lang> = lv_langu.
+      APPEND lv_laiso TO rt_languages.
     ENDLOOP.
 
-    DELETE rt_languages WHERE table_line = iv_skip_main_language.
+    IF iv_skip_main_language IS NOT INITIAL.
+      lv_skip_main_lang_iso = langu_to_laiso_safe( iv_skip_main_language ).
+      DELETE rt_languages WHERE table_line = lv_skip_main_lang_iso.
+    ENDIF.
 
     SORT rt_languages.
     DELETE ADJACENT DUPLICATES FROM rt_languages.
@@ -9670,38 +9657,38 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
   METHOD convert_table_to_lang_string.
 
     DATA:
-      lt_langs_str TYPE string_table,
-      lv_laiso     TYPE laiso.
+      lt_langs_str TYPE string_table.
 
     FIELD-SYMBOLS:
-      <lv_langu> LIKE LINE OF it_languages,
-      <lv_str>   TYPE string.
+      <lv_lang> LIKE LINE OF it_languages,
+      <lv_str>  TYPE string.
 
     " Convert table of sy-langu codes into string of 2-letter ISO languages
-    LOOP AT it_languages ASSIGNING <lv_langu>.
+    LOOP AT it_languages ASSIGNING <lv_lang>.
       " Keep * as indicator for 'all installed languages'
-      IF <lv_langu> = '*'.
+      IF <lv_lang> = '*'.
+        CLEAR lt_langs_str.
         APPEND '*' TO lt_langs_str.
         EXIT.
       ENDIF.
 
-      cl_i18n_languages=>sap1_to_sap2(
-        EXPORTING
-          im_lang_sap1  = <lv_langu>
-        RECEIVING
-          re_lang_sap2  = lv_laiso
-        EXCEPTIONS
-          no_assignment = 1
-          OTHERS        = 2 ).
-      IF sy-subrc <> 0.
-        zcx_abapgit_exception=>raise( |Unknown language code { <lv_langu> }| ).
-      ENDIF.
-
       APPEND INITIAL LINE TO lt_langs_str ASSIGNING <lv_str>.
-      <lv_str> = lv_laiso.
+      <lv_str> = <lv_lang>.
     ENDLOOP.
 
     CONCATENATE LINES OF lt_langs_str INTO rv_langs SEPARATED BY ','.
+
+  ENDMETHOD.
+
+
+  METHOD detect_unsupported_languages.
+
+    check_langs_versus_installed(
+      EXPORTING
+        it_languages = it_languages
+        it_installed = get_installed_languages( )
+      IMPORTING
+        et_missfits = rt_unsupported_languages ).
 
   ENDMETHOD.
 
@@ -9710,32 +9697,53 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
 
     DATA:
       lv_index               TYPE i,
+      lv_langu               TYPE sy-langu,
+      lv_laiso               TYPE laiso,
       lv_installed_languages TYPE string.
 
-    CALL FUNCTION 'SYSTEM_INSTALLED_LANGUAGES'
-      IMPORTING
-        languages       = lv_installed_languages
-      EXCEPTIONS
-        sapgparam_error = 1                " Error requesting profile parameter
-        OTHERS          = 2.
-    IF sy-subrc <> 0.
+    IF gt_installed_languages_cache IS INITIAL.
+      CALL FUNCTION 'SYSTEM_INSTALLED_LANGUAGES'
+        IMPORTING
+          languages       = lv_installed_languages
+        EXCEPTIONS
+          sapgparam_error = 1                " Error requesting profile parameter
+          OTHERS          = 2.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise( 'Fail to get system SYSTEM_INSTALLED_LANGUAGES' ).
+      ENDIF.
+
+      DO strlen( lv_installed_languages ) TIMES.
+        lv_index = sy-index - 1.
+        lv_langu = lv_installed_languages+lv_index(1).
+        lv_laiso = langu_to_laiso_safe( lv_langu ).
+        APPEND lv_laiso TO gt_installed_languages_cache.
+      ENDDO.
     ENDIF.
 
-    DO strlen( lv_installed_languages ) TIMES.
-      lv_index = sy-index - 1.
-      APPEND lv_installed_languages+lv_index(1) TO rt_languages.
-    ENDDO.
+    rt_languages = gt_installed_languages_cache.
 
   ENDMETHOD.
 
 
   METHOD get_lang_iso4.
 
-    CALL FUNCTION 'LXE_T002_CONVERT_2_TO_4'
+    DATA lv_lang_iso639 TYPE i18_a_langiso2.
+    DATA lv_country TYPE land1.
+
+    cl_i18n_languages=>sap2_to_iso639_1(
       EXPORTING
-        old_r3_lang = iv_src
+        im_lang_sap2   = iv_src
       IMPORTING
-        new_lang    = rv_iso4.
+        ex_lang_iso639 = lv_lang_iso639
+        ex_country     = lv_country
+      EXCEPTIONS
+        no_assignment  = 1
+        OTHERS         = 2 ).
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise( |Failed to convert [{ iv_src }] lang to iso639| ).
+    ENDIF.
+
+    CONCATENATE lv_lang_iso639 lv_country INTO rv_iso4.
 
   ENDMETHOD.
 
@@ -9771,17 +9779,42 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
     " If the setting is `*`, all all installed system languages shall be serialized
     " Else, the setting shall contain all languages to be serialized
 
+    DATA lv_main_lang_laiso TYPE laiso.
+
     IF it_i18n_languages IS NOT INITIAL.
       READ TABLE it_i18n_languages TRANSPORTING NO FIELDS WITH KEY table_line = '*'.
       IF sy-subrc = 0.
         rt_languages = get_installed_languages( ).
       ELSE.
-        rt_languages = it_i18n_languages.
+        check_langs_versus_installed(
+          EXPORTING
+            it_languages = it_i18n_languages
+            it_installed = get_installed_languages( )
+          IMPORTING
+            et_intersection = rt_languages ).
       ENDIF.
     ENDIF.
 
     " Remove main language from translation languages
-    DELETE rt_languages WHERE table_line = iv_main_language.
+    lv_main_lang_laiso = langu_to_laiso_safe( iv_main_language ).
+    DELETE rt_languages WHERE table_line = lv_main_lang_laiso.
+
+  ENDMETHOD.
+
+
+  METHOD langu_to_laiso_safe.
+
+    cl_i18n_languages=>sap1_to_sap2(
+      EXPORTING
+        im_lang_sap1  = iv_langu
+      RECEIVING
+        re_lang_sap2  = rv_laiso
+      EXCEPTIONS
+        no_assignment = 1
+        OTHERS        = 2 ).
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise( |Could not convert lang [{ iv_langu }] to ISO| ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -9835,8 +9868,8 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
       ls_lxe_text_item TYPE zif_abapgit_lxe_texts=>ty_lxe_i18n.
 
     FIELD-SYMBOLS:
-      <lv_language>   TYPE langu,
-      <lv_lxe_object> TYPE lxe_colob.
+      <lv_language>   LIKE LINE OF lt_languages,
+      <lv_lxe_object> LIKE LINE OF lt_obj_list.
 
     lt_obj_list = get_lxe_object_list(
                     iv_object_name = iv_object_name
@@ -9847,7 +9880,7 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
     ENDIF.
 
     " Get list of languages that need to be serialized (already resolves * and installed languages)
-    lv_main_lang = get_lang_iso4( ii_xml->i18n_params( )-main_language ).
+    lv_main_lang = get_lang_iso4( langu_to_laiso_safe( ii_xml->i18n_params( )-main_language ) ).
     lt_languages = ii_xml->i18n_params( )-translation_languages.
 
     LOOP AT lt_obj_list ASSIGNING <lv_lxe_object>.
@@ -12485,7 +12518,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_object_avar IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_OBJECT_AVAR IMPLEMENTATION.
 
 
   METHOD create_object.
@@ -12573,7 +12606,8 @@ CLASS zcl_abapgit_object_avar IMPLEMENTATION.
       EXCEPTIONS
         no_authorization = 1 ).
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( |No authorization for { ls_is-object } { ls_is-name }| ).
+      lo_aab->dequeue( ).
+      zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
     LOOP AT lt_ids INTO ls_is.
@@ -12585,15 +12619,12 @@ CLASS zcl_abapgit_object_avar IMPLEMENTATION.
         EXCEPTIONS
           no_authorization     = 1
           id_not_exists        = 2
-          id_not_transportable = 3 ).
-      CASE sy-subrc.
-        WHEN 1.
-          zcx_abapgit_exception=>raise( |No authorization for { ls_is-object } { ls_is-name }| ).
-        WHEN 2.
-          zcx_abapgit_exception=>raise( |{ ls_is-object } { ls_is-name } does not exist| ).
-        WHEN 3.
-          zcx_abapgit_exception=>raise( |{ ls_is-object } { ls_is-name } must be transportable| ).
-      ENDCASE.
+          id_not_transportable = 3
+          OTHERS               = 4 ).
+      IF sy-subrc <> 0.
+        lo_aab->dequeue( ).
+        zcx_abapgit_exception=>raise_t100( ).
+      ENDIF.
     ENDLOOP.
 
     tadir_insert( iv_package ).
@@ -12607,7 +12638,8 @@ CLASS zcl_abapgit_object_avar IMPLEMENTATION.
         no_changes_found      = 5
         cts_error             = 6 ).
     IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( |Error saving AVAR { ms_item-obj_name }| ).
+      lo_aab->dequeue( ).
+      zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
     lo_aab->dequeue( ).
 
@@ -14402,51 +14434,88 @@ CLASS zcl_abapgit_object_devc IMPLEMENTATION.
 
 
   METHOD set_lock.
+
     DATA: lv_changeable TYPE abap_bool.
 
     ii_package->get_changeable( IMPORTING e_changeable = lv_changeable ).
     IF lv_changeable <> iv_lock.
-      ii_package->set_changeable(
-        EXPORTING
-          i_changeable                = iv_lock
-        EXCEPTIONS
-          object_locked_by_other_user = 1
-          permission_failure          = 2
-          object_already_changeable   = 3
-          object_already_unlocked     = 4
-          object_just_created         = 5
-          object_deleted              = 6
-          object_modified             = 7
-          object_not_existing         = 8
-          object_invalid              = 9
-          unexpected_error            = 10
-          OTHERS                      = 11 ).
+      TRY.
+          CALL METHOD ii_package->('SET_CHANGEABLE')
+            EXPORTING
+              i_changeable                = iv_lock
+              i_suppress_dialog           = abap_true " Parameter missing in 702
+            EXCEPTIONS
+              object_locked_by_other_user = 1
+              permission_failure          = 2
+              object_already_changeable   = 3
+              object_already_unlocked     = 4
+              object_just_created         = 5
+              object_deleted              = 6
+              object_modified             = 7
+              object_not_existing         = 8
+              object_invalid              = 9
+              unexpected_error            = 10
+              OTHERS                      = 11.
+        CATCH cx_sy_dyn_call_param_not_found.
+          ii_package->set_changeable(
+            EXPORTING
+              i_changeable                = iv_lock
+            EXCEPTIONS
+              object_locked_by_other_user = 1
+              permission_failure          = 2
+              object_already_changeable   = 3
+              object_already_unlocked     = 4
+              object_just_created         = 5
+              object_deleted              = 6
+              object_modified             = 7
+              object_not_existing         = 8
+              object_invalid              = 9
+              unexpected_error            = 10
+              OTHERS                      = 11 ).
+      ENDTRY.
       IF sy-subrc <> 0.
         zcx_abapgit_exception=>raise_t100( ).
       ENDIF.
     ENDIF.
 
-    ii_package->set_permissions_changeable(
-      EXPORTING
-        i_changeable                = iv_lock
-* downport, does not exist in 7.30. Let's see if we can get along without it
-*        i_suppress_dialog           = abap_true
-      EXCEPTIONS
-        object_already_changeable   = 1
-        object_already_unlocked     = 2
-        object_locked_by_other_user = 3
-        object_modified             = 4
-        object_just_created         = 5
-        object_deleted              = 6
-        permission_failure          = 7
-        object_invalid              = 8
-        unexpected_error            = 9
-        OTHERS                      = 10 ).
+    TRY.
+        CALL METHOD ii_package->('SET_PERMISSIONS_CHANGEABLE')
+          EXPORTING
+            i_changeable                = iv_lock
+            i_suppress_dialog           = abap_true " Parameter missing in 702
+          EXCEPTIONS
+            object_already_changeable   = 1
+            object_already_unlocked     = 2
+            object_locked_by_other_user = 3
+            object_modified             = 4
+            object_just_created         = 5
+            object_deleted              = 6
+            permission_failure          = 7
+            object_invalid              = 8
+            unexpected_error            = 9
+            OTHERS                      = 10.
+      CATCH cx_sy_dyn_call_param_not_found.
+        ii_package->set_permissions_changeable(
+          EXPORTING
+            i_changeable                = iv_lock
+          EXCEPTIONS
+            object_already_changeable   = 1
+            object_already_unlocked     = 2
+            object_locked_by_other_user = 3
+            object_modified             = 4
+            object_just_created         = 5
+            object_deleted              = 6
+            permission_failure          = 7
+            object_invalid              = 8
+            unexpected_error            = 9
+            OTHERS                      = 10 ).
+    ENDTRY.
     IF ( sy-subrc = 1 AND iv_lock = abap_true ) OR ( sy-subrc = 2 AND iv_lock = abap_false ).
       " There's no getter to find out beforehand...
     ELSEIF sy-subrc <> 0.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
+
   ENDMETHOD.
 
 
@@ -16142,18 +16211,35 @@ CLASS zcl_abapgit_object_enho_class IMPLEMENTATION.
           lv_editorder   TYPE n LENGTH 3,
           lv_methname    TYPE seocpdname,
           lt_abap        TYPE rswsourcet,
-          lx_enh         TYPE REF TO cx_enh_root.
+          lx_enh         TYPE REF TO cx_enh_root,
+          lv_new_em      TYPE abap_bool,
+          lt_files       TYPE zif_abapgit_definitions=>ty_files_tt.
 
-    FIELD-SYMBOLS: <ls_method> LIKE LINE OF lt_tab_methods.
+    FIELD-SYMBOLS: <ls_method> LIKE LINE OF lt_tab_methods,
+                   <ls_file>   TYPE zif_abapgit_definitions=>ty_file.
 
     ii_xml->read( EXPORTING iv_name = 'TAB_METHODS'
                   CHANGING cg_data = lt_tab_methods ).
 
+    lv_new_em = abap_false.
+    lt_files = mo_files->get_files( ).
+    LOOP AT lt_files ASSIGNING <ls_file>
+        WHERE filename CS 'enho.em_'.
+      lv_new_em = abap_true.
+      EXIT.
+    ENDLOOP.
+
+    SORT lt_tab_methods BY meth_header-editorder.
     LOOP AT lt_tab_methods ASSIGNING <ls_method>.
 
-      lv_editorder = <ls_method>-meth_header-editorder.
       lv_methname = <ls_method>-methkey-cmpname.
-      lt_abap = mo_files->read_abap( iv_extra = 'em' && lv_editorder ).
+      IF lv_new_em = abap_true.
+        lt_abap = mo_files->read_abap( iv_extra = 'em_' && lv_methname ).
+      ELSE.
+        " old way
+        lv_editorder = <ls_method>-meth_header-editorder.
+        lt_abap = mo_files->read_abap( iv_extra = 'em' && lv_editorder ).
+      ENDIF.
 
       TRY.
           io_class->add_change_new_method_source(
@@ -16199,7 +16285,7 @@ CLASS zcl_abapgit_object_enho_class IMPLEMENTATION.
           permission_error = 3
           OTHERS           = 4.
       IF sy-subrc = 0.
-        mo_files->add_abap( iv_extra = |EM{ <ls_include>-includenr }|
+        mo_files->add_abap( iv_extra = |EM_{ <ls_include>-cpdname }|
                             it_abap  = lt_source ).
       ENDIF.
     ENDLOOP.
@@ -17046,7 +17132,8 @@ CLASS ZCL_ABAPGIT_OBJECT_ENHO_CLIF IMPLEMENTATION.
     DATA: lt_tab_attributes TYPE enhclasstabattrib,
           lt_tab_types      TYPE enhtype_tab,
           lt_tab_methods    TYPE enhnewmeth_tab,
-          lt_tab_eventdata  TYPE enhevent_tab.
+          lt_tab_eventdata  TYPE enhevent_tab,
+          lv_editorder      TYPE i.
 
     FIELD-SYMBOLS: <ls_attr>        LIKE LINE OF lt_tab_attributes,
                    <ls_type>        LIKE LINE OF lt_tab_types,
@@ -17080,12 +17167,16 @@ CLASS ZCL_ABAPGIT_OBJECT_ENHO_CLIF IMPLEMENTATION.
              <ls_type>-descript_id.
     ENDLOOP.
 
+    lv_editorder = 0.
+    SORT lt_tab_methods BY meth_header-editorder.
     LOOP AT lt_tab_methods ASSIGNING <ls_meth>.
       CLEAR: <ls_meth>-meth_header-author,
              <ls_meth>-meth_header-createdon,
              <ls_meth>-meth_header-changedby,
              <ls_meth>-meth_header-changedon,
              <ls_meth>-meth_header-descript_id.
+      lv_editorder = lv_editorder + 1.
+      <ls_meth>-meth_header-editorder = lv_editorder.
       LOOP AT <ls_meth>-meth_param ASSIGNING <ls_param>.
         CLEAR: <ls_param>-author,
                <ls_param>-createdon,
@@ -19010,11 +19101,11 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
 
 
   METHOD deserialize_abap.
-
     DATA: ls_vseointerf   TYPE vseointerf,
           lt_source       TYPE seop_source_string,
           lt_descriptions TYPE zif_abapgit_oo_object_fnc=>ty_seocompotx_tt,
           ls_clskey       TYPE seoclskey.
+
 
     ls_clskey-clsname = ms_item-obj_name.
     lt_source = mo_files->read_abap( ).
@@ -19039,7 +19130,6 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
       it_descriptions = lt_descriptions ).
 
     mi_object_oriented_object_fct->add_to_activation_list( ms_item ).
-
   ENDMETHOD.
 
 
@@ -19221,7 +19311,6 @@ CLASS zcl_abapgit_object_intf IMPLEMENTATION.
                       iv_package = iv_package ).
 
     deserialize_docu( io_xml ).
-
   ENDMETHOD.
 
 
@@ -23764,7 +23853,6 @@ CLASS zcl_abapgit_oo_factory IMPLEMENTATION.
     ELSEIF iv_object_type = 'INTF'.
       CREATE OBJECT ri_object_oriented_object TYPE zcl_abapgit_oo_interface.
     ENDIF.
-    ri_object_oriented_object->mv_object_type = iv_object_type.
   ENDMETHOD.
 ENDCLASS.
 
@@ -28023,7 +28111,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       <ls_tadir>     LIKE LINE OF it_tadir,
       <ls_sotr_head> LIKE LINE OF lt_sotr_head.
 
-    LOOP AT it_tadir ASSIGNING <ls_tadir> WHERE object = 'SOTR'.
+    LOOP AT it_tadir ASSIGNING <ls_tadir> WHERE object = 'DEVC'.
 
       SELECT * FROM sotr_head INTO TABLE lt_sotr_head
         WHERE paket = <ls_tadir>-obj_name.
@@ -28045,6 +28133,19 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
           CONTINUE.
         ENDIF.
       ENDLOOP.
+
+      CALL FUNCTION 'TR_TADIR_INTERFACE'
+        EXPORTING
+          wi_test_modus         = abap_false
+          wi_delete_tadir_entry = abap_true
+          wi_tadir_pgmid        = 'R3TR'
+          wi_tadir_object       = 'SOTR'
+          wi_tadir_obj_name     = <ls_tadir>-obj_name
+        EXCEPTIONS
+          OTHERS                = 1.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
 
     ENDLOOP.
 

@@ -178,9 +178,9 @@ CLASS /mbtools/cl_gui_page_about IMPLEMENTATION.
 
     ri_html->add( |<p>Copyright &copy; { sy-datum(4) } Marc Bernard Tools. All rights reserved.</p>| ).
 
-    ri_html->add( |<p><a href="{ ri_html->a( iv_typ = /mbtools/if_html=>c_action_type-url
-                                             iv_act = /mbtools/if_definitions=>c_www_home
-                                             iv_txt = /mbtools/if_definitions=>c_www_home ) }</p>| ).
+    ri_html->add( |<p>{ ri_html->a( iv_typ = /mbtools/if_html=>c_action_type-url
+                                    iv_act = /mbtools/if_definitions=>c_www_home
+                                    iv_txt = /mbtools/if_definitions=>c_www_home ) }</p>| ).
 
     ri_html->add( |<form method="post">| ).
 
