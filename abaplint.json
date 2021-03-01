@@ -316,7 +316,7 @@
 			"exclude": [
 				".*"
 			],
-			"recommendations": [];
+			"recommendations": [],
 			"severity": "Error"
 		},
 		"functional_writing": {
