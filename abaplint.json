@@ -473,7 +473,7 @@
 		},
 		"method_overwrites_builtin": {
 			"exclude": [
-				"#mbtools#.cl_ajson.*"
+				"#mbtools#.*_ajson.*"
 			],
 			"severity": "Error"
 		},
@@ -575,7 +575,7 @@
 		},
 		"omit_parameter_name": {
 			"exclude": [
-				"#mbtools#.cl_ajson.*"
+				"#mbtools#.*_ajson.*"
 			],
 			"severity": "Error"
 		},
