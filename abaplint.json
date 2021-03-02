@@ -472,7 +472,9 @@
 			"statements": 100
 		},
 		"method_overwrites_builtin": {
-			"exclude": [],
+			"exclude": [
+				"#mbtools#.cl_ajson.*"
+			],
 			"severity": "Error"
 		},
 		"method_parameter_names": {
@@ -572,7 +574,9 @@
 			"withHeaderLine": true
 		},
 		"omit_parameter_name": {
-			"exclude": [],
+			"exclude": [
+				"#mbtools#.cl_ajson.*"
+			],
 			"severity": "Error"
 		},
 		"omit_receiving": {
@@ -698,7 +702,9 @@
 			"severity": "Error"
 		},
 		"sy_modification": {
-			"exclude": [],
+			"exclude": [
+				"#mbtools#.cx_exception.*"
+			],
 			"severity": "Error"
 		},
 		"tabl_enhancement_category": {
