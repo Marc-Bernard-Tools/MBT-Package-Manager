@@ -309,7 +309,7 @@ CLASS /mbtools/cl_tree IMPLEMENTATION.
   METHOD handle_item_double_click.
 
     " this method handles the item double click event of the tree control instance
-    handle_node_double_click( node_key = node_key ).
+    handle_node_double_click( node_key ).
 
   ENDMETHOD.
 
@@ -523,7 +523,7 @@ CLASS /mbtools/cl_tree IMPLEMENTATION.
 
         CASE sy-subrc.
           WHEN 0.
-            handle_node_double_click( node_key = lv_node_key ).
+            handle_node_double_click( lv_node_key ).
           WHEN 1.
             MESSAGE i227(0h).
         ENDCASE.
@@ -532,7 +532,7 @@ CLASS /mbtools/cl_tree IMPLEMENTATION.
         " Exactly one node selected
         READ TABLE lt_selected_nodes INTO ls_selected_nodes INDEX 1.
         IF sy-subrc = 0.
-          handle_node_double_click( node_key = ls_selected_nodes-node_key ).
+          handle_node_double_click( ls_selected_nodes-node_key ).
         ENDIF.
 
       WHEN OTHERS.

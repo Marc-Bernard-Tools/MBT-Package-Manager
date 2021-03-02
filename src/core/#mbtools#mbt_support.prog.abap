@@ -180,7 +180,7 @@ AT SELECTION-SCREEN.
         RETURN.
       ENDIF.
 
-      /mbtools/cl_setup=>install( iv_force = abap_true ).
+      /mbtools/cl_setup=>install( abap_true ).
 
   ENDCASE.
 
@@ -200,14 +200,11 @@ AT SELECTION-SCREEN OUTPUT.
 
 AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_title.
 
-  /mbtools/cl_tools=>f4_tools(
-    EXPORTING
-      iv_pattern     = p_title
-      iv_get_bundles = abap_true
-      iv_get_tools   = abap_true
-      iv_admin       = abap_true
-    RECEIVING
-      rv_title       = p_title ).
+  p_title = /mbtools/cl_tools=>f4_tools(
+    iv_pattern     = p_title
+    iv_get_bundles = abap_true
+    iv_get_tools   = abap_true
+    iv_admin       = abap_true ).
 
 *-----------------------------------------------------------------------
 
@@ -215,7 +212,7 @@ START-OF-SELECTION.
 
   LOG-POINT ID /mbtools/bc SUBKEY /mbtools/cl_tool_bc=>c_tool-title FIELDS sy-datum sy-uzeit sy-uname.
 
-  go_screen->banner( iv_show = abap_false ).
+  go_screen->banner( abap_false ).
 
   CLEAR: gv_msg, gv_action, gv_flag.
 

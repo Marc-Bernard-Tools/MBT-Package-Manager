@@ -178,8 +178,10 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
 
   METHOD get_namespace.
 
+    DATA lv_rest TYPE string.
+
     IF iv_obj_name CS '/'.
-      SPLIT iv_obj_name+1 AT '/' INTO rv_result sy-lisel.
+      SPLIT iv_obj_name+1 AT '/' INTO rv_result lv_rest.
       rv_result = '/' && rv_result.
     ELSE.
       rv_result = ''.
@@ -211,8 +213,10 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
 
   METHOD get_object_wo_namespace.
 
+    DATA lv_rest TYPE string.
+
     IF iv_obj_name CS '/'.
-      SPLIT iv_obj_name+1 AT '/' INTO sy-lisel rv_result.
+      SPLIT iv_obj_name+1 AT '/' INTO lv_rest rv_result.
     ELSE.
       rv_result = iv_obj_name.
     ENDIF.

@@ -87,25 +87,24 @@ CLASS /mbtools/cx_exception DEFINITION
 
     CLASS-METHODS split_text_to_symsg
       IMPORTING
-        !iv_text TYPE string .
-    METHODS save_callstack .
+        !iv_text TYPE string.
     METHODS itf_to_string
       IMPORTING
         !it_itf          TYPE tline_tab
       RETURNING
-        VALUE(rv_result) TYPE string .
+        VALUE(rv_result) TYPE string.
     METHODS get_t100_longtext_itf
       RETURNING
-        VALUE(rt_itf) TYPE tline_tab .
+        VALUE(rt_itf) TYPE tline_tab.
     METHODS remove_empty_section
       IMPORTING
         !iv_tabix_from TYPE i
         !iv_tabix_to   TYPE i
       CHANGING
-        !ct_itf        TYPE tline_tab .
+        !ct_itf        TYPE tline_tab.
     METHODS replace_section_head_with_text
       CHANGING
-        !cs_itf TYPE tline .
+        !cs_itf TYPE tline.
 ENDCLASS.
 
 
@@ -360,33 +359,6 @@ CLASS /mbtools/cx_exception IMPLEMENTATION.
       WHEN gc_section_token-sys_admin.
         cs_itf-tdline = gc_section_text-sys_admin.
     ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD save_callstack.
-
-    FIELD-SYMBOLS: <ls_callstack> TYPE abap_callstack_line.
-
-    CALL FUNCTION 'SYSTEM_CALLSTACK'
-      IMPORTING
-        callstack = mt_callstack.
-
-    " You should remember that the first lines are from /mbtools/cx_exception
-    " and are removed so that highest level in the callstack is the position where
-    " the exception is raised.
-    "
-    " For the merged report it's hard to do that, because /mbtools/cx_exception
-    " isn't visible in the callstack. Therefore we have to check the Events.
-    LOOP AT mt_callstack ASSIGNING <ls_callstack>.
-
-      IF <ls_callstack>-mainprogram CP |/MBTOOLS/CX_EXCEPTION*|.
-        DELETE TABLE mt_callstack FROM <ls_callstack>.
-      ELSE.
-        EXIT.
-      ENDIF.
-
-    ENDLOOP.
 
   ENDMETHOD.
 

@@ -393,7 +393,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
       lo_client TYPE REF TO /mbtools/cl_http_client.
 
     TRY.
-        lo_client = create_by_url( iv_url = iv_url ).
+        lo_client = create_by_url( iv_url ).
 
         IF iv_regex IS SUPPLIED.
           lo_client->check_smart_response(

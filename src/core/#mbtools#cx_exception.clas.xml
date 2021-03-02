@@ -33,12 +33,6 @@
      <LANGU>E</LANGU>
      <DESCRIPT>Raise</DESCRIPT>
     </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CX_EXCEPTION</CLSNAME>
-     <CMPNAME>SAVE_CALLSTACK</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>Callstack</DESCRIPT>
-    </SEOCOMPOTX>
    </DESCRIPTIONS>
   </asx:values>
  </asx:abap>

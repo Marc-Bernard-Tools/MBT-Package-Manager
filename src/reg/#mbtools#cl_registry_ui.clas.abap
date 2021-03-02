@@ -580,7 +580,7 @@ CLASS /mbtools/cl_registry_ui IMPLEMENTATION.
 
 *>>>INS
     " Expand root node
-    handle_node_expand( node_key = c_root ).
+    handle_node_expand( c_root ).
 
     gr_tree->expand_node(
       EXPORTING
