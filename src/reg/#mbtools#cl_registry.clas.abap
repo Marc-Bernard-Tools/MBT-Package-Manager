@@ -479,12 +479,11 @@ CLASS /mbtools/cl_registry IMPLEMENTATION.
         ELSE.
           lv_file_line = |"{ ls_kv-key }" = "{ ls_kv-value }"|.
         ENDIF.
-        APPEND lv_file_line TO ct_file.
       ELSE.
         lv_file_line = lv_head_line && cl_abap_char_utilities=>horizontal_tab &&
                        ls_kv-key && cl_abap_char_utilities=>horizontal_tab && ls_kv-value.
-        APPEND lv_file_line TO ct_file.
       ENDIF.
+      APPEND lv_file_line TO ct_file.
     ENDLOOP.
     IF iv_table IS INITIAL.
       APPEND '' TO ct_file.
