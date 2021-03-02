@@ -35,22 +35,11 @@ CLASS /mbtools/cl_popups DEFINITION
       ty_sval_tt TYPE STANDARD TABLE OF sval WITH DEFAULT KEY.
 
     CONSTANTS c_fieldname_selected TYPE lvc_fname VALUE `SELECTED` ##NO_TEXT.
-
     DATA mo_select_list_popup TYPE REF TO cl_salv_table.
     DATA mr_table TYPE REF TO data.
-    DATA mv_cancel TYPE abap_bool VALUE abap_false.
+    DATA mv_cancel TYPE abap_bool VALUE abap_false ##NO_TEXT.
     DATA mo_table_descr TYPE REF TO cl_abap_tabledescr.
 
-    METHODS add_field
-      IMPORTING
-        !iv_tabname    TYPE sval-tabname
-        !iv_fieldname  TYPE sval-fieldname
-        !iv_fieldtext  TYPE sval-fieldtext
-        !iv_value      TYPE clike DEFAULT ''
-        !iv_field_attr TYPE sval-field_attr DEFAULT ''
-        !iv_obligatory TYPE spo_obl OPTIONAL
-      CHANGING
-        !ct_fields     TYPE ty_sval_tt.
     METHODS create_new_table
       IMPORTING
         !it_list TYPE STANDARD TABLE.
@@ -324,21 +313,6 @@ CLASS /mbtools/cl_popups IMPLEMENTATION.
     ELSEIF sy-subrc > 1.
       /mbtools/cx_exception=>raise( |Error from TRINT_ORDER_CHOICE { sy-subrc }| ).
     ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD add_field.
-
-    FIELD-SYMBOLS: <ls_field> LIKE LINE OF ct_fields.
-
-    APPEND INITIAL LINE TO ct_fields ASSIGNING <ls_field>.
-    <ls_field>-tabname    = iv_tabname.
-    <ls_field>-fieldname  = iv_fieldname.
-    <ls_field>-fieldtext  = iv_fieldtext.
-    <ls_field>-value      = iv_value.
-    <ls_field>-field_attr = iv_field_attr.
-    <ls_field>-field_obl  = iv_obligatory.
 
   ENDMETHOD.
 

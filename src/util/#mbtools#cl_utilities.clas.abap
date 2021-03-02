@@ -310,9 +310,9 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
           WHEN c_property-database_patch.
             FIND FIRST OCCURRENCE OF REGEX '\d+\.(\d+)\.*' IN get_db_release( )-srvrel SUBMATCHES ev_value.
           WHEN c_property-dbsl_release.
-            SPLIT get_db_release( )-dbsl_vers AT '.' INTO ev_value sy-lisel.
+            SPLIT get_db_release( )-dbsl_vers AT '.' INTO ev_value lv_property.
           WHEN c_property-dbsl_patch.
-            SPLIT get_db_release( )-dbsl_vers AT '.' INTO sy-lisel ev_value.
+            SPLIT get_db_release( )-dbsl_vers AT '.' INTO lv_property ev_value.
           WHEN c_property-hana.
             ev_value = get_hana_release( )-release.
           WHEN c_property-hana_release.

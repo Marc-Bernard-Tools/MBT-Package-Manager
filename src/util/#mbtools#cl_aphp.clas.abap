@@ -223,7 +223,7 @@ CLASS /mbtools/cl_aphp IMPLEMENTATION.
         ro_ajson->set_boolean( iv_path = lv_path
                                iv_val  = get_boolean( lv_data ) ).
       WHEN 'N'. "null
-        ro_ajson->set_null( iv_path = lv_path ).
+        ro_ajson->set_null( lv_path ).
       WHEN 'a'. "array
         unserialize_array( iv_path  = lv_path
                            iv_data  = lv_data
@@ -285,7 +285,7 @@ CLASS /mbtools/cl_aphp IMPLEMENTATION.
     lv_data = strip( iv_val  = lv_data
                      iv_char = '{' ).
 
-    io_ajson->touch_array( iv_path = iv_path ).
+    io_ajson->touch_array( iv_path ).
 
     DO lv_len TIMES.
       " i:<key>;  or  s:len:"<key>";

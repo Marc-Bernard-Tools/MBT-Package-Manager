@@ -1,6 +1,6 @@
 CLASS /mbtools/cl_html_toolbar DEFINITION
   PUBLIC
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * MBT HTML Toolbar
@@ -14,7 +14,7 @@ CLASS /mbtools/cl_html_toolbar DEFINITION
 
     METHODS constructor
       IMPORTING
-        !iv_id TYPE string OPTIONAL .
+        !iv_id TYPE string OPTIONAL.
     METHODS add
       IMPORTING
         !iv_txt        TYPE string
@@ -29,16 +29,13 @@ CLASS /mbtools/cl_html_toolbar DEFINITION
         !iv_id         TYPE string OPTIONAL
         !iv_title      TYPE string OPTIONAL
       RETURNING
-        VALUE(ro_self) TYPE REF TO /mbtools/cl_html_toolbar .
-    METHODS count
-      RETURNING
-        VALUE(rv_count) TYPE i .
+        VALUE(ro_self) TYPE REF TO /mbtools/cl_html_toolbar.
     METHODS render
       IMPORTING
         !iv_right      TYPE abap_bool OPTIONAL
         !iv_sort       TYPE abap_bool OPTIONAL
       RETURNING
-        VALUE(ri_html) TYPE REF TO /mbtools/if_html .
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html.
     METHODS render_as_droplist
       IMPORTING
         !iv_label      TYPE string
@@ -47,7 +44,7 @@ CLASS /mbtools/cl_html_toolbar DEFINITION
         !iv_corner     TYPE abap_bool OPTIONAL
         !iv_action     TYPE string OPTIONAL
       RETURNING
-        VALUE(ri_html) TYPE REF TO /mbtools/if_html .
+        VALUE(ri_html) TYPE REF TO /mbtools/if_html.
   PROTECTED SECTION.
   PRIVATE SECTION.
     TYPES:
@@ -116,11 +113,6 @@ CLASS /mbtools/cl_html_toolbar IMPLEMENTATION.
 
   METHOD constructor.
     mv_id = iv_id.
-  ENDMETHOD.
-
-
-  METHOD count.
-    rv_count = lines( mt_items ).
   ENDMETHOD.
 
 

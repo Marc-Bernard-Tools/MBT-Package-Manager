@@ -18,11 +18,11 @@ CLASS /mbtools/cl_gui_buttons IMPLEMENTATION.
 
 
   METHOD admin.
-    rv_html_string = /mbtools/cl_html=>icon( iv_name  = 'bars' ).
+    rv_html_string = /mbtools/cl_html=>icon( 'bars' ).
   ENDMETHOD.
 
 
   METHOD help.
-    rv_html_string = /mbtools/cl_html=>icon( iv_name  = 'question-circle-solid' ).
+    rv_html_string = /mbtools/cl_html=>icon( 'question-circle-solid' ).
   ENDMETHOD.
 ENDCLASS.

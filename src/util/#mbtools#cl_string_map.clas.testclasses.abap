@@ -269,7 +269,7 @@ CLASS ltcl_string_map IMPLEMENTATION.
       exp = 'avalue'
       act = lo_cut->get( 'A' ) ).
 
-    lo_cut->delete( iv_key = 'A' ).
+    lo_cut->delete( 'A' ).
 
     cl_abap_unit_assert=>assert_equals(
       exp = ''

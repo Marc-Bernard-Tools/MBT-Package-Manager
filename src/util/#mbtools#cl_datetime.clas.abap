@@ -115,28 +115,31 @@ CLASS /mbtools/cl_datetime IMPLEMENTATION.
       IF lv_val <= 1.
         lv_val = 1.
       ENDIF.
-      rv_result = _print( iv_single = 'second'
-                         iv_plural = 'seconds'
-                         iv_number  = lv_val ).
+      rv_result = _print(
+        iv_single = 'second'
+        iv_plural = 'seconds'
+        iv_number  = lv_val ).
     ELSEIF lv_diff < c_hour_in_seconds AND lv_diff >= c_minute_in_seconds.
       lv_val = lv_diff / c_minute_in_seconds.
       IF ( lv_val <= 1 ).
         lv_val = 1.
       ENDIF.
-      rv_result = _print( iv_single = 'minute'
-                         iv_plural = 'minutes'
-                         iv_number  = lv_val ).
+      rv_result = _print(
+        iv_single = 'minute'
+        iv_plural = 'minutes'
+        iv_number  = lv_val ).
     ELSEIF lv_diff < c_day_in_seconds AND lv_diff >= c_hour_in_seconds.
       lv_val = lv_diff / c_hour_in_seconds.
-      IF ( lv_val <= 1 ).
+      IF lv_val <= 1.
         lv_val = 1.
       ENDIF.
-      rv_result = _print( iv_single = 'hour'
-                         iv_plural = 'hours'
-                         iv_number  = lv_val ).
+      rv_result = _print(
+        iv_single = 'hour'
+        iv_plural = 'hours'
+        iv_number  = lv_val ).
     ELSEIF lv_diff < c_week_in_seconds AND lv_diff >= c_day_in_seconds.
       lv_val = lv_diff / c_day_in_seconds.
-      IF ( lv_val <= 1 ).
+      IF lv_val <= 1.
         lv_val = 1.
       ENDIF.
       rv_result = _print(
@@ -145,7 +148,7 @@ CLASS /mbtools/cl_datetime IMPLEMENTATION.
         iv_number  = lv_val ).
     ELSEIF lv_diff < c_month_in_seconds AND lv_diff >= c_week_in_seconds.
       lv_val = lv_diff / c_week_in_seconds.
-      IF ( lv_val <= 1 ).
+      IF lv_val <= 1.
         lv_val = 1.
       ENDIF.
       rv_result = _print(
@@ -154,7 +157,7 @@ CLASS /mbtools/cl_datetime IMPLEMENTATION.
         iv_number  = lv_val ).
     ELSEIF lv_diff < c_year_in_seconds AND lv_diff >= c_month_in_seconds.
       lv_val = lv_diff / c_month_in_seconds.
-      IF ( lv_val <= 1 ).
+      IF lv_val <= 1.
         lv_val = 1.
       ENDIF.
       rv_result = _print(
@@ -163,7 +166,7 @@ CLASS /mbtools/cl_datetime IMPLEMENTATION.
         iv_number  = lv_val ).
     ELSEIF lv_diff >= c_year_in_seconds.
       lv_val = lv_diff / c_year_in_seconds.
-      IF ( lv_val <= 1 ).
+      IF lv_val <= 1.
         lv_val = 1.
       ENDIF.
       rv_result = _print(

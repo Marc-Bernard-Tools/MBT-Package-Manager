@@ -645,7 +645,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
           lo_values->set( iv_key = 'license'
                           iv_val = io_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_key ) ).
 
-          lo_form->hidden( iv_name = 'name' ).
+          lo_form->hidden( 'name' ).
 
           lo_form->text(
             iv_name        = 'license'
@@ -928,13 +928,10 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
         IF io_tool->is_base( ) = abap_true.
           IF io_tool->is_last_tool( ) = abap_true.
-            /mbtools/cl_gui_factory=>get_popups( )->popup_to_confirm(
-              EXPORTING
-                iv_titlebar       = 'Deactivate Tool'
-                iv_text_question  = |Are you sure you want to deactivate { io_tool->get_title( ) }?|
-                iv_default_button = '2'
-              RECEIVING
-                rv_answer         = lv_answer ).
+            lv_answer = /mbtools/cl_gui_factory=>get_popups( )->popup_to_confirm(
+              iv_titlebar       = 'Deactivate Tool'
+              iv_text_question  = |Are you sure you want to deactivate { io_tool->get_title( ) }?|
+              iv_default_button = '2' ).
             IF lv_answer <> '1'.
               /mbtools/cx_exception=>raise( 'Action cancelled' ).
             ENDIF.
@@ -951,13 +948,10 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
                                         | before you can uninstall { io_tool->get_title( ) }| ).
         ENDIF.
 
-        /mbtools/cl_gui_factory=>get_popups( )->popup_to_confirm(
-          EXPORTING
-            iv_titlebar       = 'Uninstall Tool'
-            iv_text_question  = |Are you sure you want to uninstall { io_tool->get_title( ) }?|
-            iv_default_button = '2'
-          RECEIVING
-            rv_answer         = lv_answer ).
+        lv_answer = /mbtools/cl_gui_factory=>get_popups( )->popup_to_confirm(
+          iv_titlebar       = 'Uninstall Tool'
+          iv_text_question  = |Are you sure you want to uninstall { io_tool->get_title( ) }?|
+          iv_default_button = '2' ).
         IF lv_answer <> '1'.
           /mbtools/cx_exception=>raise( 'Action cancelled' ).
         ENDIF.
