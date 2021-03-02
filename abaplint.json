@@ -707,7 +707,7 @@
 		},
 		"sy_modification": {
 			"exclude": [
-				"#mbtools#.cx_exception.*"
+				"#mbtools#cx_exception.*"
 			],
 			"severity": "Error"
 		},
