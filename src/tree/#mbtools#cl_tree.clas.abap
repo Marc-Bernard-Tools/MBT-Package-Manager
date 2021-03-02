@@ -591,12 +591,10 @@ CLASS /mbtools/cl_tree IMPLEMENTATION.
       ms_outtab-text = iv_text.
     ENDIF.
 
+    ms_outtab-value = iv_value.
     DESCRIBE FIELD iv_value TYPE lv_type.
     IF lv_type CA 'bspdf'.
-      ms_outtab-value = iv_value.
       SHIFT ms_outtab-value LEFT DELETING LEADING space.
-    ELSE.
-      ms_outtab-value = iv_value.
     ENDIF.
 
     " Add node to tree

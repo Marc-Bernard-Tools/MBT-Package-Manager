@@ -67,7 +67,7 @@ CLASS /mbtools/cl_datetime IMPLEMENTATION.
       TABLES
         month_names = lt_month_names.
 
-    READ TABLE lt_month_names INTO ls_month_name INDEX ( iv_date+4(2) ).
+    READ TABLE lt_month_names INTO ls_month_name INDEX iv_date+4(2).
     CHECK sy-subrc = 0.
 
     CONCATENATE ls_month_name-ltx iv_date+6(2) INTO rv_result SEPARATED BY space.
@@ -121,7 +121,7 @@ CLASS /mbtools/cl_datetime IMPLEMENTATION.
         iv_number  = lv_val ).
     ELSEIF lv_diff < c_hour_in_seconds AND lv_diff >= c_minute_in_seconds.
       lv_val = lv_diff / c_minute_in_seconds.
-      IF ( lv_val <= 1 ).
+      IF lv_val <= 1.
         lv_val = 1.
       ENDIF.
       rv_result = _print(

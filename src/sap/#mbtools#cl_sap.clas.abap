@@ -616,7 +616,6 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
     lv_sub_obj_name = iv_sub_obj_name.
 
     IF iv_line_number IS NOT INITIAL AND iv_sub_obj_name IS NOT INITIAL.
-
       " Workbench tools with source position (new window)
       CALL FUNCTION 'RS_TOOL_ACCESS'
         EXPORTING
@@ -630,13 +629,7 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
           not_executed        = 1
           invalid_object_type = 2
           OTHERS              = 3.
-      IF sy-subrc = 0.
-        rv_exit = abap_true.
-        RETURN.
-      ENDIF.
-
     ELSE.
-
       " Workbench tools (same window)
       CALL FUNCTION 'RS_TOOL_ACCESS'
         EXPORTING
@@ -647,11 +640,10 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
           not_executed        = 1
           invalid_object_type = 2
           OTHERS              = 3.
-      IF sy-subrc = 0.
-        rv_exit = abap_true.
-        RETURN.
-      ENDIF.
-
+    ENDIF.
+    IF sy-subrc = 0.
+      rv_exit = abap_true.
+      RETURN.
     ENDIF.
 
     " Transport tools

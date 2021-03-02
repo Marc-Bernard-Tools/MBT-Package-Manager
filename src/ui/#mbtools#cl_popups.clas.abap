@@ -31,9 +31,6 @@ CLASS /mbtools/cl_popups DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    TYPES:
-      ty_sval_tt TYPE STANDARD TABLE OF sval WITH DEFAULT KEY.
-
     CONSTANTS c_fieldname_selected TYPE lvc_fname VALUE `SELECTED` ##NO_TEXT.
     DATA mo_select_list_popup TYPE REF TO cl_salv_table.
     DATA mr_table TYPE REF TO data.
