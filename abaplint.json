@@ -207,7 +207,9 @@
 			"deleteDynpro": true,
 			"deleteReport": true,
 			"deleteTextpool": true,
-			"exclude": [],
+			"exclude": [
+				"#mbtools#cl_utilities.clas.abap"
+			],
 			"execSQL": true,
 			"generateDynpro": true,
 			"generateReport": true,
@@ -371,7 +373,9 @@
 			"severity": "Error"
 		},
 		"intf_referencing_clas": {
-			"exclude": [],
+			"exclude": [
+				"#mbtools#if_gui_services.intf.abap"
+			],
 			"severity": "Error"
 		},
 		"keep_single_parameter_on_one_line": {
