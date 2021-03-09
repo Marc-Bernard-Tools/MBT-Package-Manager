@@ -71,7 +71,6 @@
 			"defaultKey": false,
 			"define": true,
 			"describeLines": true,
-			"endselect": false,
 			"exclude": [
 				"#mbtools#.*_logger.*",
 				"#mbtools#cl_utilities.clas.abap"
@@ -139,6 +138,7 @@
 			"openDataset": true,
 			"readTable": true,
 			"selectSingle": false,
+			"selectTable": true,			
 			"severity": "Error",
 			"updateDatabase": true
 		},
@@ -217,6 +217,10 @@
 			"kernelCall": true,
 			"severity": "Error",
 			"systemCall": true
+		},
+		"db_operation_in_loop": {
+			"exclude": [],
+			"severity": "Error"
 		},
 		"definitions_top": {
 			"exclude": [
@@ -647,6 +651,12 @@
 		},
 		"rfc_error_handling": {
 			"exclude": [],
+			"severity": "Error"
+		},
+		"select_performance": {
+			"endSelect": true,
+			"exclude": [],
+			"selectStar": true,
 			"severity": "Error"
 		},
 		"selection_screen_naming": {
