@@ -8,6 +8,33 @@ REPORT /mbtools/mbt_installer.
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
 
+INTERFACE zif_abapgit_definitions DEFERRED.
+INTERFACE zif_abapgit_sap_package DEFERRED.
+INTERFACE zif_abapgit_dot_abapgit DEFERRED.
+INTERFACE zif_abapgit_environment DEFERRED.
+INTERFACE zif_abapgit_log DEFERRED.
+INTERFACE zif_abapgit_longtexts DEFERRED.
+INTERFACE zif_abapgit_lxe_texts DEFERRED.
+INTERFACE zif_abapgit_object DEFERRED.
+INTERFACE zif_abapgit_xml_input DEFERRED.
+INTERFACE zif_abapgit_xml_output DEFERRED.
+INTERFACE zif_abapgit_lang_definitions DEFERRED.
+INTERFACE zif_abapgit_oo_object_fnc DEFERRED.
+INTERFACE zif_abapgit_comparator DEFERRED.
+INTERFACE zif_abapgit_progress DEFERRED.
+INTERFACE zif_abapgit_tadir DEFERRED.
+INTERFACE zif_abapinst_definitions DEFERRED.
+INTERFACE zif_abapgit_objects DEFERRED.
+INTERFACE zif_ajson_reader DEFERRED.
+INTERFACE zif_ajson_writer DEFERRED.
+INTERFACE zif_ajson DEFERRED.
+INTERFACE zif_ajson_mapping DEFERRED.
+INTERFACE zif_abapgit_persistence DEFERRED.
+INTERFACE zif_abapgit_exit DEFERRED.
+INTERFACE zif_abapgit_gui_functions DEFERRED.
+INTERFACE zif_abapgit_object_enho DEFERRED.
+INTERFACE zif_abapgit_object_enhs DEFERRED.
+INTERFACE zif_abapgit_version DEFERRED.
 "! abapGit general error
 CLASS zcx_abapgit_exception DEFINITION
 
@@ -1037,32 +1064,6 @@ method raise.
 
 endmethod.
 ENDCLASS.
-INTERFACE zif_abapgit_definitions DEFERRED.
-INTERFACE zif_abapgit_sap_package DEFERRED.
-INTERFACE zif_abapgit_dot_abapgit DEFERRED.
-INTERFACE zif_abapgit_environment DEFERRED.
-INTERFACE zif_abapgit_log DEFERRED.
-INTERFACE zif_abapgit_longtexts DEFERRED.
-INTERFACE zif_abapgit_lxe_texts DEFERRED.
-INTERFACE zif_abapgit_object DEFERRED.
-INTERFACE zif_abapgit_xml_input DEFERRED.
-INTERFACE zif_abapgit_xml_output DEFERRED.
-INTERFACE zif_abapgit_lang_definitions DEFERRED.
-INTERFACE zif_abapgit_oo_object_fnc DEFERRED.
-INTERFACE zif_abapgit_comparator DEFERRED.
-INTERFACE zif_abapgit_progress DEFERRED.
-INTERFACE zif_abapgit_tadir DEFERRED.
-INTERFACE zif_abapinst_definitions DEFERRED.
-INTERFACE zif_abapgit_objects DEFERRED.
-INTERFACE zif_ajson_reader DEFERRED.
-INTERFACE zif_ajson_writer DEFERRED.
-INTERFACE zif_ajson DEFERRED.
-INTERFACE zif_ajson_mapping DEFERRED.
-INTERFACE zif_abapgit_exit DEFERRED.
-INTERFACE zif_abapgit_gui_functions DEFERRED.
-INTERFACE zif_abapgit_object_enho DEFERRED.
-INTERFACE zif_abapgit_object_enhs DEFERRED.
-INTERFACE zif_abapgit_version DEFERRED.
 CLASS zcl_abapgit_adt_link DEFINITION DEFERRED.
 CLASS zcl_abapgit_convert DEFINITION DEFERRED.
 CLASS zcl_abapgit_default_transport DEFINITION DEFERRED.
@@ -1615,7 +1616,8 @@ INTERFACE zif_abapgit_definitions
       go_db                         TYPE string VALUE 'go_db',
       go_background                 TYPE string VALUE 'go_background',
       go_background_run             TYPE string VALUE 'go_background_run',
-      go_diff                       TYPE string VALUE 'go_diff',
+      go_repo_diff                  TYPE string VALUE 'go_repo_diff',
+      go_file_diff                  TYPE string VALUE 'go_fill_diff',
       go_stage                      TYPE string VALUE 'go_stage',
       go_commit                     TYPE string VALUE 'go_commit',
       go_branch_overview            TYPE string VALUE 'go_branch_overview',
@@ -2651,6 +2653,82 @@ interface zif_ajson_mapping
       value(rv_result) type string.
 
 endinterface.
+INTERFACE zif_abapgit_persistence .
+
+  TYPES:
+    ty_type  TYPE c LENGTH 12 .
+  TYPES:
+    ty_value TYPE c LENGTH 12 .
+  TYPES:
+    BEGIN OF ty_content,
+      type     TYPE ty_type,
+      value    TYPE ty_value,
+      data_str TYPE string,
+    END OF ty_content .
+  TYPES:
+    ty_contents TYPE SORTED TABLE OF ty_content WITH UNIQUE KEY type value .
+
+  TYPES: BEGIN OF ty_local_checksum,
+           item  TYPE zif_abapgit_definitions=>ty_item,
+           files TYPE zif_abapgit_definitions=>ty_file_signatures_tt,
+         END OF ty_local_checksum.
+
+  TYPES:
+    BEGIN OF ty_local_settings,
+      display_name                 TYPE string,
+      ignore_subpackages           TYPE abap_bool,
+      write_protected              TYPE abap_bool,
+      only_local_objects           TYPE abap_bool,
+      code_inspector_check_variant TYPE sci_chkv,
+      block_commit                 TYPE abap_bool,
+      serialize_master_lang_only   TYPE abap_bool,
+    END OF ty_local_settings.
+
+  TYPES: ty_local_checksum_tt TYPE STANDARD TABLE OF ty_local_checksum WITH DEFAULT KEY.
+
+  TYPES: BEGIN OF ty_repo_xml,
+           url             TYPE string,
+           branch_name     TYPE string,
+           selected_commit TYPE zif_abapgit_definitions=>ty_sha1,
+           package         TYPE devclass,
+           created_by      TYPE xubname,
+           created_at      TYPE timestampl,
+           deserialized_by TYPE xubname,
+           deserialized_at TYPE timestampl,
+           offline         TYPE abap_bool,
+           switched_origin TYPE string,
+           local_checksums TYPE ty_local_checksum_tt,
+           dot_abapgit     TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit,
+           head_branch     TYPE string,   " HEAD symref of the repo, master branch
+           local_settings  TYPE ty_local_settings,
+         END OF ty_repo_xml.
+
+  TYPES:
+    BEGIN OF ty_repo_meta_mask,
+      url             TYPE abap_bool,
+      branch_name     TYPE abap_bool,
+      selected_commit TYPE abap_bool,
+      package         TYPE abap_bool,
+      created_by      TYPE abap_bool,
+      created_at      TYPE abap_bool,
+      deserialized_by TYPE abap_bool,
+      deserialized_at TYPE abap_bool,
+      offline         TYPE abap_bool,
+      switched_origin TYPE abap_bool,
+      local_checksums TYPE abap_bool,
+      dot_abapgit     TYPE abap_bool,
+      head_branch     TYPE abap_bool,
+      local_settings  TYPE abap_bool,
+    END OF ty_repo_meta_mask.
+
+  TYPES: BEGIN OF ty_repo,
+           key TYPE ty_value.
+      INCLUDE TYPE ty_repo_xml.
+  TYPES: END OF ty_repo.
+  TYPES: ty_repos TYPE STANDARD TABLE OF ty_repo WITH DEFAULT KEY.
+  TYPES: ty_repo_keys TYPE STANDARD TABLE OF ty_repo-key WITH DEFAULT KEY.
+
+ENDINTERFACE.
 INTERFACE zif_abapgit_exit
    .
 
@@ -2730,6 +2808,14 @@ INTERFACE zif_abapgit_exit
       !iv_commit_hash TYPE zif_abapgit_definitions=>ty_sha1
     CHANGING
       !cv_display_url TYPE csequence
+    RAISING
+      zcx_abapgit_exception .
+  METHODS pre_calculate_repo_status
+    IMPORTING
+      is_repo_meta TYPE zif_abapgit_persistence=>ty_repo
+    CHANGING
+      !ct_local  TYPE zif_abapgit_definitions=>ty_files_item_tt
+      !ct_remote TYPE zif_abapgit_definitions=>ty_files_tt
     RAISING
       zcx_abapgit_exception .
 ENDINTERFACE.
@@ -4051,37 +4137,7 @@ CLASS zcl_abapgit_objects_program DEFINITION  INHERITING FROM zcl_abapgit_object
       CHANGING
         cs_adm TYPE rsmpe_adm.
 
-    METHODS get_program_title
-      IMPORTING
-        !it_tpool       TYPE textpool_table
-      RETURNING
-        VALUE(rv_title) TYPE repti .
-    METHODS insert_program
-      IMPORTING
-        !is_progdir TYPE ty_progdir
-        !it_source  TYPE abaptxt255_tab
-        !iv_title   TYPE repti
-        !iv_package TYPE devclass
-      RAISING
-        zcx_abapgit_exception .
-    METHODS update_program
-      IMPORTING
-        !is_progdir TYPE ty_progdir
-        !it_source  TYPE abaptxt255_tab
-        !iv_title   TYPE repti
-      RAISING
-        zcx_abapgit_exception .
-    METHODS update_progdir
-      IMPORTING
-        !is_progdir TYPE ty_progdir
-      RAISING
-        zcx_abapgit_exception .
-    METHODS insert_tpool
-      IMPORTING
-        !is_progdir TYPE ty_progdir
-        !it_tpool   TYPE textpool_table
-      RAISING
-        zcx_abapgit_exception .
+
 ENDCLASS.
 CLASS zcl_abapgit_object_acid DEFINITION  INHERITING FROM zcl_abapgit_objects_super FINAL.
 
@@ -4130,25 +4186,6 @@ CLASS zcl_abapgit_oo_base DEFINITION
   PRIVATE SECTION.
 
     DATA mv_skip_test_classes TYPE abap_bool .
-
-    METHODS deserialize_abap_source_lock
-      IMPORTING
-        !is_clskey TYPE seoclskey
-      RAISING
-        zcx_abapgit_exception .
-    METHODS deserialize_abap_source_old
-      IMPORTING
-        !is_clskey TYPE seoclskey
-        !it_source TYPE zif_abapgit_definitions=>ty_string_tt
-      RAISING
-        zcx_abapgit_exception .
-    METHODS deserialize_abap_source_new
-      IMPORTING
-        !is_clskey TYPE seoclskey
-        !it_source TYPE zif_abapgit_definitions=>ty_string_tt
-      RAISING
-        zcx_abapgit_exception
-        cx_sy_dyn_call_error .
 ENDCLASS.
 CLASS zcl_abapgit_oo_class DEFINITION
 
@@ -5471,7 +5508,6 @@ CLASS zcl_abapgit_oo_factory DEFINITION .
           iv_object_type                   TYPE tadir-object
         RETURNING
           VALUE(ri_object_oriented_object) TYPE REF TO zif_abapgit_oo_object_fnc.
-protected section.
   PRIVATE SECTION.
 
     CLASS-DATA gi_object_oriented_object TYPE REF TO zif_abapgit_oo_object_fnc .
@@ -6566,6 +6602,7 @@ CLASS zcl_abapinst_objects DEFINITION
                 TYPE SORTED TABLE OF ty_obj_serializer_item WITH UNIQUE KEY item .
 
     CLASS-DATA gt_obj_serializer_map TYPE ty_obj_serializer_map .
+    CLASS-DATA gt_supported_obj_types TYPE ty_types_tt .
 
     CLASS-METHODS files_to_deserialize
       IMPORTING
@@ -8336,7 +8373,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_exit IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_EXIT IMPLEMENTATION.
 
 
   METHOD get_instance.
@@ -8348,6 +8385,23 @@ CLASS zcl_abapgit_exit IMPLEMENTATION.
     ENDIF.
 
     CREATE OBJECT ri_exit TYPE zcl_abapgit_exit.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_exit~adjust_display_commit_url.
+
+    TRY.
+        gi_exit->adjust_display_commit_url(
+          EXPORTING
+            iv_repo_url           = iv_repo_url
+            iv_repo_name          = iv_repo_name
+            iv_repo_key           = iv_repo_key
+            iv_commit_hash        = iv_commit_hash
+          CHANGING
+            cv_display_url        = cv_display_url ).
+      CATCH cx_sy_ref_is_initial cx_sy_dyn_call_illegal_method ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -8498,22 +8552,19 @@ CLASS zcl_abapgit_exit IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD zif_abapgit_exit~adjust_display_commit_url.
+  METHOD zif_abapgit_exit~pre_calculate_repo_status.
 
     TRY.
-        gi_exit->adjust_display_commit_url(
+        gi_exit->pre_calculate_repo_status(
           EXPORTING
-            iv_repo_url           = iv_repo_url
-            iv_repo_name          = iv_repo_name
-            iv_repo_key           = iv_repo_key
-            iv_commit_hash        = iv_commit_hash
+            is_repo_meta = is_repo_meta
           CHANGING
-            cv_display_url        = cv_display_url ).
+            ct_local  = ct_local
+            ct_remote = ct_remote ).
       CATCH cx_sy_ref_is_initial cx_sy_dyn_call_illegal_method ##NO_HANDLER.
     ENDTRY.
 
   ENDMETHOD.
-
 ENDCLASS.
 
 
@@ -11671,9 +11722,15 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
 
   METHOD deserialize_program.
 
-    DATA:
-      lv_progname TYPE reposrc-progname,
-      lv_title    TYPE rglif-title.
+    DATA: lv_exists      TYPE abap_bool,
+          lt_empty_src   LIKE it_source,
+          lv_progname    TYPE reposrc-progname,
+          ls_tpool       LIKE LINE OF it_tpool,
+          lv_title       TYPE rglif-title,
+          ls_progdir_new TYPE progdir.
+
+    FIELD-SYMBOLS: <lg_any> TYPE any.
+
 
     CALL FUNCTION 'RS_CORR_INSERT'
       EXPORTING
@@ -11692,31 +11749,138 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    lv_title = get_program_title( it_tpool ).
+    READ TABLE it_tpool INTO ls_tpool WITH KEY id = 'R'.
+    IF sy-subrc = 0.
+* there is a bug in RPY_PROGRAM_UPDATE, the header line of TTAB is not
+* cleared, so the title length might be inherited from a different program.
+      ASSIGN ('(SAPLSIFP)TTAB') TO <lg_any>.
+      IF sy-subrc = 0.
+        CLEAR <lg_any>.
+      ENDIF.
 
-    " Check if program already exists
+      lv_title = ls_tpool-entry.
+    ENDIF.
+
     SELECT SINGLE progname FROM reposrc INTO lv_progname
       WHERE progname = is_progdir-name
       AND r3state = 'A'.
+    lv_exists = boolc( sy-subrc = 0 ).
 
-    IF sy-subrc = 0.
-      update_program(
-        is_progdir = is_progdir
-        it_source  = it_source
-        iv_title   = lv_title ).
+    IF lv_exists = abap_true.
+      zcl_abapgit_language=>set_current_language( mv_language ).
+
+      CALL FUNCTION 'RPY_PROGRAM_UPDATE'
+        EXPORTING
+          program_name     = is_progdir-name
+          title_string     = lv_title
+          save_inactive    = 'I'
+        TABLES
+          source_extended  = it_source
+        EXCEPTIONS
+          cancelled        = 1
+          permission_error = 2
+          not_found        = 3
+          OTHERS           = 4.
+
+      IF sy-subrc <> 0.
+        zcl_abapgit_language=>restore_login_language( ).
+
+        IF sy-msgid = 'EU' AND sy-msgno = '510'.
+          zcx_abapgit_exception=>raise( 'User is currently editing program' ).
+        ELSEIF sy-msgid = 'EU' AND sy-msgno = '522'.
+* for generated table maintenance function groups, the author is set to SAP* instead of the user which
+* generates the function group. This hits some standard checks, pulling new code again sets the author
+* to the current user which avoids the check
+          zcx_abapgit_exception=>raise( |Delete function group and pull again, { is_progdir-name } (EU522)| ).
+        ELSE.
+          zcx_abapgit_exception=>raise_t100( ).
+        ENDIF.
+      ENDIF.
+
+      zcl_abapgit_language=>restore_login_language( ).
+    ELSEIF strlen( is_progdir-name ) > 30.
+* function module RPY_PROGRAM_INSERT cannot handle function group includes
+      " special treatment for extensions
+      " if the program name exceeds 30 characters it is not a usual
+      " ABAP program but might be some extension, which requires the internal
+      " addition EXTENSION TYPE, see
+      " http://help.sap.com/abapdocu_751/en/abapinsert_report_internal.htm#!ABAP_ADDITION_1@1@
+      " This e.g. occurs in case of transportable Code Inspector variants (ending with ===VC)
+      INSERT REPORT is_progdir-name
+        FROM it_source
+        STATE 'I'
+        EXTENSION TYPE is_progdir-name+30.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise( 'error from INSERT REPORT .. EXTENSION TYPE' ).
+      ENDIF.
     ELSE.
-      insert_program(
-        is_progdir = is_progdir
-        it_source  = it_source
-        iv_title   = lv_title
-        iv_package = iv_package ).
+      INSERT REPORT is_progdir-name
+        FROM it_source
+        STATE 'I'
+        PROGRAM TYPE is_progdir-subc.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise_t100( ).
+      ENDIF.
     ENDIF.
 
-    insert_tpool(
-      is_progdir = is_progdir
-      it_tpool   = it_tpool ).
+    IF NOT it_tpool[] IS INITIAL.
+      INSERT TEXTPOOL is_progdir-name
+        FROM it_tpool
+        LANGUAGE mv_language
+        STATE 'I'.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise( 'error from INSERT TEXTPOOL' ).
+      ENDIF.
+    ENDIF.
 
-    update_progdir( is_progdir ).
+    CALL FUNCTION 'READ_PROGDIR'
+      EXPORTING
+        i_progname = is_progdir-name
+        i_state    = 'I'
+      IMPORTING
+        e_progdir  = ls_progdir_new
+      EXCEPTIONS
+        not_exists = 1
+        OTHERS     = 2.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise( |not found in PROGDIR. Subrc = { sy-subrc }| ).
+    ENDIF.
+
+* todo, package?
+
+    ls_progdir_new-ldbname = is_progdir-ldbname.
+    ls_progdir_new-dbna    = is_progdir-dbna.
+    ls_progdir_new-dbapl   = is_progdir-dbapl.
+    ls_progdir_new-rload   = is_progdir-rload.
+    ls_progdir_new-fixpt   = is_progdir-fixpt.
+    ls_progdir_new-varcl   = is_progdir-varcl.
+    ls_progdir_new-appl    = is_progdir-appl.
+    ls_progdir_new-rstat   = is_progdir-rstat.
+    ls_progdir_new-sqlx    = is_progdir-sqlx.
+    ls_progdir_new-uccheck = is_progdir-uccheck.
+    ls_progdir_new-clas    = is_progdir-clas.
+
+    CALL FUNCTION 'UPDATE_PROGDIR'
+      EXPORTING
+        i_progdir    = ls_progdir_new
+        i_progname   = ls_progdir_new-name
+        i_state      = ls_progdir_new-state
+      EXCEPTIONS
+        not_executed = 1
+        OTHERS       = 2.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise( |PROG, error inserting. Subrc = { sy-subrc }| ).
+    ENDIF.
+
+    SELECT SINGLE * FROM progdir INTO ls_progdir_new
+      WHERE name = ls_progdir_new-name
+      AND state = ls_progdir_new-state.
+    IF sy-subrc = 0 AND is_progdir-varcl = space AND ls_progdir_new-varcl = abap_true.
+* function module UPDATE_PROGDIR does not update VARCL
+      UPDATE progdir SET varcl = is_progdir-varcl
+        WHERE name = ls_progdir_new-name
+        AND state = ls_progdir_new-state.                 "#EC CI_SUBRC
+    ENDIF.
 
     zcl_abapgit_objects_activation=>add(
       iv_type = 'REPS'
@@ -11779,101 +11943,6 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
         iv_name   = iv_program
         iv_delete = lv_delete ).
     ENDIF.
-  ENDMETHOD.
-
-
-  METHOD get_program_title.
-
-    DATA ls_tpool LIKE LINE OF it_tpool.
-
-    FIELD-SYMBOLS <lg_any> TYPE any.
-
-    READ TABLE it_tpool INTO ls_tpool WITH KEY id = 'R'.
-    IF sy-subrc = 0.
-      " there is a bug in RPY_PROGRAM_UPDATE, the header line of TTAB is not
-      " cleared, so the title length might be inherited from a different program.
-      ASSIGN ('(SAPLSIFP)TTAB') TO <lg_any>.
-      IF sy-subrc = 0.
-        CLEAR <lg_any>.
-      ENDIF.
-
-      rv_title = ls_tpool-entry.
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD insert_program.
-
-    CALL FUNCTION 'RPY_PROGRAM_INSERT'
-      EXPORTING
-        development_class = iv_package
-        program_name      = is_progdir-name
-        program_type      = is_progdir-subc
-        title_string      = iv_title
-        save_inactive     = 'I'
-        suppress_dialog   = abap_true
-      TABLES
-        source_extended   = it_source
-      EXCEPTIONS
-        already_exists    = 1
-        cancelled         = 2
-        name_not_allowed  = 3
-        permission_error  = 4
-        OTHERS            = 5.
-    IF sy-subrc = 3.
-
-      " Special cases that standard function does not handle
-      IF strlen( is_progdir-name ) > 30.
-        " Special treatment for extensions
-        " If the program name exceeds 30 characters it is not a usual ABAP program but might be
-        " some extension, which requires the internal addition EXTENSION TYPE
-        " https://help.sap.com/doc/abapdocu_755_index_htm/7.55/en-US/index.htm?file=abapinsert_report_internal.htm
-        " This e.g. occurs in case of transportable Code Inspector variants (ending with ===VC)
-        INSERT REPORT is_progdir-name
-          FROM it_source
-          STATE 'I'
-          EXTENSION TYPE is_progdir-name+30
-          PROGRAM TYPE is_progdir-subc.
-        IF sy-subrc <> 0.
-          zcx_abapgit_exception=>raise( 'Error from INSERT REPORT .. EXTENSION TYPE' ).
-        ENDIF.
-      ELSE.
-        " For other special cases like function groups or logical databases,
-        " we save active and inactive version of source with the given PROGRAM TYPE.
-        " Without the active version, the code will not be visible in case of activation errors.
-        INSERT REPORT is_progdir-name
-          FROM it_source
-          STATE 'A'
-          PROGRAM TYPE is_progdir-subc.
-        INSERT REPORT is_progdir-name
-          FROM it_source
-          STATE 'I'
-          PROGRAM TYPE is_progdir-subc.
-        IF sy-subrc <> 0.
-          zcx_abapgit_exception=>raise( 'Error from INSERT REPORT .. PROGRAM TYPE' ).
-        ENDIF.
-      ENDIF.
-
-    ELSEIF sy-subrc > 0.
-      zcx_abapgit_exception=>raise_t100( ).
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD insert_tpool.
-
-    IF NOT it_tpool[] IS INITIAL.
-      INSERT TEXTPOOL is_progdir-name
-        FROM it_tpool
-        LANGUAGE mv_language
-        STATE 'I'.
-      IF sy-subrc <> 0.
-        zcx_abapgit_exception=>raise( 'Error from INSERT TEXTPOOL' ).
-      ENDIF.
-    ENDIF.
-
   ENDMETHOD.
 
 
@@ -12227,97 +12296,6 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
         SHIFT <ls_output>-line RIGHT BY lv_spaces PLACES IN CHARACTER MODE.
       ENDIF.
     ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD update_progdir.
-
-    DATA ls_progdir_new TYPE progdir.
-
-    CALL FUNCTION 'READ_PROGDIR'
-      EXPORTING
-        i_progname = is_progdir-name
-        i_state    = 'I'
-      IMPORTING
-        e_progdir  = ls_progdir_new
-      EXCEPTIONS
-        not_exists = 1
-        OTHERS     = 2.
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( 'Error reading program directory' ).
-    ENDIF.
-
-    ls_progdir_new-ldbname = is_progdir-ldbname.
-    ls_progdir_new-dbna    = is_progdir-dbna.
-    ls_progdir_new-dbapl   = is_progdir-dbapl.
-    ls_progdir_new-rload   = is_progdir-rload.
-    ls_progdir_new-fixpt   = is_progdir-fixpt.
-    ls_progdir_new-varcl   = is_progdir-varcl.
-    ls_progdir_new-appl    = is_progdir-appl.
-    ls_progdir_new-rstat   = is_progdir-rstat.
-    ls_progdir_new-sqlx    = is_progdir-sqlx.
-    ls_progdir_new-uccheck = is_progdir-uccheck.
-    ls_progdir_new-clas    = is_progdir-clas.
-
-    CALL FUNCTION 'UPDATE_PROGDIR'
-      EXPORTING
-        i_progdir    = ls_progdir_new
-        i_progname   = ls_progdir_new-name
-        i_state      = ls_progdir_new-state
-      EXCEPTIONS
-        not_executed = 1
-        OTHERS       = 2.
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( 'Error updating program directory' ).
-    ENDIF.
-
-    " function UPDATE_PROGDIR does not update VARCL, so we do it here
-    SELECT SINGLE * FROM progdir INTO ls_progdir_new
-      WHERE name  = ls_progdir_new-name
-        AND state = ls_progdir_new-state.
-    IF sy-subrc = 0 AND is_progdir-varcl <> ls_progdir_new-varcl.
-      UPDATE progdir SET varcl = is_progdir-varcl
-        WHERE name  = ls_progdir_new-name
-          AND state = ls_progdir_new-state.               "#EC CI_SUBRC
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD update_program.
-
-    zcl_abapgit_language=>set_current_language( mv_language ).
-
-    CALL FUNCTION 'RPY_PROGRAM_UPDATE'
-      EXPORTING
-        program_name     = is_progdir-name
-        title_string     = iv_title
-        save_inactive    = 'I'
-      TABLES
-        source_extended  = it_source
-      EXCEPTIONS
-        cancelled        = 1
-        permission_error = 2
-        not_found        = 3
-        OTHERS           = 4.
-
-    IF sy-subrc <> 0.
-      zcl_abapgit_language=>restore_login_language( ).
-
-      IF sy-msgid = 'EU' AND sy-msgno = '510'.
-        zcx_abapgit_exception=>raise( 'User is currently editing program' ).
-      ELSEIF sy-msgid = 'EU' AND sy-msgno = '522'.
-        " for generated table maintenance function groups, the author is set to SAP* instead of the user which
-        " generates the function group. This hits some standard checks, pulling new code again sets the author
-        " to the current user which avoids the check
-        zcx_abapgit_exception=>raise( |Delete function group and pull again, { is_progdir-name } (EU522)| ).
-      ELSE.
-        zcx_abapgit_exception=>raise_t100( ).
-      ENDIF.
-    ENDIF.
-
-    zcl_abapgit_language=>restore_login_language( ).
 
   ENDMETHOD.
 ENDCLASS.
@@ -12741,146 +12719,6 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD deserialize_abap_source_lock.
-
-    " This method will be called if the modification assistant can't be suppressed via
-    " IF_OO_CLIF_SOURCE_SETTINGS (which is necessary for namespaced clif objects)
-    CALL FUNCTION 'SEO_CLIF_ACCESS_PERMISSION'
-      EXPORTING
-        cifkey                        = is_clskey
-        mode                          = seok_access_modify
-        suppress_langu_check          = abap_true
-        suppress_language_dialog      = abap_true
-        suppress_modification_support = abap_true
-        suppress_modification_popups  = abap_true
-        suppress_dialog               = 'D'
-      EXCEPTIONS
-        no_access                     = 1
-        OTHERS                        = 2.
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( 'source_lock, access permission exception' ).
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD deserialize_abap_source_new.
-    DATA: lo_factory  TYPE REF TO object,
-          lo_source   TYPE REF TO object,
-          lo_settings TYPE REF TO object,
-          lv_par_err  TYPE abap_bool,
-          lr_settings TYPE REF TO data.
-
-    FIELD-SYMBOLS <lg_settings> TYPE any.
-
-
-    "Buffer needs to be refreshed,
-    "otherwise standard SAP CLIF_SOURCE reorder methods alphabetically
-    CALL FUNCTION 'SEO_BUFFER_INIT'.
-    CALL FUNCTION 'SEO_BUFFER_REFRESH'
-      EXPORTING
-        cifkey  = is_clskey
-        version = seoc_version_inactive.
-
-    CALL METHOD ('CL_OO_FACTORY')=>('CREATE_INSTANCE')
-      RECEIVING
-        result = lo_factory.
-
-    "Enable modification mode to avoid exception CX_OO_ACCESS_PERMISSON when
-    "dealing with objects in foreign namespaces (namespace role = C)
-    TRY.
-        CALL METHOD lo_factory->('CREATE_SETTINGS')
-          EXPORTING
-            modification_mode_enabled = abap_true
-          RECEIVING
-            result                    = lo_settings.
-      CATCH cx_sy_dyn_call_parameter_error.
-        " modification_mode_enable does not exist in older releases
-        lv_par_err = abap_true.
-        CALL METHOD lo_factory->('CREATE_SETTINGS')
-          RECEIVING
-            result = lo_settings.
-    ENDTRY.
-
-    CREATE DATA lr_settings TYPE REF TO ('IF_OO_CLIF_SOURCE_SETTINGS').
-    ASSIGN lr_settings->* TO <lg_settings>.
-
-    <lg_settings> ?= lo_settings.
-
-    CALL METHOD lo_factory->('CREATE_CLIF_SOURCE')
-      EXPORTING
-        clif_name = is_clskey-clsname
-        settings  = <lg_settings>
-      RECEIVING
-        result    = lo_source.
-
-    TRY.
-        IF is_clskey-clsname CP '/*'.
-          deserialize_abap_source_lock( is_clskey ).
-        ENDIF.
-
-        CALL METHOD lo_source->('IF_OO_CLIF_SOURCE~LOCK').
-      CATCH cx_oo_access_permission.
-        zcx_abapgit_exception=>raise( 'source_new, access permission exception' ).
-    ENDTRY.
-
-    CALL METHOD lo_source->('IF_OO_CLIF_SOURCE~SET_SOURCE')
-      EXPORTING
-        source = it_source.
-
-    CALL METHOD lo_source->('IF_OO_CLIF_SOURCE~SAVE').
-
-    CALL METHOD lo_source->('IF_OO_CLIF_SOURCE~UNLOCK').
-
-  ENDMETHOD.
-
-
-  METHOD deserialize_abap_source_old.
-    "for backwards compatability down to 702
-
-    DATA: lo_source TYPE REF TO cl_oo_source.
-    DATA lo_helper TYPE REF TO cl_oo_exception_class.
-
-    CREATE OBJECT lo_source
-      EXPORTING
-        clskey             = is_clskey
-      EXCEPTIONS
-        class_not_existing = 1
-        OTHERS             = 2.
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise_t100( ).
-    ENDIF.
-
-    TRY.
-        IF is_clskey-clsname CP '/*'.
-          deserialize_abap_source_lock( is_clskey ).
-        ELSE.
-          lo_source->access_permission( seok_access_modify ).
-        ENDIF.
-        lo_source->set_source( it_source ).
-        lo_source->save( ).
-        lo_source->access_permission( seok_access_free ).
-      CATCH cx_oo_access_permission.
-        zcx_abapgit_exception=>raise( 'permission error' ).
-      CATCH cx_oo_source_save_failure.
-        zcx_abapgit_exception=>raise( 'save failure' ).
-    ENDTRY.
-
-    " Repair subclasses of exception class
-    TRY.
-        CREATE OBJECT lo_helper
-          EXPORTING
-            clskey = is_clskey.
-
-        IF lo_helper->is_t100_exception( ) = abap_true.
-          lo_helper->repair_subclasses( ).
-        ENDIF.
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
   METHOD zif_abapgit_oo_object_fnc~add_to_activation_list.
     zcl_abapgit_objects_activation=>add_item( is_item ).
   ENDMETHOD.
@@ -12920,18 +12758,7 @@ CLASS zcl_abapgit_oo_base IMPLEMENTATION.
 
 
   METHOD zif_abapgit_oo_object_fnc~deserialize_source.
-
     ASSERT 0 = 1. "Subclass responsibility
-
-    TRY.
-        deserialize_abap_source_new(
-          is_clskey = is_key
-          it_source = it_source ).
-      CATCH cx_sy_dyn_call_error.
-        deserialize_abap_source_old(
-          is_clskey = is_key
-          it_source = it_source ).
-    ENDTRY.
   ENDMETHOD.
 
 
@@ -15389,8 +15216,12 @@ CLASS zcl_abapgit_object_doma IMPLEMENTATION.
       EXCEPTIONS
         illegal_input = 1
         OTHERS        = 2.
-    IF sy-subrc <> 0 OR ls_dd01v IS INITIAL.
+    IF sy-subrc <> 0.
       zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
+
+    IF ls_dd01v IS INITIAL.
+      zcx_abapgit_exception=>raise( |No active version found for { ms_item-obj_type } { ms_item-obj_name }| ).
     ENDIF.
 
     CLEAR: ls_dd01v-as4user,
@@ -15680,14 +15511,13 @@ CLASS zcl_abapgit_object_dtel IMPLEMENTATION.
 
     lv_name = ms_item-obj_name.
 
-
     SELECT SINGLE * FROM dd04l
       INTO CORRESPONDING FIELDS OF ls_dd04v
       WHERE rollname = lv_name
       AND as4local = 'A'
       AND as4vers = '0000'.
     IF sy-subrc <> 0 OR ls_dd04v IS INITIAL.
-      zcx_abapgit_exception=>raise( 'Not found in DD04L' ).
+      zcx_abapgit_exception=>raise( |No active version found for { ms_item-obj_type } { ms_item-obj_name }| ).
     ENDIF.
 
     SELECT SINGLE * FROM dd04t
@@ -17732,8 +17562,9 @@ CLASS zcl_abapgit_object_enqu IMPLEMENTATION.
     IF sy-subrc <> 0.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
+
     IF ls_dd25v IS INITIAL.
-      RETURN. " does not exist in system
+      zcx_abapgit_exception=>raise( |No active version found for { ms_item-obj_type } { ms_item-obj_name }| ).
     ENDIF.
 
     CLEAR: ls_dd25v-as4user,
@@ -21693,8 +21524,9 @@ CLASS zcl_abapgit_object_tabl IMPLEMENTATION.
     IF sy-subrc <> 0.
       zcx_abapgit_exception=>raise( 'error from DDIF_TABL_GET' ).
     ENDIF.
+
     IF ls_dd02v IS INITIAL.
-      RETURN. " object does not exits
+      zcx_abapgit_exception=>raise( |No active version found for { ms_item-obj_type } { ms_item-obj_name }| ).
     ENDIF.
 
     CLEAR: ls_dd02v-as4user,
@@ -22897,7 +22729,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_TTYP IMPLEMENTATION.
+CLASS zcl_abapgit_object_ttyp IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~changed_by.
@@ -23068,7 +22900,7 @@ CLASS ZCL_ABAPGIT_OBJECT_TTYP IMPLEMENTATION.
     ENDIF.
 
     IF ls_dd40v IS INITIAL.
-      RETURN. " does not exist in system
+      zcx_abapgit_exception=>raise( |No active version found for { ms_item-obj_type } { ms_item-obj_name }| ).
     ENDIF.
 
     CLEAR: ls_dd40v-as4user,
@@ -29252,11 +29084,14 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
   METHOD supported_list.
 
     DATA: lt_objects   TYPE STANDARD TABLE OF ko100,
-          lv_supported TYPE abap_bool,
           ls_item      TYPE zif_abapgit_definitions=>ty_item.
 
     FIELD-SYMBOLS <ls_object> LIKE LINE OF lt_objects.
 
+    IF gt_supported_obj_types IS NOT INITIAL.
+      rt_types = gt_supported_obj_types.
+      RETURN.
+    ENDIF.
 
     CALL FUNCTION 'TR_OBJECT_TABLE'
       TABLES
@@ -29267,14 +29102,11 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
     LOOP AT lt_objects ASSIGNING <ls_object> WHERE pgmid = 'R3TR'.
       ls_item-obj_type = <ls_object>-object.
 
-      lv_supported = is_supported(
-        is_item        = ls_item
-        iv_native_only = abap_true ).
-
-      IF lv_supported = abap_true.
+      IF is_supported( ls_item ) = abap_true.
         INSERT <ls_object>-object INTO TABLE rt_types.
       ENDIF.
     ENDLOOP.
+    gt_supported_obj_types = rt_types.
 
   ENDMETHOD.
 
