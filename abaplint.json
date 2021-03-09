@@ -28,9 +28,7 @@
 		},
 		"abapdoc": {
 			"checkLocal": false,
-			"exclude": [
-				".*"
-			],
+			"exclude": [".*"],
 			"severity": "Error"
 		},
 		"allowed_object_naming": {
@@ -264,9 +262,7 @@
 			"while": true
 		},
 		"exit_or_check": {
-			"exclude": [
-				".*"
-			],
+			"exclude": [".*"],
 			"severity": "Error"
 		},
 		"exporting": {
@@ -315,9 +311,7 @@
 			"severity": "Error"
 		},
 		"function_module_recommendations": {
-			"exclude": [
-				".*"
-			],
+			"exclude": [".*"],
 			"recommendations": [],
 			"severity": "Error"
 		},
@@ -351,9 +345,7 @@
 			"severity": "Error"
 		},
 		"in_statement_indentation": {
-			"exclude": [
-				".*"
-			],
+			"exclude": [".*"],
 			"ignoreExceptions": true,
 			"severity": "Error"
 		},
@@ -648,9 +640,7 @@
 			"severity": "Error"
 		},
 		"remove_descriptions": {
-			"exclude": [
-				".*"
-			],
+			"exclude": [".*"],
 			"ignoreExceptions": false,
 			"ignoreWorkflow": true,
 			"severity": "Error"
