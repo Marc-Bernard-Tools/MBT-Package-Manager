@@ -226,7 +226,7 @@ CLASS ltcl_html_processor_test IMPLEMENTATION.
     TRY.
         lv_head_end = mo_cut->find_head_offset( lv_html ).
       CATCH /mbtools/cx_exception.
-        cl_abap_unit_assert=>fail( msg = 'HEAD closing tag could not be found' ).
+        cl_abap_unit_assert=>fail( 'HEAD closing tag could not be found' ).
     ENDTRY.
 
     "then

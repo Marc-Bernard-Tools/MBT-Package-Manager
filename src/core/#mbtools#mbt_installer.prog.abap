@@ -5,8 +5,13 @@ REPORT /mbtools/mbt_installer.
 *
 * This program installs and uninstalls any Marc Bernard Tool
 *
-* (c) MBT 2020 https://marcbernardtools.com/
+* (c) MBT 2021 https://marcbernardtools.com/
 ************************************************************************
+
+CONSTANTS:
+  c_version TYPE string VALUE '1.0.0',
+  c_home    TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT,
+  c_github  TYPE string VALUE 'github.com' ##NO_TEXT.
 
 INTERFACE zif_abapgit_definitions DEFERRED.
 INTERFACE zif_abapgit_sap_package DEFERRED.
@@ -6176,12 +6181,6 @@ CLASS zcl_abapinst_file_status DEFINITION
         !it_results TYPE zif_abapgit_definitions=>ty_results_tt
       RAISING
         zcx_abapgit_exception .
-    CLASS-METHODS check_namespace
-      IMPORTING
-        !ii_log     TYPE REF TO zif_abapgit_log
-        !it_results TYPE zif_abapgit_definitions=>ty_results_tt
-      RAISING
-        zcx_abapgit_exception .
 ENDCLASS.
 CLASS zcl_abapinst_popups DEFINITION
 
@@ -6726,7 +6725,7 @@ CLASS zcl_abapinst_persistence DEFINITION
       IMPORTING
         !is_inst TYPE zif_abapinst_definitions=>ty_inst
       RAISING
-        zcx_abapinst_exception  ##SHADOW[INSERT].
+        zcx_abapinst_exception ##SHADOW[INSERT].
     METHODS update
       IMPORTING
         !is_inst TYPE zif_abapinst_definitions=>ty_inst
@@ -26295,40 +26294,6 @@ CLASS zcl_abapinst_file_status IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD check_namespace.
-
-    DATA:
-      lv_namespace TYPE namespace,
-      lt_namespace TYPE TABLE OF namespace.
-
-    FIELD-SYMBOLS <ls_result> LIKE LINE OF it_results.
-
-    " Collect all namespaces based on name of xml-files
-    LOOP AT it_results ASSIGNING <ls_result>.
-      FIND REGEX '#(.*)#.*\..*\.xml' IN <ls_result>-filename SUBMATCHES lv_namespace.
-      IF sy-subrc = 0.
-        lv_namespace = '/' && to_upper( lv_namespace ) && '/'.
-        COLLECT lv_namespace INTO lt_namespace.
-      ENDIF.
-    ENDLOOP.
-
-    LOOP AT lt_namespace INTO lv_namespace.
-      CALL FUNCTION 'TR_CHECK_NAMESPACE'
-        EXPORTING
-          iv_namespace        = lv_namespace
-        EXCEPTIONS
-          namespace_not_valid = 1
-          OTHERS              = 2.
-      IF sy-subrc <> 0.
-        ii_log->add( iv_msg  = |Namespace { lv_namespace } does not exist. Create it in transaction SE03|
-                     iv_type = 'W'
-                     iv_rc   = '6' ).
-      ENDIF.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
   METHOD check_package_folder.
 
     DATA:
@@ -27155,7 +27120,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       CATCH zcx_abapgit_exception INTO lx_error.
         _transport_reset( ).
 
-        gi_log->add_exception( ix_exc = lx_error ).
+        gi_log->add_exception( lx_error ).
     ENDTRY.
 
     TRY.
@@ -27342,7 +27307,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       CATCH zcx_abapgit_exception INTO lx_error.
         _transport_reset( ).
 
-        gi_log->add_exception( ix_exc = lx_error ).
+        gi_log->add_exception( lx_error ).
     ENDTRY.
 
     TRY.
@@ -27947,6 +27912,9 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
       SELECT * FROM sotr_head INTO TABLE lt_sotr_head
         WHERE paket = <ls_tadir>-obj_name.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
 
       LOOP AT lt_sotr_head ASSIGNING <ls_sotr_head>.
         CALL FUNCTION 'BTFR_DELETE_SINGLE_TEXT'
@@ -28156,18 +28124,17 @@ CLASS zcl_abapinst_log_viewer IMPLEMENTATION.
         lo_column = lo_columns->get_column( |LONGTEXT| ).
         lo_column->set_medium_text( |Longtext| ).
 
-        IF lv_add_obj_col = abap_true.
-          lo_column = lo_columns->get_column( |OBJ_TYPE| ).
-          lo_column->set_medium_text( |Object Type| ).
+        lo_column = lo_columns->get_column( |OBJ_TYPE| ).
+        lo_column->set_medium_text( |Object Type| ).
 
-          lo_column = lo_columns->get_column( |OBJ_NAME| ).
-          lo_column->set_medium_text( |Object Name| ).
-        ELSE.
-          "hide object columns
-          lo_column = lo_columns->get_column( |OBJ_TYPE| ).
+        IF lv_add_obj_col = abap_false.
           lo_column->set_technical( abap_true ).
+        ENDIF.
 
-          lo_column = lo_columns->get_column( |OBJ_NAME| ).
+        lo_column = lo_columns->get_column( |OBJ_NAME| ).
+        lo_column->set_medium_text( |Object Name| ).
+
+        IF lv_add_obj_col = abap_false.
           lo_column->set_technical( abap_true ).
         ENDIF.
 
@@ -29201,8 +29168,9 @@ CLASS zcl_abapinst_persistence IMPLEMENTATION.
 
     SELECT * FROM (mv_tabname) INTO TABLE lt_content
       ORDER BY PRIMARY KEY.
-
-    rt_list = _content_to_list( lt_content ).
+    IF sy-subrc = 0.
+      rt_list = _content_to_list( lt_content ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -29221,7 +29189,9 @@ CLASS zcl_abapinst_persistence IMPLEMENTATION.
         ORDER BY PRIMARY KEY.
     ENDIF.
 
-    rt_list = _content_to_list( lt_content ).
+    IF sy-subrc = 0.
+      rt_list = _content_to_list( lt_content ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -32373,7 +32343,7 @@ CONSTANTS:
   c_title       TYPE string VALUE 'MBT Installer',
   c_url_docs    TYPE string VALUE 'https://marcbernardtools.com/docs/marc-bernard-tools/installation/',
   c_url_license TYPE string VALUE 'https://marcbernardtools.com/company/terms-software/',
-  c_url_repo    TYPE string VALUE 'https://marcbernardtools.com/'.
+  c_url_home    TYPE string VALUE 'https://marcbernardtools.com/'.
 
 CONSTANTS:
   c_tabname TYPE tabname  VALUE 'ZMBTINST',
@@ -32647,16 +32617,17 @@ SELECTION-SCREEN END OF SCREEN 800.
 SELECTION-SCREEN:
   BEGIN OF SCREEN 900 AS SUBSCREEN,
     BEGIN OF BLOCK b900 WITH FRAME,
-      COMMENT /1(77) scr_t900,
-      COMMENT /1(50) scr_t901,
-      COMMENT 60(25) scr_t902,
+      COMMENT /1(50) scr_t900,
+      COMMENT 60(25) scr_t901,
+      SKIP,
+      COMMENT /1(77) scr_t902,
     END OF BLOCK b900,
     BEGIN OF BLOCK b910 WITH FRAME,
       PUSHBUTTON /1(55) b_docu USER-COMMAND docu,
       SKIP,
       PUSHBUTTON /1(55) b_lice USER-COMMAND lice,
       SKIP,
-      PUSHBUTTON /1(55) b_repo USER-COMMAND repo,
+      PUSHBUTTON /1(55) b_home USER-COMMAND home,
     END OF BLOCK b910,
   END OF SCREEN 900.
 
@@ -32841,19 +32812,19 @@ INITIALIZATION.
   scr_tab9 = zcl_abapinst_screen=>header( iv_icon = icon_system_help
                                           iv_text = 'About' ).
 
-  scr_t900 = |Copyright © { sy-datum(4) } Marc Bernard Tools. All right reserved.|.
-  scr_t901 = 'An Installer for Marc Bernard Tools'.
-  scr_t902 = |Version { zif_abapinst_definitions=>c_version }|.
+  scr_t900 = |{ c_title }|.
+  scr_t901 = |Version { c_version }|.
+  scr_t902 = |Copyright (c) { sy-datum(4) } Marc Bernard Tools|.
 
   b_docu = zcl_abapinst_screen=>icon( iv_name = icon_system_extended_help
                                       iv_text = 'Documentation'
-                                      iv_info = '' ).
+                                      iv_info = c_github ).
   b_lice = zcl_abapinst_screen=>icon( iv_name = icon_legal_reg
-                                      iv_text = 'License'
-                                      iv_info = '' ).
-  b_repo = zcl_abapinst_screen=>icon( iv_name = icon_url
-                                      iv_text = 'Website'
-                                      iv_info = '' ).
+                                      iv_text = 'License Terms'
+                                      iv_info = c_github ).
+  b_home = zcl_abapinst_screen=>icon( iv_name = icon_url
+                                      iv_text = 'MarcBernardTools.com'
+                                      iv_info = 'MBT Website' ).
 
   scr_tab-prog = sy-cprog. " abaplint #1291
 *&---------------------------------------------------------------------*
@@ -32910,8 +32881,8 @@ AT SELECTION-SCREEN.
     WHEN 'LICE'. " License
       zcl_abapinst_screen=>browser( c_url_license ).
 
-    WHEN 'REPO'. " Repository
-      zcl_abapinst_screen=>browser( c_url_repo ).
+    WHEN 'HOME'. " Website
+      zcl_abapinst_screen=>browser( c_url_home ).
 
   ENDCASE.
 
