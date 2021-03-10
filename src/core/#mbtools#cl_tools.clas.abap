@@ -1336,7 +1336,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       SELECT COUNT(*) FROM usr02 INTO lv_user_count
         WHERE ustyp = 'A' AND trdat BETWEEN lv_date_from AND sy-datum
           AND ( bname <> 'DDIC' AND bname NOT LIKE '%SUPPORT%' ). "#EC CI_BYPASS "#EC CI_GENBUFF
-      IF lv_user_count <= c_eval_users.
+      IF sy-subrc = 0 AND lv_user_count <= c_eval_users.
         rv_result = abap_true.
         RETURN.
       ENDIF.
