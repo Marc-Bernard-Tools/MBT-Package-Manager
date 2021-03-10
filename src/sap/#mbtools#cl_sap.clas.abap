@@ -317,6 +317,7 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
         FROM dd07l AS a LEFT OUTER JOIN dd07t AS b
         ON a~domname = b~domname AND a~valpos = b~valpos AND b~ddlanguage = sy-langu
         WHERE a~domname = iv_domain AND a~as4local = 'A' AND a~as4vers = '0000'. "#EC CI_BUFFJOIN
+      ASSERT sy-subrc >= 0.
 
     ELSE.
 

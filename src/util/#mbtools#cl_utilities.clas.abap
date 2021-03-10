@@ -411,6 +411,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
 
     IF gt_cvers IS INITIAL.
       SELECT * FROM cvers INTO TABLE gt_cvers.
+      ASSERT sy-subrc = 0.
     ENDIF.
 
     READ TABLE gt_cvers INTO ls_cvers WITH TABLE KEY
@@ -431,6 +432,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
 
     IF gt_cvers IS INITIAL.
       SELECT * FROM cvers INTO TABLE gt_cvers.
+      ASSERT sy-subrc = 0.
     ENDIF.
 
     ls_cvers-component = iv_component.

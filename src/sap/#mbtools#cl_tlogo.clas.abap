@@ -84,6 +84,7 @@ CLASS /mbtools/cl_tlogo IMPLEMENTATION.
       WHERE domname    = 'RSTLOGO'
         AND ddlanguage = sy-langu
         AND as4local   = rs_c_objvers-active.            "#EC CI_BYPASS
+    ASSERT sy-subrc = 0.
 
     " Add Meta Object, Application Component Hierarchty, and DataSource
     ls_tlogo_text-tlogo = 'BIMO'.
@@ -99,6 +100,7 @@ CLASS /mbtools/cl_tlogo IMPLEMENTATION.
     SELECT DISTINCT tlogo_d tlogo INTO TABLE gt_tlogo_cont
       FROM rstlogoprop
       WHERE tlogo_d <> ''.                               "#EC CI_BYPASS
+    ASSERT sy-subrc = 0.
 
   ENDMETHOD.
 

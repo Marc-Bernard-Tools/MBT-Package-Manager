@@ -332,27 +332,27 @@ CLASS /mbtools/cl_tools DEFINITION
     DATA mv_command TYPE /mbtools/if_tool=>ty_manifest-command.
     DATA mv_shortcut TYPE /mbtools/if_tool=>ty_manifest-shortcut.
 
-    CLASS-METHODS clean_title
+    CLASS-METHODS _clean_title
       IMPORTING
         !iv_title        TYPE csequence
       RETURNING
         VALUE(rv_result) TYPE string.
-    CLASS-METHODS get_implementations
+    CLASS-METHODS _get_implementations
       IMPORTING
         VALUE(iv_quiet)   TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(rt_classes) TYPE ty_classes.
-    CLASS-METHODS get_reg_bundle
+    CLASS-METHODS _get_reg_bundle
       IMPORTING
         !iv_bundle_id    TYPE i
       RETURNING
         VALUE(ro_result) TYPE REF TO /mbtools/cl_registry.
-    CLASS-METHODS get_reg_tool
+    CLASS-METHODS _get_reg_tool
       IMPORTING
         !iv_name         TYPE string
       RETURNING
         VALUE(ro_result) TYPE REF TO /mbtools/cl_registry.
-    CLASS-METHODS sync_json
+    CLASS-METHODS _sync_json
       IMPORTING
         !is_inst          TYPE ty_inst
       RETURNING
@@ -476,7 +476,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     CHECK mv_is_bundle IS INITIAL.
 
     " Is tool already registered?
-    lo_reg_tool = get_reg_tool( mv_name ).
+    lo_reg_tool = _get_reg_tool( mv_name ).
     IF lo_reg_tool IS NOT BOUND.
       rv_result = abap_false.
       RETURN.
@@ -533,7 +533,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     " Is tool or bundle registered?
     IF is_bundle( ) IS INITIAL.
-      lo_reg_tool = get_reg_tool( mv_name ).
+      lo_reg_tool = _get_reg_tool( mv_name ).
     ELSE.
       lo_reg_tool = go_reg_root->get_subentry( mv_name ).
     ENDIF.
@@ -599,17 +599,6 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         " MBT Base is not installed properly. Contact Marc Bernard Tools
         ASSERT 0 = 1.
     ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD clean_title.
-
-    " Input could be title or name of tool
-    rv_result = iv_title.
-    IF iv_title CA '_'.
-      REPLACE ALL OCCURRENCES OF '_' IN rv_result WITH ` `.
-    ENDIF.
 
   ENDMETHOD.
 
@@ -687,7 +676,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     CHECK mv_is_bundle IS INITIAL.
 
     " Is tool already registered?
-    lo_reg_tool = get_reg_tool( mv_name ).
+    lo_reg_tool = _get_reg_tool( mv_name ).
     IF lo_reg_tool IS NOT BOUND.
       rv_result = abap_false.
       RETURN.
@@ -752,7 +741,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lt_implementations TYPE ty_classes,
       li_tool            TYPE REF TO /mbtools/if_tool.
 
-    lt_implementations = get_implementations( ).
+    lt_implementations = _get_implementations( ).
 
     LOOP AT lt_implementations INTO lv_implementation.  "#EC CI_NOORDER
 
@@ -763,7 +752,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
             CONTINUE. "ignore
           ENDIF.
 
-          IF li_tool->ms_manifest-title = clean_title( iv_title ).
+          IF li_tool->ms_manifest-title = _clean_title( iv_title ).
             CREATE OBJECT ro_tool EXPORTING io_tool = li_tool.
             RETURN.
           ENDIF.
@@ -824,7 +813,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = get_reg_tool( mv_name ).
+        lo_reg_tool = _get_reg_tool( mv_name ).
         CHECK lo_reg_tool IS BOUND.
 
         " Update
@@ -848,7 +837,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = get_reg_tool( mv_name ).
+        lo_reg_tool = _get_reg_tool( mv_name ).
         CHECK lo_reg_tool IS BOUND.
 
         " Update
@@ -874,30 +863,6 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_implementations.
-
-    " Get all classes that implement the MBT Interface
-    IF gt_classes IS INITIAL.
-      SELECT clsname FROM seometarel INTO TABLE gt_classes
-        WHERE version = '1' AND refclsname = /mbtools/if_definitions=>c_interface. "#EC CI_GENBUFF
-      IF sy-subrc = 0.
-        SELECT clsname FROM seometarel APPENDING TABLE gt_classes
-          FOR ALL ENTRIES IN gt_classes
-          WHERE version = '1' AND refclsname = gt_classes-table_line. "#EC CI_GENBUFF
-      ENDIF.
-    ENDIF.
-
-    rt_classes = gt_classes.
-
-    IF rt_classes IS INITIAL AND iv_quiet IS INITIAL.
-      " There are no tools installed
-      MESSAGE s002(/mbtools/bc).
-      RETURN.
-    ENDIF.
-
-  ENDMETHOD.
-
-
   METHOD get_last_update.
 
     DATA:
@@ -909,7 +874,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     TRY.
         " Is tool already registered?
-        lo_reg_tool = get_reg_tool( mv_name ).
+        lo_reg_tool = _get_reg_tool( mv_name ).
         IF lo_reg_tool IS NOT BOUND.
           RETURN.
         ENDIF.
@@ -948,7 +913,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     TRY.
         " Is tool already registered?
         IF is_bundle( ) IS INITIAL.
-          lo_reg_tool = get_reg_tool( mv_name ).
+          lo_reg_tool = _get_reg_tool( mv_name ).
         ELSE.
           lo_reg_tool = go_reg_root->get_subentry( mv_name ).
         ENDIF.
@@ -975,7 +940,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       li_tool            TYPE REF TO /mbtools/if_tool,
       ls_manifest_descr  TYPE /mbtools/manifest.
 
-    lt_implementations = get_implementations( ).
+    lt_implementations = _get_implementations( ).
 
     LOOP AT lt_implementations INTO lv_implementation.
 
@@ -1023,7 +988,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = get_reg_tool( mv_name ).
+        lo_reg_tool = _get_reg_tool( mv_name ).
         CHECK lo_reg_tool IS BOUND.
 
         " Update
@@ -1067,57 +1032,6 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_reg_bundle.
-
-    DATA:
-      lv_bundle_id TYPE i,
-      ls_bundle    TYPE /mbtools/cl_registry=>ty_keyobj,
-      lt_bundles   TYPE /mbtools/cl_registry=>ty_keyobjs.
-
-    TRY.
-        lt_bundles = go_reg_root->get_subentries( ).
-
-        LOOP AT lt_bundles INTO ls_bundle.
-          " Is bundle installed?
-          lv_bundle_id = ls_bundle-value->get_subentry( c_reg-license )->get_value( c_reg-key_lic_bundle ).
-          IF lv_bundle_id = iv_bundle_id.
-            ro_result = ls_bundle-value.
-            EXIT.
-          ENDIF.
-        ENDLOOP.
-
-      CATCH cx_root.
-        RETURN.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD get_reg_tool.
-
-    DATA:
-      ls_bundle  TYPE /mbtools/cl_registry=>ty_keyobj,
-      lt_bundles TYPE /mbtools/cl_registry=>ty_keyobjs.
-
-
-    TRY.
-        lt_bundles = go_reg_root->get_subentries( ).
-
-        LOOP AT lt_bundles INTO ls_bundle.
-          " Is tool installed?
-          ro_result = ls_bundle-value->get_subentry( iv_name ).
-          IF ro_result IS BOUND.
-            EXIT.
-          ENDIF.
-        ENDLOOP.
-
-      CATCH cx_root.
-        RETURN.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
   METHOD get_settings.
 
     DATA:
@@ -1127,7 +1041,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = get_reg_tool( mv_name ).
+        lo_reg_tool = _get_reg_tool( mv_name ).
         CHECK lo_reg_tool IS BOUND.
 
         " Settings
@@ -1178,7 +1092,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lo_tool            TYPE REF TO /mbtools/cl_tools,
       ls_tool_with_text  TYPE /mbtools/tool_with_text.
 
-    lt_implementations = get_implementations( ).
+    lt_implementations = _get_implementations( ).
 
     LOOP AT lt_implementations INTO lv_implementation.
 
@@ -1250,7 +1164,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = get_reg_tool( mv_name ).
+        lo_reg_tool = _get_reg_tool( mv_name ).
         CHECK lo_reg_tool IS BOUND.
 
         " Update
@@ -1285,7 +1199,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = get_reg_tool( mv_name ).
+        lo_reg_tool = _get_reg_tool( mv_name ).
         CHECK lo_reg_tool IS BOUND.
 
         " Update
@@ -1431,7 +1345,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     TRY.
         " Is tool already registered?
         IF is_bundle( ) IS INITIAL.
-          lo_reg_tool = get_reg_tool( mv_name ).
+          lo_reg_tool = _get_reg_tool( mv_name ).
         ELSE.
           lo_reg_tool = go_reg_root->get_subentry( mv_name ).
         ENDIF.
@@ -1503,7 +1417,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     " Is tool or bundle registered?
     IF is_bundle( ) IS INITIAL.
-      lo_reg_tool = get_reg_tool( mv_name ).
+      lo_reg_tool = _get_reg_tool( mv_name ).
     ELSE.
       lo_reg_tool = go_reg_root->get_subentry( mv_name ).
     ENDIF.
@@ -1553,7 +1467,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     " Is tool or bundle registered?
     IF is_bundle( ) IS INITIAL.
-      lo_reg_tool = get_reg_tool( mv_name ).
+      lo_reg_tool = _get_reg_tool( mv_name ).
     ELSE.
       lo_reg_tool = go_reg_root->get_subentry( mv_name ).
     ENDIF.
@@ -1594,7 +1508,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     TRY.
         " Is tool already registered?
         IF is_bundle( ) IS INITIAL.
-          lo_reg_tool = get_reg_tool( mv_name ).
+          lo_reg_tool = _get_reg_tool( mv_name ).
         ELSE.
           lo_reg_tool = go_reg_root->get_subentry( mv_name ).
         ENDIF.
@@ -1603,7 +1517,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         ELSE.
           " Create registry entries
           IF is_bundle( ) IS INITIAL.
-            lo_reg_bundle = get_reg_bundle( mv_bundle_id ).
+            lo_reg_bundle = _get_reg_bundle( mv_bundle_id ).
             IF lo_reg_bundle IS BOUND.
               lo_reg_tool = lo_reg_bundle->add_subentry( mv_name ).
             ELSE.
@@ -1749,7 +1663,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       ls_inst-installed_at    = io_tool->get_last_update( abap_true ).
       ls_inst-status          = 'I'.
       " Update
-      ls_cont = sync_json( ls_inst ).
+      ls_cont = _sync_json( ls_inst ).
       UPDATE (lc_tabname) FROM ls_cont.
       IF sy-subrc <> 0.
         /mbtools/cx_exception=>raise( 'Error updating MBT Installer persistence'(003) ).
@@ -1769,31 +1683,13 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       ls_inst-installed_at    = io_tool->get_last_update( abap_true ).
       ls_inst-status          = 'I'.
       " Insert
-      ls_cont = sync_json( ls_inst ).
+      ls_cont = _sync_json( ls_inst ).
       INSERT (lc_tabname) FROM ls_cont.
       IF sy-subrc <> 0.
         /mbtools/cx_exception=>raise( 'Error inserting MBT Installer persistence'(002) ).
       ENDIF.
     ENDIF.
 
-  ENDMETHOD.
-
-
-  METHOD sync_json.
-
-    DATA lo_json TYPE REF TO /mbtools/cl_ajson.
-
-    TRY.
-        lo_json = /mbtools/cl_ajson=>create_empty( ).
-        lo_json->set( iv_path = '/'
-                      iv_val  = is_inst ).
-
-        rs_content-name = is_inst-name.
-        rs_content-pack = is_inst-pack.
-        rs_content-json = lo_json->stringify( 2 ).
-      CATCH /mbtools/cx_ajson_error.
-        /mbtools/cx_exception=>raise( 'Error converting JSON persistency' ).
-    ENDTRY.
   ENDMETHOD.
 
 
@@ -1842,7 +1738,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     TRY.
         " Is tool still registered?
         IF is_bundle( ) IS INITIAL.
-          lo_reg_tool = get_reg_tool( mv_name ).
+          lo_reg_tool = _get_reg_tool( mv_name ).
         ELSE.
           lo_reg_tool = go_reg_root->get_subentry( mv_name ).
         ENDIF.
@@ -1852,7 +1748,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         ENDIF.
 
         " Get bundle
-        lo_reg_bundle = get_reg_bundle( mv_bundle_id ).
+        lo_reg_bundle = _get_reg_bundle( mv_bundle_id ).
         IF lo_reg_bundle IS NOT BOUND.
           RETURN. ">>>
         ENDIF.
@@ -1930,6 +1826,112 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     " Register tool
     io_tool->register( ).
+
+  ENDMETHOD.
+
+
+  METHOD _clean_title.
+
+    " Input could be title or name of tool
+    rv_result = iv_title.
+    IF iv_title CA '_'.
+      REPLACE ALL OCCURRENCES OF '_' IN rv_result WITH ` `.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD _get_implementations.
+
+    " Get all classes that implement the MBT Interface
+    IF gt_classes IS INITIAL.
+      SELECT clsname FROM seometarel INTO TABLE gt_classes
+        WHERE version = '1' AND refclsname = /mbtools/if_definitions=>c_interface. "#EC CI_GENBUFF
+      IF sy-subrc = 0.
+        SELECT clsname FROM seometarel APPENDING TABLE gt_classes
+          FOR ALL ENTRIES IN gt_classes
+          WHERE version = '1' AND refclsname = gt_classes-table_line. "#EC CI_GENBUFF
+        ASSERT sy-subrc >= 0.
+      ENDIF.
+    ENDIF.
+
+    rt_classes = gt_classes.
+
+    IF rt_classes IS INITIAL AND iv_quiet IS INITIAL.
+      " There are no tools installed
+      MESSAGE s002(/mbtools/bc).
+      RETURN.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD _get_reg_bundle.
+
+    DATA:
+      lv_bundle_id TYPE i,
+      ls_bundle    TYPE /mbtools/cl_registry=>ty_keyobj,
+      lt_bundles   TYPE /mbtools/cl_registry=>ty_keyobjs.
+
+    TRY.
+        lt_bundles = go_reg_root->get_subentries( ).
+
+        LOOP AT lt_bundles INTO ls_bundle.
+          " Is bundle installed?
+          lv_bundle_id = ls_bundle-value->get_subentry( c_reg-license )->get_value( c_reg-key_lic_bundle ).
+          IF lv_bundle_id = iv_bundle_id.
+            ro_result = ls_bundle-value.
+            EXIT.
+          ENDIF.
+        ENDLOOP.
+
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD _get_reg_tool.
+
+    DATA:
+      ls_bundle  TYPE /mbtools/cl_registry=>ty_keyobj,
+      lt_bundles TYPE /mbtools/cl_registry=>ty_keyobjs.
+
+
+    TRY.
+        lt_bundles = go_reg_root->get_subentries( ).
+
+        LOOP AT lt_bundles INTO ls_bundle.
+          " Is tool installed?
+          ro_result = ls_bundle-value->get_subentry( iv_name ).
+          IF ro_result IS BOUND.
+            EXIT.
+          ENDIF.
+        ENDLOOP.
+
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD _sync_json.
+
+    DATA lo_json TYPE REF TO /mbtools/cl_ajson.
+
+    TRY.
+        lo_json = /mbtools/cl_ajson=>create_empty( ).
+        lo_json->set( iv_path = '/'
+                      iv_val  = is_inst ).
+
+        rs_content-name = is_inst-name.
+        rs_content-pack = is_inst-pack.
+        rs_content-json = lo_json->stringify( 2 ).
+      CATCH /mbtools/cx_ajson_error.
+        /mbtools/cx_exception=>raise( 'Error converting JSON persistency' ).
+    ENDTRY.
 
   ENDMETHOD.
 ENDCLASS.

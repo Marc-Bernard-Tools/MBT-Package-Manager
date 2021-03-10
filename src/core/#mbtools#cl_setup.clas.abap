@@ -106,7 +106,7 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
       ls_balsubt TYPE balsubt,
       lt_balsubt TYPE STANDARD TABLE OF balsubt WITH DEFAULT KEY.
 
-    SELECT SINGLE * FROM balobj INTO ls_balobj WHERE object = /mbtools/if_definitions=>c_namespace.
+    SELECT SINGLE object FROM balobj INTO ls_balobj WHERE object = /mbtools/if_definitions=>c_namespace.
     IF sy-subrc = 0.
       IF gv_force = abap_true OR gv_drop = abap_true.
         DELETE FROM balobj  WHERE object = /mbtools/if_definitions=>c_namespace.
