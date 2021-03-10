@@ -268,7 +268,7 @@ CLASS /mbtools/cl_exception_viewer IMPLEMENTATION.
 
   METHOD show_callstack.
 
-    DATA: lx_error   TYPE REF TO cx_salv_error,
+    DATA: lx_error   TYPE REF TO cx_root, "cx_salv_error,
           lo_event   TYPE REF TO cl_salv_events_table,
           lo_columns TYPE REF TO cl_salv_columns_table,
           lo_alv     TYPE REF TO cl_salv_table.
@@ -317,7 +317,7 @@ CLASS /mbtools/cl_exception_viewer IMPLEMENTATION.
 
         lo_alv->display( ).
 
-      CATCH cx_salv_error INTO lx_error.
+      CATCH cx_root INTO lx_error.
         MESSAGE lx_error TYPE 'S' DISPLAY LIKE 'E'.
     ENDTRY.
 
