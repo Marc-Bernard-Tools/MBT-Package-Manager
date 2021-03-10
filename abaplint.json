@@ -87,7 +87,9 @@
 			"severity": "Error"
 		},
 		"call_transaction_authority_check": {
-			"exclude": [],
+			"exclude": [
+				"#mbtools#cl_sap.clas.abap"
+			],
 			"severity": "Error"
 		},
 		"chain_mainly_declarations": {
@@ -655,7 +657,7 @@
 		},
 		"select_performance": {
 			"endSelect": true,
-			"exclude": [],
+			"exclude": [".*"],
 			"selectStar": true,
 			"severity": "Error"
 		},
