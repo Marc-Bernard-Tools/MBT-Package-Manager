@@ -22,7 +22,7 @@
 	"rules": {
 		"7bit_ascii": {
 			"exclude": [
-				"#mbtools#cl_screen.clas.abap"
+				"#mbtools#if_special_chars.intf.abap"
 			],
 			"severity": "Error"
 		},
