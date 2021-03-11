@@ -164,7 +164,7 @@ CLASS /mbtools/cl_screen IMPLEMENTATION.
 
 
   METHOD class_constructor.
-    gv_copyright      = |Copyright © { sy-datum(4) } Marc Bernard Tools. All right reserved.|.
+    gv_copyright      = |Copyright { /mbtools/if_special_chars=>c_copyright } { sy-datum(4) } Marc Bernard Tools|.
     gv_about          = 'About'(001).
     gv_documentation  = 'Documentation'(002).
     gv_terms          = 'License Terms'(003).
