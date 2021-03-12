@@ -9,6 +9,8 @@ INTERFACE /mbtools/if_tool
 
   TYPES ty_manifest TYPE /mbtools/manifest.
 
+  TYPES ty_manifests TYPE STANDARD TABLE OF ty_manifest WITH DEFAULT KEY.
+
   DATA ms_manifest TYPE ty_manifest READ-ONLY.
 
   METHODS launch

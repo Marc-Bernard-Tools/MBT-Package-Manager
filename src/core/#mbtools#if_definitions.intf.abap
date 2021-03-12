@@ -104,7 +104,7 @@ INTERFACE /mbtools/if_definitions
   CONSTANTS c_namespace TYPE devclass VALUE '/MBTOOLS/' ##NO_TEXT.
   CONSTANTS c_interface TYPE seoclsname VALUE '/MBTOOLS/IF_TOOL' ##NO_TEXT.
   CONSTANTS c_rfcdest TYPE rfcdest VALUE 'MBTOOLS' ##NO_TEXT.
-  CONSTANTS c_github TYPE string VALUE 'github.com/mbtools' ##NO_TEXT.
+  CONSTANTS c_github TYPE string VALUE 'github.com/Marc-Bernard-Tools' ##NO_TEXT.
   CONSTANTS c_dot_abapgit TYPE string VALUE '.abapgit.xml' ##NO_TEXT.
   CONSTANTS c_domain TYPE string VALUE 'marcbernardtools.com' ##NO_TEXT.
   CONSTANTS c_www_home TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.

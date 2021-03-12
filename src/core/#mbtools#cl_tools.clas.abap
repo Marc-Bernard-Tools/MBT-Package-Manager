@@ -74,7 +74,7 @@ CLASS /mbtools/cl_tools DEFINITION
     " Class Manifests
     CLASS-METHODS get_manifests
       RETURNING
-        VALUE(rt_manifests) TYPE /mbtools/manifests.
+        VALUE(rt_manifests) TYPE /mbtools/if_tool=>ty_manifests.
     CLASS-METHODS get_tools
       IMPORTING
         VALUE(iv_pattern)     TYPE csequence OPTIONAL
@@ -938,7 +938,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lv_implementation  TYPE seoclsname,
       lt_implementations TYPE ty_classes,
       li_tool            TYPE REF TO /mbtools/if_tool,
-      ls_manifest_descr  TYPE /mbtools/manifest.
+      ls_manifest        TYPE /mbtools/if_tool=>ty_manifest.
 
     lt_implementations = _get_implementations( ).
 
@@ -951,9 +951,9 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
             CONTINUE. "ignore
           ENDIF.
 
-          CLEAR ls_manifest_descr.
-          MOVE-CORRESPONDING li_tool->ms_manifest TO ls_manifest_descr.
-          INSERT ls_manifest_descr INTO TABLE rt_manifests.
+          CLEAR ls_manifest.
+          MOVE-CORRESPONDING li_tool->ms_manifest TO ls_manifest.
+          INSERT ls_manifest INTO TABLE rt_manifests.
 
         CATCH cx_root.
           CONTINUE. "ignore
@@ -1218,7 +1218,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   METHOD get_url_repo.
 
     " Link to repository on GitHub.com
-    rv_url = 'https://' && /mbtools/if_definitions=>c_github && '/' && mv_name && '.git'.
+    rv_url = 'https://' && /mbtools/if_definitions=>c_github && '/' && mv_name.
+    REPLACE ALL OCCURRENCES OF `_` IN rv_url WITH '-'.
 
   ENDMETHOD.
 
