@@ -1,6 +1,6 @@
-![abap package version](https://img.shields.io/endpoint?url=https://shield.abap.space/version-shield-json/github/mbtools/Marc_Bernard_Tools_Versions/.apack-manifest.xml/dependencies/github.com/mbtools/MBT_Base&label=version&color=black)
+![abap package version](https://img.shields.io/endpoint?url=https://shield.abap.space/version-shield-json/github/Marc-Bernard-Tools/Marc-Bernard-Tools-Versions/.apack-manifest.xml/dependencies/github.com/Marc-Bernard-Tools/MBT-Base&label=version&color=darkgray)
 
-# Marc Bernard Tools
+# MBT Base
 
 This repository contains the foundation for all Marc Bernard Tools. 
 
