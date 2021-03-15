@@ -1,6 +1,6 @@
 CLASS /mbtools/cl_gui DEFINITION
   PUBLIC
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * MBT GUI
@@ -12,7 +12,7 @@ CLASS /mbtools/cl_gui DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    INTERFACES /mbtools/if_gui_services .
+    INTERFACES /mbtools/if_gui_services.
 
     CONSTANTS:
       BEGIN OF c_event_state,
@@ -24,24 +24,18 @@ CLASS /mbtools/cl_gui DEFINITION
         new_page_w_bookmark TYPE i VALUE 5,
         go_back_to_bookmark TYPE i VALUE 6,
         new_page_replacing  TYPE i VALUE 7,
-      END OF c_event_state .
+      END OF c_event_state.
 
     METHODS go_home
       RAISING
-        /mbtools/cx_exception .
-    METHODS go_page
-      IMPORTING
-        !ii_page        TYPE REF TO /mbtools/if_gui_renderable
-        !iv_clear_stack TYPE abap_bool DEFAULT abap_true
-      RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS back
       IMPORTING
         !iv_to_bookmark TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(rv_exit)  TYPE abap_bool
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS on_event
         FOR EVENT sapevent OF /mbtools/if_html_viewer
       IMPORTING
@@ -49,7 +43,7 @@ CLASS /mbtools/cl_gui DEFINITION
         !frame
         !getdata
         !postdata
-        !query_table .
+        !query_table.
     METHODS constructor
       IMPORTING
         !io_component         TYPE REF TO object OPTIONAL
@@ -58,8 +52,8 @@ CLASS /mbtools/cl_gui DEFINITION
         !ii_html_processor    TYPE REF TO /mbtools/if_gui_html_processor OPTIONAL
         !iv_rollback_on_error TYPE abap_bool DEFAULT abap_true
       RAISING
-        /mbtools/cx_exception .
-    METHODS free .
+        /mbtools/cx_exception.
+    METHODS free.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -355,18 +349,6 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
       ENDIF.
       render( ).
     ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD go_page.
-
-    IF iv_clear_stack = abap_true.
-      CLEAR mt_stack.
-    ENDIF.
-
-    mi_cur_page = ii_page.
-    render( ).
 
   ENDMETHOD.
 

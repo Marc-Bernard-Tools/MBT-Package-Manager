@@ -3,5 +3,6 @@ INTERFACE /mbtools/if_special_chars
 
   CONSTANTS c_copyright TYPE c VALUE '©'.
   CONSTANTS c_degree TYPE c VALUE '°'.
+  CONSTANTS c_ellipsis TYPE c VALUE '…'.
 
 ENDINTERFACE.
