@@ -1099,6 +1099,7 @@ CLASS zcl_abapgit_oo_class DEFINITION DEFERRED.
 CLASS zcl_abapgit_object_clas DEFINITION DEFERRED.
 CLASS zcl_abapgit_object_devc DEFINITION DEFERRED.
 CLASS zcl_abapgit_object_doma DEFINITION DEFERRED.
+CLASS zcl_abapgit_object_dsys DEFINITION DEFERRED.
 CLASS zcl_abapgit_object_dtel DEFINITION DEFERRED.
 CLASS zcl_abapgit_object_enhc DEFINITION DEFERRED.
 CLASS zcl_abapgit_object_enho_badi DEFINITION DEFERRED.
@@ -1641,7 +1642,6 @@ INTERFACE zif_abapgit_definitions
       change_order_by               TYPE string VALUE 'change_order_by',
       goto_message                  TYPE string VALUE 'goto_message',
       direction                     TYPE string VALUE 'direction',
-      changed_by                    TYPE string VALUE 'changed_by',
       documentation                 TYPE string VALUE 'documentation',
       changelog                     TYPE string VALUE 'changelog',
     END OF c_action.
@@ -2096,154 +2096,159 @@ INTERFACE zif_abapgit_lang_definitions
   TYPES: ty_langus TYPE STANDARD TABLE OF langu.
 
 ENDINTERFACE.
-INTERFACE zif_abapgit_oo_object_fnc
-   .
+INTERFACE zif_abapgit_oo_object_fnc .
 
+  CONSTANTS:
+    BEGIN OF c_parts,
+      locals_def  TYPE string VALUE 'locals_def',
+      locals_imp  TYPE string VALUE 'locals_imp',
+      macros      TYPE string VALUE 'macros',
+      testclasses TYPE string VALUE 'testclasses',
+    END OF c_parts.
 
-  TYPES:
-    BEGIN OF ty_includes,
-      programm TYPE programm,
-    END OF ty_includes .
-  TYPES:
-    ty_includes_tt TYPE STANDARD TABLE OF ty_includes WITH DEFAULT KEY .
+  TYPES: BEGIN OF ty_includes,
+           programm TYPE programm,
+         END OF ty_includes,
+         ty_includes_tt TYPE STANDARD TABLE OF ty_includes WITH DEFAULT KEY.
+
   TYPES:
     ty_seocompotx_tt TYPE STANDARD TABLE OF seocompotx WITH DEFAULT KEY .
 
-  METHODS create
-    IMPORTING
-      !iv_package    TYPE devclass
-      !iv_overwrite  TYPE abap_bool DEFAULT abap_true
-      !it_attributes TYPE zif_abapgit_definitions=>ty_obj_attribute_tt OPTIONAL
-    CHANGING
-      !cg_properties TYPE any
-    RAISING
-      zcx_abapgit_exception .
-  METHODS generate_locals
-    IMPORTING
-      !is_key                   TYPE seoclskey
-      !iv_force                 TYPE abap_bool DEFAULT abap_true
-      !it_local_definitions     TYPE seop_source_string OPTIONAL
-      !it_local_implementations TYPE seop_source_string OPTIONAL
-      !it_local_macros          TYPE seop_source_string OPTIONAL
-      !it_local_test_classes    TYPE seop_source_string OPTIONAL
-    RAISING
-      zcx_abapgit_exception .
-  METHODS deserialize_source
-    IMPORTING
-      !is_key    TYPE seoclskey
-      !it_source TYPE zif_abapgit_definitions=>ty_string_tt
-    RAISING
-      zcx_abapgit_exception
-      cx_sy_dyn_call_error .
-  METHODS insert_text_pool
-    IMPORTING
-      !iv_class_name TYPE seoclsname
-      !it_text_pool  TYPE textpool_table
-      !iv_language   TYPE spras
-      !iv_state      TYPE c DEFAULT 'I'
-    RAISING
-      zcx_abapgit_exception .
-  METHODS update_descriptions
-    IMPORTING
-      !is_key          TYPE seoclskey
-      !it_descriptions TYPE ty_seocompotx_tt .
-  METHODS add_to_activation_list
-    IMPORTING
-      !is_item TYPE zif_abapgit_definitions=>ty_item
-    RAISING
-      zcx_abapgit_exception .
-  METHODS create_sotr
-    IMPORTING
-      !iv_object_name TYPE sobj_name
-      !iv_package     TYPE devclass
-      !ii_xml         TYPE REF TO zif_abapgit_xml_input
-    RAISING
-      zcx_abapgit_exception .
-  METHODS create_documentation
-    IMPORTING
-      !it_lines         TYPE tlinetab
-      !iv_object_name   TYPE dokhl-object
-      !iv_language      TYPE spras
-      !iv_no_masterlang TYPE abap_bool OPTIONAL
-    RAISING
-      zcx_abapgit_exception .
-  METHODS get_includes
-    IMPORTING
-      !iv_object_name    TYPE sobj_name
-    RETURNING
-      VALUE(rt_includes) TYPE ty_includes_tt
-    RAISING
-      zcx_abapgit_exception .
-  METHODS exists
-    IMPORTING
-      !is_object_name  TYPE seoclskey
-    RETURNING
-      VALUE(rv_exists) TYPE abap_bool .
-  METHODS serialize_abap
-    IMPORTING
-      !is_class_key    TYPE seoclskey
-      !iv_type         TYPE seop_include_ext_app OPTIONAL
-    RETURNING
-      VALUE(rt_source) TYPE zif_abapgit_definitions=>ty_string_tt
-    RAISING
-      zcx_abapgit_exception
-      cx_sy_dyn_call_error .
-  METHODS get_skip_test_classes
-    RETURNING
-      VALUE(rv_skip) TYPE abap_bool .
-  METHODS get_class_properties
-    IMPORTING
-      !is_class_key              TYPE seoclskey
-    RETURNING
-      VALUE(rs_class_properties) TYPE vseoclass
-    RAISING
-      zcx_abapgit_exception .
-  METHODS get_interface_properties
-    IMPORTING
-      !is_interface_key              TYPE seoclskey
-    RETURNING
-      VALUE(rs_interface_properties) TYPE vseointerf
-    RAISING
-      zcx_abapgit_exception .
-  METHODS read_text_pool
-    IMPORTING
-      !iv_class_name      TYPE seoclsname
-      !iv_language        TYPE spras
-    RETURNING
-      VALUE(rt_text_pool) TYPE textpool_table .
-  METHODS read_documentation
-    IMPORTING
-      !iv_class_name  TYPE seoclsname
-      !iv_language    TYPE spras
-    RETURNING
-      VALUE(rt_lines) TYPE tlinetab .
-  METHODS read_sotr
-    IMPORTING
-      !iv_object_name TYPE sobj_name
-      !ii_xml         TYPE REF TO zif_abapgit_xml_output
-    RAISING
-      zcx_abapgit_exception .
-  METHODS read_descriptions
-    IMPORTING
-      !iv_obejct_name        TYPE seoclsname
-      !iv_language           TYPE spras OPTIONAL
-    RETURNING
-      VALUE(rt_descriptions) TYPE ty_seocompotx_tt .
-  METHODS delete
-    IMPORTING
-      !is_deletion_key TYPE seoclskey
-    RAISING
-      zcx_abapgit_exception .
-  METHODS read_superclass
-    IMPORTING
-      !iv_classname        TYPE seoclsname
-    RETURNING
-      VALUE(rv_superclass) TYPE seoclsname .
-  METHODS read_attributes
-    IMPORTING
-      !iv_object_name      TYPE seoclsname
-    RETURNING
-      VALUE(rt_attributes) TYPE zif_abapgit_definitions=>ty_obj_attribute_tt .
+  METHODS:
+    create
+      IMPORTING
+        iv_package    TYPE devclass
+        iv_overwrite  TYPE abap_bool DEFAULT abap_true
+        it_attributes TYPE zif_abapgit_definitions=>ty_obj_attribute_tt OPTIONAL
+      CHANGING
+        cg_properties TYPE any
+      RAISING
+        zcx_abapgit_exception,
+    generate_locals
+      IMPORTING
+        is_key                   TYPE seoclskey
+        it_local_definitions     TYPE seop_source_string OPTIONAL
+        it_local_implementations TYPE seop_source_string OPTIONAL
+        it_local_macros          TYPE seop_source_string OPTIONAL
+        it_local_test_classes    TYPE seop_source_string OPTIONAL
+      RAISING
+        zcx_abapgit_exception,
+    deserialize_source
+      IMPORTING
+        is_key    TYPE seoclskey
+        it_source TYPE zif_abapgit_definitions=>ty_string_tt
+      RAISING
+        zcx_abapgit_exception
+        cx_sy_dyn_call_error,
+    insert_text_pool
+      IMPORTING
+        iv_class_name TYPE seoclsname
+        it_text_pool  TYPE textpool_table
+        iv_language   TYPE spras
+        iv_state      TYPE c DEFAULT 'I'
+      RAISING
+        zcx_abapgit_exception,
+    update_descriptions
+      IMPORTING
+        is_key          TYPE seoclskey
+        it_descriptions TYPE ty_seocompotx_tt,
+    add_to_activation_list
+      IMPORTING
+        is_item TYPE zif_abapgit_definitions=>ty_item
+      RAISING
+        zcx_abapgit_exception,
+    create_sotr
+      IMPORTING
+        iv_object_name TYPE sobj_name
+        iv_package     TYPE devclass
+        ii_xml         TYPE REF TO zif_abapgit_xml_input
+      RAISING
+        zcx_abapgit_exception,
+    create_documentation
+      IMPORTING
+        it_lines         TYPE tlinetab
+        iv_object_name   TYPE dokhl-object
+        iv_language      TYPE spras
+        iv_no_masterlang TYPE abap_bool OPTIONAL
+      RAISING
+        zcx_abapgit_exception,
+    get_includes
+      IMPORTING
+        iv_object_name     TYPE sobj_name
+      RETURNING
+        VALUE(rt_includes) TYPE ty_includes_tt
+      RAISING
+        zcx_abapgit_exception,
+    exists
+      IMPORTING
+        is_object_name   TYPE seoclskey
+      RETURNING
+        VALUE(rv_exists) TYPE abap_bool,
+    serialize_abap
+      IMPORTING
+        is_class_key     TYPE seoclskey
+        iv_type          TYPE seop_include_ext_app OPTIONAL
+      RETURNING
+        VALUE(rt_source) TYPE zif_abapgit_definitions=>ty_string_tt
+      RAISING
+        zcx_abapgit_exception
+        cx_sy_dyn_call_error,
+    get_skip_test_classes
+      RETURNING
+        VALUE(rv_skip) TYPE abap_bool,
+    get_class_properties
+      IMPORTING
+        is_class_key               TYPE seoclskey
+      RETURNING
+        VALUE(rs_class_properties) TYPE vseoclass
+      RAISING
+        zcx_abapgit_exception,
+    get_interface_properties
+      IMPORTING
+        is_interface_key               TYPE seoclskey
+      RETURNING
+        VALUE(rs_interface_properties) TYPE vseointerf
+      RAISING
+        zcx_abapgit_exception,
+    read_text_pool
+      IMPORTING
+        iv_class_name       TYPE seoclsname
+        iv_language         TYPE spras
+      RETURNING
+        VALUE(rt_text_pool) TYPE textpool_table,
+    read_documentation
+      IMPORTING
+        iv_class_name   TYPE seoclsname
+        iv_language     TYPE spras
+      RETURNING
+        VALUE(rt_lines) TYPE tlinetab,
+    read_sotr
+      IMPORTING
+        iv_object_name TYPE sobj_name
+        ii_xml         TYPE REF TO zif_abapgit_xml_output
+      RAISING
+        zcx_abapgit_exception,
+    read_descriptions
+      IMPORTING
+        iv_obejct_name         TYPE seoclsname
+        iv_language            TYPE spras OPTIONAL
+      RETURNING
+        VALUE(rt_descriptions) TYPE ty_seocompotx_tt,
+    delete
+      IMPORTING
+        is_deletion_key TYPE seoclskey
+      RAISING
+        zcx_abapgit_exception,
+    read_superclass
+      IMPORTING
+        iv_classname         TYPE seoclsname
+      RETURNING
+        VALUE(rv_superclass) TYPE seoclsname,
+    read_attributes
+      IMPORTING
+        iv_object_name       TYPE seoclsname
+      RETURNING
+        VALUE(rt_attributes) TYPE zif_abapgit_definitions=>ty_obj_attribute_tt.
 ENDINTERFACE.
 INTERFACE zif_abapgit_comparator
    .
@@ -2306,9 +2311,7 @@ INTERFACE zif_abapgit_tadir
       !iv_object      TYPE tadir-object
       !iv_obj_name    TYPE tadir-obj_name
     RETURNING
-      VALUE(rs_tadir) TYPE zif_abapgit_definitions=>ty_tadir
-    RAISING
-      zcx_abapgit_exception .
+      VALUE(rs_tadir) TYPE zif_abapgit_definitions=>ty_tadir.
 ENDINTERFACE.
 INTERFACE zif_abapinst_definitions
    .
@@ -4281,17 +4284,26 @@ CLASS zcl_abapgit_oo_class DEFINITION
       IMPORTING
         !iv_classname              TYPE seoclsname
         !iv_number_of_impl_methods TYPE i .
+    CLASS-METHODS delete_report
+      IMPORTING
+        !iv_program TYPE programm .
 ENDCLASS.
-CLASS zcl_abapgit_object_clas DEFINITION  INHERITING FROM zcl_abapgit_objects_program.
+CLASS zcl_abapgit_object_clas DEFINITION
+
+  INHERITING FROM zcl_abapgit_objects_program
+  CREATE PUBLIC .
 
   PUBLIC SECTION.
-    INTERFACES zif_abapgit_object.
-    ALIASES mo_files FOR zif_abapgit_object~mo_files.
-    METHODS: constructor
-      IMPORTING
-        is_item     TYPE zif_abapgit_definitions=>ty_item
-        iv_language TYPE spras.
 
+    INTERFACES zif_abapgit_object .
+
+    ALIASES mo_files
+      FOR zif_abapgit_object~mo_files .
+
+    METHODS constructor
+      IMPORTING
+        !is_item     TYPE zif_abapgit_definitions=>ty_item
+        !iv_language TYPE spras .
   PROTECTED SECTION.
     DATA: mi_object_oriented_object_fct TYPE REF TO zif_abapgit_oo_object_fnc,
           mv_skip_testclass             TYPE abap_bool,
@@ -4469,6 +4481,43 @@ CLASS zcl_abapgit_object_doma DEFINITION  INHERITING FROM zcl_abapgit_objects_su
         !it_dd07v TYPE dd07v_tab
       RAISING
         zcx_abapgit_exception .
+ENDCLASS.
+CLASS zcl_abapgit_object_dsys DEFINITION  INHERITING FROM zcl_abapgit_objects_super FINAL.
+
+  PUBLIC SECTION.
+
+    INTERFACES zif_abapgit_object.
+
+    METHODS constructor
+      IMPORTING
+        is_item     TYPE zif_abapgit_definitions=>ty_item
+        iv_language TYPE spras.
+
+  PROTECTED SECTION.
+
+  PRIVATE SECTION.
+
+    CONSTANTS: c_typ TYPE dokhl-typ VALUE 'E',
+               c_id  TYPE dokhl-id VALUE 'HY'.
+
+    DATA: mv_doc_object  TYPE sobj_name.
+
+    TYPES: BEGIN OF ty_data,
+             doctitle TYPE dsyst-doktitle,
+             head     TYPE thead,
+             lines    TYPE tline_tab,
+           END OF ty_data.
+
+    METHODS deserialize_dsys
+      IMPORTING
+        ii_xml TYPE REF TO zif_abapgit_xml_input
+      RAISING
+        zcx_abapgit_exception.
+
+    METHODS get_main_lang
+      RETURNING
+        VALUE(rv_language) TYPE spras.
+
 ENDCLASS.
 CLASS zcl_abapgit_object_dtel DEFINITION  INHERITING FROM zcl_abapgit_objects_super FINAL.
 
@@ -10617,7 +10666,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_objects_bridge IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_OBJECTS_BRIDGE IMPLEMENTATION.
 
 
   METHOD class_constructor.
@@ -10633,7 +10682,8 @@ CLASS zcl_abapgit_objects_bridge IMPLEMENTATION.
       FROM seometarel
       INTO TABLE lt_plugin_class
       WHERE refclsname LIKE 'ZCL_ABAPGITP_OBJECT%'
-      AND version = '1'.                                  "#EC CI_SUBRC
+      AND version = '1'
+      ORDER BY clsname.                                   "#EC CI_SUBRC
 
     CLEAR gt_objtype_map.
     LOOP AT lt_plugin_class INTO lv_plugin_class
@@ -12917,6 +12967,11 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD delete_report.
+    DELETE REPORT iv_program ##SUBRC_OK.
+  ENDMETHOD.
+
+
   METHOD determine_method_include.
 
     DATA: ls_mtdkey TYPE seocpdkey.
@@ -13311,7 +13366,7 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
       it_source = it_source
       iv_name   = is_key-clsname ).
 
-    " public section
+* public
     lt_public = lo_scanner->get_public_section_source( ).
     IF lt_public IS NOT INITIAL.
       lv_program = cl_oo_classname_service=>get_pubsec_name( is_key-clsname ).
@@ -13324,7 +13379,7 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    " protected section
+* protected
     lt_source = lo_scanner->get_protected_section_source( ).
     IF lt_source IS NOT INITIAL.
       lv_program = cl_oo_classname_service=>get_prosec_name( is_key-clsname ).
@@ -13337,7 +13392,7 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    " private section
+* private
     lt_source = lo_scanner->get_private_section_source( ).
     IF lt_source IS NOT INITIAL.
       lv_program = cl_oo_classname_service=>get_prisec_name( is_key-clsname ).
@@ -13350,7 +13405,7 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    " methods
+* methods
     lt_methods = lo_scanner->get_method_implementations( ).
 
     LOOP AT lt_methods INTO lv_method.
@@ -13368,7 +13423,7 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
         it_source  = lt_source ).
     ENDLOOP.
 
-    " full class include
+* full class include
     update_full_class_include( iv_classname = is_key-clsname
                                it_source    = it_source
                                it_methods   = lt_methods ).
@@ -13383,7 +13438,6 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
   METHOD zif_abapgit_oo_object_fnc~generate_locals.
 
     DATA: lv_program TYPE programm.
-
 
     IF lines( it_local_definitions ) > 0.
       lv_program = cl_oo_classname_service=>get_ccdef_name( is_key-clsname ).
@@ -13403,10 +13457,13 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
                      it_source  = it_local_macros ).
     ENDIF.
 
+    lv_program = cl_oo_classname_service=>get_ccau_name( is_key-clsname ).
     IF lines( it_local_test_classes ) > 0.
-      lv_program = cl_oo_classname_service=>get_ccau_name( is_key-clsname ).
       update_report( iv_program = lv_program
                      it_source  = it_local_test_classes ).
+    ELSE.
+      " Drop the include to remove left-over test classes
+      delete_report( lv_program ).
     ENDIF.
 
   ENDMETHOD.
@@ -13528,7 +13585,6 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
 
 
   METHOD deserialize_abap.
-* same as in zcl_abapgit_object_clas, but without "mo_object_oriented_object_fct->add_to_activation_list"
 
     DATA: ls_vseoclass             TYPE vseoclass,
           lt_source                TYPE seop_source_string,
@@ -13543,16 +13599,16 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
 
     lt_source = mo_files->read_abap( ).
 
-    lt_local_definitions = mo_files->read_abap( iv_extra = 'locals_def'
+    lt_local_definitions = mo_files->read_abap( iv_extra = zif_abapgit_oo_object_fnc=>c_parts-locals_def
                                                 iv_error = abap_false ).
 
-    lt_local_implementations = mo_files->read_abap( iv_extra = 'locals_imp'
+    lt_local_implementations = mo_files->read_abap( iv_extra = zif_abapgit_oo_object_fnc=>c_parts-locals_imp
                                                     iv_error = abap_false ).
 
-    lt_local_macros = mo_files->read_abap( iv_extra = 'macros'
+    lt_local_macros = mo_files->read_abap( iv_extra = zif_abapgit_oo_object_fnc=>c_parts-macros
                                            iv_error = abap_false ).
 
-    lt_test_classes = mo_files->read_abap( iv_extra = 'testclasses'
+    lt_test_classes = mo_files->read_abap( iv_extra = zif_abapgit_oo_object_fnc=>c_parts-testclasses
                                            iv_error = abap_false ).
 
     ls_class_key-clsname = ms_item-obj_name.
@@ -13563,6 +13619,11 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
     ii_xml->read( EXPORTING iv_name = 'ATTRIBUTES'
                   CHANGING  cg_data = lt_attributes ).
 
+    " Remove code for test classes if they have been deleted
+    IF ls_vseoclass-with_unit_tests = abap_false.
+      CLEAR lt_test_classes.
+    ENDIF.
+
     mi_object_oriented_object_fct->create(
       EXPORTING
         iv_package    = iv_package
@@ -13572,14 +13633,12 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
 
     mi_object_oriented_object_fct->generate_locals(
       is_key                   = ls_class_key
-      iv_force                 = abap_true
       it_local_definitions     = lt_local_definitions
       it_local_implementations = lt_local_implementations
       it_local_macros          = lt_local_macros
       it_local_test_classes    = lt_test_classes ).
 
     repo_apack_replacement( CHANGING ct_source = lt_source ).
-
     mi_object_oriented_object_fct->deserialize_source(
       is_key    = ls_class_key
       it_source = lt_source ).
@@ -14005,6 +14064,8 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
+    DATA: ls_clskey TYPE seoclskey.
+
     deserialize_abap( ii_xml     = io_xml
                       iv_package = iv_package ).
 
@@ -14095,7 +14156,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
       is_class_key = ls_class_key
       iv_type      = seop_ext_class_locals_def ).
     IF lines( lt_source ) > 0.
-      mo_files->add_abap( iv_extra = 'locals_def'
+      mo_files->add_abap( iv_extra = zif_abapgit_oo_object_fnc=>c_parts-locals_def
                           it_abap  = lt_source ).
     ENDIF.
 
@@ -14103,7 +14164,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
       is_class_key = ls_class_key
       iv_type      = seop_ext_class_locals_imp ).
     IF lines( lt_source ) > 0.
-      mo_files->add_abap( iv_extra = 'locals_imp'
+      mo_files->add_abap( iv_extra = zif_abapgit_oo_object_fnc=>c_parts-locals_imp
                           it_abap  = lt_source ).
     ENDIF.
 
@@ -14113,7 +14174,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
 
     mv_skip_testclass = mi_object_oriented_object_fct->get_skip_test_classes( ).
     IF lines( lt_source ) > 0 AND mv_skip_testclass = abap_false.
-      mo_files->add_abap( iv_extra = 'testclasses'
+      mo_files->add_abap( iv_extra = zif_abapgit_oo_object_fnc=>c_parts-testclasses
                           it_abap  = lt_source ).
     ENDIF.
 
@@ -14121,7 +14182,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
       is_class_key = ls_class_key
       iv_type      = seop_ext_class_macros ).
     IF lines( lt_source ) > 0.
-      mo_files->add_abap( iv_extra = 'macros'
+      mo_files->add_abap( iv_extra = zif_abapgit_oo_object_fnc=>c_parts-macros
                           it_abap  = lt_source ).
     ENDIF.
 
@@ -15254,6 +15315,200 @@ CLASS zcl_abapgit_object_doma IMPLEMENTATION.
 
     serialize_longtexts( ii_xml         = io_xml
                          iv_longtext_id = c_longtext_id_doma ).
+
+  ENDMETHOD.
+ENDCLASS.
+
+
+
+CLASS zcl_abapgit_object_dsys IMPLEMENTATION.
+
+
+  METHOD constructor.
+
+    DATA: lv_prefix    TYPE namespace,
+          lv_bare_name TYPE progname.
+
+    super->constructor( is_item = is_item
+                        iv_language = iv_language ).
+
+    IF ms_item-obj_name(1) = '/'.
+      CALL FUNCTION 'RS_NAME_SPLIT_NAMESPACE'
+        EXPORTING
+          name_with_namespace    = ms_item-obj_name
+        IMPORTING
+          namespace              = lv_prefix
+          name_without_namespace = lv_bare_name.
+    ELSE.
+      lv_bare_name = ms_item-obj_name.
+    ENDIF.
+
+    mv_doc_object = |{ lv_bare_name+0(4) }{ lv_prefix }{ lv_bare_name+4(*) }|.
+
+  ENDMETHOD.
+
+
+  METHOD deserialize_dsys.
+
+    DATA: ls_data      TYPE ty_data,
+          ls_docu_info TYPE dokil,
+          lv_version   TYPE dokvers,
+          lv_doku_obj  TYPE doku_obj.
+
+    lv_doku_obj = mv_doc_object.
+    ii_xml->read( EXPORTING iv_name = 'DSYS'
+                  CHANGING cg_data = ls_data ).
+
+    CALL FUNCTION 'DOCU_INIT'
+      EXPORTING
+        id     = c_id
+        langu  = mv_language
+        object = lv_doku_obj
+        typ    = c_typ
+      IMPORTING
+        xdokil = ls_docu_info.
+
+    lv_version = ls_docu_info-version.
+
+    CALL FUNCTION 'DOCU_UPDATE'
+      EXPORTING
+        head    = ls_data-head
+        state   = 'A'
+        typ     = c_typ
+        version = lv_version
+      TABLES
+        line    = ls_data-lines.
+
+  ENDMETHOD.
+
+
+  METHOD get_main_lang.
+
+    SELECT SINGLE langu FROM dokil INTO rv_language
+      WHERE id = c_id
+      AND object = mv_doc_object
+      AND masterlang = abap_true.
+
+    IF sy-subrc <> 0.
+      rv_language = mv_language.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~changed_by.
+
+    rv_user = zcl_abapinst_factory=>get_longtexts( )->changed_by(
+      iv_object_name = mv_doc_object
+      iv_longtext_id = c_id ).
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~delete.
+
+    zcl_abapinst_factory=>get_longtexts( )->delete(
+      iv_object_name = mv_doc_object
+      iv_longtext_id = c_id ).
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~deserialize.
+
+    DATA: ls_metadata TYPE zif_abapgit_definitions=>ty_metadata.
+
+    ls_metadata = io_xml->get_metadata( ).
+
+    CASE ls_metadata-version.
+
+      WHEN 'v1.0.0'.
+        deserialize_dsys( io_xml ).
+
+      WHEN 'v2.0.0'.
+        zcl_abapinst_factory=>get_longtexts( )->deserialize(
+          ii_xml           = io_xml
+          iv_main_language = mv_language ).
+
+      WHEN OTHERS.
+        zcx_abapgit_exception=>raise( 'unsupported DSYS version' ).
+
+    ENDCASE.
+
+    tadir_insert( iv_package ).
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~exists.
+
+    DATA: lv_count TYPE i.
+
+    SELECT SINGLE COUNT( * ) FROM dokil INTO lv_count
+           WHERE id   = c_id
+           AND object = mv_doc_object.                  "#EC CI_GENBUFF
+
+    rv_bool = boolc( lv_count > 0 ).
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_comparator.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_deserialize_steps.
+    APPEND zif_abapgit_object=>gc_step_id-abap TO rt_steps.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~get_metadata.
+    rs_metadata = get_metadata( ).
+    rs_metadata-delete_tadir = abap_true.
+    rs_metadata-version = 'v2.0.0'.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~is_active.
+    rv_active = is_active( ).
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~is_locked.
+    rv_is_locked = abap_false.
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~jump.
+
+    DATA lv_lang TYPE sy-langu.
+
+    lv_lang = get_main_lang( ).
+
+    CALL FUNCTION 'DSYS_EDIT'
+      EXPORTING
+        dokclass         = mv_doc_object+0(4)
+        dokname          = mv_doc_object+4(*)
+        doklangu         = lv_lang
+      EXCEPTIONS
+        class_unknown    = 1
+        object_not_found = 2
+        OTHERS           = 3.
+
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_object~serialize.
+
+    zcl_abapinst_factory=>get_longtexts( )->serialize(
+      iv_object_name = mv_doc_object
+      iv_longtext_id = c_id
+      ii_xml         = io_xml ).
 
   ENDMETHOD.
 ENDCLASS.
@@ -21630,7 +21885,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_abapgit_object_tobj IMPLEMENTATION.
+CLASS ZCL_ABAPGIT_OBJECT_TOBJ IMPLEMENTATION.
 
 
   METHOD delete_extra.
@@ -21649,7 +21904,8 @@ CLASS zcl_abapgit_object_tobj IMPLEMENTATION.
     SELECT SINGLE * FROM tvdir INTO rs_tobj-tvdir WHERE tabname = iv_tabname.
     CLEAR: rs_tobj-tvdir-gendate, rs_tobj-tvdir-gentime, rs_tobj-tvdir-devclass.
 
-    SELECT * FROM tvimf INTO TABLE rs_tobj-tvimf WHERE tabname = iv_tabname.
+    SELECT * FROM tvimf INTO TABLE rs_tobj-tvimf WHERE tabname = iv_tabname
+      ORDER BY PRIMARY KEY.
 
   ENDMETHOD.
 
@@ -25057,8 +25313,6 @@ CLASS zcl_abapgit_tadir IMPLEMENTATION.
 
 
   METHOD zif_abapgit_tadir~read_single.
-
-* note that SICF has special handling, the obj_name is different in the system than serialized
 
     SELECT SINGLE * FROM tadir INTO CORRESPONDING FIELDS OF rs_tadir
       WHERE pgmid = iv_pgmid
@@ -32407,7 +32661,7 @@ SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4,
   COMMENT (22) scr_t103 FOR FIELD p_file_f.
 PARAMETERS:
   p_file_f TYPE char255 LOWER CASE
-    DEFAULT 'C:\Tmp\Marc_Bernard_Tools-master.zip' MODIF ID c12.
+    DEFAULT 'C:\Tmp\Marc_Bernard_Tools-main.zip' MODIF ID c12.
 SELECTION-SCREEN END OF LINE.
 
 SELECTION-SCREEN SKIP 2.
@@ -32417,7 +32671,7 @@ SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4,
   COMMENT (22) scr_t104 FOR FIELD p_file_s.
 PARAMETERS:
   p_file_s TYPE char255 LOWER CASE
-    DEFAULT 'Marc_Bernard_Tools-master.zip' MODIF ID c13.
+    DEFAULT 'Marc_Bernard_Tools-main.zip' MODIF ID c13.
 SELECTION-SCREEN END OF LINE.
 
 SELECTION-SCREEN SKIP 2.
@@ -32427,7 +32681,7 @@ SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4,
   COMMENT (22) scr_t102 FOR FIELD p_file_i.
 PARAMETERS:
   p_file_i TYPE char255 LOWER CASE
-    DEFAULT 'https://github.com/mbtools/Marc_Bernard_Tools/archive/master.zip' MODIF ID c11.
+    DEFAULT 'https://github.com/mbtools/Marc_Bernard_Tools/archive/main.zip' MODIF ID c11.
 SELECTION-SCREEN END OF LINE.
 
 SELECTION-SCREEN END OF BLOCK b110.
