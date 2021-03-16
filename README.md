@@ -2,7 +2,7 @@
 
 # MBT Base
 
-This repository contains the foundation for all Marc Bernard Tools. 
+Foundation for Marc Bernard Tools
 
 ### EVERYTHING IS VERY MUCH IN PROGRESS HERE 
 ### WE SUGGEST TO WAIT UNTIL THE OFFICIAL LAUNCH
