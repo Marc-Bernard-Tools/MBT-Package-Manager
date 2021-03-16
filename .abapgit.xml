@@ -16,7 +16,7 @@
     </item>
    </REQUIREMENTS>
    <PACKAGING>
-    <NAME>MBT Base</NAME>
+    <NAME>marc-bernard-tools/mbt-base</NAME>
     <VERSION>1.0.0</VERSION>
     <SEM_VERSION>
      <MAJOR>1</MAJOR>
