@@ -1,14 +1,13 @@
 CLASS /mbtools/cl_utilities DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * MBT Utilities
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-
   PUBLIC SECTION.
 
     TYPES:
@@ -16,7 +15,7 @@ CLASS /mbtools/cl_utilities DEFINITION
         release TYPE n LENGTH 3,
         version TYPE n LENGTH 5,
         patch   TYPE n LENGTH 5,
-      END OF ty_strv_release_patch .
+      END OF ty_strv_release_patch.
 
     CONSTANTS:
       BEGIN OF c_property,
@@ -43,30 +42,31 @@ CLASS /mbtools/cl_utilities DEFINITION
         kernel_patch     TYPE string VALUE 'KERNEL_PATCH',
         kernel_bits      TYPE string VALUE 'KERNEL_BITS',
         unicode          TYPE string VALUE 'UNICODE',
-      END OF c_property .
+      END OF c_property.
     CONSTANTS c_unknown TYPE string VALUE 'UNKNOWN' ##NO_TEXT.
+    CONSTANTS c_not_authorized TYPE string VALUE 'NOT_AUTHORIZED' ##NO_TEXT.
 
     CLASS-METHODS call_browser
       IMPORTING
-        !iv_url TYPE csequence .
+        !iv_url TYPE csequence.
     CLASS-METHODS is_batch
       RETURNING
-        VALUE(rv_batch) TYPE abap_bool .
+        VALUE(rv_batch) TYPE abap_bool.
     CLASS-METHODS is_system_modifiable
       RETURNING
-        VALUE(rv_modifiable) TYPE abap_bool .
+        VALUE(rv_modifiable) TYPE abap_bool.
     CLASS-METHODS is_system_test_or_prod
       RETURNING
-        VALUE(rv_test_prod) TYPE abap_bool .
+        VALUE(rv_test_prod) TYPE abap_bool.
     CLASS-METHODS is_snote_allowed
       RETURNING
-        VALUE(rv_snote_allowed) TYPE abap_bool .
+        VALUE(rv_snote_allowed) TYPE abap_bool.
     CLASS-METHODS is_upgrage_running
       RETURNING
-        VALUE(rv_upgrade_running) TYPE abap_bool .
+        VALUE(rv_upgrade_running) TYPE abap_bool.
     CLASS-METHODS is_spam_locked
       RETURNING
-        VALUE(rv_spam_locked) TYPE abap_bool .
+        VALUE(rv_spam_locked) TYPE abap_bool.
     CLASS-METHODS get_property
       IMPORTING
         VALUE(iv_property) TYPE clike
@@ -74,39 +74,39 @@ CLASS /mbtools/cl_utilities DEFINITION
         !ev_value          TYPE string
         !ev_value_float    TYPE f
         !ev_value_integer  TYPE i
-        !ev_subrc          TYPE sy-subrc .
+        !ev_subrc          TYPE sy-subrc.
     CLASS-METHODS get_syst_field
       IMPORTING
         VALUE(iv_field) TYPE clike
       RETURNING
-        VALUE(rv_value) TYPE string .
+        VALUE(rv_value) TYPE string.
     CLASS-METHODS get_db_release
       RETURNING
-        VALUE(rs_dbinfo) TYPE dbrelinfo .
+        VALUE(rs_dbinfo) TYPE dbrelinfo.
     CLASS-METHODS get_hana_release
       RETURNING
-        VALUE(rs_hana_release) TYPE ty_strv_release_patch .
+        VALUE(rs_hana_release) TYPE ty_strv_release_patch.
     CLASS-METHODS get_spam_release
       RETURNING
-        VALUE(rs_details) TYPE ty_strv_release_patch .
+        VALUE(rs_details) TYPE ty_strv_release_patch.
     CLASS-METHODS get_kernel_release
       RETURNING
-        VALUE(rs_details) TYPE ty_strv_release_patch .
+        VALUE(rs_details) TYPE ty_strv_release_patch.
     CLASS-METHODS get_swcomp_release
       IMPORTING
         VALUE(iv_component) TYPE clike
       RETURNING
-        VALUE(rv_release)   TYPE string .
+        VALUE(rv_release)   TYPE string.
     CLASS-METHODS get_swcomp_support_package
       IMPORTING
         VALUE(iv_component)       TYPE clike
       RETURNING
-        VALUE(rv_support_package) TYPE string .
+        VALUE(rv_support_package) TYPE string.
     CLASS-METHODS get_profile_parameter
       IMPORTING
         VALUE(iv_parameter) TYPE clike
       RETURNING
-        VALUE(rv_value)     TYPE string .
+        VALUE(rv_value)     TYPE string.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -115,7 +115,9 @@ CLASS /mbtools/cl_utilities DEFINITION
 
     CLASS-METHODS _get_all_profile_parameters
       RETURNING
-        VALUE(ro_parameters) TYPE REF TO /mbtools/cl_string_map.
+        VALUE(ro_parameters) TYPE REF TO /mbtools/cl_string_map
+      RAISING
+        /mbtools/cx_exception.
 ENDCLASS.
 
 
@@ -253,7 +255,12 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
 
     DATA lo_parameters TYPE REF TO /mbtools/cl_string_map.
 
-    lo_parameters = _get_all_profile_parameters( ).
+    TRY.
+        lo_parameters = _get_all_profile_parameters( ).
+      CATCH /mbtools/cx_exception.
+        rv_value = c_not_authorized.
+        RETURN.
+    ENDTRY.
 
     rv_value = lo_parameters->get( iv_parameter ).
 
@@ -340,7 +347,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
               ev_value = get_profile_parameter( lv_property ).
             ENDIF.
 
-            IF ev_value = c_unknown.
+            IF ev_value = c_unknown OR ev_value = c_not_authorized.
               ev_subrc = 4.
             ENDIF.
         ENDCASE.
@@ -569,6 +576,11 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       <ls_parameter>  TYPE any,
       <lt_parameters> TYPE ANY TABLE.
 
+    AUTHORITY-CHECK OBJECT 'S_ADMI_FCD' ID 'S_ADMI_FCD' FIELD 'DBA'.
+    IF sy-subrc <> 0.
+      /mbtools/cx_exception=>raise( 'No authorization to read profile parameters' ).
+    ENDIF.
+
     ro_parameters = /mbtools/cl_string_map=>create( iv_case_insensitive = abap_true ).
 
     TRY.
@@ -592,7 +604,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
         ENDLOOP.
 
       CATCH cx_root.
-        " For lower releases resort to kernel call
+        " For lower releases resort to c-call
         CALL 'C_SAPGALLPARAM'
           ID 'PAR_SUB' FIELD lt_par_sub.                  "#EC CI_CCALL
 
@@ -603,8 +615,8 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
             ASSIGN COMPONENT 'DEFAULT_WERT' OF STRUCTURE <ls_par_sub> TO <lv_value> ##SUBRC_OK.
           ENDIF.
           ro_parameters->set(
-            iv_key = <lv_name>
-            iv_val = <lv_value> ).
+            iv_key = |{ <lv_name> }|
+            iv_val = |{ <lv_value> }| ).
         ENDLOOP.
     ENDTRY.
 
