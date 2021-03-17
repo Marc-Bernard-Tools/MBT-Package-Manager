@@ -573,7 +573,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
 
     TRY.
         CREATE DATA lr_data TYPE ('SPFL_PARAMETER_LIST_T').
-        ASSIGN lr_data->* TO <lt_parameters>.             "#EC CI_SUBRC
+        ASSIGN lr_data->* TO <lt_parameters> ##SUBRC_OK.
 
         " Dynamic call since class is not available in lower releases
         CALL METHOD ('CL_SPFL_PROFILE_PARAMETER')=>('GET_ALL_PARAMETER')
@@ -581,10 +581,10 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
             parameter_sub = <lt_parameters>.
 
         LOOP AT <lt_parameters> ASSIGNING <ls_parameter>.
-          ASSIGN COMPONENT 'NAME' OF STRUCTURE <ls_parameter> TO <lv_name>. "#EC CI_SUBRC
-          ASSIGN COMPONENT 'USER_VALUE' OF STRUCTURE <ls_parameter> TO <lv_value>. "#EC CI_SUBRC
+          ASSIGN COMPONENT 'NAME' OF STRUCTURE <ls_parameter> TO <lv_name> ##SUBRC_OK.
+          ASSIGN COMPONENT 'USER_VALUE' OF STRUCTURE <ls_parameter> TO <lv_value> ##SUBRC_OK.
           IF <lv_value> IS INITIAL.
-            ASSIGN COMPONENT 'DEFAULT_VALUE' OF STRUCTURE <ls_parameter> TO <lv_value>. "#EC CI_SUBRC
+            ASSIGN COMPONENT 'DEFAULT_VALUE' OF STRUCTURE <ls_parameter> TO <lv_value> ##SUBRC_OK.
           ENDIF.
           ro_parameters->set(
             iv_key = <lv_name>
@@ -593,14 +593,14 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
 
       CATCH cx_root.
         " For lower releases resort to kernel call
-        CALL 'C_SAPGALLPARAM'                             "#EC CI_CCALL
-          ID 'PAR_SUB' FIELD lt_par_sub.
+        CALL 'C_SAPGALLPARAM'
+          ID 'PAR_SUB' FIELD lt_par_sub.                  "#EC CI_CCALL
 
         LOOP AT lt_par_sub ASSIGNING <ls_par_sub>.
-          ASSIGN COMPONENT 'NAME' OF STRUCTURE <ls_par_sub> TO <lv_name>. "#EC CI_SUBRC
-          ASSIGN COMPONENT 'USER_WERT' OF STRUCTURE <ls_par_sub> TO <lv_value>. "#EC CI_SUBRC
+          ASSIGN COMPONENT 'PNAME' OF STRUCTURE <ls_par_sub> TO <lv_name> ##SUBRC_OK.
+          ASSIGN COMPONENT 'USER_WERT' OF STRUCTURE <ls_par_sub> TO <lv_value> ##SUBRC_OK.
           IF <lv_value> IS INITIAL.
-            ASSIGN COMPONENT 'DEFAULT_WERT' OF STRUCTURE <ls_par_sub> TO <lv_value>. "#EC CI_SUBRC
+            ASSIGN COMPONENT 'DEFAULT_WERT' OF STRUCTURE <ls_par_sub> TO <lv_value> ##SUBRC_OK.
           ENDIF.
           ro_parameters->set(
             iv_key = <lv_name>

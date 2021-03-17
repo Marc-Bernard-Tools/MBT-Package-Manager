@@ -1519,9 +1519,6 @@ INTERFACE zif_abapgit_definitions
   TYPES:
     ty_deserialization_step_tt TYPE STANDARD TABLE OF ty_deserialization_step
                                           WITH DEFAULT KEY .
-  TYPES:
-    ty_object_type_range TYPE RANGE OF trobjtype,
-    ty_object_name_range TYPE RANGE OF sobj_name.
   CONSTANTS:
     BEGIN OF c_git_branch_type,
       branch          TYPE ty_git_branch_type VALUE 'HD',
@@ -1581,6 +1578,7 @@ INTERFACE zif_abapgit_definitions
       repo_local_settings           TYPE string VALUE 'repo_local_settings',
       repo_switch                   TYPE string VALUE 'repo_switch',
       repo_packaging                TYPE string VALUE 'repo_packaging',
+      repo_background               TYPE string VALUE 'repo_background',
       repo_infos                    TYPE string VALUE 'repo_infos',
       repo_purge                    TYPE string VALUE 'repo_purge',
       repo_newonline                TYPE string VALUE 'repo_newonline',
@@ -28174,7 +28172,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
         CALL FUNCTION 'BTFR_DELETE_SINGLE_TEXT'
           EXPORTING
             concept             = <ls_sotr_head>-concept
-            flag_string         = abap_true
+            flag_string         = abap_false
           EXCEPTIONS
             text_not_found      = 1
             invalid_package     = 2
