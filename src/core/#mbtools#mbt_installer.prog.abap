@@ -27599,7 +27599,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       lv_msg = |{ gv_name } is already installed (with same or newer version)|.
       lv_question = lv_msg  && '. Do you want to overwrite it?'.
 
-      IF gs_inst-status = c_success AND iv_force IS INITIAL.
+      IF iv_force IS INITIAL.
         CREATE OBJECT lo_popup.
 
         lv_answer = lo_popup->popup_to_confirm(
@@ -32659,7 +32659,7 @@ SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4,
   COMMENT (22) scr_t103 FOR FIELD p_file_f.
 PARAMETERS:
   p_file_f TYPE char255 LOWER CASE
-    DEFAULT 'C:\Tmp\Marc_Bernard_Tools-main.zip' MODIF ID c12.
+    DEFAULT 'C:\Tmp\MBT-Base-main.zip' MODIF ID c12.
 SELECTION-SCREEN END OF LINE.
 
 SELECTION-SCREEN SKIP 2.
@@ -32669,7 +32669,7 @@ SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4,
   COMMENT (22) scr_t104 FOR FIELD p_file_s.
 PARAMETERS:
   p_file_s TYPE char255 LOWER CASE
-    DEFAULT 'Marc_Bernard_Tools-main.zip' MODIF ID c13.
+    DEFAULT 'MBT-Base-main.zip' MODIF ID c13.
 SELECTION-SCREEN END OF LINE.
 
 SELECTION-SCREEN SKIP 2.
@@ -32679,7 +32679,7 @@ SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4,
   COMMENT (22) scr_t102 FOR FIELD p_file_i.
 PARAMETERS:
   p_file_i TYPE char255 LOWER CASE
-    DEFAULT 'https://github.com/mbtools/Marc_Bernard_Tools/archive/main.zip' MODIF ID c11.
+    DEFAULT 'https://github.com/Marc-Bernard-Tools/MBT-Base/archive/main.zip' MODIF ID c11.
 SELECTION-SCREEN END OF LINE.
 
 SELECTION-SCREEN END OF BLOCK b110.
