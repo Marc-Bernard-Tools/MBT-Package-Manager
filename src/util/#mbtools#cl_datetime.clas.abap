@@ -92,6 +92,7 @@ CLASS /mbtools/cl_datetime IMPLEMENTATION.
 
     rv_result = human_time_diff( iv_from = lv_from
                                  iv_to   = lv_to ).
+
   ENDMETHOD.
 
 
@@ -107,18 +108,20 @@ CLASS /mbtools/cl_datetime IMPLEMENTATION.
       lv_to = iv_to.
     ENDIF.
 
-    lv_diff = cl_abap_timestamp_util=>get_instance( )->tstmp_seconds_between( iv_timestamp0 = iv_from
-                                                                              iv_timestamp1 = lv_to ).
+    TRY.
+        lv_diff = cl_abap_tstmp=>subtract( tstmp1 = lv_to
+                                           tstmp2 = iv_from ).
+      CATCH cx_parameter_invalid.
+        rv_result = 'Error subtracting timestamps'.
+        RETURN.
+    ENDTRY.
 
     IF lv_diff < c_minute_in_seconds.
       lv_val = lv_diff.
       IF lv_val <= 1.
         lv_val = 1.
       ENDIF.
-      rv_result = _print(
-        iv_single = 'second'
-        iv_plural = 'seconds'
-        iv_number  = lv_val ).
+      rv_result = 'now'.
     ELSEIF lv_diff < c_hour_in_seconds AND lv_diff >= c_minute_in_seconds.
       lv_val = lv_diff / c_minute_in_seconds.
       IF lv_val <= 1.

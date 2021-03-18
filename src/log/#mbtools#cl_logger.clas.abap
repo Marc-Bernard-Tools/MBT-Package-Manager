@@ -458,9 +458,16 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
 
     GET TIME STAMP FIELD lv_timestamp.
 
-    rv_result = cl_abap_timestamp_util=>get_instance( )->tstmpl_seconds_between(
-                  iv_timestamp0 = /mbtools/if_logger~mv_timestamp
-                  iv_timestamp1 = lv_timestamp ).
+    TRY.
+        rv_result = cl_abap_tstmp=>subtract(
+          tstmp1 = lv_timestamp
+          tstmp2 = /mbtools/if_logger~mv_timestamp ).
+      CATCH cx_parameter_invalid.
+        /mbtools/if_logger~add(
+          iv_obj_to_log = |Runtime: Error getting measurement|
+          iv_type       = 'W' ).
+        RETURN.
+    ENDTRY.
 
     lv_sec = rv_result. " round to 2 decimal places
 

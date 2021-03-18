@@ -563,15 +563,18 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
     SELECT SINGLE name FROM trdir INTO lv_name
       WHERE name = lc_icon_browser AND subc = '1'.
     IF sy-subrc = 0.
-      TRY.
-          cl_sabe=>auth_check_progname(
-            i_scenario_name = 'BC_GENERIC_REPORT_START'
-            i_program_name  = lc_icon_browser
-            i_action        = 'SUBMIT' ).
-        CATCH cx_sabe.
-          MESSAGE i149(00) WITH lc_icon_browser.
-          RETURN.
-      ENDTRY.
+      cl_sabe=>auth_check_prognam(
+        EXPORTING
+          i_scenario_name = 'BC_GENERIC_REPORT_START'
+          i_program_name  = lc_icon_browser
+          i_action        = 'SUBMIT'
+        EXCEPTIONS
+          not_authorized  = 1
+          OTHERS          = 2 ).
+      IF sy-subrc <> 0.
+        MESSAGE i149(00) WITH lc_icon_browser.
+        RETURN.
+      ENDIF.
 
       SUBMIT (lc_icon_browser)
         WITH p_disp_i = abap_false
