@@ -7,11 +7,9 @@ CLASS /mbtools/cl_gui_page_about DEFINITION
 ************************************************************************
 * MBT GUI Page About
 *
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
+* (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
+
   PUBLIC SECTION.
 
     INTERFACES /mbtools/if_gui_event_handler .
@@ -64,7 +62,7 @@ CLASS /mbtools/cl_gui_page_about IMPLEMENTATION.
 
 
   METHOD /mbtools/if_gui_hotkeys~get_hotkey_actions.
-    ASSERT 1 = 1.
+    RETURN.
   ENDMETHOD.
 
 

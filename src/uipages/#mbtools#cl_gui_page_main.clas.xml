@@ -19,12 +19,6 @@
      <LANGU>E</LANGU>
      <DESCRIPT>MBT GUI Asset Manager</DESCRIPT>
     </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_GUI_PAGE_MAIN</CLSNAME>
-     <CMPNAME>RESTART</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>Restart MBT</DESCRIPT>
-    </SEOCOMPOTX>
    </DESCRIPTIONS>
   </asx:values>
  </asx:abap>

@@ -265,6 +265,11 @@ CLASS /mbtools/cl_tools DEFINITION
     METHODS get_thumbnail
       RETURNING
         VALUE(rv_thumbnail) TYPE string.
+    METHODS get_install_time
+      IMPORTING
+        !iv_internal     TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(rv_result) TYPE string.
     METHODS get_last_update
       IMPORTING
         !iv_internal     TYPE abap_bool DEFAULT abap_false
@@ -863,6 +868,44 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_install_time.
+
+    DATA:
+      lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
+      lo_reg_entry TYPE REF TO /mbtools/cl_registry,
+      lv_install    TYPE timestamp.
+
+    CHECK mv_is_bundle IS INITIAL.
+
+    TRY.
+        " Is tool already registered?
+        lo_reg_tool = _get_reg_tool( mv_name ).
+        IF lo_reg_tool IS NOT BOUND.
+          RETURN.
+        ENDIF.
+
+        " Properties
+        lo_reg_entry = lo_reg_tool->get_subentry( c_reg-properties ).
+        IF lo_reg_entry IS BOUND.
+          lv_install = lo_reg_entry->get_value( c_reg-key_install_time ).
+          IF iv_internal = abap_true.
+            rv_result = lv_install.
+          ELSE.
+            rv_result = /mbtools/cl_datetime=>human_time_diff( lv_install ) && ' ago'.
+          ENDIF.
+        ELSEIF iv_internal = abap_false.
+          rv_result = 'never'.
+        ENDIF.
+
+      CATCH cx_root.
+        IF iv_internal = abap_false.
+          rv_result = 'n/a'.
+        ENDIF.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
   METHOD get_last_update.
 
     DATA:
@@ -1251,8 +1294,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     DATA lv_file TYPE string.
 
-    lv_file = iv_title && '-1.0.0.zip'.
-    REPLACE ALL OCCURRENCES OF ` ` IN lv_file WITH '_'.
+    lv_file = iv_title && '-x.y.z.zip'.
+    REPLACE ALL OCCURRENCES OF ` ` IN lv_file WITH '-'.
 
     SUBMIT /mbtools/mbt_installer
       WITH p_zip_f = abap_true
@@ -1262,6 +1305,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       WITH p_file_s = ''
       WITH p_file_i = ''
       VIA SELECTION-SCREEN AND RETURN.
+
+    rv_result = abap_true.
 
   ENDMETHOD.
 
@@ -1721,6 +1766,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
           " Unregister tool
           io_tool->unregister( ).
+
+          rv_result = abap_true.
         ENDIF.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
@@ -1827,6 +1874,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     " Register tool
     io_tool->register( ).
+
+    rv_result = abap_true.
 
   ENDMETHOD.
 

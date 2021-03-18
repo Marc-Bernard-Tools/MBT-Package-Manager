@@ -7,10 +7,7 @@ CLASS /mbtools/cl_gui_page_main DEFINITION
 ************************************************************************
 * MBT GUI Page Main
 *
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
+* (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
   PUBLIC SECTION.
 
@@ -184,21 +181,16 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
       WHEN /mbtools/if_actions=>tool_install.
         IF /mbtools/cl_tools=>install( ii_event->get_param( 'name' ) ) = abap_true.
-          MESSAGE 'Tool successfully installed' TYPE 'S'.
           restart( ).
         ENDIF.
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_update.
-        IF /mbtools/cl_tools=>update( lo_tool ) = abap_true.
-          MESSAGE 'Tool successfully updated' TYPE 'S'.
-          restart( ).
-        ENDIF.
+        /mbtools/cl_tools=>update( lo_tool ).
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_uninstall.
         IF /mbtools/cl_tools=>uninstall( lo_tool ) = abap_true.
-          MESSAGE 'Tool successfully uninstalled' TYPE 'S'.
           restart( ).
         ENDIF.
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
@@ -305,12 +297,10 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
       iv_act = /mbtools/if_actions=>go_faq
     )->add(
       iv_txt = 'Documentation'
-      iv_typ = /mbtools/if_html=>c_action_type-url
-      iv_act = /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_docs
+      iv_act = /mbtools/if_actions=>mbt_docs
     )->add(
       iv_txt = 'Ticket'
-      iv_typ = /mbtools/if_html=>c_action_type-url
-      iv_act = /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_support ).
+      iv_act = /mbtools/if_actions=>mbt_support ).
 
     CREATE OBJECT lo_bar_menu.
 
@@ -508,11 +498,12 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
   METHOD get_update_admin.
 
     DATA:
-      li_html        TYPE REF TO /mbtools/if_html,
-      lv_version     TYPE string,
-      lv_update_time TYPE string,
-      lv_changelog   TYPE string,
-      lv_update      TYPE string.
+      li_html         TYPE REF TO /mbtools/if_html,
+      lv_version      TYPE string,
+      lv_install_time TYPE string,
+      lv_update_time  TYPE string,
+      lv_changelog    TYPE string,
+      lv_update       TYPE string.
 
     li_html = /mbtools/cl_html=>create( ).
 
@@ -520,9 +511,13 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     IF lv_version IS INITIAL.
 
+      lv_install_time = io_tool->get_install_time( abap_true ).
       lv_update_time = io_tool->get_last_update( abap_true ).
 
-      IF lv_update_time(8) = sy-datum.
+      IF lv_install_time = lv_update_time.
+        rv_text = li_html->icon( iv_name = 'check/green'
+                                 iv_hint = 'Tool installed' ) && |Installed today|.
+      ELSEIF lv_update_time(8) = sy-datum.
         rv_text = li_html->icon( iv_name = 'check/green'
                                  iv_hint = 'Tool updated' ) && |Updated today|.
       ENDIF.
@@ -831,7 +826,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
       ri_html->add( '<li>' ).
       ri_html->add( '<h2>Welcome to Marc Bernard Tools!</h2>' ).
       ri_html->add( |<p>There are currently no active tools in your system. Go to | ).
-      ri_html->add_a( iv_txt = 'Adminstration'
+      ri_html->add_a( iv_txt = 'Administration'
                       iv_act = /mbtools/if_actions=>go_admin ).
       ri_html->add( | to add new tools or activate any tools that are already installed.| ).
       ri_html->add( '</li>' ).

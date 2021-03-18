@@ -121,7 +121,10 @@ CLASS /mbtools/cl_datetime IMPLEMENTATION.
       IF lv_val <= 1.
         lv_val = 1.
       ENDIF.
-      rv_result = 'now'.
+      rv_result = _print(
+        iv_single = 'second'
+        iv_plural = 'seconds'
+        iv_number  = lv_val ).
     ELSEIF lv_diff < c_hour_in_seconds AND lv_diff >= c_minute_in_seconds.
       lv_val = lv_diff / c_minute_in_seconds.
       IF lv_val <= 1.
