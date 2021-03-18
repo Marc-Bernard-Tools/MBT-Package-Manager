@@ -27732,7 +27732,15 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
   METHOD _files.
 
-    DATA lv_xstr TYPE xstring.
+    DATA:
+      li_progress TYPE REF TO zif_abapgit_progress,
+      lv_xstr     TYPE xstring.
+
+    li_progress = zcl_abapgit_progress=>get_instance( 100 ).
+
+    li_progress->show(
+      iv_text    = 'Uploading package'
+      iv_current = 5 ).
 
     " Load abapGit ZIP File
     gs_inst-source_name = iv_name.
@@ -27760,6 +27768,10 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       WHEN OTHERS.
         zcx_abapinst_exception=>raise( |Unknown source for { gv_name }| ).
     ENDCASE.
+
+    li_progress->show(
+      iv_text    = 'Scanning package for viruses'
+      iv_current = 10 ).
 
     " Scan for viruses and unzip
     zcl_abapinst_file=>virus_scan( lv_xstr ).
