@@ -926,13 +926,14 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         lo_reg_entry = lo_reg_tool->get_subentry( c_reg-properties ).
         IF lo_reg_entry IS BOUND.
           lv_update = lo_reg_entry->get_value( c_reg-key_update_time ).
-          IF lv_update IS INITIAL.
-            lv_update = lo_reg_entry->get_value( c_reg-key_install_time ).
-          ENDIF.
           IF iv_internal = abap_true.
             rv_result = lv_update.
           ELSE.
-            rv_result = /mbtools/cl_datetime=>human_time_diff( lv_update ) && ' ago'.
+            IF lv_update IS INITIAL.
+              rv_result = 'never'.
+            ELSE.
+              rv_result = /mbtools/cl_datetime=>human_time_diff( lv_update ) && ' ago'.
+            ENDIF.
           ENDIF.
         ELSEIF iv_internal = abap_false.
           rv_result = 'never'.
