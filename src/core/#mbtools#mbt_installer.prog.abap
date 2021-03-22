@@ -36,6 +36,7 @@ INTERFACE zif_abapgit_progress DEFERRED.
 INTERFACE zif_abapgit_tadir DEFERRED.
 INTERFACE zif_abapinst_definitions DEFERRED.
 INTERFACE zif_abapgit_objects DEFERRED.
+INTERFACE zif_abapgit_ajson_mapping DEFERRED.
 INTERFACE zif_abapgit_persistence DEFERRED.
 INTERFACE zif_abapgit_exit DEFERRED.
 INTERFACE zif_abapgit_gui_functions DEFERRED.
@@ -1972,23 +1973,29 @@ INTERFACE zif_abapgit_data_deserializer
    .
 
 
-  TYPES:
-    BEGIN OF ty_result,
-      table   TYPE tadir-obj_name,
-      deletes TYPE REF TO data,
-      updates TYPE REF TO data,
-      inserts TYPE REF TO data,
-    END OF ty_result .
+  TYPES: BEGIN OF ty_result,
+           table   TYPE tadir-obj_name,
+           deletes TYPE REF TO data,
+           updates TYPE REF TO data,
+           inserts TYPE REF TO data,
+         END OF ty_result.
+  TYPES: ty_results TYPE STANDARD TABLE OF ty_result WITH KEY table.
 
   METHODS deserialize
     IMPORTING
       !ii_config       TYPE REF TO zif_abapgit_data_config
       !it_files        TYPE zif_abapgit_definitions=>ty_files_tt
-      !iv_persist      TYPE abap_bool DEFAULT abap_false
     RETURNING
-      VALUE(rs_result) TYPE ty_result
+      VALUE(rt_result) TYPE ty_results
     RAISING
       zcx_abapgit_exception .
+
+  METHODS actualize
+    IMPORTING
+      it_result TYPE ty_results
+    RAISING
+      zcx_abapgit_exception .
+
 ENDINTERFACE.
 INTERFACE zif_abapgit_data_serializer
    .
@@ -2729,6 +2736,33 @@ INTERFACE zif_abapgit_objects
                                 WITH DEFAULT KEY .
 
 ENDINTERFACE.
+INTERFACE zif_abapgit_ajson_mapping
+  .
+
+  TYPES:
+    BEGIN OF ty_mapping_field,
+      abap TYPE string,
+      json TYPE string,
+    END OF ty_mapping_field,
+    ty_mapping_fields TYPE STANDARD TABLE OF ty_mapping_field
+      WITH UNIQUE SORTED KEY abap COMPONENTS abap
+      WITH UNIQUE SORTED KEY json COMPONENTS json.
+
+  METHODS to_abap
+    IMPORTING
+      !iv_path         TYPE string
+      !iv_name         TYPE string
+    RETURNING
+      VALUE(rv_result) TYPE string.
+
+  METHODS to_json
+    IMPORTING
+      !iv_path         TYPE string
+      !iv_name         TYPE string
+    RETURNING
+      VALUE(rv_result) TYPE string.
+
+ENDINTERFACE.
 INTERFACE zif_abapgit_persistence .
 
   TYPES:
@@ -3206,9 +3240,9 @@ CLASS zcl_abapgit_data_deserializer DEFINITION
         zcx_abapgit_exception .
     METHODS write_database_table
       IMPORTING
-        !iv_name  TYPE tadir-obj_name
-        !it_where TYPE string_table
-        !ir_data  TYPE REF TO data
+        !iv_name TYPE tadir-obj_name
+        !ir_del  TYPE REF TO data
+        !ir_ins  TYPE REF TO data
       RAISING
         zcx_abapgit_exception .
     METHODS read_database_table
@@ -3232,6 +3266,8 @@ CLASS zcl_abapgit_data_serializer DEFINITION
 
   PRIVATE SECTION.
 
+    CONSTANTS c_max_records TYPE i VALUE 10000 ##NO_TEXT.
+
     METHODS convert_itab_to_json
       IMPORTING
         !ir_data       TYPE REF TO data
@@ -3244,8 +3280,9 @@ CLASS zcl_abapgit_data_serializer DEFINITION
         !iv_name       TYPE tadir-obj_name
         !it_where      TYPE string_table
       RETURNING
-        VALUE(rr_data) TYPE REF TO data .
-
+        VALUE(rr_data) TYPE REF TO data
+      RAISING
+        zcx_abapgit_exception .
 ENDCLASS.
 CLASS zcl_abapgit_data_factory DEFINITION
 
@@ -4446,7 +4483,37 @@ CLASS zcl_abapgit_objects_program DEFINITION  INHERITING FROM zcl_abapgit_object
       CHANGING
         cs_adm TYPE rsmpe_adm.
 
-
+    METHODS get_program_title
+      IMPORTING
+        !it_tpool       TYPE textpool_table
+      RETURNING
+        VALUE(rv_title) TYPE repti .
+    METHODS insert_program
+      IMPORTING
+        !is_progdir TYPE ty_progdir
+        !it_source  TYPE abaptxt255_tab
+        !iv_title   TYPE repti
+        !iv_package TYPE devclass
+      RAISING
+        zcx_abapgit_exception .
+    METHODS update_program
+      IMPORTING
+        !is_progdir TYPE ty_progdir
+        !it_source  TYPE abaptxt255_tab
+        !iv_title   TYPE repti
+      RAISING
+        zcx_abapgit_exception .
+    METHODS update_progdir
+      IMPORTING
+        !is_progdir TYPE ty_progdir
+      RAISING
+        zcx_abapgit_exception .
+    METHODS insert_tpool
+      IMPORTING
+        !is_progdir TYPE ty_progdir
+        !it_tpool   TYPE textpool_table
+      RAISING
+        zcx_abapgit_exception .
 ENDCLASS.
 CLASS zcl_abapgit_object_acid DEFINITION  INHERITING FROM zcl_abapgit_objects_super FINAL.
 
@@ -5412,26 +5479,38 @@ CLASS zcl_abapgit_object_prog DEFINITION  INHERITING FROM zcl_abapgit_objects_pr
 
   PROTECTED SECTION.
   PRIVATE SECTION.
-    TYPES: BEGIN OF ty_tpool_i18n,
-             language TYPE langu,
-             textpool TYPE zif_abapgit_definitions=>ty_tpool_tt,
-           END OF ty_tpool_i18n,
-           ty_tpools_i18n TYPE STANDARD TABLE OF ty_tpool_i18n.
-    CONSTANTS: c_longtext_id_prog TYPE dokil-id VALUE 'RE'.
 
-    METHODS:
-      serialize_texts
-        IMPORTING ii_xml TYPE REF TO zif_abapgit_xml_output
-        RAISING   zcx_abapgit_exception,
-      deserialize_texts
-        IMPORTING ii_xml TYPE REF TO zif_abapgit_xml_input
-        RAISING   zcx_abapgit_exception,
-      is_program_locked
-        RETURNING
-          VALUE(rv_is_program_locked) TYPE abap_bool
-        RAISING
-          zcx_abapgit_exception.
+    TYPES:
+      BEGIN OF ty_tpool_i18n,
+        language TYPE langu,
+        textpool TYPE zif_abapgit_definitions=>ty_tpool_tt,
+      END OF ty_tpool_i18n .
+    TYPES:
+      ty_tpools_i18n TYPE STANDARD TABLE OF ty_tpool_i18n .
 
+    CONSTANTS c_longtext_id_prog TYPE dokil-id VALUE 'RE' ##NO_TEXT.
+
+    METHODS deserialize_with_ext
+      IMPORTING
+        !is_progdir TYPE ty_progdir
+        !it_source  TYPE abaptxt255_tab
+      RAISING
+        zcx_abapgit_exception .
+    METHODS serialize_texts
+      IMPORTING
+        !ii_xml TYPE REF TO zif_abapgit_xml_output
+      RAISING
+        zcx_abapgit_exception .
+    METHODS deserialize_texts
+      IMPORTING
+        !ii_xml TYPE REF TO zif_abapgit_xml_input
+      RAISING
+        zcx_abapgit_exception .
+    METHODS is_program_locked
+      RETURNING
+        VALUE(rv_is_program_locked) TYPE abap_bool
+      RAISING
+        zcx_abapgit_exception .
 ENDCLASS.
 CLASS zcl_abapgit_object_shlp DEFINITION  INHERITING FROM zcl_abapgit_objects_super FINAL.
 
@@ -6767,17 +6846,6 @@ CLASS zcl_abapinst_installer DEFINITION
     CONSTANTS c_warning TYPE sy-msgty VALUE 'W' ##NO_TEXT.
     CONSTANTS c_error TYPE sy-msgty VALUE 'E' ##NO_TEXT.
 
-    CLASS-METHODS _find_remote_data_config
-      RETURNING
-        VALUE(ri_config) TYPE REF TO zif_abapgit_data_config
-      RAISING
-        zcx_abapgit_exception .
-    CLASS-METHODS _deserialize_objects
-      RAISING
-        zcx_abapgit_exception .
-    CLASS-METHODS _deserialize_data
-      RAISING
-        zcx_abapgit_exception .
     CLASS-METHODS _clear .
     CLASS-METHODS _nothing_found
       IMPORTING
@@ -6824,6 +6892,11 @@ CLASS zcl_abapinst_installer DEFINITION
         !iv_transport      TYPE trkorr OPTIONAL
       RAISING
         zcx_abapinst_exception .
+    CLASS-METHODS _transport_get
+      RETURNING
+        VALUE(rv_trkorr) TYPE trkorr
+      RAISING
+        zcx_abapinst_exception .
     CLASS-METHODS _transport_check
       RAISING
         zcx_abapinst_exception .
@@ -6833,6 +6906,12 @@ CLASS zcl_abapinst_installer DEFINITION
         zcx_abapinst_exception .
     CLASS-METHODS _confirm_messages .
     CLASS-METHODS _restore_messages .
+    CLASS-METHODS _deserialize_objects
+      RAISING
+        zcx_abapgit_exception .
+    CLASS-METHODS _deserialize_data
+      RAISING
+        zcx_abapgit_exception .
     CLASS-METHODS _save
       RAISING
         zcx_abapinst_exception .
@@ -6845,9 +6924,6 @@ CLASS zcl_abapinst_installer DEFINITION
     CLASS-METHODS _delete
       RAISING
         zcx_abapinst_exception .
-    CLASS-METHODS _check_uninstalled
-      IMPORTING
-        !it_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt .
     CLASS-METHODS _log_start .
     CLASS-METHODS _log_end
       RAISING
@@ -6872,6 +6948,14 @@ CLASS zcl_abapinst_installer DEFINITION
     CLASS-METHODS _find_remote_namespaces
       RETURNING
         VALUE(rt_remote) TYPE zif_abapgit_definitions=>ty_files_tt .
+    CLASS-METHODS _find_remote_data_config
+      RETURNING
+        VALUE(ri_config) TYPE REF TO zif_abapgit_data_config
+      RAISING
+        zcx_abapgit_exception .
+    CLASS-METHODS _check_uninstalled
+      IMPORTING
+        !it_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt .
     CLASS-METHODS _uninstall_sotr
       IMPORTING
         !it_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt .
@@ -9529,9 +9613,8 @@ CLASS zcl_abapgit_data_config IMPLEMENTATION.
 
   METHOD dump.
 
-    DATA:
-      lo_ajson TYPE REF TO zcl_abapgit_ajson,
-      lx_ajson TYPE REF TO zcx_abapgit_ajson_error.
+    DATA lo_ajson TYPE REF TO zcl_abapgit_ajson.
+    DATA lx_ajson TYPE REF TO zcx_abapgit_ajson_error.
 
     TRY.
         lo_ajson = zcl_abapgit_ajson=>create_empty( ).
@@ -9562,11 +9645,10 @@ CLASS zcl_abapgit_data_config IMPLEMENTATION.
 
   METHOD zif_abapgit_data_config~from_json.
 
-    DATA:
-      ls_file   LIKE LINE OF it_files,
-      ls_config TYPE zif_abapgit_data_config=>ty_config,
-      lo_ajson  TYPE REF TO zcl_abapgit_ajson,
-      lx_ajson  TYPE REF TO zcx_abapgit_ajson_error.
+    DATA ls_file LIKE LINE OF it_files.
+    DATA ls_config TYPE zif_abapgit_data_config=>ty_config.
+    DATA lo_ajson TYPE REF TO zcl_abapgit_ajson.
+    DATA lx_ajson TYPE REF TO zcx_abapgit_ajson_error.
 
     CLEAR mt_config.
     LOOP AT it_files INTO ls_file WHERE path = zif_abapgit_data_config=>c_default_path
@@ -9605,9 +9687,8 @@ CLASS zcl_abapgit_data_config IMPLEMENTATION.
 
   METHOD zif_abapgit_data_config~to_json.
 
-    DATA:
-      ls_config LIKE LINE OF mt_config,
-      ls_file   LIKE LINE OF rt_files.
+    DATA ls_config LIKE LINE OF mt_config.
+    DATA ls_file LIKE LINE OF rt_files.
 
     ls_file-path = zif_abapgit_data_config=>c_default_path.
 
@@ -9637,9 +9718,8 @@ CLASS zcl_abapgit_data_deserializer IMPLEMENTATION.
 
   METHOD convert_json_to_itab.
 
-    DATA:
-      lo_ajson TYPE REF TO zcl_abapgit_ajson,
-      lx_ajson TYPE REF TO zcx_abapgit_ajson_error.
+    DATA lo_ajson TYPE REF TO zcl_abapgit_ajson.
+    DATA lx_ajson TYPE REF TO zcx_abapgit_ajson_error.
 
     FIELD-SYMBOLS <lg_tab> TYPE ANY TABLE.
 
@@ -9660,16 +9740,14 @@ CLASS zcl_abapgit_data_deserializer IMPLEMENTATION.
 * method currently distinguishes between records be deleted and inserted (comparison of complete record)
 * to-do: compare records based on database key of table to determine updates to existing records
 
-    DATA:
-      lr_data TYPE REF TO data.
+    DATA lr_data TYPE REF TO data.
 
-    FIELD-SYMBOLS:
-      <lg_old> TYPE ANY TABLE,
-      <lg_new> TYPE ANY TABLE,
-      <ls_del> TYPE any,
-      <ls_ins> TYPE any,
-      <lg_del> TYPE ANY TABLE,
-      <lg_ins> TYPE ANY TABLE.
+    FIELD-SYMBOLS <lg_old> TYPE ANY TABLE.
+    FIELD-SYMBOLS <lg_new> TYPE ANY TABLE.
+    FIELD-SYMBOLS <ls_del> TYPE any.
+    FIELD-SYMBOLS <ls_ins> TYPE any.
+    FIELD-SYMBOLS <lg_del> TYPE ANY TABLE.
+    FIELD-SYMBOLS <lg_ins> TYPE ANY TABLE.
 
     lr_data = read_database_table(
       iv_name  = iv_name
@@ -9679,6 +9757,8 @@ CLASS zcl_abapgit_data_deserializer IMPLEMENTATION.
     ASSIGN ir_data->* TO <lg_new>.
 
     rs_result-table = iv_name.
+    rs_result-deletes = zcl_abapgit_data_utils=>build_table_itab( iv_name ).
+    rs_result-inserts = zcl_abapgit_data_utils=>build_table_itab( iv_name ).
     ASSIGN rs_result-deletes->* TO <lg_del>.
     ASSIGN rs_result-inserts->* TO <lg_ins>.
 
@@ -9718,48 +9798,54 @@ CLASS zcl_abapgit_data_deserializer IMPLEMENTATION.
 
   METHOD write_database_table.
 
-    DATA:
-      lv_where   LIKE LINE OF it_where,
-      lv_tabname TYPE tabname,
-      lv_subrc   TYPE sy-subrc.
+    FIELD-SYMBOLS <lg_del> TYPE ANY TABLE.
+    FIELD-SYMBOLS <lg_ins> TYPE ANY TABLE.
 
-    FIELD-SYMBOLS <lg_tab> TYPE ANY TABLE.
+    ASSIGN ir_del->* TO <lg_del>.
+    ASSIGN ir_ins->* TO <lg_ins>.
 
-    lv_tabname = iv_name.
-
-    ASSIGN ir_data->* TO <lg_tab>.
-
-    LOOP AT it_where INTO lv_where.
-      DELETE FROM (lv_tabname) WHERE (lv_where) ##SUBRC_OK.
-    ENDLOOP.
-    IF lines( it_where ) = 0.
-      CALL FUNCTION 'DB_TRUNCATE_TABLE'
-        EXPORTING
-          tabname = lv_tabname
-        IMPORTING
-          subrc   = lv_subrc.
-      IF lv_subrc <> 0.
-        zcx_abapgit_exception=>raise( |Error truncating table { lv_tabname }| ).
+    IF lines( <lg_del> ) > 0.
+      DELETE (iv_name) FROM TABLE <lg_del>.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise( |Error deleting { lines( <lg_del> ) } records from table { iv_name }| ).
       ENDIF.
     ENDIF.
 
-    IF lines( <lg_tab> ) > 0.
-      INSERT (lv_tabname) FROM TABLE <lg_tab>.
-      IF sy-subrc = 0.
-        zcx_abapgit_exception=>raise( |Error inserting { lines( <lg_tab> ) } records into table { lv_tabname }| ).
+    IF lines( <lg_ins> ) > 0.
+      INSERT (iv_name) FROM TABLE <lg_ins>.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise( |Error inserting { lines( <lg_ins> ) } records into table { iv_name }| ).
       ENDIF.
     ENDIF.
 
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_data_deserializer~actualize.
+
+* this method updates the database
+
+    DATA ls_result LIKE LINE OF it_result.
+
+    LOOP AT it_result INTO ls_result.
+      write_database_table(
+        iv_name = ls_result-table
+        ir_del  = ls_result-deletes
+        ir_ins  = ls_result-inserts ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_data_deserializer~deserialize.
 
-    DATA:
-      lt_configs TYPE zif_abapgit_data_config=>ty_config_tt,
-      ls_config  LIKE LINE OF lt_configs,
-      lr_data    TYPE REF TO data,
-      ls_file    LIKE LINE OF it_files.
+* this method does not persist any changes to the database
+
+    DATA lt_configs TYPE zif_abapgit_data_config=>ty_config_tt.
+    DATA ls_config LIKE LINE OF lt_configs.
+    DATA lr_data  TYPE REF TO data.
+    DATA ls_file LIKE LINE OF it_files.
+    DATA ls_result LIKE LINE OF rt_result.
 
     lt_configs = ii_config->get_configs( ).
 
@@ -9775,17 +9861,12 @@ CLASS zcl_abapgit_data_deserializer IMPLEMENTATION.
           ir_data = lr_data
           is_file = ls_file ).
 
-        IF iv_persist = abap_true.
-          write_database_table(
-            iv_name  = ls_config-name
-            it_where = ls_config-where
-            ir_data  = lr_data ).
-        ELSE.
-          rs_result = preview_database_changes(
-            iv_name  = ls_config-name
-            it_where = ls_config-where
-            ir_data  = lr_data ).
-        ENDIF.
+        ls_result = preview_database_changes(
+          iv_name  = ls_config-name
+          it_where = ls_config-where
+          ir_data  = lr_data ).
+
+        INSERT ls_result INTO TABLE rt_result.
       ENDIF.
 
     ENDLOOP.
@@ -9800,10 +9881,9 @@ CLASS zcl_abapgit_data_serializer IMPLEMENTATION.
 
   METHOD convert_itab_to_json.
 
-    DATA:
-      lo_ajson  TYPE REF TO zcl_abapgit_ajson,
-      lv_string TYPE string,
-      lx_ajson  TYPE REF TO zcx_abapgit_ajson_error.
+    DATA lo_ajson TYPE REF TO zcl_abapgit_ajson.
+    DATA lv_string TYPE string.
+    DATA lx_ajson TYPE REF TO zcx_abapgit_ajson_error.
 
     FIELD-SYMBOLS <lg_tab> TYPE ANY TABLE.
 
@@ -9827,6 +9907,7 @@ CLASS zcl_abapgit_data_serializer IMPLEMENTATION.
 
   METHOD read_database_table.
 
+    DATA lv_records TYPE i.
     DATA lv_where LIKE LINE OF it_where.
 
     FIELD-SYMBOLS <lg_tab> TYPE ANY TABLE.
@@ -9841,16 +9922,21 @@ CLASS zcl_abapgit_data_serializer IMPLEMENTATION.
       SELECT * FROM (iv_name) INTO TABLE <lg_tab>.
     ENDIF.
 
+    lv_records = lines( <lg_tab> ).
+    IF lv_records > c_max_records.
+      zcx_abapgit_exception=>raise( |Too many records selected from table { iv_name
+        } (selected { lv_records }, max { c_max_records })| ).
+    ENDIF.
+
   ENDMETHOD.
 
 
   METHOD zif_abapgit_data_serializer~serialize.
 
-    DATA:
-      lt_configs TYPE zif_abapgit_data_config=>ty_config_tt,
-      ls_config  LIKE LINE OF lt_configs,
-      ls_file    LIKE LINE OF rt_files,
-      lr_data    TYPE REF TO data.
+    DATA lt_configs TYPE zif_abapgit_data_config=>ty_config_tt.
+    DATA ls_config LIKE LINE OF lt_configs.
+    DATA ls_file LIKE LINE OF rt_files.
+    DATA lr_data TYPE REF TO data.
 
     ls_file-path = zif_abapgit_data_config=>c_default_path.
     lt_configs = ii_config->get_configs( ).
@@ -9931,9 +10017,8 @@ CLASS zcl_abapgit_data_utils IMPLEMENTATION.
 
   METHOD build_table_itab.
 
-    DATA:
-      lo_structure TYPE REF TO cl_abap_structdescr,
-      lo_table     TYPE REF TO cl_abap_tabledescr.
+    DATA lo_structure TYPE REF TO cl_abap_structdescr.
+    DATA lo_table TYPE REF TO cl_abap_tabledescr.
 
     lo_structure ?= cl_abap_structdescr=>describe_by_name( iv_name ).
 * todo, also add unique key corresponding to the db table, so duplicates cannot be returned
@@ -10588,7 +10673,7 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
       rv_ignored = abap_true.
     ENDIF.
 
-    IF iv_path = '/data/'.
+    IF iv_path = zif_abapgit_data_config=>c_default_path.
       rv_ignored = abap_false.
     ENDIF.
 
@@ -13988,7 +14073,6 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
     ls_tr_key-sub_type = 'CUAD'.
     ls_tr_key-sub_name = iv_program_name.
 
-
     ls_adm = is_cua-adm.
     auto_correct_cua_adm( EXPORTING is_cua = is_cua CHANGING cs_adm = ls_adm ).
 
@@ -14115,15 +14199,9 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
 
   METHOD deserialize_program.
 
-    DATA: lv_exists      TYPE abap_bool,
-          lt_empty_src   LIKE it_source,
-          lv_progname    TYPE reposrc-progname,
-          ls_tpool       LIKE LINE OF it_tpool,
-          lv_title       TYPE rglif-title,
-          ls_progdir_new TYPE progdir.
-
-    FIELD-SYMBOLS: <lg_any> TYPE any.
-
+    DATA:
+      lv_progname TYPE reposrc-progname,
+      lv_title    TYPE rglif-title.
 
     CALL FUNCTION 'RS_CORR_INSERT'
       EXPORTING
@@ -14142,138 +14220,31 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    READ TABLE it_tpool INTO ls_tpool WITH KEY id = 'R'.
-    IF sy-subrc = 0.
-* there is a bug in RPY_PROGRAM_UPDATE, the header line of TTAB is not
-* cleared, so the title length might be inherited from a different program.
-      ASSIGN ('(SAPLSIFP)TTAB') TO <lg_any>.
-      IF sy-subrc = 0.
-        CLEAR <lg_any>.
-      ENDIF.
+    lv_title = get_program_title( it_tpool ).
 
-      lv_title = ls_tpool-entry.
-    ENDIF.
-
+    " Check if program already exists
     SELECT SINGLE progname FROM reposrc INTO lv_progname
       WHERE progname = is_progdir-name
       AND r3state = 'A'.
-    lv_exists = boolc( sy-subrc = 0 ).
 
-    IF lv_exists = abap_true.
-      zcl_abapgit_language=>set_current_language( mv_language ).
-
-      CALL FUNCTION 'RPY_PROGRAM_UPDATE'
-        EXPORTING
-          program_name     = is_progdir-name
-          title_string     = lv_title
-          save_inactive    = 'I'
-        TABLES
-          source_extended  = it_source
-        EXCEPTIONS
-          cancelled        = 1
-          permission_error = 2
-          not_found        = 3
-          OTHERS           = 4.
-
-      IF sy-subrc <> 0.
-        zcl_abapgit_language=>restore_login_language( ).
-
-        IF sy-msgid = 'EU' AND sy-msgno = '510'.
-          zcx_abapgit_exception=>raise( 'User is currently editing program' ).
-        ELSEIF sy-msgid = 'EU' AND sy-msgno = '522'.
-* for generated table maintenance function groups, the author is set to SAP* instead of the user which
-* generates the function group. This hits some standard checks, pulling new code again sets the author
-* to the current user which avoids the check
-          zcx_abapgit_exception=>raise( |Delete function group and pull again, { is_progdir-name } (EU522)| ).
-        ELSE.
-          zcx_abapgit_exception=>raise_t100( ).
-        ENDIF.
-      ENDIF.
-
-      zcl_abapgit_language=>restore_login_language( ).
-    ELSEIF strlen( is_progdir-name ) > 30.
-* function module RPY_PROGRAM_INSERT cannot handle function group includes
-      " special treatment for extensions
-      " if the program name exceeds 30 characters it is not a usual
-      " ABAP program but might be some extension, which requires the internal
-      " addition EXTENSION TYPE, see
-      " http://help.sap.com/abapdocu_751/en/abapinsert_report_internal.htm#!ABAP_ADDITION_1@1@
-      " This e.g. occurs in case of transportable Code Inspector variants (ending with ===VC)
-      INSERT REPORT is_progdir-name
-        FROM it_source
-        STATE 'I'
-        EXTENSION TYPE is_progdir-name+30.
-      IF sy-subrc <> 0.
-        zcx_abapgit_exception=>raise( 'error from INSERT REPORT .. EXTENSION TYPE' ).
-      ENDIF.
+    IF sy-subrc = 0.
+      update_program(
+        is_progdir = is_progdir
+        it_source  = it_source
+        iv_title   = lv_title ).
     ELSE.
-      INSERT REPORT is_progdir-name
-        FROM it_source
-        STATE 'I'
-        PROGRAM TYPE is_progdir-subc.
-      IF sy-subrc <> 0.
-        zcx_abapgit_exception=>raise_t100( ).
-      ENDIF.
+      insert_program(
+        is_progdir = is_progdir
+        it_source  = it_source
+        iv_title   = lv_title
+        iv_package = iv_package ).
     ENDIF.
 
-    IF NOT it_tpool[] IS INITIAL.
-      INSERT TEXTPOOL is_progdir-name
-        FROM it_tpool
-        LANGUAGE mv_language
-        STATE 'I'.
-      IF sy-subrc <> 0.
-        zcx_abapgit_exception=>raise( 'error from INSERT TEXTPOOL' ).
-      ENDIF.
-    ENDIF.
+    insert_tpool(
+      is_progdir = is_progdir
+      it_tpool   = it_tpool ).
 
-    CALL FUNCTION 'READ_PROGDIR'
-      EXPORTING
-        i_progname = is_progdir-name
-        i_state    = 'I'
-      IMPORTING
-        e_progdir  = ls_progdir_new
-      EXCEPTIONS
-        not_exists = 1
-        OTHERS     = 2.
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( |not found in PROGDIR. Subrc = { sy-subrc }| ).
-    ENDIF.
-
-* todo, package?
-
-    ls_progdir_new-ldbname = is_progdir-ldbname.
-    ls_progdir_new-dbna    = is_progdir-dbna.
-    ls_progdir_new-dbapl   = is_progdir-dbapl.
-    ls_progdir_new-rload   = is_progdir-rload.
-    ls_progdir_new-fixpt   = is_progdir-fixpt.
-    ls_progdir_new-varcl   = is_progdir-varcl.
-    ls_progdir_new-appl    = is_progdir-appl.
-    ls_progdir_new-rstat   = is_progdir-rstat.
-    ls_progdir_new-sqlx    = is_progdir-sqlx.
-    ls_progdir_new-uccheck = is_progdir-uccheck.
-    ls_progdir_new-clas    = is_progdir-clas.
-
-    CALL FUNCTION 'UPDATE_PROGDIR'
-      EXPORTING
-        i_progdir    = ls_progdir_new
-        i_progname   = ls_progdir_new-name
-        i_state      = ls_progdir_new-state
-      EXCEPTIONS
-        not_executed = 1
-        OTHERS       = 2.
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( |PROG, error inserting. Subrc = { sy-subrc }| ).
-    ENDIF.
-
-    SELECT SINGLE * FROM progdir INTO ls_progdir_new
-      WHERE name = ls_progdir_new-name
-      AND state = ls_progdir_new-state.
-    IF sy-subrc = 0 AND is_progdir-varcl = space AND ls_progdir_new-varcl = abap_true.
-* function module UPDATE_PROGDIR does not update VARCL
-      UPDATE progdir SET varcl = is_progdir-varcl
-        WHERE name = ls_progdir_new-name
-        AND state = ls_progdir_new-state.                 "#EC CI_SUBRC
-    ENDIF.
+    update_progdir( is_progdir ).
 
     zcl_abapgit_objects_activation=>add(
       iv_type = 'REPS'
@@ -14336,6 +14307,84 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
         iv_name   = iv_program
         iv_delete = lv_delete ).
     ENDIF.
+  ENDMETHOD.
+
+
+  METHOD get_program_title.
+
+    DATA ls_tpool LIKE LINE OF it_tpool.
+
+    FIELD-SYMBOLS <lg_any> TYPE any.
+
+    READ TABLE it_tpool INTO ls_tpool WITH KEY id = 'R'.
+    IF sy-subrc = 0.
+      " there is a bug in RPY_PROGRAM_UPDATE, the header line of TTAB is not
+      " cleared, so the title length might be inherited from a different program.
+      ASSIGN ('(SAPLSIFP)TTAB') TO <lg_any>.
+      IF sy-subrc = 0.
+        CLEAR <lg_any>.
+      ENDIF.
+
+      rv_title = ls_tpool-entry.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD insert_program.
+
+    CALL FUNCTION 'RPY_PROGRAM_INSERT'
+      EXPORTING
+        development_class = iv_package
+        program_name      = is_progdir-name
+        program_type      = is_progdir-subc
+        title_string      = iv_title
+        save_inactive     = 'I'
+        suppress_dialog   = abap_true
+      TABLES
+        source_extended   = it_source
+      EXCEPTIONS
+        already_exists    = 1
+        cancelled         = 2
+        name_not_allowed  = 3
+        permission_error  = 4
+        OTHERS            = 5.
+    IF sy-subrc = 3.
+
+      " For cases that standard function does not handle (like FUGR).
+      " we save active and inactive version of source with the given PROGRAM TYPE.
+      " Without the active version, the code will not be visible in case of activation errors.
+      INSERT REPORT is_progdir-name
+        FROM it_source
+        STATE 'A'
+        PROGRAM TYPE is_progdir-subc.
+      INSERT REPORT is_progdir-name
+        FROM it_source
+        STATE 'I'
+        PROGRAM TYPE is_progdir-subc.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise( 'Error from INSERT REPORT .. PROGRAM TYPE' ).
+      ENDIF.
+
+    ELSEIF sy-subrc > 0.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD insert_tpool.
+
+    IF NOT it_tpool[] IS INITIAL.
+      INSERT TEXTPOOL is_progdir-name
+        FROM it_tpool
+        LANGUAGE mv_language
+        STATE 'I'.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise( 'Error from INSERT TEXTPOOL' ).
+      ENDIF.
+    ENDIF.
+
   ENDMETHOD.
 
 
@@ -14689,6 +14738,97 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
         SHIFT <ls_output>-line RIGHT BY lv_spaces PLACES IN CHARACTER MODE.
       ENDIF.
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD update_progdir.
+
+    DATA ls_progdir_new TYPE progdir.
+
+    CALL FUNCTION 'READ_PROGDIR'
+      EXPORTING
+        i_progname = is_progdir-name
+        i_state    = 'I'
+      IMPORTING
+        e_progdir  = ls_progdir_new
+      EXCEPTIONS
+        not_exists = 1
+        OTHERS     = 2.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise( 'Error reading program directory' ).
+    ENDIF.
+
+    ls_progdir_new-ldbname = is_progdir-ldbname.
+    ls_progdir_new-dbna    = is_progdir-dbna.
+    ls_progdir_new-dbapl   = is_progdir-dbapl.
+    ls_progdir_new-rload   = is_progdir-rload.
+    ls_progdir_new-fixpt   = is_progdir-fixpt.
+    ls_progdir_new-varcl   = is_progdir-varcl.
+    ls_progdir_new-appl    = is_progdir-appl.
+    ls_progdir_new-rstat   = is_progdir-rstat.
+    ls_progdir_new-sqlx    = is_progdir-sqlx.
+    ls_progdir_new-uccheck = is_progdir-uccheck.
+    ls_progdir_new-clas    = is_progdir-clas.
+
+    CALL FUNCTION 'UPDATE_PROGDIR'
+      EXPORTING
+        i_progdir    = ls_progdir_new
+        i_progname   = ls_progdir_new-name
+        i_state      = ls_progdir_new-state
+      EXCEPTIONS
+        not_executed = 1
+        OTHERS       = 2.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise( 'Error updating program directory' ).
+    ENDIF.
+
+    " function UPDATE_PROGDIR does not update VARCL, so we do it here
+    SELECT SINGLE * FROM progdir INTO ls_progdir_new
+      WHERE name  = ls_progdir_new-name
+        AND state = ls_progdir_new-state.
+    IF sy-subrc = 0 AND is_progdir-varcl <> ls_progdir_new-varcl.
+      UPDATE progdir SET varcl = is_progdir-varcl
+        WHERE name  = ls_progdir_new-name
+          AND state = ls_progdir_new-state.               "#EC CI_SUBRC
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD update_program.
+
+    zcl_abapgit_language=>set_current_language( mv_language ).
+
+    CALL FUNCTION 'RPY_PROGRAM_UPDATE'
+      EXPORTING
+        program_name     = is_progdir-name
+        title_string     = iv_title
+        save_inactive    = 'I'
+      TABLES
+        source_extended  = it_source
+      EXCEPTIONS
+        cancelled        = 1
+        permission_error = 2
+        not_found        = 3
+        OTHERS           = 4.
+
+    IF sy-subrc <> 0.
+      zcl_abapgit_language=>restore_login_language( ).
+
+      IF sy-msgid = 'EU' AND sy-msgno = '510'.
+        zcx_abapgit_exception=>raise( 'User is currently editing program' ).
+      ELSEIF sy-msgid = 'EU' AND sy-msgno = '522'.
+        " for generated table maintenance function groups, the author is set to SAP* instead of the user which
+        " generates the function group. This hits some standard checks, pulling new code again sets the author
+        " to the current user which avoids the check
+        zcx_abapgit_exception=>raise( |Delete function group and pull again, { is_progdir-name } (EU522)| ).
+      ELSE.
+        zcx_abapgit_exception=>raise_t100( ).
+      ENDIF.
+    ENDIF.
+
+    zcl_abapgit_language=>restore_login_language( ).
 
   ENDMETHOD.
 ENDCLASS.
@@ -22841,6 +22981,42 @@ CLASS zcl_abapgit_object_prog IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD deserialize_with_ext.
+
+    " Special treatment for extensions
+    " If the program name exceeds 30 characters it is not a usual ABAP program but might be
+    " some extension, which requires the internal addition EXTENSION TYPE
+    " https://help.sap.com/doc/abapdocu_755_index_htm/7.55/en-US/index.htm?file=abapinsert_report_internal.htm
+    " This e.g. occurs in case of transportable Code Inspector variants (ending with ===VC)
+
+    INSERT REPORT is_progdir-name
+      FROM it_source
+      STATE 'I'
+      EXTENSION TYPE is_progdir-name+30
+      PROGRAM TYPE is_progdir-subc.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise( 'Error from INSERT REPORT .. EXTENSION TYPE' ).
+    ENDIF.
+
+    CALL FUNCTION 'UPDATE_PROGDIR'
+      EXPORTING
+        i_progdir    = is_progdir
+        i_progname   = is_progdir-name
+        i_state      = 'I'
+      EXCEPTIONS
+        not_executed = 1
+        OTHERS       = 2.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise( 'Error updating program directory' ).
+    ENDIF.
+
+    zcl_abapgit_objects_activation=>add(
+      iv_type = 'REPS'
+      iv_name = is_progdir-name ).
+
+  ENDMETHOD.
+
+
   METHOD is_program_locked.
 
     rv_is_program_locked = exists_a_lock_entry_for( iv_lock_object = 'ESRDIRE'
@@ -22972,29 +23148,40 @@ CLASS zcl_abapgit_object_prog IMPLEMENTATION.
 
     io_xml->read( EXPORTING iv_name = 'PROGDIR'
                   CHANGING cg_data  = ls_progdir ).
-    deserialize_program( is_progdir = ls_progdir
-                         it_source  = lt_source
-                         it_tpool   = lt_tpool
-                         iv_package = iv_package ).
 
-    io_xml->read( EXPORTING iv_name = 'DYNPROS'
-                  CHANGING cg_data  = lt_dynpros ).
-    deserialize_dynpros( lt_dynpros ).
+    IF strlen( lv_program_name ) > 30.
 
-    io_xml->read( EXPORTING iv_name = 'CUA'
-                  CHANGING cg_data  = ls_cua ).
-    deserialize_cua( iv_program_name = lv_program_name
-                     is_cua = ls_cua ).
+      " Objects with extension for example transportable Code Inspector variants (ending with ===VC)
+      deserialize_with_ext( is_progdir = ls_progdir
+                            it_source  = lt_source ).
 
-    " Texts deserializing (English)
-    deserialize_textpool( iv_program = lv_program_name
-                          it_tpool   = lt_tpool ).
+    ELSE.
 
-    " Texts deserializing (translations)
-    deserialize_texts( io_xml ).
-    deserialize_lxe_texts( io_xml ).
+      deserialize_program( is_progdir = ls_progdir
+                           it_source  = lt_source
+                           it_tpool   = lt_tpool
+                           iv_package = iv_package ).
 
-    deserialize_longtexts( io_xml ).
+      io_xml->read( EXPORTING iv_name = 'DYNPROS'
+                    CHANGING cg_data  = lt_dynpros ).
+      deserialize_dynpros( lt_dynpros ).
+
+      io_xml->read( EXPORTING iv_name = 'CUA'
+                    CHANGING cg_data  = ls_cua ).
+      deserialize_cua( iv_program_name = lv_program_name
+                       is_cua = ls_cua ).
+
+      " Texts deserializing (English)
+      deserialize_textpool( iv_program = lv_program_name
+                            it_tpool   = lt_tpool ).
+
+      " Texts deserializing (translations)
+      deserialize_texts( io_xml ).
+      deserialize_lxe_texts( io_xml ).
+
+      deserialize_longtexts( io_xml ).
+
+    ENDIF.
 
   ENDMETHOD.
 
@@ -30395,8 +30582,6 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       lx_error TYPE REF TO zcx_abapgit_exception,
       lt_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt.
 
-    CLEAR: gs_inst, gs_packaging, go_dot.
-
     init( ).
 
     TRY.
@@ -30574,7 +30759,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
     ENDIF.
 
     " Confirm message about modification mode (DT, CLM_INFORMATION)
-    " and backup old state
+    " and backup old state (see _restore_messages)
     SELECT * FROM clmcus INTO TABLE gt_clmcus WHERE username = sy-uname ##SUBRC_OK.
     CHECK sy-subrc >= 0. "abaplint
     ls_clmcus-username = sy-uname.
@@ -30602,14 +30787,20 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
   METHOD _deserialize_data.
 
-    DATA li_config TYPE REF TO zif_abapgit_data_config.
+    DATA:
+      li_config  TYPE REF TO zif_abapgit_data_config,
+      li_deser   TYPE REF TO zif_abapgit_data_deserializer,
+      lt_results TYPE zif_abapgit_data_deserializer=>ty_results.
 
     li_config = _find_remote_data_config( ).
 
-    zcl_abapgit_data_factory=>get_deserializer( )->deserialize(
-      ii_config  = li_config
-      it_files   = gt_remote
-      iv_persist = abap_false ). "<<no persisting, just test for now
+    li_deser = zcl_abapgit_data_factory=>get_deserializer( ).
+
+    lt_results = li_deser->deserialize(
+      ii_config = li_config
+      it_files  = gt_remote ).
+
+    li_deser->actualize( lt_results ).
 
   ENDMETHOD.
 
@@ -30962,22 +31153,15 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
   METHOD _transport.
 
-    DATA lv_trkorr TYPE trkorr.
-
     CHECK gs_inst-pack(1) <> '$'.
 
     CASE iv_enum_transport.
       WHEN ty_enum_transport-existing.
         gs_inst-transport = iv_transport.
       WHEN ty_enum_transport-prompt.
-        TRY.
-            lv_trkorr = zcl_abapgit_default_transport=>get_instance( )->get( )-ordernum.
-          CATCH zcx_abapgit_exception ##NO_HANDLER.
-        ENDTRY.
-
         gs_inst-transport = zcl_abapinst_screen=>f4_transport(
           iv_package   = gs_inst-pack
-          iv_transport = lv_trkorr ).
+          iv_transport = _transport_get( ) ).
 
         IF gs_inst-transport IS INITIAL.
           zcx_abapinst_exception=>raise( 'No transport selected. Installation cancelled' ).
@@ -31059,6 +31243,40 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
         ENDIF.
       ENDIF.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD _transport_get.
+
+    DATA ls_request TYPE trwbo_request.
+
+    " Get previously used transport
+    rv_trkorr = go_db->select( iv_name = gs_inst-name
+                               iv_pack = gs_inst-pack )-transport.
+
+    IF rv_trkorr IS NOT INITIAL.
+      " Check if transport is still open
+      CALL FUNCTION 'TR_READ_REQUEST'
+        EXPORTING
+          iv_read_attributes = 'X'
+          iv_trkorr          = rv_trkorr
+        CHANGING
+          cs_request         = ls_request
+        EXCEPTIONS
+          error_occured      = 1
+          no_authorization   = 2
+          OTHERS             = 3.
+      IF sy-subrc = 0 AND ls_request-h-trstatus = 'D'.
+        RETURN.
+      ENDIF.
+    ENDIF.
+
+    " Get default transport
+    TRY.
+        rv_trkorr = zcl_abapgit_default_transport=>get_instance( )->get( )-ordernum.
+      CATCH zcx_abapgit_exception ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 
