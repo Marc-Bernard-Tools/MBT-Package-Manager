@@ -928,12 +928,10 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
           lv_update = lo_reg_entry->get_value( c_reg-key_update_time ).
           IF iv_internal = abap_true.
             rv_result = lv_update.
+          ELSEIF lv_update IS INITIAL.
+            rv_result = 'never'.
           ELSE.
-            IF lv_update IS INITIAL.
-              rv_result = 'never'.
-            ELSE.
-              rv_result = /mbtools/cl_datetime=>human_time_diff( lv_update ) && ' ago'.
-            ENDIF.
+            rv_result = /mbtools/cl_datetime=>human_time_diff( lv_update ) && ' ago'.
           ENDIF.
         ELSEIF iv_internal = abap_false.
           rv_result = 'never'.
