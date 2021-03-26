@@ -1147,6 +1147,7 @@ CLASS zcl_abapgit_oo_factory DEFINITION DEFERRED.
 CLASS zcl_abapgit_oo_serializer DEFINITION DEFERRED.
 CLASS zcl_abapgit_path DEFINITION DEFERRED.
 CLASS zcl_abapgit_progress DEFINITION DEFERRED.
+CLASS zcl_abapgit_requirement_helper DEFINITION DEFERRED.
 CLASS zcl_abapgit_sap_package DEFINITION DEFERRED.
 CLASS zcl_abapgit_skip_objects DEFINITION DEFERRED.
 CLASS zcl_abapgit_sotr_handler DEFINITION DEFERRED.
@@ -1624,6 +1625,7 @@ INTERFACE zif_abapgit_definitions
       db_display                    TYPE string VALUE 'db_display',
       db_edit                       TYPE string VALUE 'db_edit',
       bg_update                     TYPE string VALUE 'bg_update',
+      go_back                       TYPE string VALUE 'go_back',
       go_explore                    TYPE string VALUE 'go_explore',
       go_repo                       TYPE string VALUE 'go_repo',
       go_db                         TYPE string VALUE 'go_db',
@@ -2109,6 +2111,7 @@ INTERFACE zif_abapgit_dot_abapgit .
       requirements    TYPE ty_requirement_tt,
       packaging       TYPE ty_packaging,
     END OF ty_dot_abapgit .
+
 
   CONSTANTS:
     BEGIN OF c_folder_logic,
@@ -2853,27 +2856,43 @@ INTERFACE zif_abapgit_exit
   TYPES:
     ty_ci_repos TYPE TABLE OF ty_ci_repo .
 
-  METHODS change_local_host
+  METHODS adjust_display_commit_url
+    IMPORTING
+      !iv_repo_url    TYPE csequence
+      !iv_repo_name   TYPE csequence
+      !iv_repo_key    TYPE csequence
+      !iv_commit_hash TYPE zif_abapgit_definitions=>ty_sha1
     CHANGING
-      !ct_hosts TYPE ty_icm_sinfo2_tt .
+      !cv_display_url TYPE csequence
+    RAISING
+      zcx_abapgit_exception .
   METHODS allow_sap_objects
     RETURNING
       VALUE(rv_allowed) TYPE abap_bool .
-  METHODS change_proxy_url
-    IMPORTING
-      !iv_repo_url  TYPE csequence
+  METHODS change_local_host
     CHANGING
-      !cv_proxy_url TYPE string .
-  METHODS change_proxy_port
-    IMPORTING
-      !iv_repo_url   TYPE csequence
-    CHANGING
-      !cv_proxy_port TYPE string .
+      !ct_hosts TYPE ty_icm_sinfo2_tt .
   METHODS change_proxy_authentication
     IMPORTING
       !iv_repo_url             TYPE csequence
     CHANGING
       !cv_proxy_authentication TYPE abap_bool .
+  METHODS change_proxy_port
+    IMPORTING
+      !iv_repo_url   TYPE csequence
+    CHANGING
+      !cv_proxy_port TYPE string .
+  METHODS change_proxy_url
+    IMPORTING
+      !iv_repo_url  TYPE csequence
+    CHANGING
+      !cv_proxy_url TYPE string .
+  METHODS change_tadir
+    IMPORTING
+      !iv_package TYPE devclass
+      !ii_log     TYPE REF TO zif_abapgit_log
+    CHANGING
+      !ct_tadir   TYPE zif_abapgit_definitions=>ty_tadir_tt .
   METHODS create_http_client
     IMPORTING
       !iv_url          TYPE string
@@ -2881,19 +2900,6 @@ INTERFACE zif_abapgit_exit
       VALUE(ri_client) TYPE REF TO if_http_client
     RAISING
       zcx_abapgit_exception .
-  METHODS http_client
-    IMPORTING
-      !iv_url    TYPE string
-      !ii_client TYPE REF TO if_http_client .
-  METHODS change_tadir
-    IMPORTING
-      !iv_package TYPE devclass
-      !ii_log     TYPE REF TO zif_abapgit_log
-    CHANGING
-      !ct_tadir   TYPE zif_abapgit_definitions=>ty_tadir_tt .
-  METHODS get_ssl_id
-    RETURNING
-      VALUE(rv_ssl_id) TYPE ssfapplssl .
   METHODS custom_serialize_abap_clif
     IMPORTING
       !is_class_key    TYPE seoclskey
@@ -2910,22 +2916,19 @@ INTERFACE zif_abapgit_exit
       !iv_object   TYPE tadir-object
     CHANGING
       !ct_ci_repos TYPE ty_ci_repos .
-  METHODS adjust_display_commit_url
+  METHODS get_ssl_id
+    RETURNING
+      VALUE(rv_ssl_id) TYPE ssfapplssl .
+  METHODS http_client
     IMPORTING
-      !iv_repo_url    TYPE csequence
-      !iv_repo_name   TYPE csequence
-      !iv_repo_key    TYPE csequence
-      !iv_commit_hash TYPE zif_abapgit_definitions=>ty_sha1
-    CHANGING
-      !cv_display_url TYPE csequence
-    RAISING
-      zcx_abapgit_exception .
+      !iv_url    TYPE string
+      !ii_client TYPE REF TO if_http_client .
   METHODS pre_calculate_repo_status
     IMPORTING
-      is_repo_meta TYPE zif_abapgit_persistence=>ty_repo
+      !is_repo_meta TYPE zif_abapgit_persistence=>ty_repo
     CHANGING
-      !ct_local  TYPE zif_abapgit_definitions=>ty_files_item_tt
-      !ct_remote TYPE zif_abapgit_definitions=>ty_files_tt
+      !ct_local     TYPE zif_abapgit_definitions=>ty_files_item_tt
+      !ct_remote    TYPE zif_abapgit_definitions=>ty_files_tt
     RAISING
       zcx_abapgit_exception .
 ENDINTERFACE.
@@ -2978,7 +2981,7 @@ INTERFACE zif_abapgit_version
    .
 
   CONSTANTS gc_xml_version TYPE string VALUE 'v1.0.0' ##NO_TEXT.
-  CONSTANTS gc_abap_version TYPE string VALUE '1.106.0' ##NO_TEXT.
+  CONSTANTS gc_abap_version TYPE string VALUE '1.107.0' ##NO_TEXT.
 
 ENDINTERFACE.
 CLASS zcl_abapgit_adt_link DEFINITION
@@ -3559,9 +3562,14 @@ CLASS zcl_abapgit_environment DEFINITION
     INTERFACES zif_abapgit_environment .
   PROTECTED SECTION.
   PRIVATE SECTION.
+
     DATA mv_cloud TYPE abap_bool VALUE abap_undefined ##NO_TEXT.
     DATA mv_is_merged TYPE abap_bool VALUE abap_undefined ##NO_TEXT.
-    DATA mv_client_modifiable TYPE abap_bool VALUE abap_undefined ##NO_TEXT.
+    DATA mv_modifiable TYPE abap_bool VALUE abap_undefined ##NO_TEXT.
+
+    METHODS is_system_changes_allowed
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool .
 ENDCLASS.
 CLASS zcl_abapgit_exit DEFINITION
 
@@ -5954,8 +5962,6 @@ CLASS zcl_abapgit_oo_interface DEFINITION
     METHODS zif_abapgit_oo_object_fnc~deserialize_source
         REDEFINITION .
   PROTECTED SECTION.
-    TYPES: ty_char1 TYPE c LENGTH 1,
-           ty_char2 TYPE c LENGTH 2.
   PRIVATE SECTION.
 
     CLASS-METHODS update_report
@@ -6138,6 +6144,59 @@ CLASS zcl_abapgit_progress DEFINITION
 
     DATA mv_cv_time_next TYPE sy-uzeit .
     DATA mv_cv_datum_next TYPE sy-datum .
+ENDCLASS.
+CLASS zcl_abapgit_requirement_helper DEFINITION
+
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+
+    TYPES:
+      BEGIN OF ty_requirement_status,
+        met               TYPE abap_bool,
+        component         TYPE dlvunit,
+        description       TYPE cvers_sdu-desc_text,
+        installed_release TYPE saprelease,
+        installed_patch   TYPE sappatchlv,
+        required_release  TYPE saprelease,
+        required_patch    TYPE sappatchlv,
+      END OF ty_requirement_status .
+    TYPES:
+      ty_requirement_status_tt TYPE STANDARD TABLE OF ty_requirement_status WITH DEFAULT KEY .
+
+    CLASS-METHODS requirements_popup
+      IMPORTING
+        !it_requirements TYPE zif_abapgit_dot_abapgit=>ty_requirement_tt
+      RAISING
+        zcx_abapgit_exception .
+    CLASS-METHODS is_requirements_met
+      IMPORTING
+        !it_requirements TYPE zif_abapgit_dot_abapgit=>ty_requirement_tt
+      RETURNING
+        VALUE(rv_status) TYPE zif_abapgit_definitions=>ty_yes_no
+      RAISING
+        zcx_abapgit_exception .
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+
+    CLASS-METHODS show_requirement_popup
+      IMPORTING
+        !it_requirements TYPE ty_requirement_status_tt
+      RAISING
+        zcx_abapgit_exception .
+    CLASS-METHODS get_requirement_met_status
+      IMPORTING
+        !it_requirements TYPE zif_abapgit_dot_abapgit=>ty_requirement_tt
+      RETURNING
+        VALUE(rt_status) TYPE ty_requirement_status_tt
+      RAISING
+        zcx_abapgit_exception .
+    CLASS-METHODS version_greater_or_equal
+      IMPORTING
+        !is_status     TYPE ty_requirement_status
+      RETURNING
+        VALUE(rv_true) TYPE abap_bool .
 ENDCLASS.
 CLASS zcl_abapgit_sap_package DEFINITION
      CREATE PRIVATE
@@ -6812,15 +6871,6 @@ CLASS zcl_abapinst_installer DEFINITION
         !iv_pack TYPE zif_abapinst_definitions=>ty_pack
       RAISING
         zcx_abapinst_exception .
-    CLASS-METHODS check
-      IMPORTING
-        !iv_name         TYPE zif_abapinst_definitions=>ty_name OPTIONAL
-        !iv_pack         TYPE zif_abapinst_definitions=>ty_pack OPTIONAL
-        !is_sem_version  TYPE zif_abapinst_definitions=>ty_version OPTIONAL
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool
-      RAISING
-        zcx_abapinst_exception .
     CLASS-METHODS list
       RAISING
         zcx_abapinst_exception .
@@ -6838,6 +6888,7 @@ CLASS zcl_abapinst_installer DEFINITION
     CLASS-DATA go_dot TYPE REF TO zcl_abapgit_dot_abapgit .
     CLASS-DATA gi_log TYPE REF TO zif_abapgit_log .
     CLASS-DATA gs_packaging TYPE zif_abapgit_dot_abapgit=>ty_packaging .
+    CLASS-DATA gt_requirements TYPE zif_abapgit_dot_abapgit=>ty_requirement_tt .
     CLASS-DATA gv_name TYPE string .
     CLASS-DATA gv_names TYPE string .
     CLASS-DATA:
@@ -6846,6 +6897,9 @@ CLASS zcl_abapinst_installer DEFINITION
     CONSTANTS c_warning TYPE sy-msgty VALUE 'W' ##NO_TEXT.
     CONSTANTS c_error TYPE sy-msgty VALUE 'E' ##NO_TEXT.
 
+    CLASS-METHODS _system_check
+      RAISING
+        zcx_abapinst_exception .
     CLASS-METHODS _clear .
     CLASS-METHODS _nothing_found
       IMPORTING
@@ -6879,6 +6933,19 @@ CLASS zcl_abapinst_installer DEFINITION
     CLASS-METHODS _check
       IMPORTING
         !iv_force TYPE abap_bool DEFAULT abap_false
+      RAISING
+        zcx_abapinst_exception .
+    CLASS-METHODS _check_version
+      IMPORTING
+        !is_new_version       TYPE zif_abapinst_definitions=>ty_version
+        !is_installed_version TYPE zif_abapinst_definitions=>ty_version
+        !iv_force             TYPE abap_bool DEFAULT abap_false
+      RAISING
+        zcx_abapinst_exception .
+    CLASS-METHODS _check_requirements
+      RAISING
+        zcx_abapinst_exception .
+    CLASS-METHODS _check_dependencies
       RAISING
         zcx_abapinst_exception .
     CLASS-METHODS _folder_logic
@@ -6917,8 +6984,10 @@ CLASS zcl_abapinst_installer DEFINITION
         zcx_abapinst_exception .
     CLASS-METHODS _load
       IMPORTING
-        !iv_name TYPE zif_abapinst_definitions=>ty_name
-        !iv_pack TYPE zif_abapinst_definitions=>ty_pack
+        !iv_name       TYPE zif_abapinst_definitions=>ty_name OPTIONAL
+        !iv_pack       TYPE zif_abapinst_definitions=>ty_pack OPTIONAL
+      RETURNING
+        VALUE(rs_inst) TYPE zif_abapinst_definitions=>ty_inst
       RAISING
         zcx_abapinst_exception .
     CLASS-METHODS _delete
@@ -7208,8 +7277,8 @@ CLASS zcl_abapinst_persistence DEFINITION
         VALUE(ro_db) TYPE REF TO zcl_abapinst_persistence .
     METHODS select
       IMPORTING
-        !iv_name       TYPE zif_abapinst_definitions=>ty_name OPTIONAL
-        !iv_pack       TYPE zif_abapinst_definitions=>ty_pack OPTIONAL
+        !iv_name       TYPE zif_abapinst_definitions=>ty_name
+        !iv_pack       TYPE zif_abapinst_definitions=>ty_pack
       RETURNING
         VALUE(rs_inst) TYPE zif_abapinst_definitions=>ty_inst
       RAISING
@@ -7218,7 +7287,7 @@ CLASS zcl_abapinst_persistence DEFINITION
       IMPORTING
         !is_inst TYPE zif_abapinst_definitions=>ty_inst
       RAISING
-        zcx_abapinst_exception ##SHADOW[INSERT].
+        zcx_abapinst_exception  ##SHADOW[INSERT].
     METHODS update
       IMPORTING
         !is_inst TYPE zif_abapinst_definitions=>ty_inst
@@ -10767,6 +10836,59 @@ ENDCLASS.
 CLASS zcl_abapgit_environment IMPLEMENTATION.
 
 
+  METHOD is_system_changes_allowed.
+
+    DATA:
+      lv_systemedit         TYPE tadir-edtflag,
+      lv_sys_cliinddep_edit TYPE t000-ccnocliind,
+      lv_is_shadow          TYPE abap_bool,
+      lv_component          TYPE uvers-component,
+      ls_upginfo            TYPE uvers,
+      lv_is_upgrade         TYPE abap_bool.
+
+    CALL FUNCTION 'TR_SYS_PARAMS'
+      IMPORTING
+        systemedit         = lv_systemedit
+        sys_cliinddep_edit = lv_sys_cliinddep_edit
+      EXCEPTIONS
+        no_systemname      = 1
+        no_systemtype      = 2
+        OTHERS             = 3.
+    IF sy-subrc <> 0.
+      " Assume system can't be changed
+      RETURN.
+    ENDIF.
+
+    CALL FUNCTION 'UPG_IS_SHADOW_SYSTEM'
+      IMPORTING
+        ev_shadow = lv_is_shadow.
+
+    CALL FUNCTION 'UPG_GET_ACTIVE_COMP_UPGRADE'
+      EXPORTING
+        iv_component = 'SAP_BASIS'
+        iv_upgtype   = 'A'
+        iv_buffered  = abap_false
+      IMPORTING
+        ev_upginfo   = ls_upginfo
+      EXCEPTIONS
+        OTHERS       = 4.
+    IF sy-subrc = 0 AND ls_upginfo-putstatus NA 'ITU'.
+      lv_is_upgrade = abap_true.
+    ENDIF.
+
+    " SAP system has status 'not modifiable' (TK 102)
+    " Changes to repository objects are not permitted in this client (TK 729)
+    " Shadow system
+    " Running upgrade
+    rv_result = boolc(
+      lv_systemedit <> 'N' AND
+      lv_sys_cliinddep_edit NA '23' AND
+      lv_is_shadow <> abap_true AND
+      lv_is_upgrade <> abap_true ).
+
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_environment~compare_with_inactive.
     rv_result = zif_abapgit_environment~is_sap_cloud_platform( ).
   ENDMETHOD.
@@ -10790,19 +10912,10 @@ CLASS zcl_abapgit_environment IMPLEMENTATION.
 
 
   METHOD zif_abapgit_environment~is_repo_object_changes_allowed.
-    DATA lv_ind TYPE t000-ccnocliind.
-
-    IF mv_client_modifiable = abap_undefined.
-      SELECT SINGLE ccnocliind FROM t000 INTO lv_ind
-             WHERE mandt = sy-mandt.
-      IF sy-subrc = 0
-          AND ( lv_ind = ' ' OR lv_ind = '1' ). "check changes allowed
-        mv_client_modifiable = abap_true.
-      ELSE.
-        mv_client_modifiable = abap_false.
-      ENDIF.
+    IF mv_modifiable = abap_undefined.
+      mv_modifiable = is_system_changes_allowed( ).
     ENDIF.
-    rv_result = mv_client_modifiable.
+    rv_result = mv_modifiable.
   ENDMETHOD.
 
 
@@ -11042,6 +11155,8 @@ CLASS ZCL_ABAPGIT_EXIT IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
+
 ENDCLASS.
 
 
@@ -12506,10 +12621,11 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
 
       CALL FUNCTION 'DD_MASS_ACT_C3'
         EXPORTING
-          ddmode         = 'O'
-          medium         = 'T' " transport order
-          device         = 'T' " saves to table DDRPH?
-          version        = 'M' " activate newest
+          ddmode         = 'O'         " activate changes in Original System
+          frcact         = abap_true   " force Activation
+          medium         = 'T'         " transport order
+          device         = 'T'         " saves to table DDRPH?
+          version        = 'M'         " activate newest version
           logname        = lv_logname
           write_log      = abap_true
           log_head_tail  = abap_true
@@ -14351,7 +14467,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
         OTHERS            = 5.
     IF sy-subrc = 3.
 
-      " For cases that standard function does not handle (like FUGR).
+      " For cases that standard function does not handle (like FUGR),
       " we save active and inactive version of source with the given PROGRAM TYPE.
       " Without the active version, the code will not be visible in case of activation errors.
       INSERT REPORT is_progdir-name
@@ -18356,6 +18472,7 @@ CLASS zcl_abapgit_object_enhc IMPLEMENTATION.
           lt_composite_childs TYPE enhcompositename_it,
           lt_enh_childs       TYPE enhname_it,
           lv_longtext_id      TYPE enhdocuobject,
+          lv_vers             TYPE enhcompheader-version,
           lv_shorttext        TYPE string.
 
     FIELD-SYMBOLS: <lv_composite_child> TYPE enhcompositename,
@@ -18372,6 +18489,24 @@ CLASS zcl_abapgit_object_enhc IMPLEMENTATION.
                   CHANGING  cg_data = lt_enh_childs ).
     io_xml->read( EXPORTING iv_name = 'LONGTEXT_ID'
                   CHANGING  cg_data = lv_longtext_id ).
+
+    SELECT SINGLE version FROM enhcompheader INTO lv_vers WHERE enhcomposite = ms_item-obj_name.
+    IF sy-subrc = 0.
+      " If object exists already, then set TADIR entry to deleted
+      " otherwise create_enhancement_composite will fail
+      CALL FUNCTION 'TR_TADIR_INTERFACE'
+        EXPORTING
+          wi_test_modus     = abap_false
+          wi_tadir_pgmid    = 'R3TR'
+          wi_tadir_object   = ms_item-obj_type
+          wi_tadir_obj_name = ms_item-obj_name
+          iv_delflag        = abap_true
+        EXCEPTIONS
+          OTHERS            = 1.
+      IF sy-subrc <> 0.
+        zcx_abapgit_exception=>raise_t100( ).
+      ENDIF.
+    ENDIF.
 
     TRY.
         cl_enh_factory=>create_enhancement_composite(
@@ -19600,7 +19735,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_ENHO_CLIF IMPLEMENTATION.
+CLASS zcl_abapgit_object_enho_clif IMPLEMENTATION.
 
 
   METHOD deserialize.
@@ -19707,6 +19842,7 @@ CLASS ZCL_ABAPGIT_OBJECT_ENHO_CLIF IMPLEMENTATION.
                    <ls_type>        LIKE LINE OF lt_tab_types,
                    <ls_meth>        LIKE LINE OF lt_tab_methods,
                    <ls_param>       LIKE LINE OF <ls_meth>-meth_param,
+                   <ls_exc>         LIKE LINE OF <ls_meth>-meth_exc,
                    <ls_event>       LIKE LINE OF lt_tab_eventdata,
                    <ls_event_param> LIKE LINE OF <ls_event>-event_param.
 
@@ -19751,6 +19887,13 @@ CLASS ZCL_ABAPGIT_OBJECT_ENHO_CLIF IMPLEMENTATION.
                <ls_param>-changedby,
                <ls_param>-changedon,
                <ls_param>-descript_id.
+      ENDLOOP.
+      LOOP AT <ls_meth>-meth_exc ASSIGNING <ls_exc>.
+        CLEAR: <ls_exc>-author,
+               <ls_exc>-createdon,
+               <ls_exc>-changedby,
+               <ls_exc>-changedon,
+               <ls_exc>-descript_id.
       ENDLOOP.
     ENDLOOP.
 
@@ -23509,7 +23652,8 @@ CLASS zcl_abapgit_object_sots IMPLEMENTATION.
       WHEN 3.
         zcx_abapgit_exception=>raise( |Enter a permitted object type| ).
       WHEN 4.
-        zcx_abapgit_exception=>raise( |The concept will be created in the non-original system| ).
+        "The concept will be created in the non-original system (not an error)
+        RETURN.
       WHEN 5.
         zcx_abapgit_exception=>raise( |Invalid alias| ).
       WHEN 6.
@@ -27445,6 +27589,196 @@ ENDCLASS.
 
 
 
+CLASS ZCL_ABAPGIT_REQUIREMENT_HELPER IMPLEMENTATION.
+
+
+  METHOD get_requirement_met_status.
+
+    DATA: lt_installed TYPE STANDARD TABLE OF cvers_sdu.
+
+    FIELD-SYMBOLS: <ls_requirement>    TYPE zif_abapgit_dot_abapgit=>ty_requirement,
+                   <ls_status>         TYPE ty_requirement_status,
+                   <ls_installed_comp> TYPE cvers_sdu.
+
+
+    CALL FUNCTION 'DELIVERY_GET_INSTALLED_COMPS'
+      TABLES
+        tt_comptab       = lt_installed
+      EXCEPTIONS
+        no_release_found = 1
+        OTHERS           = 2.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise( |Error from DELIVERY_GET_INSTALLED_COMPS { sy-subrc }| ).
+    ENDIF.
+
+    LOOP AT it_requirements ASSIGNING <ls_requirement>.
+      APPEND INITIAL LINE TO rt_status ASSIGNING <ls_status>.
+      <ls_status>-component = <ls_requirement>-component.
+      <ls_status>-required_release = <ls_requirement>-min_release.
+      <ls_status>-required_patch = <ls_requirement>-min_patch.
+
+      READ TABLE lt_installed WITH KEY component = <ls_requirement>-component
+                              ASSIGNING <ls_installed_comp>.
+      IF sy-subrc = 0.
+        " Component is installed, requirement is met if the installed version is greater or equal
+        " to the required one.
+        <ls_status>-installed_release = <ls_installed_comp>-release.
+        <ls_status>-installed_patch = <ls_installed_comp>-extrelease.
+        <ls_status>-description = <ls_installed_comp>-desc_text.
+        <ls_status>-met = version_greater_or_equal( <ls_status> ).
+      ELSE.
+        " Component is not installed at all
+        <ls_status>-met = abap_false.
+      ENDIF.
+
+      UNASSIGN <ls_installed_comp>.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD is_requirements_met.
+
+    DATA: lt_met_status TYPE ty_requirement_status_tt.
+
+
+    lt_met_status = get_requirement_met_status( it_requirements ).
+
+    READ TABLE lt_met_status TRANSPORTING NO FIELDS WITH KEY met = abap_false.
+    IF sy-subrc = 0.
+      rv_status = zif_abapgit_definitions=>gc_no.
+    ELSE.
+      rv_status = zif_abapgit_definitions=>gc_yes.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD requirements_popup.
+
+    DATA: lt_met_status TYPE ty_requirement_status_tt,
+          lv_answer     TYPE c LENGTH 1.
+
+
+    lt_met_status = get_requirement_met_status( it_requirements ).
+
+    show_requirement_popup( lt_met_status ).
+
+    CALL FUNCTION 'POPUP_TO_CONFIRM'
+      EXPORTING
+        text_question = 'The project has unmet requirements. Do you want to continue?'
+      IMPORTING
+        answer        = lv_answer.
+    IF lv_answer <> '1'.
+      zcx_abapgit_exception=>raise( 'Cancelling because of unmet requirements.' ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD show_requirement_popup.
+
+    TYPES: BEGIN OF ty_color_line,
+             color TYPE lvc_t_scol.
+             INCLUDE TYPE ty_requirement_status.
+    TYPES: END OF ty_color_line.
+
+    TYPES: ty_color_tab TYPE STANDARD TABLE OF ty_color_line WITH DEFAULT KEY.
+
+    DATA: lo_alv            TYPE REF TO cl_salv_table,
+          lo_column         TYPE REF TO cl_salv_column,
+          lo_columns        TYPE REF TO cl_salv_columns_table,
+          lt_color_table    TYPE ty_color_tab,
+          lt_color_negative TYPE lvc_t_scol,
+          lt_color_positive TYPE lvc_t_scol,
+          ls_color          TYPE lvc_s_scol,
+          lx_ex             TYPE REF TO cx_root.
+
+    FIELD-SYMBOLS: <ls_line>        TYPE ty_color_line,
+                   <ls_requirement> LIKE LINE OF it_requirements.
+
+
+    ls_color-color-col = col_negative.
+    APPEND ls_color TO lt_color_negative.
+
+    ls_color-color-col = col_positive.
+    APPEND ls_color TO lt_color_positive.
+
+    CLEAR ls_color.
+
+    LOOP AT it_requirements ASSIGNING <ls_requirement>.
+      APPEND INITIAL LINE TO lt_color_table ASSIGNING <ls_line>.
+      MOVE-CORRESPONDING <ls_requirement> TO <ls_line>.
+    ENDLOOP.
+
+    LOOP AT lt_color_table ASSIGNING <ls_line>.
+      IF <ls_line>-met = abap_false.
+        <ls_line>-color = lt_color_negative.
+      ELSE.
+        <ls_line>-color = lt_color_positive.
+      ENDIF.
+    ENDLOOP.
+    UNASSIGN <ls_line>.
+
+    TRY.
+        cl_salv_table=>factory( IMPORTING r_salv_table = lo_alv
+                                CHANGING t_table       = lt_color_table ).
+
+        lo_columns = lo_alv->get_columns( ).
+        lo_columns->get_column( 'MET' )->set_short_text( 'Met' ).
+        lo_columns->set_color_column( 'COLOR' ).
+        lo_columns->set_optimize( ).
+
+        lo_column = lo_columns->get_column( 'REQUIRED_RELEASE' ).
+        lo_column->set_short_text( 'Req. Rel.' ).
+
+        lo_column = lo_columns->get_column( 'REQUIRED_PATCH' ).
+        lo_column->set_short_text( 'Req. SP L.' ).
+
+        lo_alv->set_screen_popup( start_column = 30
+                                  end_column   = 100
+                                  start_line   = 10
+                                  end_line     = 20 ).
+        lo_alv->get_display_settings( )->set_list_header( 'Requirements' ).
+        lo_alv->display( ).
+
+      CATCH cx_salv_msg cx_salv_not_found cx_salv_data_error INTO lx_ex.
+        zcx_abapgit_exception=>raise( lx_ex->get_text( ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD version_greater_or_equal.
+
+    DATA: lv_number TYPE n LENGTH 4 ##NEEDED.
+
+    TRY.
+        MOVE EXACT: is_status-installed_release TO lv_number,
+                    is_status-installed_patch   TO lv_number,
+                    is_status-required_release  TO lv_number,
+                    is_status-required_patch    TO lv_number.
+      CATCH cx_sy_conversion_error.
+        " Cannot compare by number, assume requirement not fullfilled (user can force install
+        " anyways if this was an error)
+        rv_true = abap_false.
+        RETURN.
+    ENDTRY.
+
+    " Versions are comparable by number, compare release and if necessary patch level
+    IF is_status-installed_release > is_status-required_release
+        OR ( is_status-installed_release = is_status-required_release
+        AND ( is_status-required_patch IS INITIAL OR
+        is_status-installed_patch >= is_status-required_patch ) ).
+
+      rv_true = abap_true.
+    ENDIF.
+
+  ENDMETHOD.
+ENDCLASS.
+
+
+
 CLASS zcl_abapgit_sap_package IMPLEMENTATION.
 
 
@@ -30242,43 +30576,6 @@ ENDCLASS.
 CLASS zcl_abapinst_installer IMPLEMENTATION.
 
 
-  METHOD check.
-
-    " true:  package already installed (in same or newer version)
-    " false: package not installed (or in older version that can be upgraded)
-
-    DATA:
-      ls_inst TYPE zif_abapinst_definitions=>ty_inst,
-      lv_comp TYPE i.
-
-    init( ).
-
-    IF iv_name IS SUPPLIED AND iv_pack IS SUPPLIED.
-      ls_inst = go_db->select( iv_name = iv_name
-                               iv_pack = iv_pack ).
-    ELSEIF iv_name IS SUPPLIED.
-      ls_inst = go_db->select( iv_name = iv_name ).
-    ELSE.
-      ls_inst = go_db->select( iv_pack = iv_pack ).
-    ENDIF.
-
-    IF ls_inst IS INITIAL.
-      RETURN. " false
-    ENDIF.
-
-    " Version comparison
-    IF is_sem_version IS SUPPLIED.
-      lv_comp = zcl_abapgit_version=>compare(
-        is_a = is_sem_version         " new version
-        is_b = ls_inst-sem_version ). " installed version
-      IF lv_comp <= 0.
-        rv_result = abap_true.
-      ENDIF.
-    ENDIF.
-
-  ENDMETHOD.
-
-
   METHOD f4.
 
     DATA:
@@ -30354,9 +30651,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
         IF lv_answer <> '1'.
           CLEAR rs_inst.
         ENDIF.
-
-      CATCH zcx_abapinst_exception.
-        RETURN.
+      CATCH zcx_abapinst_exception ##NO_HANDLER.
     ENDTRY.
 
   ENDMETHOD.
@@ -30393,6 +30688,8 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
         _clear( ).
 
         _log_start( ).
+
+        _system_check( ).
 
         _files(
           iv_enum_zip       = iv_enum_zip
@@ -30589,7 +30886,9 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
         _log_start( ).
 
-        _load(
+        _system_check( ).
+
+        gs_inst = _load(
           iv_name = iv_name
           iv_pack = iv_pack ).
 
@@ -30641,35 +30940,80 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
   METHOD _check.
 
+    DATA ls_inst TYPE zif_abapinst_definitions=>ty_inst.
+
+    ls_inst = _load(
+      iv_name = gs_inst-name
+      iv_pack = gs_inst-pack ).
+
+    IF ls_inst IS INITIAL.
+
+      ls_inst = _load( iv_pack = gs_inst-pack ).
+
+      IF ls_inst IS NOT INITIAL.
+        zcx_abapinst_exception=>raise( |SAP package { gs_inst-pack } already contains a different { gv_name }| ).
+      ENDIF.
+
+    ELSE.
+
+      _check_version(
+        is_new_version       = gs_inst-sem_version
+        is_installed_version = ls_inst-sem_version
+        iv_force             = iv_force ).
+
+    ENDIF.
+
+    _check_requirements( ).
+
+    _check_dependencies( ).
+
+  ENDMETHOD.
+
+
+  METHOD _check_dependencies.
+
     DATA:
-      lv_msg      TYPE string,
-      lv_question TYPE string,
-      lo_popup    TYPE REF TO zcl_abapinst_popups,
-      lv_answer   TYPE c LENGTH 1.
+      ls_deps LIKE LINE OF gs_packaging-dependencies,
+      ls_inst TYPE zif_abapinst_definitions=>ty_inst,
+      lv_comp TYPE i,
+      lv_msg  TYPE string.
 
-    IF check( iv_name        = gs_inst-name
-              iv_pack        = gs_inst-pack
-              is_sem_version = gs_inst-sem_version ) = abap_true.
+    LOOP AT gs_packaging-dependencies INTO ls_deps.
 
-      lv_msg = |{ gv_name } is already installed (with same or newer version)|.
-      lv_question = lv_msg  && '. Do you want to overwrite it?'.
+      ls_inst = _load( iv_name = |{ ls_deps-name }| ).
 
-      IF iv_force IS INITIAL.
-        CREATE OBJECT lo_popup.
-
-        lv_answer = lo_popup->popup_to_confirm(
-          iv_title          = sy-title
-          iv_question       = lv_question
-          iv_default_button = '2' ).
-
-        IF lv_answer <> '1'.
+      IF ls_inst IS INITIAL.
+        zcx_abapinst_exception=>raise( |Package { ls_deps-name } is a dependency and must be installed, first| ).
+      ELSE.
+        lv_comp = zcl_abapgit_version=>compare(
+          is_a = ls_deps-sem_version
+          is_b = ls_inst-sem_version ).
+        IF lv_comp > 0.
+          lv_msg = |Package { ls_deps-name } is a dependency and must be updated to { ls_deps-version }, first|.
           zcx_abapinst_exception=>raise( lv_msg ).
         ENDIF.
       ENDIF.
 
-    ELSEIF check( iv_pack = gs_inst-pack ) = abap_true.
-      zcx_abapinst_exception=>raise( |SAP package { gs_inst-pack } already contains a different { gv_name }| ).
-    ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD _check_requirements.
+
+    DATA:
+      lv_met   TYPE c LENGTH 1,
+      lx_error TYPE REF TO zcx_abapgit_exception.
+
+    TRY.
+        lv_met = zcl_abapgit_requirement_helper=>is_requirements_met( gt_requirements ).
+
+        IF lv_met = zif_abapgit_definitions=>gc_no.
+          zcx_abapinst_exception=>raise( |Minimum requirements for software components have not been met| ).
+        ENDIF.
+      CATCH zcx_abapgit_exception INTO lx_error.
+        zcx_abapinst_exception=>raise( lx_error->get_text( ) ).
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -30692,6 +31036,41 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       lv_msg = `Some objects could not be uninstalled yet. Release the transport and run the uninstall again` &&
                ` to remove the remaining objects.`.
       MESSAGE lv_msg TYPE 'I'.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD _check_version.
+
+    DATA:
+      lv_comp     TYPE i,
+      lv_msg      TYPE string,
+      lv_question TYPE string,
+      lo_popup    TYPE REF TO zcl_abapinst_popups,
+      lv_answer   TYPE c LENGTH 1.
+
+    lv_comp = zcl_abapgit_version=>compare(
+      is_a = is_new_version
+      is_b = is_installed_version ).
+    IF lv_comp <= 0.
+
+      lv_msg = |{ gs_inst-name } is already installed (with same or newer version)|.
+      lv_question = lv_msg  && '. Do you want to overwrite it?'.
+
+      IF iv_force IS INITIAL.
+        CREATE OBJECT lo_popup.
+
+        lv_answer = lo_popup->popup_to_confirm(
+          iv_title          = sy-title
+          iv_question       = lv_question
+          iv_default_button = '2' ).
+
+        IF lv_answer <> '1'.
+          zcx_abapinst_exception=>raise( lv_msg ).
+        ENDIF.
+      ENDIF.
+
     ENDIF.
 
   ENDMETHOD.
@@ -30968,7 +31347,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
   METHOD _load.
 
-    gs_inst = go_db->select(
+    rs_inst = go_db->select(
       iv_name = iv_name
       iv_pack = iv_pack ).
 
@@ -31038,8 +31417,10 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       lo_popup TYPE REF TO zcl_abapinst_popups.
 
     go_dot = _find_remote_dot_abapgit( gt_remote ).
+
     gs_inst-installed_langu = go_dot->get_main_language( ).
-    gs_packaging = go_dot->get_packaging( ).
+    gs_packaging            = go_dot->get_packaging( ).
+    gt_requirements         = go_dot->get_requirements( ).
 
     IF gs_packaging IS INITIAL.
       " Check if APACK file exists and ask migrate it abapGit settings
@@ -31112,7 +31493,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
     GET TIME STAMP FIELD lv_timestamp.
 
-    ls_inst = go_db->select(
+    ls_inst = _load(
       iv_name = gs_inst-name
       iv_pack = gs_inst-pack ).
 
@@ -31146,6 +31527,37 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       ls_inst-status          = gs_inst-status.
 
       go_db->update( ls_inst ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD _system_check.
+
+    DATA:
+      lv_systemedit         TYPE tadir-edtflag,
+      lv_sys_cliinddep_edit TYPE t000-ccnocliind,
+      lv_msg                TYPE string.
+
+    CALL FUNCTION 'TR_SYS_PARAMS'
+      IMPORTING
+        systemedit         = lv_systemedit
+        sys_cliinddep_edit = lv_sys_cliinddep_edit
+      EXCEPTIONS
+        no_systemname      = 1
+        no_systemtype      = 2
+        OTHERS             = 3.
+    IF sy-subrc <> 0.
+      zcx_abapinst_exception=>raise_t100( ).
+    ENDIF.
+
+    IF lv_systemedit EQ 'N'.
+      MESSAGE e102(tk) INTO lv_msg.
+      zcx_abapinst_exception=>raise_t100( ).
+    ENDIF.
+    IF lv_sys_cliinddep_edit CA '23'.
+      MESSAGE e729(tk) INTO lv_msg.
+      zcx_abapinst_exception=>raise_t100( ).
     ENDIF.
 
   ENDMETHOD.
@@ -32393,6 +32805,11 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
       APPEND <ls_result> TO rt_results.
     ENDLOOP.
 
+* ENHO has to be handled before ENHC
+    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'ENHO'.
+      APPEND <ls_result> TO rt_results.
+    ENDLOOP.
+
 * DDLS has to be handled before DCLS
     LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'DDLS'.
       APPEND <ls_result> TO rt_results.
@@ -32420,6 +32837,7 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
         AND obj_type <> 'PINF'
         AND obj_type <> 'DEVC'
         AND obj_type <> 'ENHS'
+        AND obj_type <> 'ENHO'
         AND obj_type <> 'DDLS'
         AND obj_type <> 'SPRX'
         AND obj_type <> 'WEBI'
@@ -32594,10 +33012,10 @@ CLASS zcl_abapinst_persistence IMPLEMENTATION.
 
     DATA ls_content TYPE zif_abapinst_definitions=>ty_content.
 
-    IF iv_name IS SUPPLIED AND iv_pack IS SUPPLIED.
+    IF iv_name IS NOT INITIAL AND iv_pack IS NOT INITIAL.
       SELECT SINGLE * FROM (mv_tabname) INTO ls_content
         WHERE name = iv_name AND pack = iv_pack.
-    ELSEIF iv_name IS SUPPLIED.
+    ELSEIF iv_name IS NOT INITIAL.
       SELECT SINGLE * FROM (mv_tabname) INTO ls_content
         WHERE name = iv_name.
     ELSE.

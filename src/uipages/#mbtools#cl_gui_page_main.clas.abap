@@ -499,7 +499,6 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     DATA:
       li_html         TYPE REF TO /mbtools/if_html,
-      lv_len          TYPE i,
       lv_version      TYPE string,
       lv_install_time TYPE string,
       lv_update_time  TYPE string,
@@ -514,14 +513,13 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
       lv_install_time = io_tool->get_install_time( abap_true ).
       lv_update_time = io_tool->get_last_update( abap_true ).
-      lv_len = strlen( lv_update_time ).
 
-      IF lv_install_time = lv_update_time.
-        rv_text = li_html->icon( iv_name = 'check/green'
-                                 iv_hint = 'Tool installed' ) && |Installed today|.
-      ELSEIF lv_len >= 8 AND lv_update_time(8) = sy-datum.
+      IF strlen( lv_update_time ) >= 8 AND lv_update_time(8) = sy-datum.
         rv_text = li_html->icon( iv_name = 'check/green'
                                  iv_hint = 'Tool updated' ) && |Updated today|.
+      ELSEIF strlen( lv_install_time ) >= 8 AND lv_install_time = sy-datum.
+        rv_text = li_html->icon( iv_name = 'check/green'
+                                 iv_hint = 'Tool installed' ) && |Installed today|.
       ENDIF.
 
     ELSE.
