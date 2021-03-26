@@ -1,19 +1,18 @@
 CLASS /mbtools/cl_aphp DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * MBT PHP
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-
   PUBLIC SECTION.
 
     CLASS-METHODS serialize
       RAISING
-        /mbtools/cx_ajson_error .
+        /mbtools/cx_ajson_error.
     CLASS-METHODS unserialize
       IMPORTING
         !iv_data        TYPE string
@@ -22,7 +21,7 @@ CLASS /mbtools/cl_aphp DEFINITION
       RETURNING
         VALUE(ro_ajson) TYPE REF TO /mbtools/cl_ajson
       RAISING
-        /mbtools/cx_ajson_error .
+        /mbtools/cx_ajson_error.
   PROTECTED SECTION.
   PRIVATE SECTION.
     CLASS-DATA gv_ignore_len TYPE abap_bool.
