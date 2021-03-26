@@ -517,7 +517,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
       IF strlen( lv_update_time ) >= 8 AND lv_update_time(8) = sy-datum.
         rv_text = li_html->icon( iv_name = 'check/green'
                                  iv_hint = 'Tool updated' ) && |Updated today|.
-      ELSEIF strlen( lv_install_time ) >= 8 AND lv_install_time = sy-datum.
+      ELSEIF strlen( lv_install_time ) >= 8 AND lv_install_time(8) = sy-datum.
         rv_text = li_html->icon( iv_name = 'check/green'
                                  iv_hint = 'Tool installed' ) && |Installed today|.
       ENDIF.
