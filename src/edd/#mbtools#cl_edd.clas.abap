@@ -13,7 +13,6 @@ CLASS /mbtools/cl_edd DEFINITION
   PUBLIC SECTION.
 
     CONSTANTS c_name TYPE string VALUE 'MBT_EDD_API' ##NO_TEXT ##NEEDED.
-    CONSTANTS c_edd_host TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT.
     CONSTANTS:
       BEGIN OF c_edd_action,
         activate   TYPE string VALUE 'activate_license' ##NO_TEXT,
@@ -417,7 +416,6 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     " http://yoursite.com/?edd_action={request type}&item_id={id}&license={key}
     " &url=SystemID_{system_id}_SystemNumber_{system_number}
-    "rv_endpoint = c_edd_host && '?edd_action=' && c_edd_param-action && '&item_id=' && c_edd_param-id
     rv_endpoint = '/?edd_action=' && c_edd_param-action && '&item_id=' && c_edd_param-id.
     rv_endpoint = rv_endpoint && '&license=' && c_edd_param-key.
     rv_endpoint = rv_endpoint && '&url=SystemID_' && c_edd_param-sysid && '_SystemNumber_' && c_edd_param-sysno.
@@ -429,7 +427,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     SHIFT lv_system_no LEFT DELETING LEADING '0'.
 
-    IF lv_system_no CS 'INITIAL' OR lv_system_no NA '0123456789'.
+    IF ( lv_system_no CS 'INITIAL' OR lv_system_no NA '0123456789' ) AND lv_system_no <> 'DEMOSYSTEM'.
       /mbtools/cx_exception=>raise( 'Initial system number (transaction SLICENSE)' ) ##NO_TEXT.
     ENDIF.
 

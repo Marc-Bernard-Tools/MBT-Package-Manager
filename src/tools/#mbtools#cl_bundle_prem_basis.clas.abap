@@ -38,8 +38,18 @@ ENDCLASS.
 CLASS /mbtools/cl_bundle_prem_basis IMPLEMENTATION.
 
 
+  METHOD /mbtools/if_tool~install.
+    RETURN.
+  ENDMETHOD.
+
+
   METHOD /mbtools/if_tool~launch.
     ASSERT 1 = 2.
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_tool~uninstall.
+    RETURN.
   ENDMETHOD.
 
 
