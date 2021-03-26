@@ -80,9 +80,7 @@ CLASS lcl_main IMPLEMENTATION.
 
   METHOD main_run.
 
-    DATA:
-      lx_error TYPE REF TO cx_root,
-      lv_msg   TYPE string.
+    DATA lx_error TYPE REF TO cx_root.
 
     TRY.
         /mbtools/cl_gui_factory=>get_gui( )->go_home( ).
@@ -90,8 +88,8 @@ CLASS lcl_main IMPLEMENTATION.
         CALL SELECTION-SCREEN c_dynnr-main. " trigger screen
       CATCH cx_root INTO lx_error.
         " unexpected
-        lv_msg = lx_error->get_text( ).
-        MESSAGE lv_msg TYPE 'I' DISPLAY LIKE 'E'.
+        MESSAGE lx_error TYPE 'I' DISPLAY LIKE 'E'.
+        BREAK-POINT ID /mbtools/bc.
     ENDTRY.
 
   ENDMETHOD.
@@ -243,9 +241,6 @@ ENDFORM.
 INITIALIZATION.
 
   DATA lo_tool TYPE REF TO /mbtools/cl_tools.
-
-  " Perform setup that was not included in installation
-  /mbtools/cl_setup=>install( ).
 
   " Register all installed bundles and tools
   /mbtools/cl_tools=>action_bundles( /mbtools/if_actions=>tool_register ).

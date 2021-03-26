@@ -1548,7 +1548,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lo_reg_tool   TYPE REF TO /mbtools/cl_registry,
       lo_reg_bundle TYPE REF TO /mbtools/cl_registry,
       lo_reg_entry  TYPE REF TO /mbtools/cl_registry,
-      lv_timestamp  TYPE timestamp.
+      lv_timestamp  TYPE timestamp,
+      li_tool       TYPE REF TO /mbtools/if_tool.
 
     TRY.
         " Is tool already registered?
@@ -1673,6 +1674,13 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         " Save
         lo_reg_tool->save( ).
 
+        " Setup Install
+        TRY.
+            li_tool ?= mo_tool.
+            li_tool->install( ).
+          CATCH /mbtools/cx_exception ##NO_HANDLER.
+        ENDTRY.
+
         rv_result = abap_true.
 
       CATCH cx_root.
@@ -1780,7 +1788,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lo_reg_bundle TYPE REF TO /mbtools/cl_registry,
       lo_reg_tool   TYPE REF TO /mbtools/cl_registry,
       ls_entry      TYPE /mbtools/cl_registry=>ty_keyobj ##NEEDED,
-      lt_entries    TYPE /mbtools/cl_registry=>ty_keyobjs.
+      lt_entries    TYPE /mbtools/cl_registry=>ty_keyobjs,
+      li_tool       TYPE REF TO /mbtools/if_tool.
 
     TRY.
         " Is tool still registered?
@@ -1815,6 +1824,13 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
             RETURN. ">>>
           ENDIF.
         ENDIF.
+
+        " Setup Uninstall
+        TRY.
+            li_tool ?= mo_tool.
+            li_tool->uninstall( ).
+          CATCH /mbtools/cx_exception ##NO_HANDLER.
+        ENDTRY.
 
         rv_result = abap_true.
 

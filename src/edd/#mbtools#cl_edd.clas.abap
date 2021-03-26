@@ -1,7 +1,7 @@
 CLASS /mbtools/cl_edd DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * MBT Easy Digital Downloads API
@@ -20,7 +20,7 @@ CLASS /mbtools/cl_edd DEFINITION
         deactivate TYPE string VALUE 'deactivate_license' ##NO_TEXT,
         check      TYPE string VALUE 'check_license' ##NO_TEXT,
         version    TYPE string VALUE 'get_version' ##NO_TEXT,
-      END OF c_edd_action .
+      END OF c_edd_action.
     CONSTANTS:
       BEGIN OF c_edd_param,
         action TYPE string VALUE '$action$' ##NO_TEXT,
@@ -29,9 +29,9 @@ CLASS /mbtools/cl_edd DEFINITION
         url    TYPE string VALUE '$url$' ##NO_TEXT,
         sysid  TYPE string VALUE '$sysid$' ##NO_TEXT,
         sysno  TYPE string VALUE '$sysno$' ##NO_TEXT,
-      END OF c_edd_param .
+      END OF c_edd_param.
 
-    CLASS-METHODS class_constructor .
+    CLASS-METHODS class_constructor.
     CLASS-METHODS activate_license
       IMPORTING
         !iv_id      TYPE string
@@ -40,7 +40,7 @@ CLASS /mbtools/cl_edd DEFINITION
         !ev_valid   TYPE abap_bool
         !ev_expire  TYPE d
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     CLASS-METHODS deactivate_license
       IMPORTING
         !iv_id           TYPE string
@@ -48,7 +48,7 @@ CLASS /mbtools/cl_edd DEFINITION
       RETURNING
         VALUE(rv_result) TYPE abap_bool
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     CLASS-METHODS check_license
       IMPORTING
         !iv_id      TYPE string
@@ -57,7 +57,7 @@ CLASS /mbtools/cl_edd DEFINITION
         !ev_valid   TYPE abap_bool
         !ev_expire  TYPE d
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     CLASS-METHODS get_version
       IMPORTING
         !iv_id            TYPE string
@@ -69,7 +69,7 @@ CLASS /mbtools/cl_edd DEFINITION
         !ev_changelog     TYPE string
         !ev_download_url  TYPE string
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -78,7 +78,7 @@ CLASS /mbtools/cl_edd DEFINITION
 
     CLASS-METHODS _get_data
       IMPORTING
-        !iv_url        TYPE string
+        !iv_path       TYPE string
         !iv_check      TYPE string DEFAULT '"success"'
       RETURNING
         VALUE(rv_data) TYPE string
@@ -142,9 +142,10 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     gi_log->i( |EDD API ActivateLicense for ID { iv_id }| ).
 
-    lv_endpoint = _get_endpoint( iv_action  = c_edd_action-activate
-                                iv_id      = iv_id
-                                iv_license = iv_license ).
+    lv_endpoint = _get_endpoint(
+      iv_action  = c_edd_action-activate
+      iv_id      = iv_id
+      iv_license = iv_license ).
 
     lv_data = _get_data( lv_endpoint ).
 
@@ -213,9 +214,10 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     gi_log->i( |EDD API CheckLicense for ID { iv_id }| ).
 
-    lv_endpoint = _get_endpoint( iv_action  = c_edd_action-check
-                                iv_id      = iv_id
-                                iv_license = iv_license ).
+    lv_endpoint = _get_endpoint(
+      iv_action  = c_edd_action-check
+      iv_id      = iv_id
+      iv_license = iv_license ).
 
     lv_data = _get_data( lv_endpoint ).
 
@@ -265,9 +267,10 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     gi_log->i( |EDD API DeactivateLicense for ID { iv_id }| ).
 
-    lv_endpoint = _get_endpoint( iv_action  = c_edd_action-deactivate
-                                iv_id      = iv_id
-                                iv_license = iv_license ).
+    lv_endpoint = _get_endpoint(
+      iv_action  = c_edd_action-deactivate
+      iv_id      = iv_id
+      iv_license = iv_license ).
 
     lv_data = _get_data( lv_endpoint ).
 
@@ -312,12 +315,14 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     gi_log->i( |EDD API GetVersion for ID { iv_id }| ).
 
-    lv_endpoint = _get_endpoint( iv_action  = c_edd_action-version
-                                iv_id      = iv_id
-                                iv_license = iv_license ).
+    lv_endpoint = _get_endpoint(
+      iv_action  = c_edd_action-version
+      iv_id      = iv_id
+      iv_license = iv_license ).
 
-    lv_data = _get_data( iv_url   = lv_endpoint
-                        iv_check = '"new_version"' ).
+    lv_data = _get_data(
+      iv_path   = lv_endpoint
+      iv_check = '"new_version"' ).
 
     lo_json = _get_json( lv_data ).
 
@@ -329,8 +334,8 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     TRY.
         lo_json = /mbtools/cl_aphp=>unserialize(
-                    iv_data       = lv_sections
-                    iv_ignore_len = abap_true ).
+          iv_data       = lv_sections
+          iv_ignore_len = abap_true ).
 
         IF lo_json->get_string( '/a/1/key' ) = 'description'.
           ev_description = lo_json->get_string( '/a/1/val' ).
@@ -369,18 +374,22 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
   METHOD _get_data.
 
     DATA:
-      lo_client    TYPE REF TO /mbtools/cl_http_client,
-      lx_exception TYPE REF TO /mbtools/cx_exception.
+      lv_rfcdest TYPE rfcdest,
+      lo_client  TYPE REF TO /mbtools/cl_http_client,
+      lx_error   TYPE REF TO /mbtools/cx_exception.
 
     gi_log->timer_start( ).
 
-    gi_log->i( |Endpoint { iv_url }| ).
+    lv_rfcdest = /mbtools/cl_setup=>get_rfc_destination( ).
+
+    gi_log->i( |RFC Destination { lv_rfcdest }| ).
+    gi_log->i( |Endpoint { iv_path }| ).
 
     TRY.
-        lo_client = /mbtools/cl_http=>create_by_url(
-          iv_url     = iv_url
-          iv_request = 'GET'
-          iv_content = 'application/x-www-form-urlencoded' ).
+        lo_client = /mbtools/cl_http=>create_by_destination(
+          iv_destination = lv_rfcdest
+          iv_path        = iv_path
+          iv_accept      = 'application/x-www-form-urlencoded' ).
 
         lo_client->check_smart_response(
           iv_expected_content_type = 'application/json'
@@ -389,12 +398,12 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
         rv_data = lo_client->get_cdata( ).
 
         lo_client->close( ).
-      CATCH /mbtools/cx_exception INTO lx_exception.
+      CATCH /mbtools/cx_exception INTO lx_error.
         IF lo_client IS BOUND.
           lo_client->close( ).
         ENDIF.
-        gi_log->e( lx_exception ).
-        /mbtools/cx_exception=>raise( lx_exception->get_text( ) ).
+        gi_log->e( lx_error ).
+        RAISE EXCEPTION lx_error.
     ENDTRY.
 
     gi_log->timer_end( ).
@@ -408,7 +417,8 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     " http://yoursite.com/?edd_action={request type}&item_id={id}&license={key}
     " &url=SystemID_{system_id}_SystemNumber_{system_number}
-    rv_endpoint = c_edd_host && '?edd_action=' && c_edd_param-action && '&item_id=' && c_edd_param-id.
+    "rv_endpoint = c_edd_host && '?edd_action=' && c_edd_param-action && '&item_id=' && c_edd_param-id
+    rv_endpoint = '/?edd_action=' && c_edd_param-action && '&item_id=' && c_edd_param-id.
     rv_endpoint = rv_endpoint && '&license=' && c_edd_param-key.
     rv_endpoint = rv_endpoint && '&url=SystemID_' && c_edd_param-sysid && '_SystemNumber_' && c_edd_param-sysno.
 

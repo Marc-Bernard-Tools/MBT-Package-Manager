@@ -14,6 +14,16 @@ CLASS /mbtools/cl_setup DEFINITION
     CLASS-METHODS uninstall
       RAISING
         /mbtools/cx_exception.
+    CLASS-METHODS get_rfc_destination
+      RETURNING
+        VALUE(rv_result) TYPE rfcdest
+      RAISING
+        /mbtools/cx_exception.
+    CLASS-METHODS get_ssl_client
+      RETURNING
+        VALUE(rv_result) TYPE ssfapplssl
+      RAISING
+        /mbtools/cx_exception.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -40,16 +50,6 @@ CLASS /mbtools/cl_setup DEFINITION
     CLASS-METHODS _rfc_destinations
       RAISING
         /mbtools/cx_exception.
-    CLASS-METHODS _get_rfc_destination
-      RETURNING
-        VALUE(rv_result) TYPE rfcdest
-      RAISING
-        /mbtools/cx_exception.
-    CLASS-METHODS _get_ssl_client
-      RETURNING
-        VALUE(rv_result) TYPE ssfapplssl
-      RAISING
-        /mbtools/cx_exception.
 ENDCLASS.
 
 
@@ -60,6 +60,32 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
   METHOD class_constructor.
 
     go_settings = /mbtools/cl_tools=>factory( )->get_settings( ).
+
+  ENDMETHOD.
+
+
+  METHOD get_rfc_destination.
+
+    IF go_settings IS BOUND.
+      rv_result = go_settings->get_value( /mbtools/cl_tools=>c_reg-key_rfcdest ).
+    ENDIF.
+
+    IF rv_result IS INITIAL.
+      rv_result = /mbtools/if_definitions=>c_rfcdest.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD get_ssl_client.
+
+    IF go_settings IS BOUND.
+      rv_result = go_settings->get_value( /mbtools/cl_tools=>c_reg-key_ssl_client ).
+    ENDIF.
+
+    IF rv_result IS INITIAL.
+      rv_result = c_anonym.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -75,9 +101,9 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    _certificates( ).
-
     _rfc_destinations( ).
+
+    _certificates( ).
 
   ENDMETHOD.
 
@@ -89,9 +115,9 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
 
     _application_log( ).
 
-    _certificates( ).
-
     _rfc_destinations( ).
+
+    _certificates( ).
 
   ENDMETHOD.
 
@@ -173,7 +199,7 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
       lx_error  TYPE REF TO /mbtools/cx_exception.
 
     TRY.
-        lv_applic = _get_ssl_client( ).
+        lv_applic = get_ssl_client( ).
 
         CREATE OBJECT lo_strust
           EXPORTING
@@ -323,32 +349,6 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD _get_rfc_destination.
-
-    IF go_settings IS BOUND.
-      rv_result = go_settings->get_value( /mbtools/cl_tools=>c_reg-key_rfcdest ).
-    ENDIF.
-
-    IF rv_result IS INITIAL.
-      rv_result = /mbtools/if_definitions=>c_rfcdest.
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD _get_ssl_client.
-
-    IF go_settings IS BOUND.
-      rv_result = go_settings->get_value( /mbtools/cl_tools=>c_reg-key_ssl_client ).
-    ENDIF.
-
-    IF rv_result IS INITIAL.
-      rv_result = c_anonym.
-    ENDIF.
-
-  ENDMETHOD.
-
-
   METHOD _rfc_destinations.
 
     DATA:
@@ -359,12 +359,11 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
       lv_applic       TYPE ssfapplssl,
       lv_rfcdest      TYPE rfcdest,
       lv_description  TYPE rfcdoc_d,
-      lv_server       TYPE rfchost_ext,
-      lv_path         TYPE string.
+      lv_server       TYPE rfchost_ext.
 
     TRY.
-        lv_applic = _get_ssl_client( ).
-        lv_rfcdest = _get_rfc_destination( ).
+        lv_applic = get_ssl_client( ).
+        lv_rfcdest = get_rfc_destination( ).
 
         CREATE OBJECT lo_dest_factory.
         lv_rfc_exists = lo_dest_factory->exists( lv_rfcdest ).
@@ -415,7 +414,6 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
     IF lv_action = 'I'.
       lv_description = /mbtools/if_definitions=>c_mbt.
       lv_server      = /mbtools/if_definitions=>c_domain.
-      lv_path        = '/' && /mbtools/if_definitions=>c_www_ping.
 
       " Create HTTPS Destination to External Server (Type "G")
       CALL FUNCTION 'RFC_MODIFY_HTTP_DEST_TO_EXT'
@@ -425,7 +423,6 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
           authority_check            = abap_true
           servicenr                  = '443'
           server                     = lv_server
-          path_prefix                = lv_path
           logon_method               = 'A'
           description                = lv_description
           sslapplic                  = lv_applic

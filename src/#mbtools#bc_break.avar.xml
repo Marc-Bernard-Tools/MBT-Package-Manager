@@ -2,12 +2,12 @@
 <abapGit version="v1.0.0" serializer="LCL_OBJECT_AVAR" serializer_version="v1.0.0">
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
-   <DESCRIPTION>MBT Logging</DESCRIPTION>
+   <DESCRIPTION>MBT Break-Points</DESCRIPTION>
    <IDS>
     <AAB_VAR_OBJ_ACT>
      <NAME>/MBTOOLS/BC</NAME>
      <OBJECT>ACID</OBJECT>
-     <ACTMODE>64</ACTMODE>
+     <ACTMODE>1</ACTMODE>
     </AAB_VAR_OBJ_ACT>
    </IDS>
   </asx:values>

@@ -39,8 +39,19 @@ ENDCLASS.
 CLASS /mbtools/cl_tool_bc IMPLEMENTATION.
 
 
+  METHOD /mbtools/if_tool~install.
+    " Perform setup that was not included in installation
+    /mbtools/cl_setup=>install( ).
+  ENDMETHOD.
+
+
   METHOD /mbtools/if_tool~launch.
     /mbtools/cl_sap=>run_program( '/MBTOOLS/MBT' ).
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_tool~uninstall.
+    RETURN.
   ENDMETHOD.
 
 

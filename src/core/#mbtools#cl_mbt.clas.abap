@@ -54,17 +54,42 @@ CLASS /mbtools/cl_mbt IMPLEMENTATION.
 
   METHOD is_online.
 
-    DATA lv_offline TYPE abap_bool.
+    DATA:
+      lv_offline TYPE abap_bool,
+      lv_rfcdest TYPE rfcdest,
+      lv_path    TYPE string,
+      lo_client  TYPE REF TO /mbtools/cl_http_client,
+      lx_error   TYPE REF TO /mbtools/cx_exception.
 
-    IF go_settings IS BOUND.
-      lv_offline = go_settings->get_value( /mbtools/cl_tools=>c_reg-key_offline ).
-    ENDIF.
+    TRY.
+        IF go_settings IS BOUND.
+          lv_offline = go_settings->get_value( /mbtools/cl_tools=>c_reg-key_offline ).
+        ENDIF.
 
-    IF lv_offline IS INITIAL.
-      rv_result = /mbtools/cl_http=>ping( iv_url   = /mbtools/if_definitions=>c_www_home
-                                                  && /mbtools/if_definitions=>c_www_ping
-                                          iv_regex = /mbtools/if_definitions=>c_mbt ).
-    ENDIF.
+        IF lv_offline IS INITIAL.
+
+          lv_rfcdest = /mbtools/cl_setup=>get_rfc_destination( ).
+          lv_path    = '/' && /mbtools/if_definitions=>c_www_ping.
+
+          lo_client = /mbtools/cl_http=>create_by_destination(
+            iv_destination = lv_rfcdest
+            iv_path        = lv_path ).
+
+          lo_client->check_smart_response(
+            iv_expected_content_type = 'text/html'
+            iv_content_regex         = /mbtools/if_definitions=>c_mbt ).
+
+          lo_client->close( ).
+
+          rv_result = abap_true.
+
+        ENDIF.
+
+      CATCH /mbtools/cx_exception INTO lx_error.
+        IF lo_client IS BOUND.
+          lo_client->close( ).
+        ENDIF.
+    ENDTRY.
 
   ENDMETHOD.
 ENDCLASS.

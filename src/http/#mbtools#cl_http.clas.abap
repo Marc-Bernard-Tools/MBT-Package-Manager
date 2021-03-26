@@ -1,6 +1,6 @@
 CLASS /mbtools/cl_http DEFINITION
   PUBLIC
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * MBT HTTP
@@ -12,22 +12,23 @@ CLASS /mbtools/cl_http DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    CONSTANTS:
-      BEGIN OF c_scheme,
-        digest TYPE string VALUE 'Digest' ##NO_TEXT,
-      END OF c_scheme .
-
     TYPES:
       BEGIN OF ty_multipart,
         ctype TYPE string,
         cdata TYPE string,
-      END OF ty_multipart,
+      END OF ty_multipart.
+    TYPES:
       ty_multiparts TYPE STANDARD TABLE OF ty_multipart WITH DEFAULT KEY.
 
-    CLASS-METHODS class_constructor .
+    CONSTANTS:
+      BEGIN OF c_scheme,
+        digest TYPE string VALUE 'Digest' ##NO_TEXT,
+      END OF c_scheme.
+
+    CLASS-METHODS class_constructor.
     CLASS-METHODS get_agent
       RETURNING
-        VALUE(rv_agent) TYPE string .
+        VALUE(rv_agent) TYPE string.
     CLASS-METHODS create_by_url
       IMPORTING
         !iv_url          TYPE string
@@ -36,7 +37,7 @@ CLASS /mbtools/cl_http DEFINITION
       RETURNING
         VALUE(ro_client) TYPE REF TO /mbtools/cl_http_client
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     CLASS-METHODS create_by_destination
       IMPORTING
         !iv_destination  TYPE rfcdest
@@ -48,13 +49,7 @@ CLASS /mbtools/cl_http DEFINITION
       RETURNING
         VALUE(ro_client) TYPE REF TO /mbtools/cl_http_client
       RAISING
-        /mbtools/cx_exception .
-    CLASS-METHODS ping
-      IMPORTING
-        !iv_url          TYPE string
-        !iv_regex        TYPE string OPTIONAL
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+        /mbtools/cx_exception.
   PROTECTED SECTION.
 
     CLASS-METHODS check_auth_requested
@@ -383,32 +378,6 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
 
     READ TABLE lt_list WITH KEY hostname = lv_host TRANSPORTING NO FIELDS ##WARN_OK.
     rv_bool = boolc( sy-subrc = 0 ).
-
-  ENDMETHOD.
-
-
-  METHOD ping.
-
-    DATA:
-      lo_client TYPE REF TO /mbtools/cl_http_client.
-
-    TRY.
-        lo_client = create_by_url( iv_url ).
-
-        IF iv_regex IS SUPPLIED.
-          lo_client->check_smart_response(
-            iv_expected_content_type = 'text/html'
-            iv_content_regex         = iv_regex ).
-        ENDIF.
-
-        lo_client->close( ).
-
-        rv_result = abap_true.
-      CATCH /mbtools/cx_exception.
-        IF lo_client IS BOUND.
-          lo_client->close( ).
-        ENDIF.
-    ENDTRY.
 
   ENDMETHOD.
 ENDCLASS.
