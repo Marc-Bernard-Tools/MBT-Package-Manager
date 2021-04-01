@@ -21,7 +21,7 @@ CLASS /mbtools/cl_gui_asset_manager DEFINITION
     TYPES:
       BEGIN OF ty_asset_entry.
         INCLUDE TYPE /mbtools/if_gui_asset_manager~ty_web_asset.
-        TYPES: mime_name TYPE wwwdatatab-objid,
+    TYPES: mime_name TYPE wwwdatatab-objid,
       END OF ty_asset_entry .
     TYPES:
       ty_asset_register TYPE STANDARD TABLE OF ty_asset_entry WITH KEY url .
@@ -91,7 +91,7 @@ CLASS /mbtools/cl_gui_asset_manager IMPLEMENTATION.
       /mbtools/cx_exception=>raise( |Wrong subtype ({ iv_assert_subtype }): { iv_url }| ).
     ENDIF.
 
-    IF ls_asset-content IS not INITIAL.
+    IF ls_asset-content IS NOT INITIAL.
       rv_asset = /mbtools/cl_convert=>xstring_to_string_utf8( ls_asset-content ).
     ELSE.
       rv_asset = /mbtools/cl_convert=>xstring_to_string_utf8(

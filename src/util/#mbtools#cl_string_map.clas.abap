@@ -196,16 +196,18 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
 
   METHOD from_string.
 
+    DATA lv_key TYPE string.
+    DATA lv_val TYPE string.
+    DATA lt_lines TYPE string_table.
+
+    FIELD-SYMBOLS <i> LIKE LINE OF lt_lines.
+
     IF iv_string_params IS INITIAL.
       RETURN.
     ENDIF.
 
-    DATA lt_lines TYPE string_table.
-    FIELD-SYMBOLS <i> LIKE LINE OF lt_lines.
     SPLIT iv_string_params AT ',' INTO TABLE lt_lines.
 
-    DATA lv_key TYPE string.
-    DATA lv_val TYPE string.
     LOOP AT lt_lines ASSIGNING <i>.
       SPLIT <i> AT '=' INTO lv_key lv_val.
       SHIFT lv_key RIGHT DELETING TRAILING space.

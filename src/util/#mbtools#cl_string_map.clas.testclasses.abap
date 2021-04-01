@@ -98,6 +98,7 @@ CLASS ltcl_string_map IMPLEMENTATION.
     DATA ls_dummy TYPE syst.
     DATA lx_error TYPE REF TO cx_root.
     DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
+
     lo_cut = /mbtools/cl_string_map=>create( ).
 
     lo_cut->set(
@@ -176,6 +177,7 @@ CLASS ltcl_string_map IMPLEMENTATION.
   METHOD get_set_has.
 
     DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
+
     lo_cut = /mbtools/cl_string_map=>create( ).
 
     lo_cut->set(
@@ -218,6 +220,7 @@ CLASS ltcl_string_map IMPLEMENTATION.
   METHOD size_empty_clear.
 
     DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
+
     lo_cut = /mbtools/cl_string_map=>create( ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -271,6 +274,7 @@ CLASS ltcl_string_map IMPLEMENTATION.
   METHOD delete.
 
     DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
+
     lo_cut = /mbtools/cl_string_map=>create( ).
 
     lo_cut->set(
@@ -301,6 +305,7 @@ CLASS ltcl_string_map IMPLEMENTATION.
 
     DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
     DATA lt_exp TYPE string_table.
+
     lo_cut = /mbtools/cl_string_map=>create( ).
 
     lo_cut->set(
@@ -333,6 +338,7 @@ CLASS ltcl_string_map IMPLEMENTATION.
     DATA ls_struc_act TYPE ty_struc.
     DATA ls_struc_exp TYPE ty_struc.
     DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
+
     lo_cut = /mbtools/cl_string_map=>create( ).
 
     lo_cut->set(
@@ -361,6 +367,7 @@ CLASS ltcl_string_map IMPLEMENTATION.
 
     DATA ls_struc TYPE ty_struc.
     DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
+
     lo_cut = /mbtools/cl_string_map=>create( ).
 
     ls_struc-a = 'avalue'.
@@ -395,6 +402,7 @@ CLASS ltcl_string_map IMPLEMENTATION.
     DATA lx_error TYPE REF TO cx_root.
     DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
     DATA lo_strict TYPE REF TO /mbtools/cl_string_map.
+
     lo_cut = /mbtools/cl_string_map=>create( ).
 
     lo_cut->set(
@@ -437,6 +445,7 @@ CLASS ltcl_string_map IMPLEMENTATION.
     DATA lt_dummy TYPE string_table.
     DATA lx_error TYPE REF TO cx_root.
     DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
+
     lo_cut = /mbtools/cl_string_map=>create( ).
 
     TRY.
@@ -470,6 +479,7 @@ CLASS ltcl_string_map IMPLEMENTATION.
     DATA lt_entries TYPE TABLE OF ty_pair.
     DATA ls_entry LIKE LINE OF lt_entries.
     DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
+
     lo_cut = /mbtools/cl_string_map=>create( ).
 
     ls_entry-key = 'A'.
@@ -498,6 +508,7 @@ CLASS ltcl_string_map IMPLEMENTATION.
 
     DATA lt_exp_keys TYPE string_table.
     DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
+
     lo_cut = /mbtools/cl_string_map=>create( iv_case_insensitive = abap_true ).
 
     lo_cut->set(
@@ -534,7 +545,10 @@ CLASS ltcl_string_map IMPLEMENTATION.
 
   METHOD set_clike.
 
+    DATA lv_char TYPE c LENGTH 10.
+    DATA lv_numc TYPE n LENGTH 4.
     DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
+
     lo_cut = /mbtools/cl_string_map=>create( ).
 
     lo_cut->set(
@@ -544,13 +558,11 @@ CLASS ltcl_string_map IMPLEMENTATION.
       iv_key = `B`
       iv_val = `bvalue` ).
 
-    DATA lv_char TYPE c LENGTH 10.
     lv_char = 'C'.
     lo_cut->set(
       iv_key = lv_char
       iv_val = lv_char ).
 
-    DATA lv_numc TYPE n LENGTH 4.
     lv_numc = '123'.
     lo_cut->set(
       iv_key = lv_numc
@@ -571,6 +583,8 @@ CLASS ltcl_string_map IMPLEMENTATION.
   METHOD from_string.
 
     DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
+    DATA lx_error TYPE REF TO lcx_error.
+
     lo_cut = /mbtools/cl_string_map=>create( ).
 
     lo_cut->from_string( 'a = avalue, b = some data, c = space   space' ).
@@ -588,12 +602,11 @@ CLASS ltcl_string_map IMPLEMENTATION.
       act = lo_cut->get( 'c' )
       exp = 'space   space' ).
 
-    DATA lx TYPE REF TO lcx_error.
     TRY.
         lo_cut->from_string( `x=y,  ` ).
-      CATCH lcx_error INTO lx.
+      CATCH lcx_error INTO lx_error.
         cl_abap_unit_assert=>assert_char_cp(
-          act = lx->get_text( )
+          act = lx_error->get_text( )
           exp = 'Empty key*' ).
     ENDTRY.
 
@@ -610,6 +623,7 @@ CLASS ltcl_string_map IMPLEMENTATION.
   METHOD to_string.
 
     DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
+
     lo_cut = /mbtools/cl_string_map=>create( ).
 
     lo_cut->from_string( 'a = avalue, b = some data, c = space   space' ).
