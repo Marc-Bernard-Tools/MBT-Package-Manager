@@ -42,18 +42,18 @@ CLASS /mbtools/cl_string_map DEFINITION
         !iv_from             TYPE any OPTIONAL .
     METHODS get
       IMPORTING
-        !iv_key       TYPE string
+        !iv_key       TYPE clike
       RETURNING
         VALUE(rv_val) TYPE string .
     METHODS has
       IMPORTING
-        !iv_key       TYPE string
+        !iv_key       TYPE clike
       RETURNING
         VALUE(rv_has) TYPE abap_bool .
     METHODS set
       IMPORTING
-        !iv_key       TYPE string
-        !iv_val       TYPE string
+        !iv_key       TYPE clike
+        !iv_val       TYPE clike
       RETURNING
         VALUE(ro_map) TYPE REF TO /mbtools/cl_string_map .
     METHODS size
@@ -64,7 +64,7 @@ CLASS /mbtools/cl_string_map DEFINITION
         VALUE(rv_yes) TYPE abap_bool .
     METHODS delete
       IMPORTING
-        !iv_key TYPE string .
+        !iv_key TYPE clike .
     METHODS keys
       RETURNING
         VALUE(rt_keys) TYPE string_table .
@@ -81,6 +81,12 @@ CLASS /mbtools/cl_string_map DEFINITION
     METHODS from_entries
       IMPORTING
         !it_entries TYPE ANY TABLE .
+    METHODS from_string
+      IMPORTING
+        !iv_string_params TYPE csequence.
+    METHODS to_string
+      RETURNING
+        VALUE(rv_string) TYPE string.
     METHODS strict
       IMPORTING
         !iv_strict         TYPE abap_bool DEFAULT abap_true
@@ -135,6 +141,9 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
         WHEN cl_abap_typedescr=>typekind_table.
           from_entries( iv_from ).
 
+        WHEN cl_abap_typedescr=>typekind_string OR cl_abap_typedescr=>typekind_char.
+          from_string( iv_from ).
+
         WHEN OTHERS.
           lcx_error=>raise( |Incorrect input for string_map=>create, typekind { lo_type->type_kind }| ).
       ENDCASE.
@@ -184,6 +193,36 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD from_string.
+
+    IF iv_string_params IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    DATA lt_lines TYPE string_table.
+    FIELD-SYMBOLS <i> LIKE LINE OF lt_lines.
+    SPLIT iv_string_params AT ',' INTO TABLE lt_lines.
+
+    DATA lv_key TYPE string.
+    DATA lv_val TYPE string.
+    LOOP AT lt_lines ASSIGNING <i>.
+      SPLIT <i> AT '=' INTO lv_key lv_val.
+      SHIFT lv_key RIGHT DELETING TRAILING space.
+      SHIFT lv_key LEFT DELETING LEADING space.
+      SHIFT lv_val RIGHT DELETING TRAILING space.
+      SHIFT lv_val LEFT DELETING LEADING space.
+      IF lv_key IS INITIAL.
+        lcx_error=>raise( 'Empty key in initialization string is not allowed' ).
+        " value can be initial, even a,b,c is ok to create sets
+      ENDIF.
+      set(
+        iv_key = lv_key
+        iv_val = lv_val ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD from_struc.
 
     DATA lo_type TYPE REF TO cl_abap_typedescr.
@@ -218,7 +257,7 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
 
   METHOD get.
 
-    DATA lv_key LIKE iv_key.
+    DATA lv_key TYPE string.
     FIELD-SYMBOLS <entry> LIKE LINE OF mt_entries.
 
     IF mv_case_insensitive = abap_true.
@@ -261,7 +300,7 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
   METHOD set.
 
     DATA ls_entry LIKE LINE OF mt_entries.
-    DATA lv_key LIKE iv_key.
+    DATA lv_key TYPE string.
     FIELD-SYMBOLS <entry> LIKE LINE OF mt_entries.
 
     IF mv_read_only = abap_true.
@@ -298,6 +337,22 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
   METHOD strict.
     mv_is_strict = iv_strict.
     ro_instance = me.
+  ENDMETHOD.
+
+
+  METHOD to_string.
+
+    DATA lv_size TYPE i.
+    FIELD-SYMBOLS <entry> LIKE LINE OF mt_entries.
+
+    lv_size = lines( mt_entries ).
+    LOOP AT mt_entries ASSIGNING <entry>.
+      rv_string = rv_string && <entry>-k && '=' && <entry>-v.
+      IF sy-tabix < lv_size.
+        rv_string = rv_string && ','.
+      ENDIF.
+    ENDLOOP.
+
   ENDMETHOD.
 
 

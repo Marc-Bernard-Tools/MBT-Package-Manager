@@ -42,6 +42,13 @@ CLASS /mbtools/cl_switches DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
+    TYPES:
+      BEGIN OF ty_switch,
+        title  TYPE string,
+        key    TYPE string,
+        switch TYPE abap_bool,
+      END OF ty_switch.
+
     CONSTANTS:
       BEGIN OF c_reg,
         " Registry Switches
@@ -51,6 +58,7 @@ CLASS /mbtools/cl_switches DEFINITION
         key_trace  TYPE string VALUE 'Trace' ##NO_TEXT,
       END OF c_reg.
     CLASS-DATA go_reg_root TYPE REF TO /mbtools/cl_registry.
+    CLASS-DATA gt_switches TYPE HASHED TABLE OF ty_switch WITH UNIQUE KEY title key.
 
     CLASS-METHODS _check_switch
       IMPORTING
@@ -109,6 +117,7 @@ CLASS /mbtools/cl_switches IMPLEMENTATION.
   METHOD _check_switch.
 
     DATA:
+      ls_switch    LIKE LINE OF gt_switches,
       lv_name      TYPE string,
       ls_bundle    TYPE /mbtools/cl_registry=>ty_keyobj,
       lt_bundles   TYPE /mbtools/cl_registry=>ty_keyobjs,
@@ -116,6 +125,13 @@ CLASS /mbtools/cl_switches IMPLEMENTATION.
       lo_reg_entry TYPE REF TO /mbtools/cl_registry,
       lt_users     TYPE TABLE OF string,
       lv_value     TYPE string.
+
+    " Check class cache
+    READ TABLE gt_switches INTO ls_switch WITH TABLE KEY title = iv_title key = iv_key.
+    IF sy-subrc = 0.
+      rv_result = ls_switch-switch.
+      RETURN.
+    ENDIF.
 
     lv_name = iv_title.
     REPLACE ALL OCCURRENCES OF ` ` IN lv_name WITH `_`.
@@ -130,29 +146,39 @@ CLASS /mbtools/cl_switches IMPLEMENTATION.
             EXIT.
           ENDIF.
         ENDLOOP.
-        CHECK lo_reg_tool IS BOUND.
 
-        " Switches entry
-        lo_reg_entry = lo_reg_tool->get_subentry( c_reg-switches ).
-        CHECK lo_reg_entry IS BOUND.
+        IF lo_reg_tool IS BOUND.
 
-        " Is switch active?
-        lv_value = lo_reg_entry->get_value( iv_key ).
-        IF lv_value = abap_true.
-          rv_result = abap_true.
-        ELSEIF lv_value = cl_abap_syst=>get_user_name( ) ##USER_OK.
-          rv_result = abap_true.
-        ELSEIF lv_value CS ','.
-          SPLIT lv_value AT ',' INTO TABLE lt_users.
-          FIND sy-uname IN TABLE lt_users.
-          IF sy-subrc = 0.
-            rv_result = abap_true.
+          " Switches entry
+          lo_reg_entry = lo_reg_tool->get_subentry( c_reg-switches ).
+          IF lo_reg_entry IS BOUND.
+
+            " Is switch active?
+            lv_value = lo_reg_entry->get_value( iv_key ).
+            IF lv_value = abap_true.
+              rv_result = abap_true.
+            ELSEIF lv_value = cl_abap_syst=>get_user_name( ) ##USER_OK.
+              rv_result = abap_true.
+            ELSEIF lv_value CS ','.
+              SPLIT lv_value AT ',' INTO TABLE lt_users.
+              FIND sy-uname IN TABLE lt_users.
+              IF sy-subrc = 0.
+                rv_result = abap_true.
+              ENDIF.
+            ENDIF.
+
           ENDIF.
-        ENDIF.
 
+        ENDIF.
       CATCH cx_root.
         rv_result = abap_false.
     ENDTRY.
+
+    " Update class cache
+    ls_switch-title  = iv_title.
+    ls_switch-key    = iv_key.
+    ls_switch-switch = rv_result.
+    INSERT ls_switch INTO TABLE gt_switches.
 
   ENDMETHOD.
 ENDCLASS.
