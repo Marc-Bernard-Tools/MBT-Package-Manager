@@ -371,7 +371,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     super->constructor( ).
 
-    mo_asset_manager = /mbtools/cl_gui_factory=>get_asset_manager( ).
+    CREATE OBJECT mo_asset_manager TYPE /mbtools/cl_gui_asset_manager.
 
     register_header( ).
 
@@ -922,7 +922,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
       WHEN /mbtools/if_actions=>tool_deactivate.
 
         IF io_tool->is_base( ) = abap_true.
-          IF io_tool->is_last_tool( ) = abap_true.
+          IF io_tool->is_base_only( ) = abap_true.
             lv_answer = /mbtools/cl_gui_factory=>get_popups( )->popup_to_confirm(
               iv_titlebar       = 'Deactivate Tool'
               iv_text_question  = |Are you sure you want to deactivate { io_tool->get_title( ) }?|
@@ -938,7 +938,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
       WHEN /mbtools/if_actions=>tool_uninstall.
 
-        IF io_tool->is_base( ) = abap_true AND io_tool->is_last_tool( ) = abap_false.
+        IF io_tool->is_base( ) = abap_true AND io_tool->is_base_only( ) = abap_false.
           /mbtools/cx_exception=>raise( |You have to uninstall all other tools first,| &&
                                         | before you can uninstall { io_tool->get_title( ) }| ).
         ENDIF.

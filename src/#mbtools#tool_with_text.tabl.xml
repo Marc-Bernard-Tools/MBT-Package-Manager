@@ -6,7 +6,7 @@
     <TABNAME>/MBTOOLS/TOOL_WITH_TEXT</TABNAME>
     <DDLANGUAGE>E</DDLANGUAGE>
     <TABCLASS>INTTAB</TABCLASS>
-    <DDTEXT>MBT Tool with Description</DDTEXT>
+    <DDTEXT>MBT Tool Name, Version, Description</DDTEXT>
     <EXCLASS>1</EXCLASS>
    </DD02V>
    <DD03P_TABLE>

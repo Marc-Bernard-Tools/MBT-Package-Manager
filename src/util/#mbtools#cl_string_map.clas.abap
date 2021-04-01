@@ -6,13 +6,14 @@ CLASS /mbtools/cl_string_map DEFINITION
 ************************************************************************
 * MBT String Map
 *
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-* Renamed: to_abap > to_struc
+* Original Author: Copyright (c) 2020 Alexander Tsybulsky
+* https://github.com/sbcgua/abap-string-map
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 *
-* Last update: 2020-11-30
+* Renamed: to_abap > to_struc
+*
+* Last update: 2021-03-25
 ************************************************************************
 
   PUBLIC SECTION.

@@ -14,7 +14,9 @@ INTERFACE /mbtools/if_gui_asset_manager
       url          TYPE w3url,
       type         TYPE char50,
       subtype      TYPE char50,
+      size         TYPE i,
       content      TYPE xstring,
+      mime_content TYPE lvc_t_mime,
       is_cacheable TYPE abap_bool,
     END OF ty_web_asset .
   TYPES:

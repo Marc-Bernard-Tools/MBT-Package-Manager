@@ -21,7 +21,7 @@ CLASS /mbtools/cl_gui_asset_manager DEFINITION
     TYPES:
       BEGIN OF ty_asset_entry.
         INCLUDE TYPE /mbtools/if_gui_asset_manager~ty_web_asset.
-    TYPES: mime_name TYPE wwwdatatab-objid,
+        TYPES: mime_name TYPE wwwdatatab-objid,
       END OF ty_asset_entry .
     TYPES:
       ty_asset_register TYPE STANDARD TABLE OF ty_asset_entry WITH KEY url .
@@ -32,9 +32,10 @@ CLASS /mbtools/cl_gui_asset_manager DEFINITION
 
     METHODS get_mime_asset
       IMPORTING
-        iv_mime_name    TYPE c
-      RETURNING
-        VALUE(rv_xdata) TYPE xstring
+        iv_mime_name TYPE c
+      EXPORTING
+        ev_size      TYPE i
+        et_content   TYPE /mbtools/if_gui_asset_manager~ty_web_asset-mime_content
       RAISING
         /mbtools/cx_exception.
 
@@ -90,7 +91,14 @@ CLASS /mbtools/cl_gui_asset_manager IMPLEMENTATION.
       /mbtools/cx_exception=>raise( |Wrong subtype ({ iv_assert_subtype }): { iv_url }| ).
     ENDIF.
 
-    rv_asset = /mbtools/cl_convert=>xstring_to_string_utf8( ls_asset-content ).
+    IF ls_asset-content IS not INITIAL.
+      rv_asset = /mbtools/cl_convert=>xstring_to_string_utf8( ls_asset-content ).
+    ELSE.
+      rv_asset = /mbtools/cl_convert=>xstring_to_string_utf8(
+        /mbtools/cl_convert=>bintab_to_xstring(
+          it_bintab = ls_asset-mime_content
+          iv_size   = ls_asset-size ) ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -123,9 +131,7 @@ CLASS /mbtools/cl_gui_asset_manager IMPLEMENTATION.
   METHOD get_mime_asset.
 
     DATA: ls_key    TYPE wwwdatatab,
-          lv_size_c TYPE wwwparams-value,
-          lv_size   TYPE i,
-          lt_w3mime TYPE STANDARD TABLE OF w3mime.
+          lv_size_c TYPE wwwparams-value.
 
     ls_key-relid = 'MI'.
     ls_key-objid = iv_mime_name.
@@ -145,14 +151,14 @@ CLASS /mbtools/cl_gui_asset_manager IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    lv_size = lv_size_c.
+    ev_size = lv_size_c.
 
     " Get binary data
     CALL FUNCTION 'WWWDATA_IMPORT'
       EXPORTING
         key               = ls_key
       TABLES
-        mime              = lt_w3mime
+        mime              = et_content
       EXCEPTIONS
         wrong_object_type = 1
         import_error      = 2.
@@ -161,22 +167,23 @@ CLASS /mbtools/cl_gui_asset_manager IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    rv_xdata = /mbtools/cl_convert=>bintab_to_xstring(
-      iv_size   = lv_size
-      it_bintab = lt_w3mime ).
-
   ENDMETHOD.
 
 
   METHOD load_asset.
 
     MOVE-CORRESPONDING is_asset_entry TO rs_asset.
-    IF rs_asset-content IS INITIAL AND is_asset_entry-mime_name IS NOT INITIAL.
+    IF rs_asset-content IS INITIAL AND rs_asset-mime_content IS INITIAL AND is_asset_entry-mime_name IS NOT INITIAL.
       " inline content has the priority
-      rs_asset-content = get_mime_asset( is_asset_entry-mime_name ).
+      get_mime_asset(
+        EXPORTING
+          iv_mime_name = is_asset_entry-mime_name
+        IMPORTING
+          ev_size      = rs_asset-size
+          et_content   = rs_asset-mime_content ).
     ENDIF.
-    IF rs_asset-content IS INITIAL.
-      /mbtools/cx_exception=>raise( |failed to load GUI asset: { is_asset_entry-url }| ).
+    IF rs_asset-content IS INITIAL AND rs_asset-mime_content IS INITIAL.
+      /mbtools/cx_exception=>raise( |Failed to load GUI asset: { is_asset_entry-url }| ).
     ENDIF.
 
   ENDMETHOD.

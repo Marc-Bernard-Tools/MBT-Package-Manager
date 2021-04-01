@@ -14,6 +14,8 @@ INTERFACE /mbtools/if_gui_services
     IMPORTING
       !iv_text      TYPE string OPTIONAL
       !iv_xdata     TYPE xstring OPTIONAL
+      !it_xdata     TYPE lvc_t_mime OPTIONAL
+      !iv_size      TYPE i OPTIONAL
       !iv_url       TYPE w3url OPTIONAL
       !iv_type      TYPE c
       !iv_subtype   TYPE c

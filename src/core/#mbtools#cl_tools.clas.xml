@@ -335,12 +335,6 @@
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/MBTOOLS/CL_TOOLS</CLSNAME>
-     <CMPNAME>IS_LAST_TOOL</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>Is this MBT Base and no other tool installed?</DESCRIPT>
-    </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_TOOLS</CLSNAME>
      <CMPNAME>IS_LICENSED</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Does tool have a valid license?</DESCRIPT>

@@ -124,7 +124,8 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
 
         LOOP AT lt_assets ASSIGNING <ls_asset> WHERE is_cacheable = abap_true.
           /mbtools/if_gui_services~cache_asset(
-            iv_xdata   = <ls_asset>-content
+            it_xdata   = <ls_asset>-mime_content
+            iv_size    = <ls_asset>-size
             iv_url     = <ls_asset>-url
             iv_type    = <ls_asset>-type
             iv_subtype = <ls_asset>-subtype ).
@@ -142,7 +143,7 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
           lv_size  TYPE i,
           lt_html  TYPE w3htmltab.
 
-    ASSERT iv_text IS SUPPLIED OR iv_xdata IS SUPPLIED.
+    ASSERT iv_text IS SUPPLIED OR iv_xdata IS SUPPLIED OR it_xdata IS SUPPLIED.
 
     IF iv_text IS SUPPLIED. " String input
 
@@ -168,12 +169,17 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
 
     ELSE. " Raw input
 
-      /mbtools/cl_convert=>xstring_to_bintab(
-        EXPORTING
-          iv_xstr   = iv_xdata
-        IMPORTING
-          ev_size   = lv_size
-          et_bintab = lt_xdata ).
+      IF iv_xdata IS INITIAL.
+        lv_size  = iv_size.
+        lt_xdata = it_xdata.
+      ELSE.
+        /mbtools/cl_convert=>xstring_to_bintab(
+          EXPORTING
+            iv_xstr   = iv_xdata
+          IMPORTING
+            ev_size   = lv_size
+            et_bintab = lt_xdata ).
+      ENDIF.
 
       mi_html_viewer->load_data(
         EXPORTING
@@ -503,6 +509,8 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
       LOOP AT lt_assets ASSIGNING <ls_asset> WHERE is_cacheable = abap_true.
         /mbtools/if_gui_services~cache_asset(
           iv_xdata   = <ls_asset>-content
+          it_xdata   = <ls_asset>-mime_content
+          iv_size    = <ls_asset>-size
           iv_url     = <ls_asset>-url
           iv_type    = <ls_asset>-type
           iv_subtype = <ls_asset>-subtype ).

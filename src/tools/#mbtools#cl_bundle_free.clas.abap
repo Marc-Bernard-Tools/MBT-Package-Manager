@@ -23,13 +23,8 @@ CLASS /mbtools/cl_bundle_free DEFINITION
         VALUE 'Everything you need to get started with Marc Bernard Tools' ##NO_TEXT,
       END OF c_tool .
 
-    METHODS constructor.
-
   PROTECTED SECTION.
   PRIVATE SECTION.
-
-    DATA mo_tool TYPE REF TO /mbtools/cl_tools.
-
 ENDCLASS.
 
 
@@ -43,17 +38,21 @@ CLASS /mbtools/cl_bundle_free IMPLEMENTATION.
 
 
   METHOD /mbtools/if_tool~launch.
-    ASSERT 1 = 2.
+    RETURN.
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_tool~title.
+    rv_title = c_tool-title.
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_tool~tool.
+    MOVE-CORRESPONDING c_tool TO rs_tool.
   ENDMETHOD.
 
 
   METHOD /mbtools/if_tool~uninstall.
     RETURN.
-  ENDMETHOD.
-
-
-  METHOD constructor.
-    CREATE OBJECT mo_tool EXPORTING io_tool = me.
-    /mbtools/if_tool~ms_manifest = mo_tool->ms_manifest.
   ENDMETHOD.
 ENDCLASS.

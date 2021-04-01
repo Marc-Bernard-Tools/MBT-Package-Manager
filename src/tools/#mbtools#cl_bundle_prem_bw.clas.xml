@@ -19,12 +19,6 @@
      <LANGU>E</LANGU>
      <DESCRIPT>Tool</DESCRIPT>
     </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_BUNDLE_PREM_BW</CLSNAME>
-     <CMPNAME>MO_TOOL</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>MBT Tools</DESCRIPT>
-    </SEOCOMPOTX>
    </DESCRIPTIONS>
   </asx:values>
  </asx:abap>

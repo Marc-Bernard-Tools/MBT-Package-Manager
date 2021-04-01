@@ -52,7 +52,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_GUI_FACTORY IMPLEMENTATION.
+CLASS /mbtools/cl_gui_factory IMPLEMENTATION.
 
 
   METHOD get_asset_manager.
@@ -84,7 +84,7 @@ CLASS /MBTOOLS/CL_GUI_FACTORY IMPLEMENTATION.
     lo_asset_man->register_asset(
       iv_url       = 'fonts/fa-solid-900.eot?#iefix'
       iv_type      = 'application/vnd.ms-fontobject'
-      iv_mime_name = '/MBTOOLS/MBT_FONT_AWESOME_EOT' ). "for IE6-8
+      iv_mime_name = '/MBTOOLS/MBT_FONT_AWESOME_EOT' ). "for IE
 
     lo_asset_man->register_asset(
       iv_url       = 'fonts/opensans.woff2'
