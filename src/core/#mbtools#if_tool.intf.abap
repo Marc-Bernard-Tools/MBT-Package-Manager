@@ -1,13 +1,13 @@
 INTERFACE /mbtools/if_tool
   PUBLIC.
 
+
 ************************************************************************
 * MBT Tool
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
-
-  TYPES: ty_tool TYPE /mbtools/tool.
+  TYPES ty_tool TYPE /mbtools/tool.
 
   METHODS title
     RETURNING
@@ -24,5 +24,4 @@ INTERFACE /mbtools/if_tool
   METHODS uninstall
     RAISING
       /mbtools/cx_exception.
-
 ENDINTERFACE.

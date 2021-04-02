@@ -163,11 +163,14 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
 
   METHOD delete.
 
+    DATA lv_key TYPE string.
+
     IF mv_read_only = abap_true.
       lcx_error=>raise( 'String map is read only' ).
     ENDIF.
 
-    DELETE mt_entries WHERE k = iv_key.
+    lv_key = iv_key.
+    DELETE mt_entries WHERE k = lv_key.
 
   ENDMETHOD.
 

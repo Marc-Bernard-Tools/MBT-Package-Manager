@@ -27,14 +27,9 @@ CLASS /mbtools/cl_gui_page_about DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    DATA mo_asset_manager TYPE REF TO /mbtools/if_gui_asset_manager .
-
     CLASS-METHODS build_menu
       RETURNING
         VALUE(ro_menu) TYPE REF TO /mbtools/cl_html_toolbar .
-    METHODS register_header
-      RAISING
-        /mbtools/cx_exception .
     METHODS render_about
       RETURNING
         VALUE(ri_html) TYPE REF TO /mbtools/if_html
@@ -74,8 +69,6 @@ CLASS /mbtools/cl_gui_page_about IMPLEMENTATION.
     ri_html = /mbtools/cl_html=>create( ).
 
     ri_html->add( render_about( ) ).
-
-    gui_services( )->cache_all_assets( mo_asset_manager ).
 
   ENDMETHOD.
 
@@ -126,10 +119,6 @@ CLASS /mbtools/cl_gui_page_about IMPLEMENTATION.
 
     super->constructor( ).
 
-    mo_asset_manager = /mbtools/cl_gui_factory=>get_asset_manager( ).
-
-    register_header( ).
-
   ENDMETHOD.
 
 
@@ -145,21 +134,6 @@ CLASS /mbtools/cl_gui_page_about IMPLEMENTATION.
       iv_page_title      = 'About'
       io_page_menu       = build_menu( )
       ii_child_component = lo_component ).
-
-  ENDMETHOD.
-
-
-  METHOD register_header.
-
-    mo_asset_manager->register_asset(
-      iv_url       = 'img/logo_header.png'
-      iv_type      = 'image/png'
-      iv_mime_name = '/MBTOOLS/LOGO_HEADER' ).
-
-    mo_asset_manager->register_asset(
-      iv_url       = 'img/banner_header.png'
-      iv_type      = 'image/png'
-      iv_mime_name = '/MBTOOLS/BANNER_HEADER' ).
 
   ENDMETHOD.
 

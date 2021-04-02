@@ -13,6 +13,9 @@ CLASS /mbtools/cl_tools DEFINITION
     TYPES ty_manifest TYPE /mbtools/manifest.
     TYPES:
       ty_manifests TYPE STANDARD TABLE OF ty_manifest WITH DEFAULT KEY.
+    TYPES ty_tool TYPE /mbtools/tool_with_text.
+    TYPES:
+      ty_tools TYPE STANDARD TABLE OF ty_tool WITH DEFAULT KEY.
 
     CONSTANTS:
       " Global Constant
@@ -62,13 +65,13 @@ CLASS /mbtools/cl_tools DEFINITION
     " Evaluation
     CONSTANTS c_eval_days TYPE i VALUE 60 ##NO_TEXT.
     CONSTANTS c_eval_users TYPE i VALUE 10 ##NO_TEXT.
-    DATA ms_manifest TYPE ty_manifest READ-ONLY.
 
     " Constructor
     CLASS-METHODS class_constructor.
     METHODS constructor
       IMPORTING
-        !io_tool TYPE REF TO object.
+        !io_tool TYPE REF TO /mbtools/if_tool.
+    CLASS-METHODS init.
     " Class Get
     CLASS-METHODS factory
       IMPORTING
@@ -79,7 +82,7 @@ CLASS /mbtools/cl_tools DEFINITION
     CLASS-METHODS get_manifests
       RETURNING
         VALUE(rt_manifests) TYPE ty_manifests.
-    CLASS-METHODS get_tools
+    CLASS-METHODS select
       IMPORTING
         VALUE(iv_pattern)     TYPE csequence OPTIONAL
         VALUE(iv_bundle_id)   TYPE i DEFAULT -1
@@ -87,8 +90,17 @@ CLASS /mbtools/cl_tools DEFINITION
         VALUE(iv_get_tools)   TYPE abap_bool DEFAULT abap_true
         VALUE(iv_admin)       TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(rt_tools)       TYPE /mbtools/tools_with_text.
-    CLASS-METHODS f4_tools
+        VALUE(rt_manifests)   TYPE ty_manifests.
+    CLASS-METHODS list
+      IMPORTING
+        VALUE(iv_pattern)     TYPE csequence OPTIONAL
+        VALUE(iv_bundle_id)   TYPE i DEFAULT -1
+        VALUE(iv_get_bundles) TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_get_tools)   TYPE abap_bool DEFAULT abap_true
+        VALUE(iv_admin)       TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(rt_tools)       TYPE ty_tools.
+    CLASS-METHODS f4
       IMPORTING
         VALUE(iv_pattern)     TYPE csequence OPTIONAL
         VALUE(iv_bundle_id)   TYPE i DEFAULT -1
@@ -132,10 +144,6 @@ CLASS /mbtools/cl_tools DEFINITION
     CLASS-METHODS is_base_only
       RETURNING
         VALUE(rv_result) TYPE abap_bool.
-    " Tool Manifest
-    METHODS build_manifest
-      RETURNING
-        VALUE(rs_manifest) TYPE ty_manifest.
     " Tool Register/Unregister
     METHODS register
       IMPORTING
@@ -289,8 +297,9 @@ CLASS /mbtools/cl_tools DEFINITION
       BEGIN OF ty_instance,
         key      TYPE string,
         instance TYPE REF TO /mbtools/cl_tools,
-        tool     TYPE REF TO /mbtools/if_tool,
       END OF ty_instance.
+
+    " Sync with zif_abapinst_definitions
     TYPES:
       ty_name TYPE c LENGTH c_name_length.
     TYPES ty_pack TYPE devclass.
@@ -329,22 +338,11 @@ CLASS /mbtools/cl_tools DEFINITION
     TYPES:
       ty_classes TYPE STANDARD TABLE OF seoclsname WITH DEFAULT KEY.
 
-    " Sync with zif_abapinst_definitions
     CLASS-DATA:
       gt_instances TYPE HASHED TABLE OF ty_instance WITH UNIQUE KEY key.
-    CLASS-DATA gt_classes TYPE ty_classes.
     CLASS-DATA go_reg_root TYPE REF TO /mbtools/cl_registry.
-    DATA mo_tool TYPE REF TO object.
-    DATA mv_id TYPE ty_manifest-download_id.
-    DATA mv_bundle_id TYPE ty_manifest-bundle_id.
-    DATA mv_is_bundle TYPE ty_manifest-is_bundle.
-    DATA mv_title TYPE ty_manifest-title.
-    DATA mv_name TYPE ty_manifest-name.
-    DATA mv_version TYPE ty_manifest-version.
-    DATA mv_description TYPE ty_manifest-description.
-    DATA mv_has_launch TYPE ty_manifest-has_launch.
-    DATA mv_command TYPE ty_manifest-mbt_command.
-    DATA mv_shortcut TYPE ty_manifest-mbt_shortcut.
+
+    DATA ms_manifest TYPE ty_manifest.
 
     CLASS-METHODS _clean_title
       IMPORTING
@@ -373,6 +371,12 @@ CLASS /mbtools/cl_tools DEFINITION
         VALUE(rs_content) TYPE ty_content
       RAISING
         /mbtools/cx_exception.
+    METHODS _determine_class
+      RETURNING
+        VALUE(rv_class) TYPE string.
+    METHODS _determine_package
+      RETURNING
+        VALUE(rv_package) TYPE devclass.
 ENDCLASS.
 
 
@@ -383,30 +387,33 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   METHOD action_bundles.
 
     DATA:
-      ls_tool     TYPE /mbtools/tool_with_text,
-      lt_tools    TYPE TABLE OF /mbtools/tool_with_text,
-      li_progress TYPE REF TO /mbtools/if_progress,
-      lv_result   TYPE abap_bool.
+      ls_manifest  TYPE ty_manifest,
+      lt_manifests TYPE ty_manifests,
+      li_progress  TYPE REF TO /mbtools/if_progress,
+      lv_result    TYPE abap_bool.
 
     " Just bundles
-    lt_tools = get_tools( iv_get_bundles = abap_true
-                          iv_get_tools   = abap_false ).
+    lt_manifests = select(
+      iv_get_bundles = abap_true
+      iv_get_tools   = abap_false ).
 
     rv_result = abap_true.
 
-    li_progress = /mbtools/cl_progress=>get_instance( lines( lt_tools ) ).
+    li_progress = /mbtools/cl_progress=>get_instance( lines( lt_manifests ) ).
 
-    LOOP AT lt_tools INTO ls_tool.
-      li_progress->show( iv_current = sy-tabix
-                         iv_text    = |Run action for { ls_tool-name }| ).
+    LOOP AT lt_manifests INTO ls_manifest.
+
+      li_progress->show(
+        iv_current = sy-tabix
+        iv_text    = |Run action for { ls_manifest-name }| ).
 
       " Register, unregister
       TRY.
           CASE iv_action.
             WHEN /mbtools/if_actions=>tool_register.
-              lv_result = factory( ls_tool-name )->register( ).
+              lv_result = ls_manifest-manager->register( ).
             WHEN /mbtools/if_actions=>tool_unregister.
-              lv_result = factory( ls_tool-name )->unregister( ).
+              lv_result = ls_manifest-manager->unregister( ).
             WHEN OTHERS.
               " unknow action
               ASSERT 0 = 1.
@@ -428,41 +435,44 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   METHOD action_tools.
 
     DATA:
-      ls_tool     TYPE /mbtools/tool_with_text,
-      lt_tools    TYPE TABLE OF /mbtools/tool_with_text,
-      li_progress TYPE REF TO /mbtools/if_progress,
-      lv_result   TYPE abap_bool.
+      ls_manifest  TYPE ty_manifest,
+      lt_manifests TYPE ty_manifests,
+      li_progress  TYPE REF TO /mbtools/if_progress,
+      lv_result    TYPE abap_bool.
 
-    lt_tools = get_tools( iv_admin = abap_true ).
+    " Just tools (no bundles)
+    lt_manifests = select( ).
 
     rv_result = abap_true.
 
-    li_progress = /mbtools/cl_progress=>get_instance( lines( lt_tools ) ).
+    li_progress = /mbtools/cl_progress=>get_instance( lines( lt_manifests ) ).
 
-    LOOP AT lt_tools INTO ls_tool.
-      li_progress->show( iv_current = sy-tabix
-                         iv_text    = |Run action for { ls_tool-name }| ).
+    LOOP AT lt_manifests INTO ls_manifest.
+
+      li_progress->show(
+        iv_current = sy-tabix
+        iv_text    = |Run action for { ls_manifest-name }| ).
 
       TRY.
           CASE iv_action.
             WHEN /mbtools/if_actions=>tool_register.
-              lv_result = factory( ls_tool-name )->register( ).
+              lv_result = ls_manifest-manager->register( ).
             WHEN /mbtools/if_actions=>tool_unregister.
-              lv_result = factory( ls_tool-name )->unregister( ).
+              lv_result = ls_manifest-manager->unregister( ).
             WHEN /mbtools/if_actions=>tool_activate.
-              lv_result = factory( ls_tool-name )->activate( ).
+              lv_result = ls_manifest-manager->activate( ).
             WHEN /mbtools/if_actions=>tool_deactivate.
-              lv_result = factory( ls_tool-name )->deactivate( ).
+              lv_result = ls_manifest-manager->deactivate( ).
             WHEN /mbtools/if_actions=>tool_check.
-              lv_result = factory( ls_tool-name )->check_version( abap_true ).
+              lv_result = ls_manifest-manager->check_version( abap_true ).
             WHEN /mbtools/if_actions=>tool_install.
-              lv_result = install( ls_tool-name ).
+              lv_result = install( ls_manifest-name ).
             WHEN /mbtools/if_actions=>tool_update.
-              lv_result = update( factory( ls_tool-name ) ).
+              lv_result = update( ls_manifest-manager ).
             WHEN /mbtools/if_actions=>tool_uninstall.
-              lv_result = uninstall( factory( ls_tool-name ) ).
+              lv_result = uninstall( ls_manifest-manager ).
             WHEN /mbtools/if_actions=>tool_sync.
-              lv_result = sync( factory( ls_tool-name ) ).
+              lv_result = sync( ls_manifest-manager ).
             WHEN OTHERS.
               " unknow action
               ASSERT 0 = 1.
@@ -487,10 +497,10 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
       lo_reg_entry TYPE REF TO /mbtools/cl_registry.
 
-    CHECK mv_is_bundle IS INITIAL.
+    CHECK ms_manifest-is_bundle IS INITIAL.
 
     " Is tool already registered?
-    lo_reg_tool = _get_reg_tool( mv_name ).
+    lo_reg_tool = _get_reg_tool( ms_manifest-name ).
     IF lo_reg_tool IS NOT BOUND.
       rv_result = abap_false.
       RETURN.
@@ -505,29 +515,6 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     ENDIF.
 
     rv_result = abap_true.
-
-  ENDMETHOD.
-
-
-  METHOD build_manifest.
-
-    rs_manifest-download_id  = mv_id.
-    rs_manifest-bundle_id    = mv_bundle_id.
-    rs_manifest-is_bundle    = mv_is_bundle.
-    rs_manifest-name         = mv_name.
-    rs_manifest-version      = mv_version.
-    rs_manifest-title        = mv_title.
-    rs_manifest-description  = mv_description.
-    rs_manifest-has_launch   = mv_has_launch.
-    rs_manifest-mbt_command  = mv_command.
-    rs_manifest-mbt_shortcut = mv_shortcut.
-
-    IF mv_is_bundle IS INITIAL.
-      rs_manifest-namespace = /mbtools/if_definitions=>c_namespace.
-      rs_manifest-package   = get_package( ).
-      rs_manifest-class     = get_class( ).
-      rs_manifest-git_url   = get_url_repo( ).
-    ENDIF.
 
   ENDMETHOD.
 
@@ -547,9 +534,9 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     " Is tool or bundle registered?
     IF is_bundle( ) IS INITIAL.
-      lo_reg_tool = _get_reg_tool( mv_name ).
+      lo_reg_tool = _get_reg_tool( ms_manifest-name ).
     ELSE.
-      lo_reg_tool = go_reg_root->get_subentry( mv_name ).
+      lo_reg_tool = go_reg_root->get_subentry( ms_manifest-name ).
     ENDIF.
     CHECK lo_reg_tool IS BOUND.
 
@@ -609,6 +596,9 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         " Get root of registry
         go_reg_root = /mbtools/cl_registry=>get_root( ).
 
+        " Initialize tool instances
+        init( ).
+
       CATCH /mbtools/cx_exception.
         " MBT Base is not installed properly. Contact Marc Bernard Tools
         ASSERT 0 = 1.
@@ -619,64 +609,16 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
   METHOD constructor.
 
-    FIELD-SYMBOLS:
-      <lv_id>          TYPE ty_manifest-download_id,
-      <lv_bundle_id>   TYPE ty_manifest-bundle_id,
-      <lv_is_bundle>   TYPE ty_manifest-is_bundle,
-      <lv_title>       TYPE ty_manifest-title,
-      <lv_version>     TYPE ty_manifest-version,
-      <lv_description> TYPE ty_manifest-description,
-      <lv_has_launch>  TYPE ty_manifest-has_launch,
-      <lv_command>     TYPE ty_manifest-mbt_command,
-      <lv_shortcut>    TYPE ty_manifest-mbt_shortcut.
+    MOVE-CORRESPONDING io_tool->tool( ) TO ms_manifest.
 
-    mo_tool = io_tool.
-
-    " Each tool class must include four constants
-    ASSIGN mo_tool->('C_TOOL-DOWNLOAD_ID') TO <lv_id>.
-    ASSERT sy-subrc = 0. " constant is missing
-    mv_id = <lv_id>.
-
-    ASSIGN mo_tool->('C_TOOL-BUNDLE_ID') TO <lv_bundle_id>.
-    ASSERT sy-subrc = 0. " constant is missing
-    mv_bundle_id = <lv_bundle_id>.
-
-    ASSIGN mo_tool->('C_TOOL-TITLE') TO <lv_title>.
-    ASSERT sy-subrc = 0. " constant is missing
-    mv_title = <lv_title>.
-    mv_name = get_name( ).
-
-    ASSIGN mo_tool->('C_TOOL-VERSION') TO <lv_version>.
-    ASSERT sy-subrc = 0. " constant is missing
-    mv_version = <lv_version>.
-
-    ASSIGN mo_tool->('C_TOOL-DESCRIPTION') TO <lv_description>.
-    ASSERT sy-subrc = 0. " constant is missing
-    mv_description = <lv_description>.
-
-    ASSIGN mo_tool->('C_TOOL-IS_BUNDLE') TO <lv_is_bundle>.
-    IF sy-subrc = 0. " constant is optional
-      mv_is_bundle = <lv_is_bundle>.
-    ENDIF.
-
-    ASSIGN mo_tool->('C_TOOL-HAS_LAUNCH') TO <lv_has_launch>.
-    IF sy-subrc = 0. " constant is optional
-      mv_has_launch = <lv_has_launch>.
-
-      IF mv_has_launch = abap_true.
-        ASSIGN mo_tool->('C_TOOL-MBT_COMMAND') TO <lv_command>.
-        IF sy-subrc = 0. " constant is optional
-          mv_command = <lv_command>.
-        ENDIF.
-        ASSIGN mo_tool->('C_TOOL-MBT_SHORTCUT') TO <lv_shortcut>.
-        IF sy-subrc = 0. " constant is optional
-          mv_shortcut = <lv_shortcut>.
-        ENDIF.
-      ENDIF.
-    ENDIF.
-
-    " Build the full manifest based on these constants
-    ms_manifest = build_manifest( ).
+    ms_manifest-manager   = me.
+    ms_manifest-tool      = io_tool.
+    ms_manifest-namespace = /mbtools/if_definitions=>c_namespace.
+    ms_manifest-id        = get_id( ).
+    ms_manifest-name      = get_name( ).
+    ms_manifest-git_url   = get_url_repo( ).
+    ms_manifest-class     = _determine_class( ).
+    ms_manifest-package   = _determine_package( ).
 
   ENDMETHOD.
 
@@ -687,10 +629,10 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
       lo_reg_entry TYPE REF TO /mbtools/cl_registry.
 
-    CHECK mv_is_bundle IS INITIAL.
+    CHECK ms_manifest-is_bundle IS INITIAL.
 
     " Is tool already registered?
-    lo_reg_tool = _get_reg_tool( mv_name ).
+    lo_reg_tool = _get_reg_tool( ms_manifest-name ).
     IF lo_reg_tool IS NOT BOUND.
       rv_result = abap_false.
       RETURN.
@@ -709,18 +651,19 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD f4_tools.
+  METHOD f4.
 
     DATA:
-      lt_tools  TYPE TABLE OF /mbtools/tool_with_text,
+      lt_tools  TYPE ty_tools,
       ls_return TYPE ddshretval,
       lt_return TYPE TABLE OF ddshretval.
 
-    lt_tools = get_tools( iv_pattern     = iv_pattern
-                          iv_bundle_id   = iv_bundle_id
-                          iv_get_bundles = iv_get_bundles
-                          iv_get_tools   = iv_get_tools
-                          iv_admin       = iv_admin ).
+    lt_tools = list(
+      iv_pattern     = iv_pattern
+      iv_bundle_id   = iv_bundle_id
+      iv_get_bundles = iv_get_bundles
+      iv_get_tools   = iv_get_tools
+      iv_admin       = iv_admin ).
 
     " Show F4-Popup
     CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
@@ -736,10 +679,11 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         no_values_found = 2
         OTHERS          = 3.
     IF sy-subrc <> 0.
-      MESSAGE ID sy-msgid TYPE 'I' NUMBER sy-msgno
+      MESSAGE ID sy-msgid TYPE 'S' NUMBER sy-msgno
               WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
       RETURN.
     ENDIF.
+
     LOOP AT lt_return INTO ls_return.
       rv_title = ls_return-fieldval.
       EXIT.
@@ -750,41 +694,10 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
   METHOD factory.
 
-    DATA:
-      ls_instance        LIKE LINE OF gt_instances,
-      lv_implementation  TYPE seoclsname,
-      lt_implementations TYPE ty_classes,
-      li_tool            TYPE REF TO /mbtools/if_tool.
+    DATA ls_instance LIKE LINE OF gt_instances.
 
-    READ TABLE gt_instances INTO ls_instance
-      WITH TABLE KEY key = iv_title.
-    IF sy-subrc <> 0.
-      ls_instance-key = iv_title.
-
-      lt_implementations = _get_implementations( ).
-
-      LOOP AT lt_implementations INTO lv_implementation. "#EC CI_NOORDER
-
-        TRY.
-            " Get instance of tool
-            CREATE OBJECT li_tool TYPE (lv_implementation).
-            IF li_tool IS NOT BOUND.
-              CONTINUE. "ignore
-            ENDIF.
-
-            IF li_tool->title( ) = _clean_title( iv_title ).
-              CREATE OBJECT ls_instance-instance EXPORTING io_tool = li_tool.
-              EXIT. "got it
-            ENDIF.
-
-          CATCH cx_root.
-            CONTINUE. "ignore
-        ENDTRY.
-
-      ENDLOOP.
-
-      INSERT ls_instance INTO TABLE gt_instances.
-    ENDIF.
+    READ TABLE gt_instances INTO ls_instance WITH TABLE KEY key = _clean_title( iv_title ).
+    ASSERT sy-subrc = 0.
 
     ro_tool = ls_instance-instance.
 
@@ -793,44 +706,28 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
   METHOD get_bundle_id.
 
-    rv_result = mv_bundle_id.
+    rv_result = ms_manifest-bundle_id.
 
   ENDMETHOD.
 
 
   METHOD get_class.
-
-    DATA:
-      lo_class_desc TYPE REF TO cl_abap_typedescr.
-
-    CHECK mv_is_bundle IS INITIAL.
-
-    IF ms_manifest-class IS INITIAL.
-      lo_class_desc = cl_abap_classdescr=>describe_by_object_ref( mo_tool ).
-      ms_manifest-class = lo_class_desc->get_relative_name( ).
-    ENDIF.
-
     rv_class = ms_manifest-class.
-
   ENDMETHOD.
 
 
   METHOD get_command.
-    rv_result = mv_command.
+    rv_result = ms_manifest-mbt_command.
   ENDMETHOD.
 
 
   METHOD get_description.
-
-    rv_description = mv_description.
-
+    rv_description = ms_manifest-description.
   ENDMETHOD.
 
 
   METHOD get_download_id.
-
-    rv_result = mv_id.
-
+    rv_result = ms_manifest-download_id.
   ENDMETHOD.
 
 
@@ -842,7 +739,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = _get_reg_tool( mv_name ).
+        lo_reg_tool = _get_reg_tool( ms_manifest-name ).
         CHECK lo_reg_tool IS BOUND.
 
         " Update
@@ -866,7 +763,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = _get_reg_tool( mv_name ).
+        lo_reg_tool = _get_reg_tool( ms_manifest-name ).
         CHECK lo_reg_tool IS BOUND.
 
         " Update
@@ -885,7 +782,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   METHOD get_id.
 
     " Upper case, Underscore, Namespaced
-    rv_id = to_upper( /mbtools/if_definitions=>c_namespace && mv_title ).
+    rv_id = to_upper( /mbtools/if_definitions=>c_namespace && ms_manifest-title ).
 
     REPLACE ALL OCCURRENCES OF ` ` IN rv_id WITH '_'.
 
@@ -899,11 +796,11 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lo_reg_entry TYPE REF TO /mbtools/cl_registry,
       lv_install   TYPE timestamp.
 
-    CHECK mv_is_bundle IS INITIAL.
+    CHECK ms_manifest-is_bundle IS INITIAL.
 
     TRY.
         " Is tool already registered?
-        lo_reg_tool = _get_reg_tool( mv_name ).
+        lo_reg_tool = _get_reg_tool( ms_manifest-name ).
         IF lo_reg_tool IS NOT BOUND.
           RETURN.
         ENDIF.
@@ -937,11 +834,11 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lo_reg_entry TYPE REF TO /mbtools/cl_registry,
       lv_update    TYPE timestamp.
 
-    CHECK mv_is_bundle IS INITIAL.
+    CHECK ms_manifest-is_bundle IS INITIAL.
 
     TRY.
         " Is tool already registered?
-        lo_reg_tool = _get_reg_tool( mv_name ).
+        lo_reg_tool = _get_reg_tool( ms_manifest-name ).
         IF lo_reg_tool IS NOT BOUND.
           RETURN.
         ENDIF.
@@ -979,9 +876,9 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     TRY.
         " Is tool already registered?
         IF is_bundle( ) IS INITIAL.
-          lo_reg_tool = _get_reg_tool( mv_name ).
+          lo_reg_tool = _get_reg_tool( ms_manifest-name ).
         ELSE.
-          lo_reg_tool = go_reg_root->get_subentry( mv_name ).
+          lo_reg_tool = go_reg_root->get_subentry( ms_manifest-name ).
         ENDIF.
         CHECK lo_reg_tool IS BOUND.
 
@@ -1000,31 +897,10 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
   METHOD get_manifests.
 
-    DATA:
-      lv_implementation  TYPE seoclsname,
-      lt_implementations TYPE ty_classes,
-      li_tool            TYPE REF TO /mbtools/if_tool,
-      ls_manifest        TYPE ty_manifest.
+    DATA ls_instance LIKE LINE OF gt_instances.
 
-    lt_implementations = _get_implementations( ).
-
-    LOOP AT lt_implementations INTO lv_implementation.
-
-      TRY.
-          " Get instance of tool
-          CREATE OBJECT li_tool TYPE (lv_implementation).
-          IF li_tool IS NOT BOUND.
-            CONTINUE. "ignore
-          ENDIF.
-
-          CLEAR ls_manifest.
-          MOVE-CORRESPONDING li_tool->tool( ) TO ls_manifest ##TODO.
-          INSERT ls_manifest INTO TABLE rt_manifests.
-
-        CATCH cx_root.
-          CONTINUE. "ignore
-      ENDTRY.
-
+    LOOP AT gt_instances INTO ls_instance.
+      INSERT ls_instance-instance->ms_manifest INTO TABLE rt_manifests.
     ENDLOOP.
 
     SORT rt_manifests BY name.
@@ -1037,7 +913,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     " Note: This name determines the sort order
 
     " Mixed case, underscore
-    rv_name = mv_title.
+    rv_name = ms_manifest-title.
 
     REPLACE ALL OCCURRENCES OF ` ` IN rv_name WITH '_'.
 
@@ -1050,11 +926,11 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
       lo_reg_entry TYPE REF TO /mbtools/cl_registry.
 
-    CHECK mv_is_bundle IS INITIAL.
+    CHECK ms_manifest-is_bundle IS INITIAL.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = _get_reg_tool( mv_name ).
+        lo_reg_tool = _get_reg_tool( ms_manifest-name ).
         CHECK lo_reg_tool IS BOUND.
 
         " Update
@@ -1083,35 +959,19 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
 
   METHOD get_package.
-
-    DATA:
-      lv_class TYPE string.
-
-    CHECK mv_is_bundle IS INITIAL.
-
-    IF ms_manifest-package IS INITIAL.
-      lv_class = get_class( ).
-
-      SELECT SINGLE devclass FROM tadir INTO ms_manifest-package
-        WHERE pgmid = 'R3TR' AND object = 'CLAS' AND obj_name = lv_class.
-      ASSERT sy-subrc = 0.
-    ENDIF.
-
     rv_package = ms_manifest-package.
-
   ENDMETHOD.
 
 
   METHOD get_settings.
 
-    DATA:
-      lo_reg_tool TYPE REF TO /mbtools/cl_registry.
+    DATA lo_reg_tool TYPE REF TO /mbtools/cl_registry.
 
-    CHECK mv_is_bundle IS INITIAL.
+    CHECK ms_manifest-is_bundle IS INITIAL.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = _get_reg_tool( mv_name ).
+        lo_reg_tool = _get_reg_tool( ms_manifest-name ).
         CHECK lo_reg_tool IS BOUND.
 
         " Settings
@@ -1125,14 +985,14 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
 
   METHOD get_shortcut.
-    rv_result = mv_shortcut.
+    rv_result = ms_manifest-mbt_shortcut.
   ENDMETHOD.
 
 
   METHOD get_slug.
 
     " Lower case, dash
-    rv_slug = to_lower( mv_title ).
+    rv_slug = to_lower( ms_manifest-title ).
 
     REPLACE ALL OCCURRENCES OF ` ` IN rv_slug WITH '-'.
 
@@ -1140,87 +1000,12 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
 
   METHOD get_thumbnail.
-
     rv_thumbnail = get_id( ) && '_TN'.
-
   ENDMETHOD.
 
 
   METHOD get_title.
-
-    rv_title = mv_title.
-
-  ENDMETHOD.
-
-
-  METHOD get_tools.
-
-    DATA:
-      lv_implementation  TYPE seoclsname,
-      lt_implementations TYPE ty_classes,
-      li_tool            TYPE REF TO /mbtools/if_tool,
-      lo_tool            TYPE REF TO /mbtools/cl_tools,
-      ls_tool_with_text  TYPE /mbtools/tool_with_text.
-
-    lt_implementations = _get_implementations( ).
-
-    LOOP AT lt_implementations INTO lv_implementation.
-
-      TRY.
-          " Get instance of tool
-          CREATE OBJECT li_tool TYPE (lv_implementation).
-          IF li_tool IS BOUND.
-            lo_tool = factory( li_tool->title( ) ).
-          ELSE.
-            CONTINUE. "ignore
-          ENDIF.
-
-          " Filter by bundle
-          IF iv_bundle_id >= 0 AND lo_tool->get_bundle_id( ) <> iv_bundle_id.
-            CONTINUE.
-          ENDIF.
-
-          " Filter by bundle/tool type
-          IF lo_tool->is_bundle( ) = abap_true.
-            IF iv_get_bundles = abap_false.
-              CONTINUE.
-            ENDIF.
-          ELSE.
-            IF iv_get_tools = abap_false.
-              CONTINUE.
-            ENDIF.
-            " Filter by admin
-            IF iv_admin = abap_false.
-              " No inactive
-              IF lo_tool->is_active( ) = abap_false.
-                CONTINUE.
-              ENDIF.
-              " No MBT Base
-              IF lo_tool->is_base( ) = abap_true.
-                CONTINUE.
-              ENDIF.
-            ENDIF.
-          ENDIF.
-
-          " Filter by pattern
-          IF iv_pattern IS NOT INITIAL AND lo_tool->get_title( ) NP iv_pattern.
-            CONTINUE.
-          ENDIF.
-
-          CLEAR ls_tool_with_text.
-          ls_tool_with_text-name        = lo_tool->get_title( ).
-          ls_tool_with_text-version     = lo_tool->get_version( ).
-          ls_tool_with_text-description = lo_tool->get_description( ).
-          INSERT ls_tool_with_text INTO TABLE rt_tools.
-
-        CATCH cx_root.
-          CONTINUE. "ignore
-      ENDTRY.
-
-    ENDLOOP.
-
-    SORT rt_tools BY name AS TEXT.
-
+    rv_title = ms_manifest-title.
   ENDMETHOD.
 
 
@@ -1230,11 +1015,11 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
       lo_reg_entry TYPE REF TO /mbtools/cl_registry.
 
-    CHECK mv_is_bundle IS INITIAL.
+    CHECK ms_manifest-is_bundle IS INITIAL.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = _get_reg_tool( mv_name ).
+        lo_reg_tool = _get_reg_tool( ms_manifest-name ).
         CHECK lo_reg_tool IS BOUND.
 
         " Update
@@ -1265,11 +1050,11 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
       lo_reg_entry TYPE REF TO /mbtools/cl_registry.
 
-    CHECK mv_is_bundle IS INITIAL.
+    CHECK ms_manifest-is_bundle IS INITIAL.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = _get_reg_tool( mv_name ).
+        lo_reg_tool = _get_reg_tool( ms_manifest-name ).
         CHECK lo_reg_tool IS BOUND.
 
         " Update
@@ -1288,7 +1073,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   METHOD get_url_repo.
 
     " Link to repository on GitHub.com
-    rv_url = 'https://' && /mbtools/if_definitions=>c_github && '/' && mv_name.
+    rv_url = 'https://' && /mbtools/if_definitions=>c_github && '/' && ms_manifest-name.
+
     REPLACE ALL OCCURRENCES OF `_` IN rv_url WITH '-'.
 
   ENDMETHOD.
@@ -1304,15 +1090,49 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
 
   METHOD get_version.
-
-    rv_version = mv_version.
-
+    rv_version = ms_manifest-version.
   ENDMETHOD.
 
 
   METHOD has_launch.
+    rv_result = ms_manifest-has_launch.
+  ENDMETHOD.
 
-    rv_result = mv_has_launch.
+
+  METHOD init.
+
+    DATA:
+      ls_instance        LIKE LINE OF gt_instances,
+      lt_implementations TYPE ty_classes,
+      lv_implementation  TYPE LINE OF ty_classes,
+      li_tool            TYPE REF TO /mbtools/if_tool.
+
+    CLEAR gt_instances.
+
+    lt_implementations = _get_implementations( ).
+
+    LOOP AT lt_implementations INTO lv_implementation.  "#EC CI_NOORDER
+
+      CLEAR ls_instance.
+
+      TRY.
+          " Get instance of tool
+          CREATE OBJECT li_tool TYPE (lv_implementation).
+          IF li_tool IS NOT BOUND.
+            CONTINUE. "ignore
+          ENDIF.
+
+          ls_instance-key = li_tool->title( ).
+
+          CREATE OBJECT ls_instance-instance EXPORTING io_tool = li_tool.
+
+          INSERT ls_instance INTO TABLE gt_instances.
+
+        CATCH cx_root.
+          CONTINUE. "ignore
+      ENDTRY.
+
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -1333,22 +1153,22 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       WITH p_file_i = ''
       VIA SELECTION-SCREEN AND RETURN.
 
+    init( ).
+
     rv_result = abap_true.
 
   ENDMETHOD.
 
 
   METHOD is_active.
-
-    rv_result = /mbtools/cl_switches=>is_active( mv_title ).
-
+    rv_result = /mbtools/cl_switches=>is_active( ms_manifest-title ).
   ENDMETHOD.
 
 
   METHOD is_base.
 
     " Is this MBT Base?
-    IF mv_title = /mbtools/cl_tool_bc=>c_tool-title.
+    IF ms_manifest-title = /mbtools/cl_tool_bc=>c_tool-title.
       rv_result = abap_true.
     ENDIF.
 
@@ -1357,12 +1177,12 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
   METHOD is_base_only.
 
-    DATA: lt_tools TYPE TABLE OF /mbtools/tool_with_text.
+    DATA lt_manifests TYPE ty_manifests.
 
     " Get all installed and active tools
-    lt_tools = get_tools( ).
+    lt_manifests = select( ).
 
-    IF lt_tools IS INITIAL.
+    IF lt_manifests IS INITIAL.
       " This means there's only MBT Base left as the last tool
       rv_result = abap_true.
     ENDIF.
@@ -1371,16 +1191,12 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
 
   METHOD is_bundle.
-
-    rv_result = mv_is_bundle.
-
+    rv_result = ms_manifest-is_bundle.
   ENDMETHOD.
 
 
   METHOD is_debug.
-
-    rv_result = /mbtools/cl_switches=>is_debug( mv_title ).
-
+    rv_result = /mbtools/cl_switches=>is_debug( ms_manifest-title ).
   ENDMETHOD.
 
 
@@ -1411,9 +1227,9 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     TRY.
         " Is tool already registered?
         IF is_bundle( ) IS INITIAL.
-          lo_reg_tool = _get_reg_tool( mv_name ).
+          lo_reg_tool = _get_reg_tool( ms_manifest-name ).
         ELSE.
-          lo_reg_tool = go_reg_root->get_subentry( mv_name ).
+          lo_reg_tool = go_reg_root->get_subentry( ms_manifest-name ).
         ENDIF.
         CHECK lo_reg_tool IS BOUND.
 
@@ -1450,22 +1266,19 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
 
   METHOD is_trace.
-
-    rv_result = /mbtools/cl_switches=>is_trace( mv_title ).
-
+    rv_result = /mbtools/cl_switches=>is_trace( ms_manifest-title ).
   ENDMETHOD.
 
 
   METHOD launch.
 
-    DATA li_tool TYPE REF TO /mbtools/if_tool.
-
     IF has_launch( ) = abap_true.
+
       TRY.
-          li_tool ?= mo_tool.
-          li_tool->launch( ).
+          ms_manifest-tool->launch( ).
         CATCH /mbtools/cx_exception ##NO_HANDLER.
       ENDTRY.
+
     ENDIF.
 
   ENDMETHOD.
@@ -1483,9 +1296,9 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     " Is tool or bundle registered?
     IF is_bundle( ) IS INITIAL.
-      lo_reg_tool = _get_reg_tool( mv_name ).
+      lo_reg_tool = _get_reg_tool( ms_manifest-name ).
     ELSE.
-      lo_reg_tool = go_reg_root->get_subentry( mv_name ).
+      lo_reg_tool = go_reg_root->get_subentry( ms_manifest-name ).
     ENDIF.
     CHECK lo_reg_tool IS BOUND.
 
@@ -1533,9 +1346,9 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     " Is tool or bundle registered?
     IF is_bundle( ) IS INITIAL.
-      lo_reg_tool = _get_reg_tool( mv_name ).
+      lo_reg_tool = _get_reg_tool( ms_manifest-name ).
     ELSE.
-      lo_reg_tool = go_reg_root->get_subentry( mv_name ).
+      lo_reg_tool = go_reg_root->get_subentry( ms_manifest-name ).
     ENDIF.
     CHECK lo_reg_tool IS BOUND.
 
@@ -1563,6 +1376,35 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD list.
+
+    DATA:
+      ls_manifest  TYPE ty_manifest,
+      lt_manifests TYPE ty_manifests,
+      ls_tool      LIKE LINE OF rt_tools.
+
+    lt_manifests = select(
+      iv_pattern     = iv_pattern
+      iv_bundle_id   = iv_bundle_id
+      iv_get_bundles = iv_get_bundles
+      iv_get_tools   = iv_get_tools
+      iv_admin       = iv_admin ).
+
+    LOOP AT lt_manifests INTO ls_manifest.
+
+      CLEAR ls_tool.
+      ls_tool-name        = ls_manifest-title.
+      ls_tool-version     = ls_manifest-version.
+      ls_tool-description = ls_manifest-description.
+      INSERT ls_tool INTO TABLE rt_tools.
+
+    ENDLOOP.
+
+    SORT rt_tools BY name AS TEXT.
+
+  ENDMETHOD.
+
+
   METHOD register.
 
     DATA:
@@ -1575,9 +1417,9 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     TRY.
         " Is tool already registered?
         IF is_bundle( ) IS INITIAL.
-          lo_reg_tool = _get_reg_tool( mv_name ).
+          lo_reg_tool = _get_reg_tool( ms_manifest-name ).
         ELSE.
-          lo_reg_tool = go_reg_root->get_subentry( mv_name ).
+          lo_reg_tool = go_reg_root->get_subentry( ms_manifest-name ).
         ENDIF.
         IF lo_reg_tool IS BOUND.
           rv_result = abap_true.
@@ -1587,15 +1429,15 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         ELSE.
           " Create registry entries
           IF is_bundle( ) IS INITIAL.
-            lo_reg_bundle = _get_reg_bundle( mv_bundle_id ).
+            lo_reg_bundle = _get_reg_bundle( ms_manifest-bundle_id ).
             IF lo_reg_bundle IS BOUND.
-              lo_reg_tool = lo_reg_bundle->add_subentry( mv_name ).
+              lo_reg_tool = lo_reg_bundle->add_subentry( ms_manifest-name ).
             ELSE.
               " Bundle must be installed before tool
               RETURN. ">>>
             ENDIF.
           ELSE.
-            lo_reg_tool = go_reg_root->add_subentry( mv_name ).
+            lo_reg_tool = go_reg_root->add_subentry( ms_manifest-name ).
           ENDIF.
           CHECK lo_reg_tool IS BOUND.
         ENDIF.
@@ -1608,14 +1450,14 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         ENDIF.
         IF lo_reg_entry IS BOUND.
           lo_reg_entry->set_value( iv_key   = c_reg-key_name
-                                   iv_value = mv_name ).
+                                   iv_value = ms_manifest-name ).
           lo_reg_entry->set_value( iv_key   = c_reg-key_version
-                                   iv_value = mv_version ).
+                                   iv_value = ms_manifest-version ).
           lo_reg_entry->set_value( iv_key   = c_reg-key_title
-                                   iv_value = mv_title ).
+                                   iv_value = ms_manifest-title ).
           lo_reg_entry->set_value( iv_key   = c_reg-key_description
-                                   iv_value = mv_description ).
-          IF mv_is_bundle IS INITIAL.
+                                   iv_value = ms_manifest-description ).
+          IF ms_manifest-is_bundle IS INITIAL.
             lo_reg_entry->set_value( iv_key   = c_reg-key_namespace
                                      iv_value = /mbtools/if_definitions=>c_namespace ).
             lo_reg_entry->set_value( iv_key   = c_reg-key_package
@@ -1655,7 +1497,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         " Initialize on first run
         IF rv_result = abap_false.
           " Switches
-          IF mv_is_bundle IS INITIAL.
+          IF ms_manifest-is_bundle IS INITIAL.
             lo_reg_entry = lo_reg_tool->add_subentry( c_reg-switches ).
             IF lo_reg_entry IS BOUND.
               lo_reg_entry->set_value( c_reg-key_active ).
@@ -1669,9 +1511,9 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
           lo_reg_entry = lo_reg_tool->add_subentry( c_reg-license ).
           IF lo_reg_entry IS BOUND.
             lo_reg_entry->set_value( iv_key   = c_reg-key_lic_id
-                                     iv_value = mv_id ).
+                                     iv_value = ms_manifest-download_id ).
             lo_reg_entry->set_value( iv_key   = c_reg-key_lic_bundle
-                                     iv_value = mv_bundle_id ).
+                                     iv_value = ms_manifest-bundle_id ).
             lo_reg_entry->set_value( iv_key   = c_reg-key_lic_expire
                                      iv_value = '99991231' ).
             lo_reg_entry->set_value( c_reg-key_lic_key ).
@@ -1680,7 +1522,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
           ENDIF.
 
           " Settings
-          IF mv_is_bundle IS INITIAL.
+          IF ms_manifest-is_bundle IS INITIAL.
             lo_reg_entry = lo_reg_tool->add_subentry( c_reg-settings ).
           ENDIF.
 
@@ -1701,8 +1543,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
         " Setup Install
         TRY.
-            li_tool ?= mo_tool.
-            li_tool->install( ).
+            ms_manifest-tool->install( ).
           CATCH /mbtools/cx_exception ##NO_HANDLER.
         ENDTRY.
 
@@ -1711,6 +1552,57 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       CATCH cx_root.
         rv_result = abap_false.
     ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD select.
+
+    DATA:
+      ls_instance LIKE LINE OF gt_instances,
+      lo_tool     TYPE REF TO /mbtools/cl_tools.
+
+    LOOP AT gt_instances INTO ls_instance.
+
+      lo_tool = ls_instance-instance.
+
+      " Filter by bundle
+      IF iv_bundle_id >= 0 AND lo_tool->get_bundle_id( ) <> iv_bundle_id.
+        CONTINUE.
+      ENDIF.
+
+      " Filter by bundle/tool type
+      IF lo_tool->is_bundle( ) = abap_true.
+        IF iv_get_bundles = abap_false.
+          CONTINUE.
+        ENDIF.
+      ELSE.
+        IF iv_get_tools = abap_false.
+          CONTINUE.
+        ENDIF.
+        " Filter by admin
+        IF iv_admin = abap_false.
+          " No inactive
+          IF lo_tool->is_active( ) = abap_false.
+            CONTINUE.
+          ENDIF.
+          " No MBT Base
+          IF lo_tool->is_base( ) = abap_true.
+            CONTINUE.
+          ENDIF.
+        ENDIF.
+      ENDIF.
+
+      " Filter by pattern
+      IF iv_pattern IS NOT INITIAL AND lo_tool->get_title( ) NP iv_pattern.
+        CONTINUE.
+      ENDIF.
+
+      INSERT lo_tool->ms_manifest INTO TABLE rt_manifests.
+
+    ENDLOOP.
+
+    SORT rt_manifests BY name AS TEXT.
 
   ENDMETHOD.
 
@@ -1819,9 +1711,9 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     TRY.
         " Is tool still registered?
         IF is_bundle( ) IS INITIAL.
-          lo_reg_tool = _get_reg_tool( mv_name ).
+          lo_reg_tool = _get_reg_tool( ms_manifest-name ).
         ELSE.
-          lo_reg_tool = go_reg_root->get_subentry( mv_name ).
+          lo_reg_tool = go_reg_root->get_subentry( ms_manifest-name ).
         ENDIF.
         IF lo_reg_tool IS NOT BOUND.
           rv_result = abap_true.
@@ -1829,14 +1721,14 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         ENDIF.
 
         " Get bundle
-        lo_reg_bundle = _get_reg_bundle( mv_bundle_id ).
+        lo_reg_bundle = _get_reg_bundle( ms_manifest-bundle_id ).
         IF lo_reg_bundle IS NOT BOUND.
           RETURN. ">>>
         ENDIF.
 
         " Remove registry branch
         IF is_bundle( ) IS INITIAL.
-          lo_reg_bundle->remove_subentry( mv_name ).
+          lo_reg_bundle->remove_subentry( ms_manifest-name ).
         ELSE.
           " Check if any tools are still registered
           lt_entries = lo_reg_bundle->get_subentries( ).
@@ -1844,7 +1736,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
             EXIT.
           ENDLOOP.
           IF sy-subrc <> 0.
-            go_reg_root->remove_subentry( mv_name ).
+            go_reg_root->remove_subentry( ms_manifest-name ).
           ELSE.
             RETURN. ">>>
           ENDIF.
@@ -1852,8 +1744,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
         " Setup Uninstall
         TRY.
-            li_tool ?= mo_tool.
-            li_tool->uninstall( ).
+            ms_manifest-tool->uninstall( ).
           CATCH /mbtools/cx_exception ##NO_HANDLER.
         ENDTRY.
 
@@ -1931,21 +1822,41 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD _determine_class.
+
+    DATA lo_class_desc TYPE REF TO cl_abap_typedescr.
+
+    lo_class_desc = cl_abap_classdescr=>describe_by_object_ref( ms_manifest-tool ).
+    rv_class = lo_class_desc->get_relative_name( ).
+
+  ENDMETHOD.
+
+
+  METHOD _determine_package.
+
+    DATA lv_class TYPE string.
+
+    lv_class = get_class( ).
+
+    SELECT SINGLE devclass FROM tadir INTO rv_package
+      WHERE pgmid = 'R3TR' AND object = 'CLAS' AND obj_name = lv_class.
+    ASSERT sy-subrc = 0.
+
+  ENDMETHOD.
+
+
   METHOD _get_implementations.
 
     " Get all classes that implement the MBT Interface
-    IF gt_classes IS INITIAL.
-      SELECT clsname FROM seometarel INTO TABLE gt_classes
-        WHERE version = '1' AND refclsname = /mbtools/if_definitions=>c_interface. "#EC CI_GENBUFF
-      IF sy-subrc = 0.
-        SELECT clsname FROM seometarel APPENDING TABLE gt_classes
-          FOR ALL ENTRIES IN gt_classes
-          WHERE version = '1' AND refclsname = gt_classes-table_line. "#EC CI_GENBUFF
-        ASSERT sy-subrc >= 0.
-      ENDIF.
+    SELECT clsname FROM seometarel INTO TABLE rt_classes
+      WHERE version = '1' AND refclsname = /mbtools/if_definitions=>c_interface. "#EC CI_GENBUFF
+    IF sy-subrc = 0.
+      " Add sub-classes
+      SELECT clsname FROM seometarel APPENDING TABLE rt_classes
+        FOR ALL ENTRIES IN rt_classes
+        WHERE version = '1' AND refclsname = rt_classes-table_line. "#EC CI_GENBUFF
+      ASSERT sy-subrc >= 0.
     ENDIF.
-
-    rt_classes = gt_classes.
 
     IF rt_classes IS INITIAL AND iv_quiet IS INITIAL.
       " There are no tools installed

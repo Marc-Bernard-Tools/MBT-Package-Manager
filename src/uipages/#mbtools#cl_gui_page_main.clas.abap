@@ -80,9 +80,6 @@ CLASS /mbtools/cl_gui_page_main DEFINITION
         !iv_mode       TYPE c OPTIONAL
       RETURNING
         VALUE(ro_menu) TYPE REF TO /mbtools/cl_html_toolbar.
-    METHODS register_header
-      RAISING
-        /mbtools/cx_exception.
     METHODS register_thumbnail
       IMPORTING
         !io_tool         TYPE REF TO /mbtools/cl_tools
@@ -140,8 +137,9 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
     IF ii_event->mv_action <> /mbtools/if_actions=>tool_install.
       lo_tool = get_tool_from_param( ii_event->get_param( 'name' ) ).
 
-      validate_tool( io_tool   = lo_tool
-                     iv_action = ii_event->mv_action ).
+      validate_tool(
+        io_tool   = lo_tool
+        iv_action = ii_event->mv_action ).
     ENDIF.
 
     CASE ii_event->mv_action.
@@ -373,8 +371,6 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     CREATE OBJECT mo_asset_manager TYPE /mbtools/cl_gui_asset_manager.
 
-    register_header( ).
-
     mv_mode = iv_mode.
 
   ENDMETHOD.
@@ -487,6 +483,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     lv_name = iv_name.
     REPLACE ALL OCCURRENCES OF '_' IN lv_name WITH ` `.
+
     ro_tool = /mbtools/cl_tools=>factory( lv_name ).
     IF ro_tool IS NOT BOUND.
       /mbtools/cx_exception=>raise( |Tool { lv_name } could not be instanciated| ).
@@ -515,44 +512,33 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
       lv_update_time = io_tool->get_last_update( abap_true ).
 
       IF strlen( lv_update_time ) >= 8 AND lv_update_time(8) = sy-datum.
-        rv_text = li_html->icon( iv_name = 'check/green'
-                                 iv_hint = 'Tool updated' ) && |Updated today|.
+        rv_text = li_html->icon(
+          iv_name = 'check/green'
+          iv_hint = 'Tool updated' ) && |Updated today|.
       ELSEIF strlen( lv_install_time ) >= 8 AND lv_install_time(8) = sy-datum.
-        rv_text = li_html->icon( iv_name = 'check/green'
-                                 iv_hint = 'Tool installed' ) && |Installed today|.
+        rv_text = li_html->icon(
+          iv_name = 'check/green'
+          iv_hint = 'Tool installed' ) && |Installed today|.
       ENDIF.
 
     ELSE.
 
       lv_changelog = |toggleDisplay('changelog-{ io_tool->get_name( ) }')|.
-      lv_changelog = li_html->a( iv_act = lv_changelog
-                                 iv_typ = /mbtools/if_html=>c_action_type-onclick
-                                 iv_txt = |View version { lv_version } details| ).
+      lv_changelog = li_html->a(
+        iv_act = lv_changelog
+        iv_typ = /mbtools/if_html=>c_action_type-onclick
+        iv_txt = |View version { lv_version } details| ).
 
       lv_update = li_html->a(
         iv_act = |{ /mbtools/if_actions=>tool_update }?name={ io_tool->get_name( ) }|
         iv_txt = |update now| ).
 
-      rv_text = li_html->icon( iv_name = 'recycle/orange'
-                               iv_hint = 'Update tool' ) && |There is a new version available.|.
+      rv_text = li_html->icon(
+        iv_name = 'recycle/orange'
+        iv_hint = 'Update tool' ) && |There is a new version available.|.
       rv_text = rv_text && | { lv_changelog } or { lv_update }.|.
 
     ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD register_header.
-
-    mo_asset_manager->register_asset(
-      iv_url       = 'img/logo_header.png'
-      iv_type      = 'image/png'
-      iv_mime_name = '/MBTOOLS/LOGO_HEADER' ).
-
-    mo_asset_manager->register_asset(
-      iv_url       = 'img/banner_header.png'
-      iv_type      = 'image/png'
-      iv_mime_name = '/MBTOOLS/BANNER_HEADER' ).
 
   ENDMETHOD.
 
@@ -584,21 +570,24 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
         IF io_tool->has_launch( ) = abap_true.
           ri_html->add_a(
             iv_act = |{ /mbtools/if_actions=>tool_launch }?name={ io_tool->get_name( ) }|
-            iv_txt = ri_html->icon( iv_name  = 'rocket/black'
-                                    iv_hint  = 'Launch tool' ) ).
+            iv_txt = ri_html->icon(
+              iv_name  = 'rocket/black'
+              iv_hint  = 'Launch tool' ) ).
         ENDIF.
 
         IF io_tool->is_bundle( ) = abap_false.
           ri_html->add_a(
             iv_act = |toggleDisplay('details-{ io_tool->get_name( ) }')|
             iv_typ = /mbtools/if_html=>c_action_type-onclick
-            iv_txt = ri_html->icon( iv_name  = 'info/black'
-                                    iv_hint  = 'View tool infos' ) ).
+            iv_txt = ri_html->icon(
+              iv_name  = 'info/black'
+              iv_hint  = 'View tool infos' ) ).
 
           ri_html->add_a(
             iv_act = |{ /mbtools/if_actions=>tool_docs }?name={ io_tool->get_name( ) }|
-            iv_txt = ri_html->icon( iv_name  = 'question/black'
-                                    iv_hint  = 'Display tool documentation' ) ).
+            iv_txt = ri_html->icon(
+              iv_name  = 'question/black'
+              iv_hint  = 'Display tool documentation' ) ).
         ENDIF.
 
       WHEN c_mode-admin.
@@ -607,38 +596,45 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
           IF io_tool->is_active( ) = abap_false.
             ri_html->add_a(
               iv_act = |{ /mbtools/if_actions=>tool_activate }?name={ io_tool->get_name( ) }|
-              iv_txt = ri_html->icon( iv_name  = 'fire-alt/black'
-                                      iv_hint  = 'Activate tool' ) ).
+              iv_txt = ri_html->icon(
+                iv_name  = 'fire-alt/black'
+                iv_hint  = 'Activate tool' ) ).
             ri_html->add_a(
               iv_act = |{ /mbtools/if_actions=>tool_uninstall }?name={ io_tool->get_name( ) }|
-              iv_txt = ri_html->icon( iv_name  = 'trash-alt/black'
-                                      iv_hint  = 'Uninstall tool' ) ).
+              iv_txt = ri_html->icon(
+                iv_name  = 'trash-alt/black'
+                iv_hint  = 'Uninstall tool' ) ).
           ELSE.
             ri_html->add_a(
               iv_act = |{ /mbtools/if_actions=>tool_deactivate }?name={ io_tool->get_name( ) }|
-              iv_txt = ri_html->icon( iv_name  = 'snowflake/black'
-                                      iv_hint  = 'Deactivate tool' ) ).
+              iv_txt = ri_html->icon(
+                iv_name  = 'snowflake/black'
+                iv_hint  = 'Deactivate tool' ) ).
           ENDIF.
 
         ENDIF.
 
         ri_html->add_a(
           iv_act = |{ /mbtools/if_actions=>tool_info }?name={ io_tool->get_name( ) }|
-          iv_txt = ri_html->icon( iv_name  = 'globe/black'
-                                  iv_hint  = 'Show more information about tool' ) ).
+          iv_txt = ri_html->icon(
+            iv_name  = 'globe/black'
+            iv_hint  = 'Show more information about tool' ) ).
 
       WHEN c_mode-license.
 
         IF io_tool->is_bundle( ) = abap_false.
-          lo_form = /mbtools/cl_html_form=>create( iv_form_id     = |license-{ io_tool->get_name( ) }|
-                                                   iv_form_action = /mbtools/if_actions=>tool_license ).
+          lo_form = /mbtools/cl_html_form=>create(
+            iv_form_id     = |license-{ io_tool->get_name( ) }|
+            iv_form_action = /mbtools/if_actions=>tool_license ).
 
           CREATE OBJECT lo_values.
 
-          lo_values->set( iv_key = 'name'
-                          iv_val = io_tool->get_name( ) ).
-          lo_values->set( iv_key = 'license'
-                          iv_val = io_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_key ) ).
+          lo_values->set(
+            iv_key = 'name'
+            iv_val = io_tool->get_name( ) ).
+          lo_values->set(
+            iv_key = 'license'
+            iv_val = io_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_key ) ).
 
           lo_form->hidden( 'name' ).
 
@@ -654,17 +650,20 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
           lo_form->command(
             iv_cmd_type = /mbtools/cl_html_form=>c_cmd_type-button
             iv_action   = /mbtools/if_actions=>license_add
-            iv_label    = ri_html->icon( iv_name  = 'save/black'
-                                         iv_hint  = 'Save and activate license key' ) ).
+            iv_label    = ri_html->icon(
+              iv_name  = 'save/black'
+              iv_hint  = 'Save and activate license key' ) ).
 
           lo_form->command(
             iv_cmd_type = /mbtools/cl_html_form=>c_cmd_type-button
             iv_action   = /mbtools/if_actions=>license_remove
-            iv_label    = ri_html->icon( iv_name  = 'trash-alt/black'
-                                         iv_hint  = 'Deactivate and remove license key' ) ).
+            iv_label    = ri_html->icon(
+              iv_name  = 'trash-alt/black'
+              iv_hint  = 'Deactivate and remove license key' ) ).
 
-          ri_html->add( lo_form->render( iv_form_class = 'tool-license'
-                                         io_values     = lo_values ) ).
+          ri_html->add( lo_form->render(
+            iv_form_class = 'tool-license'
+            io_values     = lo_values ) ).
         ENDIF.
 
     ENDCASE.
@@ -676,27 +675,28 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     DATA:
       lo_bundle TYPE REF TO /mbtools/cl_tools,
-      ls_tool   TYPE /mbtools/tool_with_text,
-      lt_tools  TYPE TABLE OF /mbtools/tool_with_text.
+      ls_tool   TYPE /mbtools/cl_tools=>ty_manifest,
+      lt_tools  TYPE /mbtools/cl_tools=>ty_manifests.
 
     ri_html = /mbtools/cl_html=>create( ).
 
     lo_bundle = /mbtools/cl_tools=>factory( iv_title ).
 
-    lt_tools = /mbtools/cl_tools=>get_tools( iv_bundle_id = lo_bundle->get_bundle_id( )
-                                             iv_admin     = abap_true ).
+    lt_tools = /mbtools/cl_tools=>select(
+      iv_bundle_id = lo_bundle->get_bundle_id( )
+      iv_admin     = abap_true ).
 
     IF lt_tools IS INITIAL.
       RETURN.
     ENDIF.
 
-    ri_html->add( render_tool( |{ iv_title }| ) ).
+    ri_html->add( render_tool( iv_title ) ).
 
     ri_html->add( '<div class="tools">' ).
     ri_html->add( '<ul>' ).
     LOOP AT lt_tools INTO ls_tool.
       ri_html->add( '<li>' ).
-      ri_html->add( render_tool( |{ ls_tool-name }| ) ).
+      ri_html->add( render_tool( ls_tool-name ) ).
       ri_html->add( '</li>' ).
     ENDLOOP.
     ri_html->add( '</ul>' ).
@@ -708,12 +708,13 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
   METHOD render_bundles.
 
     DATA:
-      ls_bundle  TYPE /mbtools/tool_with_text,
-      lt_bundles TYPE TABLE OF /mbtools/tool_with_text.
+      ls_bundle  TYPE /mbtools/cl_tools=>ty_manifest,
+      lt_bundles TYPE /mbtools/cl_tools=>ty_manifests.
 
-    lt_bundles = /mbtools/cl_tools=>get_tools( iv_get_bundles = abap_true
-                                               iv_get_tools   = abap_false
-                                               iv_admin       = abap_true ).
+    lt_bundles = /mbtools/cl_tools=>select(
+      iv_get_bundles = abap_true
+      iv_get_tools   = abap_false
+      iv_admin       = abap_true ).
 
     ri_html = /mbtools/cl_html=>create( ).
 
@@ -733,7 +734,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     LOOP AT lt_bundles INTO ls_bundle.
       ri_html->add( '<li>' ).
-      ri_html->add( render_bundle( |{ ls_bundle-name }| ) ).
+      ri_html->add( render_bundle( ls_bundle-name ) ).
       ri_html->add( '</li>' ).
     ENDLOOP.
 
@@ -812,10 +813,10 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
   METHOD render_tools.
 
     DATA:
-      ls_tool  TYPE /mbtools/tool_with_text,
-      lt_tools TYPE TABLE OF /mbtools/tool_with_text.
+      ls_tool  TYPE /mbtools/cl_tools=>ty_manifest,
+      lt_tools TYPE /mbtools/cl_tools=>ty_manifests.
 
-    lt_tools = /mbtools/cl_tools=>get_tools( ).
+    lt_tools = /mbtools/cl_tools=>select( ).
 
     ri_html = /mbtools/cl_html=>create( ).
 
@@ -826,14 +827,15 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
       ri_html->add( '<li>' ).
       ri_html->add( '<h2>Welcome to Marc Bernard Tools!</h2>' ).
       ri_html->add( |<p>There are currently no active tools in your system. Go to | ).
-      ri_html->add_a( iv_txt = 'Administration'
-                      iv_act = /mbtools/if_actions=>go_admin ).
+      ri_html->add_a(
+        iv_txt = 'Administration'
+        iv_act = /mbtools/if_actions=>go_admin ).
       ri_html->add( | to add new tools or activate any tools that are already installed.| ).
       ri_html->add( '</li>' ).
     ELSE.
       LOOP AT lt_tools INTO ls_tool.
         ri_html->add( '<li>' ).
-        ri_html->add( render_tool( |{ ls_tool-name }| ) ).
+        ri_html->add( render_tool( ls_tool-name ) ).
         ri_html->add( '</li>' ).
       ENDLOOP.
     ENDIF.
@@ -848,8 +850,8 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     DATA:
       lo_tool  TYPE REF TO /mbtools/cl_tools,
-      ls_tool  TYPE /mbtools/tool_with_text,
-      lt_tools TYPE TABLE OF /mbtools/tool_with_text,
+      ls_tool  TYPE /mbtools/cl_tools=>ty_manifest,
+      lt_tools TYPE /mbtools/cl_tools=>ty_manifests,
       lv_html  TYPE string,
       li_html  TYPE REF TO /mbtools/if_html.
 
@@ -857,15 +859,15 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     CASE mv_mode.
       WHEN c_mode-user.
-        lt_tools = /mbtools/cl_tools=>get_tools( ).
+        lt_tools = /mbtools/cl_tools=>select( ).
       WHEN c_mode-admin.
-        lt_tools = /mbtools/cl_tools=>get_tools( iv_admin = abap_true ).
+        lt_tools = /mbtools/cl_tools=>select( iv_admin = abap_true ).
       WHEN c_mode-license.
         RETURN.
     ENDCASE.
 
     LOOP AT lt_tools INTO ls_tool.
-      lo_tool = /mbtools/cl_tools=>factory( ls_tool-name ).
+      lo_tool = ls_tool-manager.
 
       " Description
       li_html = /mbtools/cl_html=>create( ).

@@ -111,6 +111,16 @@ CLASS /mbtools/cl_gui_factory IMPLEMENTATION.
        iv_type      = 'image/jpg'
        iv_mime_name = '/MBTOOLS/BACKGROUND' ).
 
+    lo_asset_man->register_asset(
+      iv_url       = 'img/logo_header.png'
+      iv_type      = 'image/png'
+      iv_mime_name = '/MBTOOLS/LOGO_HEADER' ).
+
+    lo_asset_man->register_asset(
+      iv_url       = 'img/banner_header.png'
+      iv_type      = 'image/png'
+      iv_mime_name = '/MBTOOLS/BANNER_HEADER' ).
+
     ri_asset_man = lo_asset_man.
 
   ENDMETHOD.

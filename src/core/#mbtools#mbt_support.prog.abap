@@ -200,7 +200,7 @@ AT SELECTION-SCREEN OUTPUT.
 
 AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_title.
 
-  p_title = /mbtools/cl_tools=>f4_tools(
+  p_title = /mbtools/cl_tools=>f4(
     iv_pattern     = p_title
     iv_get_bundles = abap_true
     iv_get_tools   = abap_true
