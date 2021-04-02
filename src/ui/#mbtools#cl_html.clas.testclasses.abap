@@ -20,7 +20,7 @@ ENDCLASS.
 CLASS ltcl_html IMPLEMENTATION.
 
   METHOD setup.
-    CREATE OBJECT mo_html TYPE /mbtools/cl_html.
+    mo_html = /mbtools/cl_html=>create( ).
   ENDMETHOD.
 
   METHOD indent1.

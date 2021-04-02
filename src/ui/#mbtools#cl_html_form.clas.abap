@@ -527,7 +527,7 @@ CLASS /mbtools/cl_html_form IMPLEMENTATION.
       lv_form = lv_form && | action="sapevent:{ mv_form_action }"|.
     ENDIF.
 
-    CREATE OBJECT ri_html TYPE /mbtools/cl_html.
+    ri_html = /mbtools/cl_html=>create( ).
 
     ri_html->add( |<div class="{ iv_form_class }">| ).
     ri_html->add( |<form method="post"{ lv_form }>| ).
