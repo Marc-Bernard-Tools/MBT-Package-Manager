@@ -1411,8 +1411,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lo_reg_tool   TYPE REF TO /mbtools/cl_registry,
       lo_reg_bundle TYPE REF TO /mbtools/cl_registry,
       lo_reg_entry  TYPE REF TO /mbtools/cl_registry,
-      lv_timestamp  TYPE timestamp,
-      li_tool       TYPE REF TO /mbtools/if_tool.
+      lv_timestamp  TYPE timestamp.
 
     TRY.
         " Is tool already registered?
@@ -1704,9 +1703,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     DATA:
       lo_reg_bundle TYPE REF TO /mbtools/cl_registry,
       lo_reg_tool   TYPE REF TO /mbtools/cl_registry,
-      ls_entry      TYPE /mbtools/cl_registry=>ty_keyobj ##NEEDED,
-      lt_entries    TYPE /mbtools/cl_registry=>ty_keyobjs,
-      li_tool       TYPE REF TO /mbtools/if_tool.
+      lt_entries    TYPE /mbtools/cl_registry=>ty_keyobjs.
 
     TRY.
         " Is tool still registered?
@@ -1732,7 +1729,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         ELSE.
           " Check if any tools are still registered
           lt_entries = lo_reg_bundle->get_subentries( ).
-          LOOP AT lt_entries INTO ls_entry WHERE key CP 'MBT*'. "#EC CI_SORTSEQ
+          LOOP AT lt_entries TRANSPORTING NO FIELDS WHERE key CP 'MBT*'. "#EC CI_SORTSEQ
             EXIT.
           ENDLOOP.
           IF sy-subrc <> 0.
