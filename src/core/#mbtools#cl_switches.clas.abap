@@ -24,6 +24,9 @@ CLASS /mbtools/cl_switches DEFINITION
       END OF c_tool.
 
     CLASS-METHODS class_constructor.
+    CLASS-METHODS init
+      IMPORTING
+        !iv_title TYPE string.
     CLASS-METHODS is_active
       IMPORTING
         !iv_title        TYPE string
@@ -83,6 +86,13 @@ CLASS /mbtools/cl_switches IMPLEMENTATION.
         " MBT Base is not installed properly. Contact Marc Bernard Tools
         ASSERT 0 = 1.
     ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD init.
+
+    DELETE gt_switches WHERE title = iv_title.
 
   ENDMETHOD.
 

@@ -71,15 +71,16 @@ CLASS /mbtools/cl_tools DEFINITION
     METHODS constructor
       IMPORTING
         !io_tool TYPE REF TO /mbtools/if_tool.
-    CLASS-METHODS init.
+    CLASS-METHODS init
+      IMPORTING
+        !iv_title TYPE csequence OPTIONAL.
     " Class Get
     CLASS-METHODS factory
       IMPORTING
         !iv_title      TYPE csequence DEFAULT /mbtools/cl_tool_bc=>c_tool-title
       RETURNING
         VALUE(ro_tool) TYPE REF TO /mbtools/cl_tools.
-    " Class Manifests
-    CLASS-METHODS get_manifests
+    CLASS-METHODS manifests
       RETURNING
         VALUE(rt_manifests) TYPE ty_manifests.
     CLASS-METHODS select
@@ -514,6 +515,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lo_reg_entry->save( ).
     ENDIF.
 
+    /mbtools/cl_switches=>init( ms_manifest-title ).
+
     rv_result = abap_true.
 
   ENDMETHOD.
@@ -561,7 +564,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
         ev_download_url   = lv_download_url ).
 
     " If newer version is available, save info
-    IF /mbtools/cl_version=>compare( iv_current = get_version( )
+    IF /mbtools/cl_version=>compare( iv_current = ms_manifest-version
                                      iv_compare = lv_version ) < 0
       OR lv_version = '1.0.0' OR iv_force = abap_true.
 
@@ -616,6 +619,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     ms_manifest-namespace = /mbtools/if_definitions=>c_namespace.
     ms_manifest-id        = get_id( ).
     ms_manifest-name      = get_name( ).
+    ms_manifest-slug      = get_slug( ).
     ms_manifest-git_url   = get_url_repo( ).
     ms_manifest-class     = _determine_class( ).
     ms_manifest-package   = _determine_package( ).
@@ -645,6 +649,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
                                iv_value = abap_false ).
       lo_reg_entry->save( ).
     ENDIF.
+
+    /mbtools/cl_switches=>init( ms_manifest-title ).
 
     rv_result = abap_true.
 
@@ -895,19 +901,6 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_manifests.
-
-    DATA ls_instance LIKE LINE OF gt_instances.
-
-    LOOP AT gt_instances INTO ls_instance.
-      INSERT ls_instance-instance->ms_manifest INTO TABLE rt_manifests.
-    ENDLOOP.
-
-    SORT rt_manifests BY name.
-
-  ENDMETHOD.
-
-
   METHOD get_name.
 
     " Note: This name determines the sort order
@@ -941,7 +934,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
         " If current version is same or newer, then reset registry value
         IF rv_result IS NOT INITIAL AND
-          /mbtools/cl_version=>compare( iv_current = get_version( )
+          /mbtools/cl_version=>compare( iv_current = ms_manifest-version
                                         iv_compare = rv_result ) >= 0.
 
           CLEAR rv_result.
@@ -1000,7 +993,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
 
   METHOD get_thumbnail.
-    rv_thumbnail = get_id( ) && '_TN'.
+    rv_thumbnail = ms_manifest-id && '_TN'.
   ENDMETHOD.
 
 
@@ -1039,7 +1032,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     " Link to documentation page on marcbernardtools.com
     rv_url = /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_tool_docs &&
-             get_slug( ) && '/'.
+             ms_manifest-slug && '/'.
 
   ENDMETHOD.
 
@@ -1084,7 +1077,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     " Link to tool page on marcbernardtools.com
     rv_url = /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_tool_download &&
-             get_slug( ) && '/'.
+             ms_manifest-slug && '/'.
 
   ENDMETHOD.
 
@@ -1401,6 +1394,19 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     ENDLOOP.
 
     SORT rt_tools BY name AS TEXT.
+
+  ENDMETHOD.
+
+
+  METHOD manifests.
+
+    DATA ls_instance LIKE LINE OF gt_instances.
+
+    LOOP AT gt_instances INTO ls_instance.
+      INSERT ls_instance-instance->ms_manifest INTO TABLE rt_manifests.
+    ENDLOOP.
+
+    SORT rt_manifests BY name.
 
   ENDMETHOD.
 
@@ -1745,6 +1751,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
           CATCH /mbtools/cx_exception ##NO_HANDLER.
         ENDTRY.
 
+        init( ).
+
         rv_result = abap_true.
 
       CATCH cx_root.
@@ -1802,6 +1810,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
 
     " Register tool
     io_tool->register( ).
+
+    init( ).
 
     rv_result = abap_true.
 
