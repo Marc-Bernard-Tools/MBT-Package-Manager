@@ -71,9 +71,7 @@ CLASS /mbtools/cl_tools DEFINITION
     METHODS constructor
       IMPORTING
         !io_tool TYPE REF TO /mbtools/if_tool.
-    CLASS-METHODS init
-      IMPORTING
-        !iv_title TYPE csequence OPTIONAL.
+    CLASS-METHODS init.
     " Class Get
     CLASS-METHODS factory
       IMPORTING
