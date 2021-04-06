@@ -71,7 +71,9 @@ CLASS /mbtools/cl_tools DEFINITION
     METHODS constructor
       IMPORTING
         !io_tool TYPE REF TO /mbtools/if_tool.
-    CLASS-METHODS init.
+    CLASS-METHODS init
+      IMPORTING
+        !iv_title TYPE string OPTIONAL.
     " Class Get
     CLASS-METHODS factory
       IMPORTING
@@ -394,7 +396,8 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
     " Just bundles
     lt_manifests = select(
       iv_get_bundles = abap_true
-      iv_get_tools   = abap_false ).
+      iv_get_tools   = abap_false
+      iv_admin       = abap_true ).
 
     rv_result = abap_true.
 
@@ -440,7 +443,7 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lv_result    TYPE abap_bool.
 
     " Just tools (no bundles)
-    lt_manifests = select( ).
+    lt_manifests = select( iv_admin = abap_true ).
 
     rv_result = abap_true.
 
@@ -1098,7 +1101,11 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
       lv_implementation  TYPE LINE OF ty_classes,
       li_tool            TYPE REF TO /mbtools/if_tool.
 
-    CLEAR gt_instances.
+    IF iv_title IS INITIAL.
+      CLEAR gt_instances.
+    ELSE.
+      DELETE gt_instances WHERE key = iv_title.
+    ENDIF.
 
     lt_implementations = _get_implementations( ).
 
@@ -1111,6 +1118,10 @@ CLASS /mbtools/cl_tools IMPLEMENTATION.
           CREATE OBJECT li_tool TYPE (lv_implementation).
           IF li_tool IS NOT BOUND.
             CONTINUE. "ignore
+          ENDIF.
+
+          IF iv_title IS NOT INITIAL AND iv_title <> li_tool->title( ).
+            CONTINUE.
           ENDIF.
 
           ls_instance-key = li_tool->title( ).
