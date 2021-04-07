@@ -7080,6 +7080,9 @@ CLASS zcl_abapinst_installer DEFINITION
     CLASS-METHODS _uninstall_sotr
       IMPORTING
         !it_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt .
+    CLASS-METHODS _uninstall_sots
+      IMPORTING
+        !it_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt .
 ENDCLASS.
 CLASS zcl_abapinst_log_viewer DEFINITION
 
@@ -16517,7 +16520,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
     " Check if SAP-version of APACK manifest exists
     SELECT SINGLE clsname INTO lv_apack
       FROM seoclass
-      WHERE clsname = zif_abapgit_apack_definitions=>c_apack_interface_sap.
+      WHERE clsname = 'IF_APACK_INTERFACE'.
     IF sy-subrc = 0.
       RETURN.
     ENDIF.
@@ -16525,8 +16528,8 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
     " If not, replace with abapGit version
     interface_replacement(
       EXPORTING
-        iv_from_interface = to_lower( zif_abapgit_apack_definitions=>c_apack_interface_sap )
-        iv_to_interface   = to_lower( zif_abapgit_apack_definitions=>c_apack_interface_cust )
+        iv_from_interface = to_lower( 'IF_APACK_INTERFACE' )
+        iv_to_interface   = to_lower( 'ZIF_APACK_INTERFACE' )
       CHANGING
         ct_source         = ct_source ).
 
@@ -16738,7 +16741,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
     SELECT SINGLE clsname INTO lv_clsname
       FROM seometarel
       WHERE clsname    = ms_item-obj_name
-        AND refclsname = zif_abapgit_apack_definitions=>c_apack_interface_cust
+        AND refclsname = 'ZIF_APACK_INTERFACE'
         AND version    = '1'.
     IF sy-subrc <> 0.
       RETURN.
@@ -16747,8 +16750,8 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
     " If yes, replace with SAP-version
     interface_replacement(
       EXPORTING
-        iv_from_interface = to_lower( zif_abapgit_apack_definitions=>c_apack_interface_cust )
-        iv_to_interface   = to_lower( zif_abapgit_apack_definitions=>c_apack_interface_sap )
+        iv_from_interface = to_lower( 'ZIF_APACK_INTERFACE' )
+        iv_to_interface   = to_lower( 'IF_APACK_INTERFACE' )
       CHANGING
         ct_source         = ct_source ).
 
@@ -23887,6 +23890,8 @@ CLASS zcl_abapgit_object_sots IMPLEMENTATION.
     lt_sots = read_sots( ).
 
     LOOP AT lt_sots ASSIGNING <ls_sots>.
+      " Remove any usage to ensure deletion
+      DELETE FROM sotr_useu WHERE concept = <ls_sots>-header-concept.
 
       CALL FUNCTION 'BTFR_DELETE_SINGLE_TEXT'
         EXPORTING
@@ -31055,6 +31060,8 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
           IF lt_tadir IS NOT INITIAL.
             _uninstall_sotr( lt_tadir ).
 
+            _uninstall_sots( lt_tadir ).
+
             zcl_abapinst_objects=>delete(
               it_tadir     = lt_tadir
               iv_transport = gs_inst-transport
@@ -31857,14 +31864,17 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
   METHOD _uninstall_sotr.
 
-    " Necessary since older released do not delete SOTR when package is deleted
+    " Necessary since older releases do not delete SOTR when package is deleted
 
     DATA:
+      lv_use_korr  TYPE abap_bool,
       lt_sotr_head TYPE STANDARD TABLE OF sotr_head WITH DEFAULT KEY.
 
     FIELD-SYMBOLS:
       <ls_tadir>     LIKE LINE OF it_tadir,
       <ls_sotr_head> LIKE LINE OF lt_sotr_head.
+
+    lv_use_korr = boolc( gs_inst-transport IS NOT INITIAL ).
 
     LOOP AT it_tadir ASSIGNING <ls_tadir> WHERE object = 'DEVC'.
 
@@ -31875,18 +31885,22 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       ENDIF.
 
       LOOP AT lt_sotr_head ASSIGNING <ls_sotr_head>.
+        DELETE FROM sotr_use WHERE concept = <ls_sotr_head>-concept.
+
         CALL FUNCTION 'BTFR_DELETE_SINGLE_TEXT'
           EXPORTING
-            concept             = <ls_sotr_head>-concept
-            flag_string         = abap_false
+            concept                  = <ls_sotr_head>-concept
+            corr_num                 = gs_inst-transport
+            use_korrnum_immediatedly = lv_use_korr
+            flag_string              = abap_false
           EXCEPTIONS
-            text_not_found      = 1
-            invalid_package     = 2
-            text_not_changeable = 3
-            text_enqueued       = 4
-            no_correction       = 5
-            parameter_error     = 6
-            OTHERS              = 7.
+            text_not_found           = 1
+            invalid_package          = 2
+            text_not_changeable      = 3
+            text_enqueued            = 4
+            no_correction            = 5
+            parameter_error          = 6
+            OTHERS                   = 7.
         IF sy-subrc <> 0.
           CONTINUE.
         ENDIF.
@@ -31898,6 +31912,68 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
           wi_delete_tadir_entry = abap_true
           wi_tadir_pgmid        = 'R3TR'
           wi_tadir_object       = 'SOTR'
+          wi_tadir_obj_name     = <ls_tadir>-obj_name
+        EXCEPTIONS
+          OTHERS                = 1.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD _uninstall_sots.
+
+    " Necessary since older releases do not delete SOTS when package is deleted
+
+    DATA:
+      lv_use_korr  TYPE abap_bool,
+      lt_sotr_head TYPE STANDARD TABLE OF sotr_headu WITH DEFAULT KEY.
+
+    FIELD-SYMBOLS:
+      <ls_tadir>     LIKE LINE OF it_tadir,
+      <ls_sotr_head> LIKE LINE OF lt_sotr_head.
+
+    lv_use_korr = boolc( gs_inst-transport IS NOT INITIAL ).
+
+    LOOP AT it_tadir ASSIGNING <ls_tadir> WHERE object = 'DEVC'.
+
+      SELECT * FROM sotr_headu INTO TABLE lt_sotr_head
+        WHERE paket = <ls_tadir>-obj_name.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+
+      LOOP AT lt_sotr_head ASSIGNING <ls_sotr_head>.
+        DELETE FROM sotr_useu WHERE concept = <ls_sotr_head>-concept.
+
+        CALL FUNCTION 'BTFR_DELETE_SINGLE_TEXT'
+          EXPORTING
+            concept                  = <ls_sotr_head>-concept
+            corr_num                 = gs_inst-transport
+            use_korrnum_immediatedly = lv_use_korr
+            flag_string              = abap_true
+          EXCEPTIONS
+            text_not_found           = 1
+            invalid_package          = 2
+            text_not_changeable      = 3
+            text_enqueued            = 4
+            no_correction            = 5
+            parameter_error          = 6
+            OTHERS                   = 7.
+        IF sy-subrc <> 0.
+          CONTINUE.
+        ENDIF.
+      ENDLOOP.
+
+      CALL FUNCTION 'TR_TADIR_INTERFACE'
+        EXPORTING
+          wi_test_modus         = abap_false
+          wi_delete_tadir_entry = abap_true
+          wi_tadir_pgmid        = 'R3TR'
+          wi_tadir_object       = 'SOTS'
           wi_tadir_obj_name     = <ls_tadir>-obj_name
         EXCEPTIONS
           OTHERS                = 1.
