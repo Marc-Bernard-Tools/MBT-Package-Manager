@@ -529,14 +529,20 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
         iv_typ = /mbtools/if_html=>c_action_type-onclick
         iv_txt = |View version { lv_version } details| ).
 
-      lv_update = li_html->a(
-        iv_act = |{ /mbtools/if_actions=>tool_update }?name={ io_tool->get_name( ) }|
-        iv_txt = |update now| ).
+      IF io_tool->is_licensed( ) = abap_true.
+        lv_update = | or | && li_html->a(
+          iv_act = |{ /mbtools/if_actions=>tool_update }?name={ io_tool->get_name( ) }|
+          iv_txt = |update now| ).
+      ELSE.
+        lv_update = |. Automatic update is unavailable. | && li_html->a(
+          iv_act = |{ /mbtools/if_actions=>go_license }|
+          iv_txt = |Enter valid license key for automatic updates| ).
+      ENDIF.
 
       rv_text = li_html->icon(
         iv_name = 'recycle/orange'
-        iv_hint = 'Update tool' ) && |There is a new version available.|.
-      rv_text = rv_text && | { lv_changelog } or { lv_update }.|.
+        iv_hint = 'Update tool' ) && |There is a new version available. |.
+      rv_text = rv_text && |{ lv_changelog }{ lv_update }.|.
 
     ENDIF.
 
