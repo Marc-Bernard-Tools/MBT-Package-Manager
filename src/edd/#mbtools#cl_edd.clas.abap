@@ -342,6 +342,9 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
           IF ev_description CS '<p>Requirements'.
             ev_description = ev_description(sy-fdpos).
           ENDIF.
+          IF ev_description CS '<p>Screenshots'.
+            ev_description = ev_description(sy-fdpos).
+          ENDIF.
         ENDIF.
         IF lo_json->get_string( '/a/2/key' ) = 'changelog'.
           ev_changelog = lo_json->get_string( '/a/2/val' ).
