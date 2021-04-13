@@ -911,10 +911,9 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
   METHOD restart.
 
-    DATA lv_mode TYPE c LENGTH 20.
-
-    lv_mode = /mbtools/if_actions=>go_admin.
-    SET PARAMETER ID '/MBTOOLS/MODE' FIELD lv_mode.
+    /mbtools/cl_utilities=>set_user_parameter(
+      iv_parameter = '/MBTOOLS/MODE'
+      iv_value     = /mbtools/if_actions=>go_admin ).
 
     SUBMIT /mbtools/mbt.
 

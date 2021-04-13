@@ -337,7 +337,7 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
       CLEAR: mt_stack, mt_event_handlers.
       APPEND mi_router TO mt_event_handlers.
 
-      GET PARAMETER ID '/MBTOOLS/MODE' FIELD lv_mode.
+      lv_mode = /mbtools/cl_utilities=>get_user_parameter( '/MBTOOLS/MODE' ).
       lv_mode = to_lower( lv_mode ).
 
       IF lv_mode = /mbtools/if_actions=>go_admin.

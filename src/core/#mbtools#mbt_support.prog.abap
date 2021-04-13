@@ -98,7 +98,7 @@ DATA:
 
 INITIALIZATION.
 
-  GET PARAMETER ID '/MBTOOLS/SUPPORT' FIELD gv_flag.
+  gv_flag = /mbtools/cl_utilities=>get_user_parameter( '/MBTOOLS/SUPPORT' ).
   IF gv_flag IS INITIAL.
     MESSAGE 'This program shall only be used by MBT Support' TYPE 'E' ##NO_TEXT.
     EXIT.

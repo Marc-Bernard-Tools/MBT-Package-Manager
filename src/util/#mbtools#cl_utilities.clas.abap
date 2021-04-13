@@ -107,6 +107,15 @@ CLASS /mbtools/cl_utilities DEFINITION
         VALUE(iv_parameter) TYPE clike
       RETURNING
         VALUE(rv_value)     TYPE string.
+    CLASS-METHODS get_user_parameter
+      IMPORTING
+        !iv_parameter    TYPE clike
+      RETURNING
+        VALUE(rv_result) TYPE string.
+    CLASS-METHODS set_user_parameter
+      IMPORTING
+        !iv_parameter TYPE clike
+        !iv_value     TYPE clike.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -474,6 +483,15 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_user_parameter.
+
+    " Get parameter from user record (better than GET PARAMETER ID which buffers settings)
+    SELECT SINGLE parva FROM usr05 INTO rv_result
+      WHERE bname = sy-uname AND parid = iv_parameter ##SUBRC_OK.
+
+  ENDMETHOD.
+
+
   METHOD is_batch.
 
     rv_batch = boolc( sy-binpt = abap_true OR sy-batch = abap_true ).
@@ -553,6 +571,21 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
         ev_upg_running = rv_upgrade_running.
 
   ENDMETHOD.                    "is_spam_in_progress
+
+
+  METHOD set_user_parameter.
+
+    " Save parameter to user record
+    DATA ls_usr05 TYPE usr05.
+
+    ls_usr05-mandt = sy-mandt.
+    ls_usr05-bname = sy-uname.
+    ls_usr05-parid = iv_parameter.
+    ls_usr05-parva = iv_value.
+
+    MODIFY usr05 FROM ls_usr05 ##SUBRC_OK.
+
+  ENDMETHOD.
 
 
   METHOD _get_all_profile_parameters.
