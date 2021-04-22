@@ -9,7 +9,7 @@ REPORT /mbtools/mbt_installer.
 ************************************************************************
 
 CONSTANTS:
-  c_version TYPE string VALUE '1.0.0',
+  c_version TYPE string VALUE '1.1.0',
   c_home    TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT,
   c_github  TYPE string VALUE 'github.com' ##NO_TEXT.
 
@@ -1094,6 +1094,7 @@ CLASS zcl_abapgit_dependencies DEFINITION DEFERRED.
 CLASS zcl_abapgit_dot_abapgit DEFINITION DEFERRED.
 CLASS zcl_abapgit_environment DEFINITION DEFERRED.
 CLASS zcl_abapgit_exit DEFINITION DEFERRED.
+CLASS zcl_abapgit_filename_logic DEFINITION DEFERRED.
 CLASS zcl_abapgit_folder_logic DEFINITION DEFERRED.
 CLASS zcl_abapgit_free_sel_dialog DEFINITION DEFERRED.
 CLASS zcl_abapgit_gui_functions DEFINITION DEFERRED.
@@ -1594,9 +1595,7 @@ INTERFACE zif_abapgit_definitions
       repo_remove                   TYPE string VALUE 'repo_remove',
       repo_settings                 TYPE string VALUE 'repo_settings',
       repo_local_settings           TYPE string VALUE 'repo_local_settings',
-      repo_switch                   TYPE string VALUE 'repo_switch',
-      repo_packaging                TYPE string VALUE 'repo_packaging',
-      go_abaplint                   TYPE string VALUE 'go_abaplint',
+      repo_remote_settings          TYPE string VALUE 'repo_remote_settings',
       repo_background               TYPE string VALUE 'repo_background',
       repo_infos                    TYPE string VALUE 'repo_infos',
       repo_purge                    TYPE string VALUE 'repo_purge',
@@ -3292,8 +3291,9 @@ CLASS zcl_abapgit_data_deserializer DEFINITION
         !iv_name       TYPE tadir-obj_name
         !it_where      TYPE string_table
       RETURNING
-        VALUE(rr_data) TYPE REF TO data .
-
+        VALUE(rr_data) TYPE REF TO data
+      RAISING
+        zcx_abapgit_exception .
 ENDCLASS.
 CLASS zcl_abapgit_data_serializer DEFINITION
 
@@ -3370,7 +3370,9 @@ CLASS zcl_abapgit_data_utils DEFINITION
       IMPORTING
         !iv_name       TYPE tadir-obj_name
       RETURNING
-        VALUE(rr_data) TYPE REF TO data .
+        VALUE(rr_data) TYPE REF TO data
+      RAISING
+        zcx_abapgit_exception .
     CLASS-METHODS build_filename
       IMPORTING
         !is_config         TYPE zif_abapgit_data_config=>ty_config
@@ -3542,9 +3544,6 @@ CLASS zcl_abapgit_dot_abapgit DEFINITION
     METHODS set_starting_folder
       IMPORTING
         !iv_path TYPE string .
-    METHODS get_master_language
-      RETURNING
-        VALUE(rv_language) TYPE spras .
     METHODS get_main_language
       RETURNING
         VALUE(rv_language) TYPE spras .
@@ -3623,6 +3622,43 @@ CLASS zcl_abapgit_exit DEFINITION
   PRIVATE SECTION.
 
     CLASS-DATA gi_exit TYPE REF TO zif_abapgit_exit .
+ENDCLASS.
+CLASS zcl_abapgit_filename_logic DEFINITION
+
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+
+    CONSTANTS:
+      BEGIN OF c_package_file,
+        obj_name  TYPE c LENGTH 7 VALUE 'package',
+        sep1      TYPE c LENGTH 1 VALUE '.',
+        obj_type  TYPE c LENGTH 4 VALUE 'devc',
+        sep2      TYPE c LENGTH 1 VALUE '.',
+        extension TYPE c LENGTH 3 VALUE 'xml',
+      END OF c_package_file.
+
+    CLASS-METHODS file_to_object
+      IMPORTING
+        !iv_filename TYPE string
+        !iv_path     TYPE string
+        !iv_devclass TYPE devclass OPTIONAL
+        !io_dot      TYPE REF TO zcl_abapgit_dot_abapgit
+      EXPORTING
+        !es_item     TYPE zif_abapgit_definitions=>ty_item
+        !ev_is_xml   TYPE abap_bool
+      RAISING
+        zcx_abapgit_exception .
+    CLASS-METHODS object_to_file
+      IMPORTING
+        !is_item           TYPE zif_abapgit_definitions=>ty_item
+        !iv_ext            TYPE string
+        !iv_extra          TYPE clike OPTIONAL
+      RETURNING
+        VALUE(rv_filename) TYPE string .
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 CLASS zcl_abapgit_folder_logic DEFINITION
 
@@ -4343,12 +4379,6 @@ CLASS zcl_abapgit_objects_files DEFINITION
         VALUE(rv_data) TYPE xstring
       RAISING
         zcx_abapgit_exception .
-    METHODS filename
-      IMPORTING
-        !iv_extra          TYPE clike OPTIONAL
-        !iv_ext            TYPE string
-      RETURNING
-        VALUE(rv_filename) TYPE string .
   PRIVATE SECTION.
 
     DATA ms_item TYPE zif_abapgit_definitions=>ty_item .
@@ -5009,6 +5039,7 @@ CLASS zcl_abapgit_object_enho_badi DEFINITION .
         io_files TYPE REF TO zcl_abapgit_objects_files.
     INTERFACES: zif_abapgit_object_enho.
 
+  PROTECTED SECTION.
   PRIVATE SECTION.
     DATA: ms_item  TYPE zif_abapgit_definitions=>ty_item.
 
@@ -5022,6 +5053,7 @@ CLASS zcl_abapgit_object_enho_hook DEFINITION .
 
     INTERFACES: zif_abapgit_object_enho.
 
+  PROTECTED SECTION.
   PRIVATE SECTION.
     TYPES: BEGIN OF ty_spaces,
              full_name TYPE string.
@@ -5078,6 +5110,7 @@ CLASS zcl_abapgit_object_enho_intf DEFINITION .
           io_files TYPE REF TO zcl_abapgit_objects_files.
     INTERFACES: zif_abapgit_object_enho.
 
+  PROTECTED SECTION.
   PRIVATE SECTION.
     DATA: ms_item  TYPE zif_abapgit_definitions=>ty_item,
           mo_files TYPE REF TO zcl_abapgit_objects_files.
@@ -5105,6 +5138,7 @@ CLASS zcl_abapgit_object_enho_fugr DEFINITION .
         io_files TYPE REF TO zcl_abapgit_objects_files.
     INTERFACES: zif_abapgit_object_enho.
 
+  PROTECTED SECTION.
   PRIVATE SECTION.
     DATA: ms_item  TYPE zif_abapgit_definitions=>ty_item,
           mo_files TYPE REF TO zcl_abapgit_objects_files.
@@ -7352,6 +7386,11 @@ CLASS zcl_abapinst_persistence DEFINITION
       IMPORTING
         !iv_name TYPE zif_abapinst_definitions=>ty_name
         !iv_pack TYPE zif_abapinst_definitions=>ty_pack
+      RAISING
+        zcx_abapinst_exception .
+    METHODS last
+      RETURNING
+        VALUE(rs_inst) TYPE zif_abapinst_definitions=>ty_inst
       RAISING
         zcx_abapinst_exception .
     METHODS list
@@ -10141,13 +10180,29 @@ CLASS zcl_abapgit_data_utils IMPLEMENTATION.
 
   METHOD build_table_itab.
 
-    DATA lo_structure TYPE REF TO cl_abap_structdescr.
+    DATA lo_type TYPE REF TO cl_abap_typedescr.
+    DATA lo_data TYPE REF TO cl_abap_datadescr.
     DATA lo_table TYPE REF TO cl_abap_tabledescr.
 
-    lo_structure ?= cl_abap_structdescr=>describe_by_name( iv_name ).
+    cl_abap_structdescr=>describe_by_name(
+      EXPORTING
+        p_name         = iv_name
+      RECEIVING
+        p_descr_ref    = lo_type
+      EXCEPTIONS
+        type_not_found = 1 ).
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise( |Table { iv_name } not found for data serialization| ).
+    ENDIF.
+
+    TRY.
+        lo_data ?= lo_type.
 * todo, also add unique key corresponding to the db table, so duplicates cannot be returned
-    lo_table = cl_abap_tabledescr=>create( lo_structure ).
-    CREATE DATA rr_data TYPE HANDLE lo_table.
+        lo_table = cl_abap_tabledescr=>create( lo_data ).
+        CREATE DATA rr_data TYPE HANDLE lo_table.
+      CATCH cx_root.
+        zcx_abapgit_exception=>raise( |Error creating internal table for data serialization| ).
+    ENDTRY.
 
   ENDMETHOD.
 ENDCLASS.
@@ -10732,12 +10787,6 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_master_language.
-    " todo, transition to get_main_language()
-    rv_language = ms_data-master_language.
-  ENDMETHOD.
-
-
   METHOD get_packaging.
     rt_packaging = ms_data-packaging.
   ENDMETHOD.
@@ -11212,6 +11261,90 @@ CLASS ZCL_ABAPGIT_EXIT IMPLEMENTATION.
   ENDMETHOD.
 
 
+ENDCLASS.
+
+
+
+CLASS zcl_abapgit_filename_logic IMPLEMENTATION.
+
+
+  METHOD file_to_object.
+
+    DATA:
+      lv_name TYPE string,
+      lv_type TYPE string,
+      lv_ext  TYPE string.
+
+    " Guess object type and name
+    SPLIT to_upper( iv_filename ) AT '.' INTO lv_name lv_type lv_ext.
+
+    " Handle namespaces
+    REPLACE ALL OCCURRENCES OF '#' IN lv_name WITH '/'.
+    REPLACE ALL OCCURRENCES OF '#' IN lv_type WITH '/'.
+    REPLACE ALL OCCURRENCES OF '#' IN lv_ext WITH '/'.
+
+    " The counter part to this logic must be maintained in OBJECT_TO_FILE
+    IF lv_type = to_upper( c_package_file-obj_type ).
+      " Try to get a unique package name for DEVC by using the path
+      ASSERT lv_name = to_upper( c_package_file-obj_name ).
+      lv_name = zcl_abapgit_folder_logic=>get_instance( )->path_to_package(
+        iv_top                  = iv_devclass
+        io_dot                  = io_dot
+        iv_create_if_not_exists = abap_false
+        iv_path                 = iv_path ).
+    ELSE.
+      " Get original object name
+      lv_name = cl_http_utility=>unescape_url( lv_name ).
+    ENDIF.
+
+    CLEAR es_item.
+    es_item-obj_type = lv_type.
+    es_item-obj_name = lv_name.
+    ev_is_xml        = boolc( lv_ext = to_upper( c_package_file-extension ) AND strlen( lv_type ) = 4 ).
+
+  ENDMETHOD.
+
+
+  METHOD object_to_file.
+
+    DATA lv_obj_name TYPE string.
+
+    lv_obj_name = is_item-obj_name.
+
+    " The counter part to this logic must be maintained in FILE_TO_OBJECT
+    IF is_item-obj_type = to_upper( c_package_file-obj_type ).
+      " Packages have a fixed filename so that the repository can be installed to a different
+      " package(-hierarchy) on the client and not show up as a different package in the repo.
+      lv_obj_name = c_package_file-obj_name.
+    ELSE.
+      " Some characters in object names cause problems when identifying the object later
+      " -> we escape these characters here
+      " cl_http_utility=>escape_url doesn't do dots but escapes slash which we use for namespaces
+      " -> we escape just some selected characters
+      REPLACE ALL OCCURRENCES OF `%` IN lv_obj_name WITH '%25'.
+      REPLACE ALL OCCURRENCES OF `#` IN lv_obj_name WITH '%23'.
+      REPLACE ALL OCCURRENCES OF `.` IN lv_obj_name WITH '%2e'.
+      REPLACE ALL OCCURRENCES OF `=` IN lv_obj_name WITH '%3d'.
+      REPLACE ALL OCCURRENCES OF `?` IN lv_obj_name WITH '%3f'.
+      REPLACE ALL OCCURRENCES OF `<` IN lv_obj_name WITH '%3c'.
+      REPLACE ALL OCCURRENCES OF `>` IN lv_obj_name WITH '%3e'.
+    ENDIF.
+
+    IF iv_extra IS INITIAL.
+      CONCATENATE lv_obj_name '.' is_item-obj_type INTO rv_filename.
+    ELSE.
+      CONCATENATE lv_obj_name '.' is_item-obj_type '.' iv_extra INTO rv_filename.
+    ENDIF.
+
+    IF iv_ext IS NOT INITIAL.
+      CONCATENATE rv_filename '.' iv_ext INTO rv_filename.
+    ENDIF.
+
+    " handle namespaces
+    REPLACE ALL OCCURRENCES OF '/' IN rv_filename WITH '#'.
+    TRANSLATE rv_filename TO LOWER CASE.
+
+  ENDMETHOD.
 ENDCLASS.
 
 
@@ -13825,8 +13958,10 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
     lv_source = lv_source && zif_abapgit_definitions=>c_newline.
 
     ls_file-path = '/'.
-    ls_file-filename = filename( iv_extra = iv_extra
-                                 iv_ext   = 'abap' ).
+    ls_file-filename = zcl_abapgit_filename_logic=>object_to_file(
+      is_item  = ms_item
+      iv_extra = iv_extra
+      iv_ext   = 'abap' ).
     ls_file-data = zcl_abapgit_convert=>string_to_xstring_utf8( lv_source ).
 
     APPEND ls_file TO mt_files.
@@ -13840,8 +13975,10 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
 
     ls_file-path     = '/'.
     ls_file-data     = iv_data.
-    ls_file-filename = filename( iv_extra = iv_extra
-                                 iv_ext   = iv_ext ).
+    ls_file-filename = zcl_abapgit_filename_logic=>object_to_file(
+      is_item  = ms_item
+      iv_extra = iv_extra
+      iv_ext   = iv_ext ).
 
     APPEND ls_file TO mt_files.
 
@@ -13854,8 +13991,10 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
 
 
     ls_file-path = '/'.
-    ls_file-filename = filename( iv_extra = iv_extra
-                                 iv_ext   = iv_ext ).
+    ls_file-filename = zcl_abapgit_filename_logic=>object_to_file(
+      is_item  = ms_item
+      iv_extra = iv_extra
+      iv_ext   = iv_ext ).
     ls_file-data = zcl_abapgit_convert=>string_to_xstring_utf8( iv_string ).
 
     APPEND ls_file TO mt_files.
@@ -13872,8 +14011,10 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
                              is_metadata = is_metadata ).
     ls_file-path = '/'.
 
-    ls_file-filename = filename( iv_extra = iv_extra
-                                 iv_ext   = 'xml' ).
+    ls_file-filename = zcl_abapgit_filename_logic=>object_to_file(
+      is_item  = ms_item
+      iv_extra = iv_extra
+      iv_ext   = 'xml' ).
 
     REPLACE FIRST OCCURRENCE
       OF REGEX '<\?xml version="1\.0" encoding="[\w-]+"\?>'
@@ -13896,8 +14037,10 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
   METHOD contains.
     DATA: lv_filename TYPE string.
 
-    lv_filename = filename( iv_extra = iv_extra
-                            iv_ext   = iv_ext ).
+    lv_filename = zcl_abapgit_filename_logic=>object_to_file(
+      is_item  = ms_item
+      iv_extra = iv_extra
+      iv_ext   = iv_ext ).
 
     IF mv_path IS NOT INITIAL.
       READ TABLE mt_files TRANSPORTING NO FIELDS WITH KEY path     = mv_path
@@ -13912,52 +14055,6 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD filename.
-
-    DATA: lv_obj_name TYPE string.
-
-
-    lv_obj_name = ms_item-obj_name.
-
-    " The counter part to this logic must be maintained in ZCL_ABAPGIT_FILE_STATUS->IDENTIFY_OBJECT
-    IF ms_item-obj_type = 'DEVC'.
-      " Packages have a fixed filename so that the repository can be installed to a different
-      " package(-hierarchy) on the client and not show up as a different package in the repo.
-      lv_obj_name = 'package'.
-    ELSE.
-      " Some characters in object names cause problems when identifying the object later
-      " -> we escape these characters here
-      " cl_http_utility=>escape_url doesn't do dots but escapes slash which we use for namespaces
-      " -> we escape just some selected characters
-      REPLACE ALL OCCURRENCES OF `%` IN lv_obj_name WITH '%25'.
-      REPLACE ALL OCCURRENCES OF `#` IN lv_obj_name WITH '%23'.
-      REPLACE ALL OCCURRENCES OF `.` IN lv_obj_name WITH '%2e'.
-      REPLACE ALL OCCURRENCES OF `=` IN lv_obj_name WITH '%3d'.
-      REPLACE ALL OCCURRENCES OF `?` IN lv_obj_name WITH '%3f'.
-      REPLACE ALL OCCURRENCES OF `<` IN lv_obj_name WITH '%3c'.
-      REPLACE ALL OCCURRENCES OF `>` IN lv_obj_name WITH '%3e'.
-    ENDIF.
-
-    IF iv_extra IS INITIAL.
-      CONCATENATE lv_obj_name '.' ms_item-obj_type
-        INTO rv_filename.
-    ELSE.
-      CONCATENATE lv_obj_name '.' ms_item-obj_type '.' iv_extra
-        INTO rv_filename.
-    ENDIF.
-
-    IF iv_ext IS NOT INITIAL.
-      CONCATENATE rv_filename '.' iv_ext
-        INTO rv_filename.
-    ENDIF.
-
-    " handle namespaces
-    REPLACE ALL OCCURRENCES OF '/' IN rv_filename WITH '#'.
-    TRANSLATE rv_filename TO LOWER CASE.
-
-  ENDMETHOD.
-
-
   METHOD get_accessed_files.
     rt_files = mt_accessed_files.
   ENDMETHOD.
@@ -13969,7 +14066,9 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
 
 
   METHOD get_file_pattern.
-    rv_pattern = filename( iv_ext = '*' ).
+    rv_pattern = zcl_abapgit_filename_logic=>object_to_file(
+      is_item  = ms_item
+      iv_ext   = '*' ).
     " Escape special characters for use with 'covers pattern' (CP)
     REPLACE ALL OCCURRENCES OF '#' IN rv_pattern WITH '##'.
     REPLACE ALL OCCURRENCES OF '+' IN rv_pattern WITH '#+'.
@@ -13983,8 +14082,10 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
           lv_abap     TYPE string.
 
 
-    lv_filename = filename( iv_extra = iv_extra
-                            iv_ext   = 'abap' ).
+    lv_filename = zcl_abapgit_filename_logic=>object_to_file(
+      is_item  = ms_item
+      iv_extra = iv_extra
+      iv_ext   = 'abap' ).
 
     lv_data = read_file( iv_filename = lv_filename
                          iv_error    = iv_error ).
@@ -14038,8 +14139,10 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
 
     DATA: lv_filename TYPE string.
 
-    lv_filename = filename( iv_extra = iv_extra
-                            iv_ext   = iv_ext ).
+    lv_filename = zcl_abapgit_filename_logic=>object_to_file(
+      is_item  = ms_item
+      iv_extra = iv_extra
+      iv_ext   = iv_ext ).
 
     rv_data = read_file( lv_filename ).
 
@@ -14051,8 +14154,10 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
     DATA: lv_filename TYPE string,
           lv_data     TYPE xstring.
 
-    lv_filename = filename( iv_extra = iv_extra
-                            iv_ext   = iv_ext ).
+    lv_filename = zcl_abapgit_filename_logic=>object_to_file(
+      is_item  = ms_item
+      iv_extra = iv_extra
+      iv_ext   = iv_ext ).
 
     lv_data = read_file( lv_filename ).
 
@@ -14067,8 +14172,10 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
           lv_data     TYPE xstring,
           lv_xml      TYPE string.
 
-    lv_filename = filename( iv_extra = iv_extra
-                            iv_ext   = 'xml' ).
+    lv_filename = zcl_abapgit_filename_logic=>object_to_file(
+      is_item  = ms_item
+      iv_extra = iv_extra
+      iv_ext   = 'xml' ).
 
     lv_data = read_file( lv_filename ).
 
@@ -18585,7 +18692,7 @@ CLASS zcl_abapgit_object_enhc IMPLEMENTATION.
 
   METHOD zif_abapgit_object~delete.
 
-    DATA: lx_error      TYPE REF TO cx_enh_root,
+    DATA: lx_enh_root   TYPE REF TO cx_enh_root,
           li_enh_object TYPE REF TO if_enh_object.
 
     TRY.
@@ -18597,8 +18704,8 @@ CLASS zcl_abapgit_object_enhc IMPLEMENTATION.
                                run_dark            = abap_true ).
         li_enh_object->unlock( ).
 
-      CATCH cx_enh_root INTO lx_error.
-        zcx_abapgit_exception=>raise( lx_error->get_text( ) ).
+      CATCH cx_enh_root INTO lx_enh_root.
+        zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
     ENDTRY.
 
   ENDMETHOD.
@@ -18606,7 +18713,7 @@ CLASS zcl_abapgit_object_enhc IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    DATA: lx_error            TYPE REF TO cx_enh_root,
+    DATA: lx_enh_root         TYPE REF TO cx_enh_root,
           li_enh_composite    TYPE REF TO if_enh_composite,
           lv_package          TYPE devclass,
           lt_composite_childs TYPE enhcompositename_it,
@@ -18678,8 +18785,8 @@ CLASS zcl_abapgit_object_enhc IMPLEMENTATION.
           iv_package = iv_package
           io_xml     = io_xml ).
 
-      CATCH cx_enh_root INTO lx_error.
-        zcx_abapgit_exception=>raise( lx_error->get_text( ) ).
+      CATCH cx_enh_root INTO lx_enh_root.
+        zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
     ENDTRY.
 
   ENDMETHOD.
@@ -18753,7 +18860,7 @@ CLASS zcl_abapgit_object_enhc IMPLEMENTATION.
 
   METHOD zif_abapgit_object~serialize.
 
-    DATA: lx_error            TYPE REF TO cx_enh_root,
+    DATA: lx_enh_root         TYPE REF TO cx_enh_root,
           li_enh_composite    TYPE REF TO if_enh_composite,
           lt_composite_childs TYPE enhcompositename_it,
           lt_enh_childs       TYPE enhname_it,
@@ -18786,18 +18893,70 @@ CLASS zcl_abapgit_object_enhc IMPLEMENTATION.
           iv_obj_name = ms_item-obj_name
           io_xml      = io_xml ).
 
-      CATCH cx_enh_root INTO lx_error.
-        zcx_abapgit_exception=>raise( lx_error->get_text( ) ).
+      CATCH cx_enh_root INTO lx_enh_root.
+        zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
     ENDTRY.
 
   ENDMETHOD.
 ENDCLASS.
 
+
+
 CLASS zcl_abapgit_object_enho_badi IMPLEMENTATION.
+
 
   METHOD constructor.
     ms_item = is_item.
   ENDMETHOD.
+
+
+  METHOD zif_abapgit_object_enho~deserialize.
+
+    DATA: lv_spot_name TYPE enhspotname,
+          lv_shorttext TYPE string,
+          lv_enhname   TYPE enhname,
+          lo_badi      TYPE REF TO cl_enh_tool_badi_impl,
+          li_tool      TYPE REF TO if_enh_tool,
+          lv_package   TYPE devclass,
+          lt_impl      TYPE enh_badi_impl_data_it,
+          lx_enh_root  TYPE REF TO cx_enh_root.
+
+    FIELD-SYMBOLS: <ls_impl> LIKE LINE OF lt_impl.
+
+    ii_xml->read( EXPORTING iv_name = 'SHORTTEXT'
+                  CHANGING cg_data  = lv_shorttext ).
+    ii_xml->read( EXPORTING iv_name = 'SPOT_NAME'
+                  CHANGING cg_data  = lv_spot_name ).
+    ii_xml->read( EXPORTING iv_name = 'IMPL'
+                  CHANGING cg_data  = lt_impl ).
+
+    lv_enhname = ms_item-obj_name.
+    lv_package = iv_package.
+    TRY.
+        cl_enh_factory=>create_enhancement(
+          EXPORTING
+            enhname     = lv_enhname
+            enhtype     = cl_abstract_enh_tool_redef=>credefinition
+            enhtooltype = cl_enh_tool_badi_impl=>tooltype
+          IMPORTING
+            enhancement = li_tool
+          CHANGING
+            devclass    = lv_package ).
+        lo_badi ?= li_tool.
+
+        lo_badi->set_spot_name( lv_spot_name ).
+        lo_badi->if_enh_object_docu~set_shorttext( lv_shorttext ).
+        LOOP AT lt_impl ASSIGNING <ls_impl>.
+          lo_badi->add_implementation( <ls_impl> ).
+        ENDLOOP.
+        lo_badi->if_enh_object~save( run_dark = abap_true ).
+        lo_badi->if_enh_object~unlock( ).
+      CATCH cx_enh_root INTO lx_enh_root.
+        zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
+    ENDTRY.
+
+  ENDMETHOD.
+
 
   METHOD zif_abapgit_object_enho~serialize.
 
@@ -18841,105 +19000,18 @@ CLASS zcl_abapgit_object_enho_badi IMPLEMENTATION.
                  ig_data = lt_impl ).
 
   ENDMETHOD.
-
-  METHOD zif_abapgit_object_enho~deserialize.
-
-    DATA: lv_spot_name TYPE enhspotname,
-          lv_shorttext TYPE string,
-          lv_enhname   TYPE enhname,
-          lo_badi      TYPE REF TO cl_enh_tool_badi_impl,
-          li_tool      TYPE REF TO if_enh_tool,
-          lv_package   TYPE devclass,
-          lt_impl      TYPE enh_badi_impl_data_it.
-
-    FIELD-SYMBOLS: <ls_impl> LIKE LINE OF lt_impl.
-
-
-    ii_xml->read( EXPORTING iv_name = 'SHORTTEXT'
-                  CHANGING cg_data  = lv_shorttext ).
-    ii_xml->read( EXPORTING iv_name = 'SPOT_NAME'
-                  CHANGING cg_data  = lv_spot_name ).
-    ii_xml->read( EXPORTING iv_name = 'IMPL'
-                  CHANGING cg_data  = lt_impl ).
-
-    lv_enhname = ms_item-obj_name.
-    lv_package = iv_package.
-    TRY.
-        cl_enh_factory=>create_enhancement(
-          EXPORTING
-            enhname     = lv_enhname
-            enhtype     = cl_abstract_enh_tool_redef=>credefinition
-            enhtooltype = cl_enh_tool_badi_impl=>tooltype
-          IMPORTING
-            enhancement = li_tool
-          CHANGING
-            devclass    = lv_package ).
-        lo_badi ?= li_tool.
-
-        lo_badi->set_spot_name( lv_spot_name ).
-        lo_badi->if_enh_object_docu~set_shorttext( lv_shorttext ).
-        LOOP AT lt_impl ASSIGNING <ls_impl>.
-          lo_badi->add_implementation( <ls_impl> ).
-        ENDLOOP.
-        lo_badi->if_enh_object~save( run_dark = abap_true ).
-        lo_badi->if_enh_object~unlock( ).
-      CATCH cx_enh_root.
-        zcx_abapgit_exception=>raise( 'error deserializing ENHO badi' ).
-    ENDTRY.
-
-  ENDMETHOD.
-
 ENDCLASS.
 
+
+
 CLASS zcl_abapgit_object_enho_hook IMPLEMENTATION.
+
 
   METHOD constructor.
     ms_item = is_item.
     mo_files = io_files.
   ENDMETHOD.
 
-  METHOD zif_abapgit_object_enho~serialize.
-
-    DATA: lv_shorttext       TYPE string,
-          lo_hook_impl       TYPE REF TO cl_enh_tool_hook_impl,
-          ls_original_object TYPE enh_hook_admin,
-          lt_spaces          TYPE ty_spaces_tt,
-          lt_enhancements    TYPE enh_hook_impl_it.
-
-    FIELD-SYMBOLS: <ls_enhancement> LIKE LINE OF lt_enhancements.
-
-
-    lo_hook_impl ?= ii_enh_tool.
-
-    lv_shorttext = lo_hook_impl->if_enh_object_docu~get_shorttext( ).
-    lo_hook_impl->get_original_object(
-      IMPORTING
-        pgmid     = ls_original_object-pgmid
-        obj_name  = ls_original_object-org_obj_name
-        obj_type  = ls_original_object-org_obj_type
-        main_type = ls_original_object-org_main_type
-        main_name = ls_original_object-org_main_name
-        program   = ls_original_object-programname ).
-    ls_original_object-include_bound = lo_hook_impl->get_include_bound( ).
-    lt_enhancements = lo_hook_impl->get_hook_impls( ).
-
-    LOOP AT lt_enhancements ASSIGNING <ls_enhancement>.
-      CLEAR: <ls_enhancement>-extid,
-             <ls_enhancement>-id.
-    ENDLOOP.
-
-    ii_xml->add( iv_name = 'TOOL'
-                 ig_data = ii_enh_tool->get_tool( ) ).
-    ii_xml->add( ig_data = lv_shorttext
-                 iv_name = 'SHORTTEXT' ).
-    ii_xml->add( ig_data = ls_original_object
-                 iv_name = 'ORIGINAL_OBJECT' ).
-    ii_xml->add( iv_name = 'ENHANCEMENTS'
-                 ig_data = lt_enhancements ).
-    ii_xml->add( iv_name = 'SPACES'
-                 ig_data = lt_spaces ).
-
-  ENDMETHOD.
 
   METHOD hook_impl_deserialize.
 
@@ -18964,6 +19036,7 @@ CLASS zcl_abapgit_object_enho_hook IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
 
   METHOD zif_abapgit_object_enho~deserialize.
 
@@ -19030,11 +19103,54 @@ CLASS zcl_abapgit_object_enho_hook IMPLEMENTATION.
         lo_hook_impl->if_enh_object~save( run_dark = abap_true ).
         lo_hook_impl->if_enh_object~unlock( ).
       CATCH cx_enh_root INTO lx_enh_root.
-        zcx_abapgit_exception=>raise( lx_enh_root->get_text( ) ).
+        zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
     ENDTRY.
 
   ENDMETHOD.
 
+
+  METHOD zif_abapgit_object_enho~serialize.
+
+    DATA: lv_shorttext       TYPE string,
+          lo_hook_impl       TYPE REF TO cl_enh_tool_hook_impl,
+          ls_original_object TYPE enh_hook_admin,
+          lt_spaces          TYPE ty_spaces_tt,
+          lt_enhancements    TYPE enh_hook_impl_it.
+
+    FIELD-SYMBOLS: <ls_enhancement> LIKE LINE OF lt_enhancements.
+
+
+    lo_hook_impl ?= ii_enh_tool.
+
+    lv_shorttext = lo_hook_impl->if_enh_object_docu~get_shorttext( ).
+    lo_hook_impl->get_original_object(
+      IMPORTING
+        pgmid     = ls_original_object-pgmid
+        obj_name  = ls_original_object-org_obj_name
+        obj_type  = ls_original_object-org_obj_type
+        main_type = ls_original_object-org_main_type
+        main_name = ls_original_object-org_main_name
+        program   = ls_original_object-programname ).
+    ls_original_object-include_bound = lo_hook_impl->get_include_bound( ).
+    lt_enhancements = lo_hook_impl->get_hook_impls( ).
+
+    LOOP AT lt_enhancements ASSIGNING <ls_enhancement>.
+      CLEAR: <ls_enhancement>-extid,
+             <ls_enhancement>-id.
+    ENDLOOP.
+
+    ii_xml->add( iv_name = 'TOOL'
+                 ig_data = ii_enh_tool->get_tool( ) ).
+    ii_xml->add( ig_data = lv_shorttext
+                 iv_name = 'SHORTTEXT' ).
+    ii_xml->add( ig_data = ls_original_object
+                 iv_name = 'ORIGINAL_OBJECT' ).
+    ii_xml->add( iv_name = 'ENHANCEMENTS'
+                 ig_data = lt_enhancements ).
+    ii_xml->add( iv_name = 'SPACES'
+                 ig_data = lt_spaces ).
+
+  ENDMETHOD.
 ENDCLASS.
 
 
@@ -19054,7 +19170,7 @@ CLASS zcl_abapgit_object_enho_class IMPLEMENTATION.
           lv_editorder   TYPE n LENGTH 3,
           lv_methname    TYPE seocpdname,
           lt_abap        TYPE rswsourcet,
-          lx_enh         TYPE REF TO cx_enh_root,
+          lx_enh_root    TYPE REF TO cx_enh_root,
           lv_new_em      TYPE abap_bool,
           lt_files       TYPE zif_abapgit_definitions=>ty_files_tt.
 
@@ -19089,9 +19205,8 @@ CLASS zcl_abapgit_object_enho_class IMPLEMENTATION.
               clsname    = <ls_method>-methkey-clsname
               methname   = lv_methname
               methsource = lt_abap ).
-        CATCH cx_enh_mod_not_allowed cx_enh_is_not_enhanceable INTO lx_enh.
-          zcx_abapgit_exception=>raise( iv_text = 'Error deserializing ENHO method include'
-                                        ix_previous = lx_enh ).
+        CATCH cx_enh_root INTO lx_enh_root.
+          zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
       ENDTRY.
 
     ENDLOOP.
@@ -19147,8 +19262,8 @@ CLASS zcl_abapgit_object_enho_class IMPLEMENTATION.
           lv_shorttext TYPE string,
           lv_class     TYPE seoclsname,
           lv_enhname   TYPE enhname,
-          lv_package   TYPE devclass.
-
+          lv_package   TYPE devclass,
+          lx_enh_root  TYPE REF TO cx_enh_root.
 
     ii_xml->read( EXPORTING iv_name = 'SHORTTEXT'
                   CHANGING cg_data  = lv_shorttext ).
@@ -19197,8 +19312,8 @@ CLASS zcl_abapgit_object_enho_class IMPLEMENTATION.
 
         lo_enh_class->if_enh_object~save( run_dark = abap_true ).
         lo_enh_class->if_enh_object~unlock( ).
-      CATCH cx_enh_root.
-        zcx_abapgit_exception=>raise( 'error deserializing ENHO class' ).
+      CATCH cx_enh_root INTO lx_enh_root.
+        zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
     ENDTRY.
 
   ENDMETHOD.
@@ -19249,38 +19364,16 @@ CLASS zcl_abapgit_object_enho_class IMPLEMENTATION.
   ENDMETHOD.
 ENDCLASS.
 
+
+
 CLASS zcl_abapgit_object_enho_intf IMPLEMENTATION.
+
 
   METHOD constructor.
     ms_item  = is_item.
     mo_files = io_files.
   ENDMETHOD.
 
-  METHOD zif_abapgit_object_enho~serialize.
-
-    DATA: lo_enh_intf  TYPE REF TO cl_enh_tool_intf,
-          lv_class     TYPE seoclsname,
-          lv_shorttext TYPE string.
-
-
-    lo_enh_intf ?= ii_enh_tool.
-
-    lv_shorttext = lo_enh_intf->if_enh_object_docu~get_shorttext( ).
-    lo_enh_intf->get_class( IMPORTING class_name = lv_class ).
-
-    ii_xml->add( iv_name = 'TOOL'
-                 ig_data = ii_enh_tool->get_tool( ) ).
-    ii_xml->add( ig_data = lv_shorttext
-                 iv_name = 'SHORTTEXT' ).
-    ii_xml->add( iv_name = 'CLASS'
-                 ig_data = lv_class ).
-
-    zcl_abapgit_object_enho_clif=>serialize(
-      io_xml  = ii_xml
-      io_files = mo_files
-      io_clif = lo_enh_intf ).
-
-  ENDMETHOD.
 
   METHOD zif_abapgit_object_enho~deserialize.
 
@@ -19289,8 +19382,8 @@ CLASS zcl_abapgit_object_enho_intf IMPLEMENTATION.
           lv_shorttext TYPE string,
           lv_class     TYPE seoclsname,
           lv_enhname   TYPE enhname,
-          lv_package   TYPE devclass.
-
+          lv_package   TYPE devclass,
+          lx_enh_root  TYPE REF TO cx_enh_root.
 
     ii_xml->read( EXPORTING iv_name = 'SHORTTEXT'
                   CHANGING cg_data  = lv_shorttext ).
@@ -19320,12 +19413,38 @@ CLASS zcl_abapgit_object_enho_intf IMPLEMENTATION.
 
         lo_enh_intf->if_enh_object~save( run_dark = abap_true ).
         lo_enh_intf->if_enh_object~unlock( ).
-      CATCH cx_enh_root.
-        zcx_abapgit_exception=>raise( 'error deserializing ENHO interface' ).
+      CATCH cx_enh_root INTO lx_enh_root.
+        zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
     ENDTRY.
 
   ENDMETHOD.
 
+
+  METHOD zif_abapgit_object_enho~serialize.
+
+    DATA: lo_enh_intf  TYPE REF TO cl_enh_tool_intf,
+          lv_class     TYPE seoclsname,
+          lv_shorttext TYPE string.
+
+
+    lo_enh_intf ?= ii_enh_tool.
+
+    lv_shorttext = lo_enh_intf->if_enh_object_docu~get_shorttext( ).
+    lo_enh_intf->get_class( IMPORTING class_name = lv_class ).
+
+    ii_xml->add( iv_name = 'TOOL'
+                 ig_data = ii_enh_tool->get_tool( ) ).
+    ii_xml->add( ig_data = lv_shorttext
+                 iv_name = 'SHORTTEXT' ).
+    ii_xml->add( iv_name = 'CLASS'
+                 ig_data = lv_class ).
+
+    zcl_abapgit_object_enho_clif=>serialize(
+      io_xml  = ii_xml
+      io_files = mo_files
+      io_clif = lo_enh_intf ).
+
+  ENDMETHOD.
 ENDCLASS.
 
 CLASS zcl_abapgit_object_enho_wdyc IMPLEMENTATION.
@@ -19441,7 +19560,8 @@ CLASS zcl_abapgit_object_enho_fugr IMPLEMENTATION.
           ls_enha_data TYPE enhfugrdata,
           li_tool      TYPE REF TO if_enh_tool,
           lv_tool      TYPE enhtooltype,
-          lv_package   TYPE devclass.
+          lv_package   TYPE devclass,
+          lx_enh_root  TYPE REF TO cx_enh_root.
 
     FIELD-SYMBOLS: <ls_fuba> TYPE enhfugrfuncdata.
 
@@ -19483,9 +19603,8 @@ CLASS zcl_abapgit_object_enho_fugr IMPLEMENTATION.
 
         lo_fugrdata->if_enh_object~save( run_dark = abap_true ).
         lo_fugrdata->if_enh_object~unlock( ).
-
-      CATCH cx_enh_root.
-        zcx_abapgit_exception=>raise( |error deserializing ENHO fugrdata { ms_item-obj_name }| ).
+      CATCH cx_enh_root INTO lx_enh_root.
+        zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
     ENDTRY.
 
   ENDMETHOD.
@@ -19728,7 +19847,8 @@ CLASS zcl_abapgit_object_enho IMPLEMENTATION.
   METHOD zif_abapgit_object~delete.
 
     DATA: lv_enh_id     TYPE enhname,
-          li_enh_object TYPE REF TO if_enh_object.
+          li_enh_object TYPE REF TO if_enh_object,
+          lx_enh_root   TYPE REF TO cx_enh_root.
 
     IF zif_abapgit_object~exists( ) = abap_false.
       RETURN.
@@ -19742,8 +19862,8 @@ CLASS zcl_abapgit_object_enho IMPLEMENTATION.
         li_enh_object->delete( nevertheless_delete = abap_true
                                run_dark            = abap_true ).
         li_enh_object->unlock( ).
-      CATCH cx_enh_root.
-        zcx_abapgit_exception=>raise( 'Error deleting ENHO' ).
+      CATCH cx_enh_root INTO lx_enh_root.
+        zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
     ENDTRY.
 
   ENDMETHOD.
@@ -19843,7 +19963,8 @@ CLASS zcl_abapgit_object_enho IMPLEMENTATION.
 
     DATA: lv_enh_id   TYPE enhname,
           li_enho     TYPE REF TO zif_abapgit_object_enho,
-          li_enh_tool TYPE REF TO if_enh_tool.
+          li_enh_tool TYPE REF TO if_enh_tool,
+          lx_enh_root  TYPE REF TO cx_enh_root.
 
     IF zif_abapgit_object~exists( ) = abap_false.
       RETURN.
@@ -19854,8 +19975,8 @@ CLASS zcl_abapgit_object_enho IMPLEMENTATION.
         li_enh_tool = cl_enh_factory=>get_enhancement(
           enhancement_id   = lv_enh_id
           bypassing_buffer = abap_true ).
-      CATCH cx_enh_root.
-        zcx_abapgit_exception=>raise( 'Error from CL_ENH_FACTORY' ).
+      CATCH cx_enh_root INTO lx_enh_root.
+        zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
     ENDTRY.
 
     li_enho = factory( li_enh_tool->get_tool( ) ).
@@ -20066,7 +20187,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_ENHS_BADI_D IMPLEMENTATION.
+CLASS zcl_abapgit_object_enhs_badi_d IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object_enhs~deserialize.
@@ -20078,7 +20199,7 @@ CLASS ZCL_ABAPGIT_OBJECT_ENHS_BADI_D IMPLEMENTATION.
           li_enh_object      TYPE REF TO if_enh_object,
           li_enh_object_docu TYPE REF TO if_enh_object_docu,
           lv_text            TYPE string,
-          lx_error           TYPE REF TO cx_enh_root.
+          lx_enh_root        TYPE REF TO cx_enh_root.
 
     FIELD-SYMBOLS: <ls_enh_badi> LIKE LINE OF lt_enh_badi.
 
@@ -20107,9 +20228,8 @@ CLASS ZCL_ABAPGIT_OBJECT_ENHS_BADI_D IMPLEMENTATION.
         li_enh_object->activate( ).
         li_enh_object->unlock( ).
 
-      CATCH cx_enh_root INTO lx_error.
-        lv_text = lx_error->get_text( ).
-        zcx_abapgit_exception=>raise( lv_text ).
+      CATCH cx_enh_root INTO lx_enh_root.
+        zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
     ENDTRY.
 
   ENDMETHOD.
@@ -20151,7 +20271,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_ENHS_HOOK_D IMPLEMENTATION.
+CLASS zcl_abapgit_object_enhs_hook_d IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object_enhs~deserialize.
@@ -20162,7 +20282,7 @@ CLASS ZCL_ABAPGIT_OBJECT_ENHS_HOOK_D IMPLEMENTATION.
           li_enh_object          TYPE REF TO if_enh_object,
           li_enh_object_docu     TYPE REF TO if_enh_object_docu,
           lo_hookdef_tool        TYPE REF TO cl_enh_tool_hook_def,
-          lx_error               TYPE REF TO cx_enh_root,
+          lx_enh_root            TYPE REF TO cx_enh_root,
           lv_text                TYPE string.
 
     FIELD-SYMBOLS: <ls_hook_definition> TYPE enh_hook_def_ext.
@@ -20197,9 +20317,8 @@ CLASS ZCL_ABAPGIT_OBJECT_ENHS_HOOK_D IMPLEMENTATION.
         li_enh_object->activate( ).
         li_enh_object->unlock( ).
 
-      CATCH cx_enh_root INTO lx_error.
-        lv_text = lx_error->get_text( ).
-        zcx_abapgit_exception=>raise( lv_text ).
+      CATCH cx_enh_root INTO lx_enh_root.
+        zcx_abapgit_exception=>raise_with_text( lx_enh_root ).
     ENDTRY.
 
   ENDMETHOD.
@@ -23890,7 +24009,7 @@ CLASS zcl_abapgit_object_sots IMPLEMENTATION.
     lt_sots = read_sots( ).
 
     LOOP AT lt_sots ASSIGNING <ls_sots>.
-      " Remove any usage to ensure deletion
+      " Remove any usage to ensure deletion, see function module BTFR_CHECK
       DELETE FROM sotr_useu WHERE concept = <ls_sots>-header-concept.
 
       CALL FUNCTION 'BTFR_DELETE_SINGLE_TEXT'
@@ -31057,6 +31176,8 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
         DO 3 TIMES.
           lt_tadir = zcl_abapinst_factory=>get_tadir( )->read( gs_inst-pack ).
 
+          DELETE lt_tadir WHERE object = 'NSPC'.
+
           IF lt_tadir IS NOT INITIAL.
             _uninstall_sotr( lt_tadir ).
 
@@ -31826,6 +31947,11 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
     rv_trkorr = go_db->select( iv_name = gs_inst-name
                                iv_pack = gs_inst-pack )-transport.
 
+    IF rv_trkorr IS INITIAL.
+      " Or last used transport
+      rv_trkorr = go_db->last( )-transport.
+    ENDIF.
+
     IF rv_trkorr IS NOT INITIAL.
       " Check if transport is still open
       CALL FUNCTION 'TR_READ_REQUEST'
@@ -31880,31 +32006,31 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
       SELECT * FROM sotr_head INTO TABLE lt_sotr_head
         WHERE paket = <ls_tadir>-obj_name.
-      IF sy-subrc <> 0.
-        CONTINUE.
+      IF sy-subrc = 0.
+
+        LOOP AT lt_sotr_head ASSIGNING <ls_sotr_head>.
+          DELETE FROM sotr_use WHERE concept = <ls_sotr_head>-concept.
+
+          CALL FUNCTION 'BTFR_DELETE_SINGLE_TEXT'
+            EXPORTING
+              concept                  = <ls_sotr_head>-concept
+              corr_num                 = gs_inst-transport
+              use_korrnum_immediatedly = lv_use_korr
+              flag_string              = abap_false
+            EXCEPTIONS
+              text_not_found           = 1
+              invalid_package          = 2
+              text_not_changeable      = 3
+              text_enqueued            = 4
+              no_correction            = 5
+              parameter_error          = 6
+              OTHERS                   = 7.
+          IF sy-subrc <> 0.
+            CONTINUE.
+          ENDIF.
+        ENDLOOP.
+
       ENDIF.
-
-      LOOP AT lt_sotr_head ASSIGNING <ls_sotr_head>.
-        DELETE FROM sotr_use WHERE concept = <ls_sotr_head>-concept.
-
-        CALL FUNCTION 'BTFR_DELETE_SINGLE_TEXT'
-          EXPORTING
-            concept                  = <ls_sotr_head>-concept
-            corr_num                 = gs_inst-transport
-            use_korrnum_immediatedly = lv_use_korr
-            flag_string              = abap_false
-          EXCEPTIONS
-            text_not_found           = 1
-            invalid_package          = 2
-            text_not_changeable      = 3
-            text_enqueued            = 4
-            no_correction            = 5
-            parameter_error          = 6
-            OTHERS                   = 7.
-        IF sy-subrc <> 0.
-          CONTINUE.
-        ENDIF.
-      ENDLOOP.
 
       CALL FUNCTION 'TR_TADIR_INTERFACE'
         EXPORTING
@@ -31942,31 +32068,31 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
       SELECT * FROM sotr_headu INTO TABLE lt_sotr_head
         WHERE paket = <ls_tadir>-obj_name.
-      IF sy-subrc <> 0.
-        CONTINUE.
+      IF sy-subrc = 0.
+
+        LOOP AT lt_sotr_head ASSIGNING <ls_sotr_head>.
+          DELETE FROM sotr_useu WHERE concept = <ls_sotr_head>-concept.
+
+          CALL FUNCTION 'BTFR_DELETE_SINGLE_TEXT'
+            EXPORTING
+              concept                  = <ls_sotr_head>-concept
+              corr_num                 = gs_inst-transport
+              use_korrnum_immediatedly = lv_use_korr
+              flag_string              = abap_true
+            EXCEPTIONS
+              text_not_found           = 1
+              invalid_package          = 2
+              text_not_changeable      = 3
+              text_enqueued            = 4
+              no_correction            = 5
+              parameter_error          = 6
+              OTHERS                   = 7.
+          IF sy-subrc <> 0.
+            CONTINUE.
+          ENDIF.
+        ENDLOOP.
+
       ENDIF.
-
-      LOOP AT lt_sotr_head ASSIGNING <ls_sotr_head>.
-        DELETE FROM sotr_useu WHERE concept = <ls_sotr_head>-concept.
-
-        CALL FUNCTION 'BTFR_DELETE_SINGLE_TEXT'
-          EXPORTING
-            concept                  = <ls_sotr_head>-concept
-            corr_num                 = gs_inst-transport
-            use_korrnum_immediatedly = lv_use_korr
-            flag_string              = abap_true
-          EXCEPTIONS
-            text_not_found           = 1
-            invalid_package          = 2
-            text_not_changeable      = 3
-            text_enqueued            = 4
-            no_correction            = 5
-            parameter_error          = 6
-            OTHERS                   = 7.
-        IF sy-subrc <> 0.
-          CONTINUE.
-        ENDIF.
-      ENDLOOP.
 
       CALL FUNCTION 'TR_TADIR_INTERFACE'
         EXPORTING
@@ -33198,6 +33324,24 @@ CLASS zcl_abapinst_persistence IMPLEMENTATION.
     ENDIF.
 
     COMMIT WORK.
+
+  ENDMETHOD.
+
+
+  METHOD last.
+
+    DATA lt_list TYPE zif_abapinst_definitions=>ty_list.
+
+    lt_list = list( ).
+
+    IF lt_list IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    SORT lt_list BY updated_at DESCENDING installed_at DESCENDING.
+
+    READ TABLE lt_list INTO rs_inst INDEX 1.
+    ASSERT sy-subrc = 0.
 
   ENDMETHOD.
 
