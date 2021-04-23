@@ -50,6 +50,11 @@ INTERFACE /mbtools/if_ajson_reader
       !iv_path        TYPE string
     RETURNING
       VALUE(rv_value) TYPE d .
+  METHODS get_timestamp
+    IMPORTING
+      !iv_path        TYPE string
+    RETURNING
+      VALUE(rv_value) TYPE timestamp .
   METHODS get_string
     IMPORTING
       !iv_path        TYPE string

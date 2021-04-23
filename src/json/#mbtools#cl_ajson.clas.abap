@@ -26,6 +26,7 @@ CLASS /mbtools/cl_ajson DEFINITION
       get_integer FOR /mbtools/if_ajson_reader~get_integer,
       get_number FOR /mbtools/if_ajson_reader~get_number,
       get_date FOR /mbtools/if_ajson_reader~get_date,
+      get_timestamp FOR /mbtools/if_ajson_reader~get_timestamp,
       get_string FOR /mbtools/if_ajson_reader~get_string,
       slice FOR /mbtools/if_ajson_reader~slice,
       to_abap FOR /mbtools/if_ajson_reader~to_abap,
@@ -236,6 +237,28 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
     IF lv_item IS NOT INITIAL AND lv_item->type <> /mbtools/if_ajson=>node_type-null.
       rv_value = lv_item->value.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_ajson_reader~get_timestamp.
+
+    DATA lo_to_abap TYPE REF TO lcl_json_to_abap.
+    DATA lr_item TYPE REF TO /mbtools/if_ajson=>ty_node.
+
+    lr_item = get_item( iv_path ).
+
+    IF lr_item IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    CREATE OBJECT lo_to_abap.
+
+    TRY.
+        rv_value = lo_to_abap->to_timestamp( is_path = lr_item->* ).
+      CATCH /mbtools/cx_ajson_error.
+        RETURN.
+    ENDTRY.
 
   ENDMETHOD.
 

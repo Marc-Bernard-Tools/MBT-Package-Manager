@@ -764,6 +764,7 @@ CLASS ltcl_reader_test DEFINITION FINAL
     METHODS slice FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS array_to_string_table FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS get_date FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS get_timestamp FOR TESTING RAISING /mbtools/cx_ajson_error.
 
 ENDCLASS.
 
@@ -953,6 +954,25 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->/mbtools/if_ajson_reader~get_date( '/date1' )
       exp = '' ).
+
+  ENDMETHOD.
+
+  METHOD get_timestamp.
+
+    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
+    DATA lo_nodes TYPE REF TO lcl_nodes_helper.
+    DATA lv_exp TYPE timestamp VALUE `20200728000000`.
+
+    CREATE OBJECT lo_cut.
+
+    CREATE OBJECT lo_nodes.
+    lo_nodes->add( '  |         |object |                        | |1' ).
+    lo_nodes->add( '/ |timestamp|str    |2020-07-28T00:00:00Z    | |0' ).
+    lo_cut->mt_json_tree = lo_nodes->mt_nodes.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->/mbtools/if_ajson_reader~get_timestamp( '/timestamp' )
+      exp = lv_exp ).
 
   ENDMETHOD.
 
