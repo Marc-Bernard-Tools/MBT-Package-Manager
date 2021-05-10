@@ -328,9 +328,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
     ENDLOOP.
 
     TRY.
-        /mbtools/cl_edd=>get_versions(
-          CHANGING
-            ct_products = lt_products ).
+        /mbtools/cl_edd=>get_versions( CHANGING ct_products = lt_products ).
 
         LOOP AT lt_manifests INTO ls_manifest.
           READ TABLE lt_products INTO ls_product WITH TABLE KEY id = ls_manifest-download_id.

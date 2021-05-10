@@ -60,8 +60,6 @@ CLASS /mbtools/cl_tool DEFINITION
         key_changelog_html   TYPE string VALUE 'ChangelogHTML' ##NO_TEXT,
         key_download_url     TYPE string VALUE 'DownloadURL' ##NO_TEXT,
       END OF c_reg.
-    " Length of MBT Installer package name
-    CONSTANTS c_name_length TYPE i VALUE 90 ##NO_TEXT.
     " Evaluation
     CONSTANTS c_eval_days TYPE i VALUE 60 ##NO_TEXT.
     CONSTANTS c_eval_users TYPE i VALUE 10 ##NO_TEXT.

@@ -88,15 +88,17 @@ CLASS ltcl_edd IMPLEMENTATION.
     ls_product-id = '5426'. " MBT Object Duplicator
     INSERT ls_product INTO TABLE lt_products.
 
-    /mbtools/cl_edd=>get_versions(
-      CHANGING
-        ct_products = lt_products ).
+    /mbtools/cl_edd=>get_versions( CHANGING ct_products = lt_products ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lines( lt_products )
       exp = 9 ).
 
+    " Check results for one product (MBT Icon Browser)
     READ TABLE lt_products INTO ls_product WITH KEY id = '4413'.
+    IF sy-subrc <> 0.
+      cl_abap_unit_assert=>fail( ).
+    ENDIF.
 
     lv_act = ls_product-version(2).
     cl_abap_unit_assert=>assert_equals(
