@@ -84,7 +84,7 @@ SELECTION-SCREEN:
 *-----------------------------------------------------------------------
 
 DATA:
-  go_tool   TYPE REF TO /mbtools/cl_tools,
+  go_tool   TYPE REF TO /mbtools/cl_tool,
   go_screen TYPE REF TO /mbtools/cl_screen,
   go_app    TYPE REF TO /mbtools/cl_support,
   gx_exc    TYPE REF TO /mbtools/cx_exception,
@@ -106,7 +106,7 @@ INITIALIZATION.
 
   CREATE OBJECT go_app.
 
-  go_tool   = /mbtools/cl_tools=>factory( ).
+  go_tool   = /mbtools/cl_tool_manager=>factory( ).
   go_screen = /mbtools/cl_screen=>factory( ).
 
   go_screen->init(
@@ -200,7 +200,7 @@ AT SELECTION-SCREEN OUTPUT.
 
 AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_title.
 
-  p_title = /mbtools/cl_tools=>f4(
+  p_title = /mbtools/cl_tool_manager=>f4(
     iv_pattern     = p_title
     iv_get_bundles = abap_true
     iv_get_tools   = abap_true
@@ -223,7 +223,7 @@ START-OF-SELECTION.
       gv_tool = 'Registry and Installer were'(009).
       gv_action = 'synchronized'(010).
 
-      gv_flag = /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_sync ).
+      gv_flag = /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>tool_sync ).
 
     WHEN p_bund.
 
@@ -232,12 +232,12 @@ START-OF-SELECTION.
       CASE abap_true.
         WHEN p_reg.
 
-          gv_flag   = /mbtools/cl_tools=>action_bundles( /mbtools/if_actions=>tool_register ).
+          gv_flag   = /mbtools/cl_tool_manager=>action_bundles( /mbtools/if_actions=>tool_register ).
           gv_action = 'registered'(012).
 
         WHEN p_unreg.
 
-          gv_flag   = /mbtools/cl_tools=>action_bundles( /mbtools/if_actions=>tool_unregister ).
+          gv_flag   = /mbtools/cl_tool_manager=>action_bundles( /mbtools/if_actions=>tool_unregister ).
           gv_action = 'unregistered'(013).
 
       ENDCASE.
@@ -249,37 +249,37 @@ START-OF-SELECTION.
       CASE abap_true.
         WHEN p_reg.
 
-          gv_flag   = /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_register ).
+          gv_flag   = /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>tool_register ).
           gv_action = 'registered'(012).
 
         WHEN p_unreg.
 
-          gv_flag   = /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_unregister ).
+          gv_flag   = /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>tool_unregister ).
           gv_action = 'unregistered'(013).
 
         WHEN p_act.
 
-          gv_flag   = /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_activate ).
+          gv_flag   = /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>tool_activate ).
           gv_action = 'activated'(015).
 
         WHEN p_deact.
 
-          gv_flag   = /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_deactivate ).
+          gv_flag   = /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>tool_deactivate ).
           gv_action = 'deactivated'(016).
 
         WHEN p_check.
 
-          gv_flag   = /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_check ).
+          gv_flag   = /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>tool_check ).
           gv_action = 'version checked'(017).
 
         WHEN p_update.
 
-          gv_flag   = /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_update ).
+          gv_flag   = /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>tool_update ).
           gv_action = 'updated'(018).
 
         WHEN p_uninst.
 
-          gv_flag   = /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_uninstall ).
+          gv_flag   = /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>tool_uninstall ).
           gv_action = 'uninstalled'(019).
 
       ENDCASE.
@@ -287,7 +287,7 @@ START-OF-SELECTION.
     WHEN p_sel.
 
       TRY.
-          go_tool = /mbtools/cl_tools=>factory( p_title ).
+          go_tool = /mbtools/cl_tool_manager=>factory( p_title ).
           gv_tool = 'Tool was'(020).
 
           CASE abap_true.
@@ -318,12 +318,12 @@ START-OF-SELECTION.
 
             WHEN p_update.
 
-              gv_flag   = /mbtools/cl_tools=>update( go_tool ).
+              gv_flag   = /mbtools/cl_tool_manager=>update( go_tool ).
               gv_action = 'updated'(018).
 
             WHEN p_uninst.
 
-              gv_flag   = /mbtools/cl_tools=>uninstall( go_tool ).
+              gv_flag   = /mbtools/cl_tool_manager=>uninstall( go_tool ).
               gv_action = 'uninstalled'(019).
 
           ENDCASE.

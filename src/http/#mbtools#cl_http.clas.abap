@@ -157,7 +157,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
 
   METHOD class_constructor.
 
-    go_settings = /mbtools/cl_tools=>factory( )->get_settings( ).
+    go_settings = /mbtools/cl_tool_manager=>factory( )->get_settings( ).
 
   ENDMETHOD.
 

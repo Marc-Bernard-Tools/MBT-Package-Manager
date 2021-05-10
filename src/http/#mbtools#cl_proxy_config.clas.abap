@@ -43,7 +43,7 @@ CLASS /mbtools/cl_proxy_config IMPLEMENTATION.
 
   METHOD constructor.
 
-    mo_settings = /mbtools/cl_tools=>factory( )->get_settings( ).
+    mo_settings = /mbtools/cl_tool_manager=>factory( )->get_settings( ).
 
   ENDMETHOD.
 

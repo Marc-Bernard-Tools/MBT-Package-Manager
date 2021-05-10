@@ -42,21 +42,21 @@ CLASS /mbtools/cl_gui_page_main DEFINITION
 
     METHODS get_description_admin
       IMPORTING
-        !io_tool       TYPE REF TO /mbtools/cl_tools
+        !io_tool       TYPE REF TO /mbtools/cl_tool
       RETURNING
         VALUE(rv_text) TYPE string
       RAISING
         /mbtools/cx_exception.
     METHODS get_description_license
       IMPORTING
-        !io_tool       TYPE REF TO /mbtools/cl_tools
+        !io_tool       TYPE REF TO /mbtools/cl_tool
       RETURNING
         VALUE(rv_text) TYPE string
       RAISING
         /mbtools/cx_exception.
     METHODS get_update_admin
       IMPORTING
-        !io_tool       TYPE REF TO /mbtools/cl_tools
+        !io_tool       TYPE REF TO /mbtools/cl_tool
       RETURNING
         VALUE(rv_text) TYPE string
       RAISING
@@ -66,13 +66,13 @@ CLASS /mbtools/cl_gui_page_main DEFINITION
       IMPORTING
         !iv_name       TYPE string
       RETURNING
-        VALUE(ro_tool) TYPE REF TO /mbtools/cl_tools
+        VALUE(ro_tool) TYPE REF TO /mbtools/cl_tool
       RAISING
         /mbtools/cx_exception.
     METHODS validate_tool
       IMPORTING
         !iv_action TYPE clike
-        !io_tool   TYPE REF TO /mbtools/cl_tools
+        !io_tool   TYPE REF TO /mbtools/cl_tool
       RAISING
         /mbtools/cx_exception.
     CLASS-METHODS build_menu
@@ -82,14 +82,14 @@ CLASS /mbtools/cl_gui_page_main DEFINITION
         VALUE(ro_menu) TYPE REF TO /mbtools/cl_html_toolbar.
     METHODS register_thumbnail
       IMPORTING
-        !io_tool         TYPE REF TO /mbtools/cl_tools
+        !io_tool         TYPE REF TO /mbtools/cl_tool
       RETURNING
         VALUE(rv_result) TYPE string
       RAISING
         /mbtools/cx_exception.
     METHODS render_actions
       IMPORTING
-        !io_tool       TYPE REF TO /mbtools/cl_tools
+        !io_tool       TYPE REF TO /mbtools/cl_tool
       RETURNING
         VALUE(ri_html) TYPE REF TO /mbtools/if_html
       RAISING
@@ -132,7 +132,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
   METHOD /mbtools/if_gui_event_handler~on_event.
 
-    DATA lo_tool TYPE REF TO /mbtools/cl_tools.
+    DATA lo_tool TYPE REF TO /mbtools/cl_tool.
 
     IF ii_event->mv_action <> /mbtools/if_actions=>tool_install.
       lo_tool = get_tool_from_param( ii_event->get_param( 'name' ) ).
@@ -145,13 +145,13 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
     CASE ii_event->mv_action.
 
       WHEN /mbtools/if_actions=>tools_check.
-        IF /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_check ) = abap_true.
+        IF /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>tools_check ) = abap_true.
           MESSAGE 'Check for latest versions completed' TYPE 'S'.
         ENDIF.
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tools_update.
-        IF /mbtools/cl_tools=>action_tools( /mbtools/if_actions=>tool_update ) = abap_true.
+        IF /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>tool_update ) = abap_true.
           MESSAGE 'Update to latest versions completed' TYPE 'S'.
           restart( ).
         ENDIF.
@@ -178,17 +178,17 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_install.
-        IF /mbtools/cl_tools=>install( ii_event->get_param( 'name' ) ) = abap_true.
+        IF /mbtools/cl_tool_manager=>install( ii_event->get_param( 'name' ) ) = abap_true.
           restart( ).
         ENDIF.
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_update.
-        /mbtools/cl_tools=>update( lo_tool ).
+        /mbtools/cl_tool_manager=>update( lo_tool ).
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
 
       WHEN /mbtools/if_actions=>tool_uninstall.
-        IF /mbtools/cl_tools=>uninstall( lo_tool ) = abap_true.
+        IF /mbtools/cl_tool_manager=>uninstall( lo_tool ) = abap_true.
           restart( ).
         ENDIF.
         rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
@@ -446,20 +446,21 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
   METHOD get_description_license.
 
-    DATA lv_expire TYPE d.
+    DATA ls_license TYPE /mbtools/cl_tool=>ty_license.
 
-    IF io_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_valid ) = abap_true.
+    ls_license = io_tool->get_license( ).
 
-      lv_expire = io_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_expire ).
-      IF lv_expire IS NOT INITIAL.
-        rv_text = /mbtools/cl_datetime=>get_long_date( lv_expire ).
+    IF ls_license-valid = abap_true.
+
+      IF ls_license-expire IS NOT INITIAL.
+        rv_text = /mbtools/cl_datetime=>get_long_date( ls_license-expire ).
         rv_text = |expires <span class="has-mbt-green-color">{ rv_text }</span>|.
       ELSE.
         rv_text = |<span class="has-mbt-green-color">does not expire</span>|.
       ENDIF.
       rv_text = |Your license key { rv_text }|.
 
-    ELSEIF io_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_key ) IS NOT INITIAL.
+    ELSEIF ls_license-key IS NOT INITIAL.
 
       rv_text = |<span class="has-mbt-red-color">expired</span>|.
       rv_text = |Your license key has { rv_text }. Please enter a valid key.|.
@@ -484,7 +485,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
     lv_name = iv_name.
     REPLACE ALL OCCURRENCES OF '_' IN lv_name WITH ` `.
 
-    ro_tool = /mbtools/cl_tools=>factory( lv_name ).
+    ro_tool = /mbtools/cl_tool_manager=>factory( lv_name ).
     IF ro_tool IS NOT BOUND.
       /mbtools/cx_exception=>raise( |Tool { lv_name } could not be instanciated| ).
     ENDIF.
@@ -640,7 +641,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
             iv_val = io_tool->get_name( ) ).
           lo_values->set(
             iv_key = 'license'
-            iv_val = io_tool->get_license( /mbtools/cl_tools=>c_reg-key_lic_key ) ).
+            iv_val = io_tool->get_license( )-key ).
 
           lo_form->hidden( 'name' ).
 
@@ -680,15 +681,15 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
   METHOD render_bundle.
 
     DATA:
-      lo_bundle TYPE REF TO /mbtools/cl_tools,
-      ls_tool   TYPE /mbtools/cl_tools=>ty_manifest,
-      lt_tools  TYPE /mbtools/cl_tools=>ty_manifests.
+      lo_bundle TYPE REF TO /mbtools/cl_tool,
+      ls_tool   TYPE /mbtools/cl_tool_manager=>ty_manifest,
+      lt_tools  TYPE /mbtools/cl_tool_manager=>ty_manifests.
 
     ri_html = /mbtools/cl_html=>create( ).
 
-    lo_bundle = /mbtools/cl_tools=>factory( iv_title ).
+    lo_bundle = /mbtools/cl_tool_manager=>factory( iv_title ).
 
-    lt_tools = /mbtools/cl_tools=>select(
+    lt_tools = /mbtools/cl_tool_manager=>select(
       iv_bundle_id = lo_bundle->get_bundle_id( )
       iv_admin     = abap_true ).
 
@@ -714,10 +715,10 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
   METHOD render_bundles.
 
     DATA:
-      ls_bundle  TYPE /mbtools/cl_tools=>ty_manifest,
-      lt_bundles TYPE /mbtools/cl_tools=>ty_manifests.
+      ls_bundle  TYPE /mbtools/cl_tool_manager=>ty_manifest,
+      lt_bundles TYPE /mbtools/cl_tool_manager=>ty_manifests.
 
-    lt_bundles = /mbtools/cl_tools=>select(
+    lt_bundles = /mbtools/cl_tool_manager=>select(
       iv_get_bundles = abap_true
       iv_get_tools   = abap_false
       iv_admin       = abap_true ).
@@ -753,13 +754,13 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
   METHOD render_tool.
 
     DATA:
-      lo_tool        TYPE REF TO /mbtools/cl_tools,
+      lo_tool        TYPE REF TO /mbtools/cl_tool,
       lv_description TYPE string,
       lv_update      TYPE string,
       lv_class       TYPE string,
       lv_img         TYPE string.
 
-    lo_tool = /mbtools/cl_tools=>factory( iv_title ).
+    lo_tool = /mbtools/cl_tool_manager=>factory( iv_title ).
 
     lv_class = 'tool-row'.
     IF lo_tool->is_bundle( ) = abap_false AND lo_tool->is_active( ) = abap_false.
@@ -819,10 +820,10 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
   METHOD render_tools.
 
     DATA:
-      ls_tool  TYPE /mbtools/cl_tools=>ty_manifest,
-      lt_tools TYPE /mbtools/cl_tools=>ty_manifests.
+      ls_tool  TYPE /mbtools/cl_tool_manager=>ty_manifest,
+      lt_tools TYPE /mbtools/cl_tool_manager=>ty_manifests.
 
-    lt_tools = /mbtools/cl_tools=>select( ).
+    lt_tools = /mbtools/cl_tool_manager=>select( ).
 
     ri_html = /mbtools/cl_html=>create( ).
 
@@ -855,9 +856,9 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
   METHOD render_tool_details.
 
     DATA:
-      lo_tool  TYPE REF TO /mbtools/cl_tools,
-      ls_tool  TYPE /mbtools/cl_tools=>ty_manifest,
-      lt_tools TYPE /mbtools/cl_tools=>ty_manifests,
+      lo_tool  TYPE REF TO /mbtools/cl_tool,
+      ls_tool  TYPE /mbtools/cl_tool_manager=>ty_manifest,
+      lt_tools TYPE /mbtools/cl_tool_manager=>ty_manifests,
       lv_html  TYPE string,
       li_html  TYPE REF TO /mbtools/if_html.
 
@@ -865,9 +866,9 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     CASE mv_mode.
       WHEN c_mode-user.
-        lt_tools = /mbtools/cl_tools=>select( ).
+        lt_tools = /mbtools/cl_tool_manager=>select( ).
       WHEN c_mode-admin.
-        lt_tools = /mbtools/cl_tools=>select( iv_admin = abap_true ).
+        lt_tools = /mbtools/cl_tool_manager=>select( iv_admin = abap_true ).
       WHEN c_mode-license.
         RETURN.
     ENDCASE.
@@ -929,7 +930,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
       WHEN /mbtools/if_actions=>tool_deactivate.
 
         IF io_tool->is_base( ) = abap_true.
-          IF io_tool->is_base_only( ) = abap_true.
+          IF /mbtools/cl_tool_manager=>is_base_only( ) = abap_true.
             lv_answer = /mbtools/cl_gui_factory=>get_popups( )->popup_to_confirm(
               iv_titlebar       = 'Deactivate Tool'
               iv_text_question  = |Are you sure you want to deactivate { io_tool->get_title( ) }?|
@@ -945,7 +946,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
       WHEN /mbtools/if_actions=>tool_uninstall.
 
-        IF io_tool->is_base( ) = abap_true AND io_tool->is_base_only( ) = abap_false.
+        IF io_tool->is_base( ) = abap_true AND /mbtools/cl_tool_manager=>is_base_only( ) = abap_false.
           /mbtools/cx_exception=>raise( |You have to uninstall all other tools first,| &&
                                         | before you can uninstall { io_tool->get_title( ) }| ).
         ENDIF.

@@ -83,7 +83,7 @@ CLASS /mbtools/cl_screen DEFINITION
     CLASS-DATA go_banner TYPE REF TO cl_gui_picture .
     CLASS-DATA gv_banner_url TYPE /mbtools/value .
 
-    DATA mo_tool TYPE REF TO /mbtools/cl_tools.
+    DATA mo_tool TYPE REF TO /mbtools/cl_tool.
 ENDCLASS.
 
 
@@ -176,7 +176,7 @@ CLASS /mbtools/cl_screen IMPLEMENTATION.
 
 
   METHOD constructor.
-    mo_tool = /mbtools/cl_tools=>factory( iv_title ).
+    mo_tool = /mbtools/cl_tool_manager=>factory( iv_title ).
   ENDMETHOD.
 
 

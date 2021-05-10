@@ -12,6 +12,19 @@ CLASS /mbtools/cl_edd DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
+    TYPES:
+      BEGIN OF ty_product,
+        id            TYPE string,
+        license       TYPE string,
+        version       TYPE string,
+        description   TYPE string,
+        changelog_url TYPE string,
+        changelog     TYPE string,
+        download_url  TYPE string,
+      END OF ty_product.
+    TYPES:
+      ty_products TYPE STANDARD TABLE OF ty_product WITH KEY id.
+
     CONSTANTS c_name TYPE string VALUE 'MBT_EDD_API' ##NO_TEXT ##NEEDED.
     CONSTANTS:
       BEGIN OF c_edd_action,
@@ -69,6 +82,11 @@ CLASS /mbtools/cl_edd DEFINITION
         !ev_download_url  TYPE string
       RAISING
         /mbtools/cx_exception.
+    CLASS-METHODS get_versions
+      CHANGING
+        !ct_products TYPE ty_products
+      RAISING
+        /mbtools/cx_exception.
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -88,6 +106,14 @@ CLASS /mbtools/cl_edd DEFINITION
         !iv_action         TYPE string
         !iv_id             TYPE string
         !iv_license        TYPE string
+      RETURNING
+        VALUE(rv_endpoint) TYPE string
+      RAISING
+        /mbtools/cx_exception.
+    CLASS-METHODS _get_endpoint_products
+      IMPORTING
+        !iv_action         TYPE string
+        !it_products       TYPE ty_products
       RETURNING
         VALUE(rv_endpoint) TYPE string
       RAISING
@@ -359,6 +385,73 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_versions.
+
+    DATA:
+      lv_endpoint TYPE string,
+      lv_data     TYPE string,
+      lv_sections TYPE string,
+      lo_json_all TYPE REF TO /mbtools/if_ajson_reader,
+      lo_json     TYPE REF TO /mbtools/if_ajson_reader,
+      lx_error    TYPE REF TO /mbtools/cx_ajson_error.
+
+    FIELD-SYMBOLS:
+      <ls_product> LIKE LINE OF ct_products.
+
+    LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
+
+    gi_log->i( |EDD API GetVersion for { lines( ct_products ) } products| ).
+
+    lv_endpoint = _get_endpoint_products(
+      iv_action   = c_edd_action-version
+      it_products = ct_products ).
+
+    lv_data = _get_data(
+      iv_path   = lv_endpoint
+      iv_check = '"new_version"' ).
+
+    lo_json_all = _get_json( lv_data ).
+
+    LOOP AT ct_products ASSIGNING <ls_product>.
+
+      lo_json = lo_json_all->slice( |/{ <ls_product>-id }| ).
+
+      <ls_product>-version = lo_json->get_string( '/new_version' ).
+      <ls_product>-changelog_url = lo_json->get_string( '/url' ).
+      <ls_product>-download_url = lo_json->get_string( '/download_link' ).
+      lv_sections = lo_json->get_string( '/sections' ).
+      REPLACE ALL OCCURRENCES OF '&nbsp;' IN lv_sections WITH ` `.
+
+      TRY.
+          lo_json = /mbtools/cl_aphp=>unserialize(
+            iv_data       = lv_sections
+            iv_ignore_len = abap_true ).
+
+          IF lo_json->get_string( '/a/1/key' ) = 'description'.
+            <ls_product>-description = lo_json->get_string( '/a/1/val' ).
+            <ls_product>-description = _adjust_html( <ls_product>-description ).
+            IF <ls_product>-description CS '<p>Requirements'.
+              <ls_product>-description = <ls_product>-description(sy-fdpos).
+            ENDIF.
+            IF <ls_product>-description CS '<p>Screenshots'.
+              <ls_product>-description = <ls_product>-description(sy-fdpos).
+            ENDIF.
+          ENDIF.
+          IF lo_json->get_string( '/a/2/key' ) = 'changelog'.
+            <ls_product>-changelog = lo_json->get_string( '/a/2/val' ).
+            <ls_product>-changelog = _adjust_html(
+              iv_html    = <ls_product>-changelog
+              iv_headers = abap_true ).
+          ENDIF.
+        CATCH /mbtools/cx_ajson_error INTO lx_error.
+          /mbtools/cx_exception=>raise( lx_error->get_text( ) ).
+      ENDTRY.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD _adjust_html.
 
     rv_result = iv_html.
@@ -439,6 +532,46 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
     REPLACE c_edd_param-key    WITH iv_license   INTO rv_endpoint.
     REPLACE c_edd_param-sysid  WITH sy-sysid     INTO rv_endpoint.
     REPLACE c_edd_param-sysno  WITH lv_system_no INTO rv_endpoint.
+
+    CONDENSE rv_endpoint NO-GAPS.
+
+  ENDMETHOD.
+
+
+  METHOD _get_endpoint_products.
+
+    DATA:
+      lv_system_no TYPE slic_sysid,
+      ls_products  LIKE LINE OF it_products.
+
+    " Get system number
+    CALL FUNCTION 'SLIC_GET_SYSTEM_ID'
+      IMPORTING
+        systemid = lv_system_no.
+
+    SHIFT lv_system_no LEFT DELETING LEADING '0'.
+
+    IF ( lv_system_no CS 'INITIAL' OR lv_system_no NA '0123456789' ) AND lv_system_no <> 'DEMOSYSTEM'.
+      /mbtools/cx_exception=>raise( 'Initial system number (transaction SLICENSE)' ) ##NO_TEXT.
+    ENDIF.
+
+    " http://yoursite.com/?edd_action={request_type}&products[{id}][item_id]={id}&products[{id}][license]={key}
+    " &products[{id}][url]=SystemID_{system_id}_SystemNumber_{system_number}
+    rv_endpoint = '/?edd_action=' && c_edd_param-action.
+    REPLACE c_edd_param-action WITH iv_action INTO rv_endpoint.
+
+    LOOP AT it_products INTO ls_products.
+      rv_endpoint = rv_endpoint && '&products[' && c_edd_param-id && '][item_id]=' && c_edd_param-id.
+      rv_endpoint = rv_endpoint && '&products[' && c_edd_param-id && '][license]=' && c_edd_param-key.
+      rv_endpoint = rv_endpoint && '&products[' && c_edd_param-id && '][url]=SystemID_' &&
+                    c_edd_param-sysid && '_SystemNumber_' && c_edd_param-sysno.
+
+      REPLACE ALL OCCURRENCES OF c_edd_param-id  IN rv_endpoint WITH ls_products-id.
+      REPLACE ALL OCCURRENCES OF c_edd_param-key IN rv_endpoint WITH ls_products-license.
+    ENDLOOP.
+
+    REPLACE ALL OCCURRENCES OF c_edd_param-sysid IN rv_endpoint WITH sy-sysid.
+    REPLACE ALL OCCURRENCES OF c_edd_param-sysno IN rv_endpoint WITH lv_system_no.
 
     CONDENSE rv_endpoint NO-GAPS.
 

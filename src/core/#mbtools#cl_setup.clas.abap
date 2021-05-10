@@ -59,7 +59,7 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
 
   METHOD class_constructor.
 
-    go_settings = /mbtools/cl_tools=>factory( )->get_settings( ).
+    go_settings = /mbtools/cl_tool_manager=>factory( )->get_settings( ).
 
   ENDMETHOD.
 
@@ -67,7 +67,7 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
   METHOD get_rfc_destination.
 
     IF go_settings IS BOUND.
-      rv_result = go_settings->get_value( /mbtools/cl_tools=>c_reg-key_rfcdest ).
+      rv_result = go_settings->get_value( /mbtools/cl_tool=>c_reg-key_rfcdest ).
     ENDIF.
 
     IF rv_result IS INITIAL.
@@ -80,7 +80,7 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
   METHOD get_ssl_client.
 
     IF go_settings IS BOUND.
-      rv_result = go_settings->get_value( /mbtools/cl_tools=>c_reg-key_ssl_client ).
+      rv_result = go_settings->get_value( /mbtools/cl_tool=>c_reg-key_ssl_client ).
     ENDIF.
 
     IF rv_result IS INITIAL.

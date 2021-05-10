@@ -13,10 +13,10 @@
    </REQUIREMENTS>
    <PACKAGING>
     <NAME>MBT-Base</NAME>
-    <VERSION>1.1.0</VERSION>
+    <VERSION>1.2.0</VERSION>
     <SEM_VERSION>
      <MAJOR>1</MAJOR>
-     <MINOR>1</MINOR>
+     <MINOR>2</MINOR>
     </SEM_VERSION>
     <DESCRIPTION>Foundation for Marc Bernard Tools</DESCRIPTION>
     <GIT_URL>https://github.com/Marc-Bernard-Tools/MBT-Base</GIT_URL>

@@ -27,7 +27,7 @@ CLASS /mbtools/cl_mbt IMPLEMENTATION.
 
   METHOD class_constructor.
 
-    go_settings = /mbtools/cl_tools=>factory( )->get_settings( ).
+    go_settings = /mbtools/cl_tool_manager=>factory( )->get_settings( ).
 
   ENDMETHOD.
 
@@ -46,7 +46,7 @@ CLASS /mbtools/cl_mbt IMPLEMENTATION.
   METHOD is_offline.
 
     IF go_settings IS NOT INITIAL.
-      rv_result = go_settings->get_value( /mbtools/cl_tools=>c_reg-key_offline ).
+      rv_result = go_settings->get_value( /mbtools/cl_tool=>c_reg-key_offline ).
     ENDIF.
 
   ENDMETHOD.
@@ -63,7 +63,7 @@ CLASS /mbtools/cl_mbt IMPLEMENTATION.
 
     TRY.
         IF go_settings IS BOUND.
-          lv_offline = go_settings->get_value( /mbtools/cl_tools=>c_reg-key_offline ).
+          lv_offline = go_settings->get_value( /mbtools/cl_tool=>c_reg-key_offline ).
         ENDIF.
 
         IF lv_offline IS INITIAL.

@@ -126,6 +126,12 @@
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
+     <CMPNAME>CLASS_CONSTRUCTOR</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Initialize EDD API</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
      <CMPNAME>DEACTIVATE_LICENSE</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Used to remotely deactivate a license key</DESCRIPT>
@@ -134,7 +140,13 @@
      <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
      <CMPNAME>GET_VERSION</CMPNAME>
      <LANGU>E</LANGU>
-     <DESCRIPT>Used to remotely retrieve the latest version information for</DESCRIPT>
+     <DESCRIPT>Used to remotely retrieve the latest version information</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
+     <CMPNAME>GET_VERSIONS</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Used to remotely retrieve the latest version information</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
@@ -153,6 +165,12 @@
      <CMPNAME>_GET_ENDPOINT</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Get API endpoint</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
+     <CMPNAME>_GET_ENDPOINT_PRODUCTS</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Get API endpoint for multiple products</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
