@@ -506,7 +506,7 @@
 		},
 		"modify_only_own_db_tables": {
 			"exclude": [],
-			"ownTables": "^(/MBTOOLS/|bal|usr05)",
+			"ownTables": "^(/MBTOOLS/|BAL|USR05)",
 			"reportDynamic": false,
 			"severity": "Error"
 		},
@@ -541,7 +541,7 @@
 			"severity": "Error"
 		},
 		"no_yoda_conditions": {
-			"exclude": [],
+			"exclude": [".*"],
 			"severity": "Error"
 		},
 		"object_naming": {
