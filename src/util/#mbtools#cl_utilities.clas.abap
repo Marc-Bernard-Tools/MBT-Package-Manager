@@ -410,7 +410,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       ls_cvers TYPE cvers.
 
     IF gt_cvers IS INITIAL.
-      SELECT * FROM cvers INTO TABLE gt_cvers.
+      SELECT * FROM cvers INTO TABLE gt_cvers ORDER BY PRIMARY KEY.
       ASSERT sy-subrc = 0.
     ENDIF.
 
@@ -431,7 +431,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       ls_cvers TYPE cvers.
 
     IF gt_cvers IS INITIAL.
-      SELECT * FROM cvers INTO TABLE gt_cvers.
+      SELECT * FROM cvers INTO TABLE gt_cvers ORDER BY PRIMARY KEY.
       ASSERT sy-subrc = 0.
     ENDIF.
 

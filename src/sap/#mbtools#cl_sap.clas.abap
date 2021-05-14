@@ -167,7 +167,7 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
 
     " Add Workbench Development Objects
     SELECT type singular FROM euobjt INTO (ls_object_text-object, ls_object_text-text)
-      WHERE spras = sy-langu.                           "#EC CI_GENBUFF
+      WHERE spras = sy-langu ORDER BY type singular.    "#EC CI_GENBUFF
       COLLECT ls_object_text INTO gt_object_texts.
     ENDSELECT.
 
@@ -332,7 +332,8 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
           lv_maxlen = 0.
           SELECT fieldname intlen FROM dd03l INTO (lv_field, lv_len)
             WHERE tabname = lv_txttab AND inttype = 'C'
-              AND as4local = 'A' AND as4vers = '0000' ##WARN_OK.
+              AND as4local = 'A' AND as4vers = '0000'
+              ORDER BY fieldname ##WARN_OK.
             IF lv_len > lv_maxlen.
               lv_txtfld = lv_field.
               lv_maxlen = lv_len.

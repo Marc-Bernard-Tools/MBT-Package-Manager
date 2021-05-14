@@ -58,7 +58,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_GUI_HTML_PROCESSOR IMPLEMENTATION.
+CLASS /mbtools/cl_gui_html_processor IMPLEMENTATION.
 
 
   METHOD /mbtools/if_gui_html_processor~process.
@@ -154,7 +154,7 @@ CLASS /MBTOOLS/CL_GUI_HTML_PROCESSOR IMPLEMENTATION.
     lo_matcher = lo_css_re->create_matcher( text = substring( val = iv_html len = lv_head_end ) ).
     WHILE lo_matcher->find_next( ) = abap_true.
       lv_css_path = lo_matcher->get_submatch( 1 ).
-      IF abap_false = is_preserved( lv_css_path ).
+      IF is_preserved( lv_css_path ) = abap_false.
         lv_off = lo_matcher->get_offset( ).
         lv_len = lo_matcher->get_length( ).
         ev_html = ev_html && substring( val = iv_html

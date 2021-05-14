@@ -83,7 +83,8 @@ CLASS /mbtools/cl_tlogo IMPLEMENTATION.
       FROM dd07t
       WHERE domname    = 'RSTLOGO'
         AND ddlanguage = sy-langu
-        AND as4local   = rs_c_objvers-active.            "#EC CI_BYPASS
+        AND as4local   = rs_c_objvers-active
+      ORDER BY domvalue_l.                               "#EC CI_BYPASS
     ASSERT sy-subrc = 0.
 
     " Add Meta Object, Application Component Hierarchty, and DataSource
@@ -99,7 +100,8 @@ CLASS /mbtools/cl_tlogo IMPLEMENTATION.
 
     SELECT DISTINCT tlogo_d tlogo INTO TABLE gt_tlogo_cont
       FROM rstlogoprop
-      WHERE tlogo_d <> ''.                               "#EC CI_BYPASS
+      WHERE tlogo_d <> ''
+      ORDER BY tlogo_d tlogo.                            "#EC CI_BYPASS
     ASSERT sy-subrc = 0.
 
   ENDMETHOD.
