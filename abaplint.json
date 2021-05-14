@@ -339,10 +339,10 @@
 			"exclude": [],
 			"severity": "Error"
 		},
-    "identical_descriptions": {
-      "exclude": [],
-      "severity": "Error"
-    },		
+		"identical_descriptions": {
+			"exclude": [],
+			"severity": "Error"
+		},		
 		"identical_form_names": {
 			"exclude": [],
 			"severity": "Error"
@@ -504,12 +504,12 @@
 			"exclude": [],
 			"severity": "Error"
 		},
-    "modify_only_own_db_tables": {
-      "exclude": [],
-      "ownTables": "^/MBTOOLS/",
-      "reportDynamic": true,
-      "severity": "Error"
-    },
+		"modify_only_own_db_tables": {
+			"exclude": [],
+			"ownTables": "^(/MBTOOLS/|bal|usr05)",
+			"reportDynamic": false,
+			"severity": "Error"
+		},
 		"msag_consistency": {
 			"exclude": [],
 			"severity": "Error"
@@ -540,10 +540,10 @@
 			],
 			"severity": "Error"
 		},
-    "no_yoda_conditions": {
-      "exclude": [],
-      "severity": "Error"
-    },
+		"no_yoda_conditions": {
+			"exclude": [],
+			"severity": "Error"
+		},
 		"object_naming": {
 			"auth": "^/MBTOOLS/",
 			"clas": "^/MBTOOLS/C(L|X)\\_",
@@ -569,30 +569,30 @@
 			"ttyp": "^/MBTOOLS/",
 			"xslt": "^/MBTOOLS/"
 		},
-    "obsolete_statement": {
-      "add": true,
-      "communication": true,
-      "compute": true,
-      "divide": true,
-      "exclude": [],
-      "fieldSymbolStructure": true,
-      "freeMemory": true,
-      "load": true,
-      "move": true,
-      "multiply": true,
-      "occurs": true,
-      "pack": true,
-      "parameter": true,
-      "ranges": true,
-      "refresh": true,
-      "requested": true,
-      "selectWithoutInto": true,
-      "setExtended": true,
-      "severity": "Error",
-      "subtract": true,
-      "typePools": true,
-      "withHeaderLine": true
-    },
+		"obsolete_statement": {
+			"add": true,
+			"communication": true,
+			"compute": true,
+			"divide": true,
+			"exclude": [],
+			"fieldSymbolStructure": true,
+			"freeMemory": true,
+			"load": true,
+			"move": true,
+			"multiply": true,
+			"occurs": true,
+			"pack": true,
+			"parameter": true,
+			"ranges": true,
+			"refresh": true,
+			"requested": true,
+			"selectWithoutInto": true,
+			"setExtended": true,
+			"severity": "Error",
+			"subtract": true,
+			"typePools": true,
+			"withHeaderLine": true
+		},
 		"omit_parameter_name": {
 			"exclude": [
 				"#mbtools#.*_ajson.*"
@@ -673,10 +673,10 @@
 			"exclude": [],
 			"severity": "Error"
 		},
-    "select_add_order_by": {
-      "exclude": [],
-      "severity": "Error"
-    },
+		"select_add_order_by": {
+			"exclude": [],
+			"severity": "Error"
+		},
 		"select_performance": {
 			"endSelect": true,
 			"exclude": [".*"],
@@ -766,10 +766,10 @@
 			"exclude": [],
 			"severity": "Error"
 		},
-    "unsecure_fae": {
-      "exclude": [],
-      "severity": "Error"
-    },
+		"unsecure_fae": {
+			"exclude": [],
+			"severity": "Error"
+		},
 		"unused_methods": {
 			"exclude": [],
 			"severity": "Error"
