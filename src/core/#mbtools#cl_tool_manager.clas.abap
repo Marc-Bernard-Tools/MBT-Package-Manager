@@ -775,12 +775,14 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
 
     " Get all classes that implement the MBT Interface
     SELECT clsname FROM seometarel INTO TABLE rt_classes
-      WHERE version = '1' AND refclsname = /mbtools/if_definitions=>c_interface. "#EC CI_GENBUFF
+      WHERE version = '1' AND refclsname = /mbtools/if_definitions=>c_interface
+      ORDER BY PRIMARY KEY.                             "#EC CI_GENBUFF
     IF sy-subrc = 0 AND rt_classes IS NOT INITIAL.
       " Add sub-classes
       SELECT clsname FROM seometarel APPENDING TABLE rt_classes
         FOR ALL ENTRIES IN rt_classes
-        WHERE version = '1' AND refclsname = rt_classes-table_line. "#EC CI_GENBUFF
+        WHERE version = '1' AND refclsname = rt_classes-table_line
+        ORDER BY PRIMARY KEY.                           "#EC CI_GENBUFF
       ASSERT sy-subrc >= 0.
     ENDIF.
 
