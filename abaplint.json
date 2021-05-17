@@ -541,7 +541,8 @@
 			"severity": "Error"
 		},
 		"no_yoda_conditions": {
-			"exclude": [".*"],
+			"exclude": [],
+  			"onlyConstants": false,
 			"severity": "Error"
 		},
 		"object_naming": {
@@ -679,9 +680,10 @@
 		},
 		"select_performance": {
 			"endSelect": true,
-			"exclude": [".*"],
+			"exclude": [],
 			"selectStar": true,
-			"severity": "Error"
+			"severity": "Error",
+			"starOkayIfFewColumns": 10,
 		},
 		"selection_screen_naming": {
 			"exclude": [],
