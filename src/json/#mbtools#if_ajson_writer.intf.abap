@@ -45,6 +45,12 @@ INTERFACE /mbtools/if_ajson_writer
       !iv_val  TYPE d
     RAISING
       /mbtools/cx_ajson_error .
+  METHODS set_timestamp
+    IMPORTING
+      !iv_path TYPE string
+      !iv_val  TYPE timestamp
+    RAISING
+      /mbtools/cx_ajson_error .
   METHODS set_null
     IMPORTING
       !iv_path TYPE string

@@ -773,17 +773,26 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
 
   METHOD _get_implementations.
 
+    DATA:
+      ls_intkey  TYPE seoclskey,
+      ls_impkeys TYPE seor_implementing_key,
+      lt_impkeys TYPE seor_implementing_keys.
+
     " Get all classes that implement the MBT Interface
-    SELECT clsname FROM seometarel INTO TABLE rt_classes
-      WHERE version = '1' AND refclsname = /mbtools/if_definitions=>c_interface
-      ORDER BY PRIMARY KEY.                             "#EC CI_GENBUFF
-    IF sy-subrc = 0 AND rt_classes IS NOT INITIAL.
-      " Add sub-classes
-      SELECT clsname FROM seometarel APPENDING TABLE rt_classes
-        FOR ALL ENTRIES IN rt_classes
-        WHERE version = '1' AND refclsname = rt_classes-table_line
-        ORDER BY PRIMARY KEY.                           "#EC CI_GENBUFF
-      ASSERT sy-subrc >= 0.
+    ls_intkey-clsname = /mbtools/if_definitions=>c_interface.
+
+    CALL FUNCTION 'SEO_INTERFACE_IMPLEM_GET_ALL'
+      EXPORTING
+        intkey       = ls_intkey
+      IMPORTING
+        impkeys      = lt_impkeys
+      EXCEPTIONS
+        not_existing = 1
+        OTHERS       = 2.
+    IF sy-subrc = 0.
+      LOOP AT lt_impkeys INTO ls_impkeys.
+        INSERT ls_impkeys-clsname INTO TABLE rt_classes.
+      ENDLOOP.
     ENDIF.
 
     IF rt_classes IS INITIAL AND iv_quiet IS INITIAL.

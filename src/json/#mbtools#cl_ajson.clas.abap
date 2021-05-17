@@ -14,8 +14,6 @@ CLASS /mbtools/cl_ajson DEFINITION
 
   PUBLIC SECTION.
 
-*    INTERFACES /mbtools/if_ajson_reader
-*    INTERFACES /mbtools/if_ajson_writer
     INTERFACES /mbtools/if_ajson .
 
     ALIASES:
@@ -39,6 +37,7 @@ CLASS /mbtools/cl_ajson DEFINITION
       set_string FOR /mbtools/if_ajson_writer~set_string,
       set_integer FOR /mbtools/if_ajson_writer~set_integer,
       set_date FOR /mbtools/if_ajson_writer~set_date,
+      set_timestamp FOR /mbtools/if_ajson_writer~set_timestamp,
       set_null FOR /mbtools/if_ajson_writer~set_null,
       delete FOR /mbtools/if_ajson_writer~delete,
       touch_array FOR /mbtools/if_ajson_writer~touch_array,
@@ -530,6 +529,37 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_val ).
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_ajson_writer~set_timestamp.
+
+    DATA:
+      lv_date          TYPE d,
+      lv_time          TYPE t,
+      lv_timestamp_iso TYPE string.
+
+    IF iv_val IS INITIAL.
+      " The zero value is January 1, year 1, 00:00:00.000000000 UTC.
+      lv_date = '00010101'.
+    ELSE.
+
+      CONVERT TIME STAMP iv_val TIME ZONE 'UTC'
+        INTO DATE lv_date TIME lv_time.
+
+    ENDIF.
+
+    lv_timestamp_iso =
+        lv_date+0(4) && '-' && lv_date+4(2) && '-' && lv_date+6(2) &&
+        'T' &&
+        lv_time+0(2) && '-' && lv_time+2(2) && '-' && lv_time+4(2) &&
+        'Z'.
+
+    /mbtools/if_ajson_writer~set(
+      iv_ignore_empty = abap_false
+      iv_path = iv_path
+      iv_val  = lv_timestamp_iso ).
 
   ENDMETHOD.
 

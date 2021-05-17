@@ -156,7 +156,7 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
     ls_object_text-text   = '?'.
     COLLECT ls_object_text INTO gt_object_texts.
     ls_object_text-object = 'SLDB'.
-    ls_object_text-text   = 'Logical Databases'(104).
+    ls_object_text-text   = 'Logical Database'(104).
     COLLECT ls_object_text INTO gt_object_texts.
     ls_object_text-object = 'ECSC'.
     ls_object_text-text   = 'eCATT System'(105).
@@ -166,12 +166,11 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
     COLLECT ls_object_text INTO gt_object_texts.
 
     " Add Workbench Development Objects
-    SELECT type singular FROM euobjt INTO (ls_object_text-object, ls_object_text-text)
+    SELECT type AS object singular AS text FROM euobjt APPENDING TABLE gt_object_texts
       WHERE spras = sy-langu ORDER BY type singular.    "#EC CI_GENBUFF
-      COLLECT ls_object_text INTO gt_object_texts.
-    ENDSELECT.
 
     SORT gt_object_texts.
+    DELETE ADJACENT DUPLICATES FROM gt_object_texts.
 
   ENDMETHOD.
 
