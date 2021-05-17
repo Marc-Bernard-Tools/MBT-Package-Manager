@@ -542,7 +542,7 @@
 		},
 		"no_yoda_conditions": {
 			"exclude": [],
-  			"onlyConstants": false,
+  			"onlyConstants": true,
 			"severity": "Error"
 		},
 		"object_naming": {
