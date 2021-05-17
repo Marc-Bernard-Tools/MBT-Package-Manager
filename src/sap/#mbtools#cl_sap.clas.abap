@@ -167,7 +167,7 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
 
     " Add Workbench Development Objects
     SELECT type AS object singular AS text FROM euobjt APPENDING TABLE gt_object_texts
-      WHERE spras = sy-langu ORDER BY type singular.    "#EC CI_GENBUFF
+      WHERE spras = sy-langu ORDER BY type singular ##SUBRC_OK. "#EC CI_GENBUFF
 
     SORT gt_object_texts.
     DELETE ADJACENT DUPLICATES FROM gt_object_texts.
