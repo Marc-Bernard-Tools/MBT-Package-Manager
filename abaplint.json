@@ -680,7 +680,11 @@
 		},
 		"select_performance": {
 			"endSelect": true,
-			"exclude": [],
+			"exclude": [
+				"#mbtools#cl_sap.*",
+				"#mbtools#cl_tool_manager.*",
+				"#mbtools#cl_utilities.*"
+			],
 			"selectStar": true,
 			"severity": "Error",
 			"starOkayIfFewColumns": 10,
