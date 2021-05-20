@@ -7267,7 +7267,7 @@ CLASS zcl_abapinst_objects DEFINITION
       END OF ty_obj_serializer_item .
     TYPES:
       ty_obj_serializer_map
-                TYPE SORTED TABLE OF ty_obj_serializer_item WITH UNIQUE KEY item .
+                  TYPE SORTED TABLE OF ty_obj_serializer_item WITH UNIQUE KEY item .
 
     CLASS-DATA gt_obj_serializer_map TYPE ty_obj_serializer_map .
     CLASS-DATA gt_supported_obj_types TYPE ty_types_tt .
@@ -7349,11 +7349,6 @@ CLASS zcl_abapinst_objects DEFINITION
       IMPORTING
         !it_results       TYPE zif_abapgit_definitions=>ty_results_tt
         !ii_log           TYPE REF TO zif_abapgit_log OPTIONAL
-      RETURNING
-        VALUE(rt_results) TYPE zif_abapgit_definitions=>ty_results_tt .
-    CLASS-METHODS adjust_namespaces
-      IMPORTING
-        !it_results       TYPE zif_abapgit_definitions=>ty_results_tt
       RETURNING
         VALUE(rt_results) TYPE zif_abapgit_definitions=>ty_results_tt .
     CLASS-METHODS get_deserialize_steps
@@ -32543,19 +32538,6 @@ ENDCLASS.
 CLASS zcl_abapinst_objects IMPLEMENTATION.
 
 
-  METHOD adjust_namespaces.
-
-    FIELD-SYMBOLS: <ls_result> LIKE LINE OF rt_results.
-
-    rt_results = it_results.
-
-    LOOP AT rt_results ASSIGNING <ls_result>.
-      REPLACE ALL OCCURRENCES OF '#' IN <ls_result>-obj_name WITH '/'.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
   METHOD check_main_package.
 
     " check package restrictions, closed package, descriptive or
@@ -33090,11 +33072,10 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
       io_dot             = io_dot
       ii_log             = ii_log ).
 
-    rt_results = adjust_namespaces(
-                   prioritize_deser(
-                     filter_files_to_deserialize(
-                       it_results = lt_results
-                       ii_log     = ii_log ) ) ).
+    rt_results = prioritize_deser(
+                   filter_files_to_deserialize(
+                     it_results = lt_results
+                     ii_log     = ii_log ) ).
 
   ENDMETHOD.
 
@@ -33290,7 +33271,7 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
 
   METHOD prioritize_deser.
 
-* todo, refactor this method
+* todo, refactor this method #3536
 
     FIELD-SYMBOLS: <ls_result> LIKE LINE OF it_results.
 
@@ -33316,16 +33297,6 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
 
 * ISAP has to be handled before ISRP
     LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'IASP'.
-      APPEND <ls_result> TO rt_results.
-    ENDLOOP.
-
-* ENHS has to be handled before ENHO
-    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'ENHS'.
-      APPEND <ls_result> TO rt_results.
-    ENDLOOP.
-
-* ENHO has to be handled before ENHC
-    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'ENHO'.
       APPEND <ls_result> TO rt_results.
     ENDLOOP.
 
@@ -33357,12 +33328,29 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
         AND obj_type <> 'DEVC'
         AND obj_type <> 'ENHS'
         AND obj_type <> 'ENHO'
+        AND obj_type <> 'ENHC'
+        AND obj_type <> 'ENSC'
         AND obj_type <> 'DDLS'
         AND obj_type <> 'SPRX'
         AND obj_type <> 'WEBI'
         AND obj_type <> 'IOBJ'
         AND obj_type <> 'TOBJ'
         AND obj_type <> 'OTGR'.
+      APPEND <ls_result> TO rt_results.
+    ENDLOOP.
+
+* Enhancements might refer to other objects of the repo so create them after
+* Order: spots, composite spots, implementations, composite implementations
+    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'ENHS'.
+      APPEND <ls_result> TO rt_results.
+    ENDLOOP.
+    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'ENSC'.
+      APPEND <ls_result> TO rt_results.
+    ENDLOOP.
+    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'ENHO'.
+      APPEND <ls_result> TO rt_results.
+    ENDLOOP.
+    LOOP AT it_results ASSIGNING <ls_result> WHERE obj_type = 'ENHC'.
       APPEND <ls_result> TO rt_results.
     ENDLOOP.
 
