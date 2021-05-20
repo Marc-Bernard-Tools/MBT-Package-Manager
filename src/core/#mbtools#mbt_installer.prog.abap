@@ -1280,7 +1280,11 @@ INTERFACE zif_abapgit_definitions
   TYPES:
     BEGIN OF ty_overwrite.
       INCLUDE TYPE ty_item.
-  TYPES: decision TYPE ty_yes_no,
+  TYPES:
+      action   TYPE i,
+      icon     TYPE icon_d,
+      text     TYPE string,
+      decision TYPE ty_yes_no,
     END OF ty_overwrite .
   TYPES:
     ty_overwrite_tt TYPE STANDARD TABLE OF ty_overwrite WITH DEFAULT KEY
@@ -1527,12 +1531,14 @@ INTERFACE zif_abapgit_definitions
       prerelase       TYPE string,
       prerelase_patch TYPE i,
     END OF ty_version.
-  TYPES: BEGIN OF ty_alv_column,
-           name   TYPE string,
-           text   TYPE string,
-           length TYPE lvc_outlen,
-         END OF ty_alv_column,
-         ty_alv_column_tt TYPE TABLE OF ty_alv_column WITH DEFAULT KEY.
+  TYPES:
+    BEGIN OF ty_alv_column,
+      name      TYPE string,
+      text      TYPE string,
+      length    TYPE lvc_outlen,
+      show_icon TYPE abap_bool,
+    END OF ty_alv_column,
+    ty_alv_column_tt TYPE TABLE OF ty_alv_column WITH DEFAULT KEY.
   TYPES:
     ty_deserialization_step TYPE string.
   TYPES:
@@ -1548,7 +1554,7 @@ INTERFACE zif_abapgit_definitions
   CONSTANTS c_head_name TYPE string VALUE 'HEAD' ##NO_TEXT.
   CONSTANTS:
     BEGIN OF c_git_branch,
-      master       TYPE string VALUE 'refs/heads/master',
+      main         TYPE string VALUE 'refs/heads/main',
       prefix       TYPE string VALUE 'refs/',
       heads_prefix TYPE string VALUE 'refs/heads/',
       heads        TYPE string VALUE 'refs/heads/*',
@@ -1602,9 +1608,6 @@ INTERFACE zif_abapgit_definitions
       repo_newonline                TYPE string VALUE 'repo_newonline',
       repo_newoffline               TYPE string VALUE 'repo_newoffline',
       repo_add_all_obj_to_trans_req TYPE string VALUE 'repo_add_all_obj_to_trans_req',
-      repo_remote_attach            TYPE string VALUE 'repo_remote_attach',
-      repo_remote_detach            TYPE string VALUE 'repo_remote_detach',
-      repo_remote_change            TYPE string VALUE 'repo_remote_change',
       repo_refresh_checksums        TYPE string VALUE 'repo_refresh_checksums',
       repo_toggle_fav               TYPE string VALUE 'repo_toggle_fav',
       repo_transport_to_branch      TYPE string VALUE 'repo_transport_to_branch',
@@ -1622,7 +1625,6 @@ INTERFACE zif_abapgit_definitions
       ie_devtools                   TYPE string VALUE 'ie_devtools',
       git_pull                      TYPE string VALUE 'git_pull',
       git_reset                     TYPE string VALUE 'git_reset',
-      git_checkout_commit           TYPE string VALUE 'git_checkout_commit',
       git_branch_create             TYPE string VALUE 'git_branch_create',
       git_branch_switch             TYPE string VALUE 'git_branch_switch',
       git_branch_delete             TYPE string VALUE 'git_branch_delete',
@@ -1741,6 +1743,11 @@ INTERFACE zif_abapgit_ajson_reader
       iv_path TYPE string
     RETURNING
       VALUE(rv_value) TYPE d.
+  METHODS get_timestamp
+    IMPORTING
+      iv_path TYPE string
+    RETURNING
+      VALUE(rv_value) TYPE timestamp.
   METHODS get_string
     IMPORTING
       iv_path TYPE string
@@ -2120,7 +2127,6 @@ INTERFACE zif_abapgit_dot_abapgit .
       packaging       TYPE ty_packaging,
     END OF ty_dot_abapgit .
 
-
   CONSTANTS:
     BEGIN OF c_folder_logic,
       prefix TYPE string VALUE 'PREFIX',
@@ -2130,6 +2136,12 @@ INTERFACE zif_abapgit_dot_abapgit .
 ENDINTERFACE.
 INTERFACE zif_abapgit_environment
   .
+  TYPES:
+    BEGIN OF ty_release_sp,
+      release TYPE c LENGTH 10,
+      sp      TYPE c LENGTH 10,
+    END OF ty_release_sp.
+
   METHODS is_sap_cloud_platform
     RETURNING
       VALUE(rv_result) TYPE abap_bool.
@@ -2148,6 +2160,9 @@ INTERFACE zif_abapgit_environment
   METHODS is_sap_object_allowed
     RETURNING
       VALUE(rv_allowed) TYPE abap_bool.
+  METHODS get_basis_release
+    RETURNING
+      VALUE(rs_result) TYPE ty_release_sp.
 ENDINTERFACE.
 INTERFACE zif_abapgit_log
    .
@@ -2201,7 +2216,6 @@ INTERFACE zif_abapgit_log
     IMPORTING
       !iv_msg  TYPE csequence
       !iv_type TYPE sy-msgty DEFAULT 'E'
-      !iv_rc   TYPE sy-subrc OPTIONAL
       !is_item TYPE zif_abapgit_definitions=>ty_item OPTIONAL
       !ix_exc  TYPE REF TO cx_root OPTIONAL .
   METHODS add_error
@@ -2228,11 +2242,6 @@ INTERFACE zif_abapgit_log
   METHODS count
     RETURNING
       VALUE(rv_count) TYPE i .
-  METHODS has_rc
-    IMPORTING
-      !iv_rc        TYPE sy-subrc
-    RETURNING
-      VALUE(rv_yes) TYPE abap_bool .
   METHODS get_messages
     RETURNING
       VALUE(rt_msg) TYPE ty_log_outs .
@@ -2776,6 +2785,17 @@ INTERFACE zif_abapgit_objects
     ty_step_data_tt TYPE STANDARD TABLE OF ty_step_data
                                 WITH DEFAULT KEY .
 
+  CONSTANTS:
+    BEGIN OF c_deserialize_action,
+      " also used to determine priority if object has multiple changes, so don't change order
+      none       TYPE i VALUE 0,
+      add        TYPE i VALUE 1,
+      update     TYPE i VALUE 2,
+      overwrite  TYPE i VALUE 3,
+      delete     TYPE i VALUE 4,
+      delete_add TYPE i VALUE 5,
+    END OF c_deserialize_action.
+
 ENDINTERFACE.
 INTERFACE zif_abapgit_ajson_mapping
   .
@@ -3019,7 +3039,7 @@ INTERFACE zif_abapgit_version
    .
 
   CONSTANTS gc_xml_version TYPE string VALUE 'v1.0.0' ##NO_TEXT.
-  CONSTANTS gc_abap_version TYPE string VALUE '1.107.0' ##NO_TEXT.
+  CONSTANTS gc_abap_version TYPE string VALUE '1.108.0' ##NO_TEXT.
 
 ENDINTERFACE.
 CLASS zcl_abapgit_adt_link DEFINITION
@@ -3079,6 +3099,7 @@ CLASS zcl_abapgit_ajson DEFINITION
       get_integer FOR zif_abapgit_ajson_reader~get_integer,
       get_number FOR zif_abapgit_ajson_reader~get_number,
       get_date FOR zif_abapgit_ajson_reader~get_date,
+      get_timestamp FOR zif_abapgit_ajson_reader~get_timestamp,
       get_string FOR zif_abapgit_ajson_reader~get_string,
       slice FOR zif_abapgit_ajson_reader~slice,
       to_abap FOR zif_abapgit_ajson_reader~to_abap,
@@ -3570,11 +3591,12 @@ CLASS zcl_abapgit_dot_abapgit DEFINITION
         !it_requirements TYPE zif_abapgit_dot_abapgit=>ty_requirement_tt .
     METHODS get_packaging
       RETURNING
-        VALUE(rt_packaging) TYPE zif_abapgit_dot_abapgit=>ty_packaging .
+        VALUE(rs_packaging) TYPE zif_abapgit_dot_abapgit=>ty_packaging
+      RAISING
+        zcx_abapgit_exception .
     METHODS set_packaging
       IMPORTING
-        !it_packaging TYPE zif_abapgit_dot_abapgit=>ty_packaging .
-
+        !is_packaging TYPE zif_abapgit_dot_abapgit=>ty_packaging .
   PROTECTED SECTION.
   PRIVATE SECTION.
     DATA: ms_data TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit.
@@ -3884,7 +3906,6 @@ CLASS zcl_abapgit_log DEFINITION
     TYPES:
       BEGIN OF ty_log, "in order of occurrence
         msg       TYPE zif_abapgit_log=>ty_msg,
-        rc        TYPE sy-subrc,
         item      TYPE zif_abapgit_definitions=>ty_item,
         exception TYPE REF TO cx_root,
       END OF ty_log .
@@ -4042,7 +4063,6 @@ CLASS zcl_abapgit_objects_activation DEFINITION
         zcx_abapgit_exception .
     CLASS-METHODS clear .
   PROTECTED SECTION.
-
   PRIVATE SECTION.
 
     TYPES:
@@ -6039,11 +6059,11 @@ CLASS zcl_abapgit_oo_interface DEFINITION
         REDEFINITION .
     METHODS zif_abapgit_oo_object_fnc~delete
         REDEFINITION .
-    METHODS zif_abapgit_oo_object_fnc~deserialize_source
-        REDEFINITION .
     METHODS zif_abapgit_oo_object_fnc~get_includes
         REDEFINITION .
     METHODS zif_abapgit_oo_object_fnc~get_interface_properties
+        REDEFINITION .
+    METHODS zif_abapgit_oo_object_fnc~deserialize_source
         REDEFINITION .
     METHODS zif_abapgit_oo_object_fnc~exists
         REDEFINITION .
@@ -6698,7 +6718,6 @@ CLASS zcl_abapinst_file_status DEFINITION
   "
   " Using ZCL_ABAPGIT_FILE_STATUS would drag in many other dependencies
   " which are completely unnecessary for abapinst (like the abapGit repo layer).
-
   PUBLIC SECTION.
 
     CLASS-METHODS status
@@ -7190,7 +7209,6 @@ CLASS zcl_abapinst_objects DEFINITION
   " The serialize logic has been removed as well since the complete abapGit package
   " is being deployed. This simplifies a lot but could be added back in case a
   " delta logic is required.
-
   PUBLIC SECTION.
 
     TYPES:
@@ -8248,6 +8266,14 @@ CLASS lcl_json_to_abap DEFINITION FINAL.
       RAISING
         zcx_abapgit_ajson_error.
 
+    METHODS to_timestamp
+      IMPORTING
+        is_path          TYPE zif_abapgit_ajson=>ty_node
+      RETURNING
+        VALUE(rv_result) TYPE timestamp
+      RAISING
+        zcx_abapgit_ajson_error.
+
   PRIVATE SECTION.
     DATA mr_obj TYPE REF TO data.
     DATA mi_custom_mapping TYPE REF TO zif_abapgit_ajson_mapping.
@@ -8302,6 +8328,8 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
                   iv_location = <n>-path && <n>-name ).
                 ENDIF.
                 CONCATENATE lv_y lv_m lv_d INTO <value>.
+              ELSEIF lv_type = 'P' AND <n>-value IS NOT INITIAL.
+                <value> = to_timestamp( is_path = <n> ).
               ELSE.
                 <value> = <n>-value.
               ENDIF.
@@ -8415,6 +8443,82 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
       ENDIF.
       GET REFERENCE OF <value> INTO r_ref.
     ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD to_timestamp.
+
+    CONSTANTS lc_tzone_utc TYPE tznzone VALUE `UTC`.
+    CONSTANTS lc_regex_ts_with_hour TYPE string
+        VALUE `^(\d{4})-(\d{2})-(\d{2})(T)(\d{2}):(\d{2}):(\d{2})(\+)(\d{2}):(\d{2})`.
+    CONSTANTS lc_regex_ts_utc TYPE string
+        VALUE `^(\d{4})-(\d{2})-(\d{2})(T)(\d{2}):(\d{2}):(\d{2})(Z|$)`.
+
+    DATA:
+      BEGIN OF ls_timestamp,
+        year         TYPE c LENGTH 4,
+        month        TYPE c LENGTH 2,
+        day          TYPE c LENGTH 2,
+        t            TYPE c LENGTH 1,
+        hour         TYPE c LENGTH 2,
+        minute       TYPE c LENGTH 2,
+        second       TYPE c LENGTH 2,
+        local_sign   TYPE c LENGTH 1,
+        local_hour   TYPE c LENGTH 2,
+        local_minute TYPE c LENGTH 2,
+      END OF ls_timestamp.
+
+    DATA lv_date TYPE d.
+    DATA lv_time TYPE t.
+    DATA lv_seconds_conv TYPE i.
+    DATA lv_timestamp TYPE timestamp.
+
+    FIND FIRST OCCURRENCE OF REGEX lc_regex_ts_with_hour
+      IN is_path-value SUBMATCHES ls_timestamp-year ls_timestamp-month ls_timestamp-day ls_timestamp-t
+                                  ls_timestamp-hour ls_timestamp-minute ls_timestamp-second
+                                  ls_timestamp-local_sign ls_timestamp-local_hour ls_timestamp-local_minute.
+
+    IF sy-subrc = 0.
+
+      lv_seconds_conv = ( ls_timestamp-local_hour * 3600 ) + ( ls_timestamp-local_minute * 60 ).
+
+    ELSE.
+
+      FIND FIRST OCCURRENCE OF REGEX lc_regex_ts_utc
+        IN is_path-value SUBMATCHES ls_timestamp-year ls_timestamp-month ls_timestamp-day ls_timestamp-t
+                                    ls_timestamp-hour ls_timestamp-minute ls_timestamp-second.
+
+      IF sy-subrc <> 0.
+        zcx_abapgit_ajson_error=>raise(
+          iv_msg      = 'Unexpected timestamp format'
+          iv_location = is_path-path && is_path-name ).
+      ENDIF.
+
+    ENDIF.
+
+    CONCATENATE ls_timestamp-year ls_timestamp-month ls_timestamp-day INTO lv_date.
+    CONCATENATE ls_timestamp-hour ls_timestamp-minute ls_timestamp-second INTO lv_time.
+
+    CONVERT DATE lv_date TIME lv_time INTO TIME STAMP lv_timestamp TIME ZONE lc_tzone_utc.
+
+    TRY.
+
+        CASE ls_timestamp-local_sign.
+          WHEN '-'.
+            lv_timestamp = cl_abap_tstmp=>add( tstmp = lv_timestamp
+                                               secs = lv_seconds_conv ).
+          WHEN '+'.
+            lv_timestamp = cl_abap_tstmp=>subtractsecs( tstmp = lv_timestamp
+                                                        secs = lv_seconds_conv ).
+        ENDCASE.
+
+      CATCH cx_parameter_invalid_range cx_parameter_invalid_type.
+        zcx_abapgit_ajson_error=>raise(
+        iv_msg      = 'Unexpected error calculating timestamp'
+        iv_location = is_path-path && is_path-name ).
+    ENDTRY.
+
+    rv_result = lv_timestamp.
 
   ENDMETHOD.
 
@@ -9195,6 +9299,28 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     IF lv_item IS NOT INITIAL AND lv_item->type <> zif_abapgit_ajson=>node_type-null.
       rv_value = lv_item->value.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_ajson_reader~get_timestamp.
+
+    DATA lo_to_abap TYPE REF TO lcl_json_to_abap.
+    DATA lr_item TYPE REF TO zif_abapgit_ajson=>ty_node.
+
+    lr_item = get_item( iv_path ).
+
+    IF lr_item IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    CREATE OBJECT lo_to_abap.
+
+    TRY.
+        rv_value = lo_to_abap->to_timestamp( is_path = lr_item->* ).
+      CATCH zcx_abapgit_ajson_error.
+        RETURN.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -10181,8 +10307,14 @@ CLASS zcl_abapgit_data_utils IMPLEMENTATION.
   METHOD build_table_itab.
 
     DATA lo_type TYPE REF TO cl_abap_typedescr.
-    DATA lo_data TYPE REF TO cl_abap_datadescr.
+    DATA lo_data TYPE REF TO cl_abap_structdescr.
     DATA lo_table TYPE REF TO cl_abap_tabledescr.
+    DATA lt_fields TYPE ddfields.
+    DATA lt_keys TYPE abap_table_keydescr_tab.
+
+    FIELD-SYMBOLS <ls_field> LIKE LINE OF lt_fields.
+    FIELD-SYMBOLS <ls_key> LIKE LINE OF lt_keys.
+    FIELD-SYMBOLS <ls_component> LIKE LINE OF <ls_key>-components.
 
     cl_abap_structdescr=>describe_by_name(
       EXPORTING
@@ -10197,9 +10329,33 @@ CLASS zcl_abapgit_data_utils IMPLEMENTATION.
 
     TRY.
         lo_data ?= lo_type.
-* todo, also add unique key corresponding to the db table, so duplicates cannot be returned
-        lo_table = cl_abap_tabledescr=>create( lo_data ).
+
+        " Get primary key to ensure unique entries
+        IF lo_data->is_ddic_type( ) = abap_true.
+          lt_fields = lo_data->get_ddic_field_list( ).
+
+          APPEND INITIAL LINE TO lt_keys ASSIGNING <ls_key>.
+          <ls_key>-access_kind = cl_abap_tabledescr=>tablekind_sorted.
+          <ls_key>-key_kind    = cl_abap_tabledescr=>keydefkind_user.
+          <ls_key>-is_primary  = abap_true.
+          <ls_key>-is_unique   = abap_true.
+
+          LOOP AT lt_fields ASSIGNING <ls_field> WHERE keyflag = abap_true.
+            APPEND INITIAL LINE TO <ls_key>-components ASSIGNING <ls_component>.
+            <ls_component>-name = <ls_field>-fieldname.
+          ENDLOOP.
+        ENDIF.
+
+        IF lt_fields IS INITIAL.
+          lo_table = cl_abap_tabledescr=>get( lo_data ).
+        ELSE.
+          lo_table = cl_abap_tabledescr=>get_with_keys(
+            p_line_type = lo_data
+            p_keys      = lt_keys ).
+        ENDIF.
+
         CREATE DATA rr_data TYPE HANDLE lo_table.
+
       CATCH cx_root.
         zcx_abapgit_exception=>raise( |Error creating internal table for data serialization| ).
     ENDTRY.
@@ -10788,7 +10944,17 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
 
 
   METHOD get_packaging.
-    rt_packaging = ms_data-packaging.
+
+    FIELD-SYMBOLS <ls_dependency> LIKE LINE OF rs_packaging-dependencies.
+
+    rs_packaging = ms_data-packaging.
+
+    rs_packaging-sem_version = zcl_abapgit_version=>conv_str_to_version( rs_packaging-version ).
+
+    LOOP AT rs_packaging-dependencies ASSIGNING <ls_dependency>.
+      <ls_dependency>-sem_version = zcl_abapgit_version=>conv_str_to_version( <ls_dependency>-version ).
+    ENDLOOP.
+
   ENDMETHOD.
 
 
@@ -10895,7 +11061,17 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
 
 
   METHOD set_packaging.
-    ms_data-packaging = it_packaging.
+
+    FIELD-SYMBOLS <ls_dependency> LIKE LINE OF ms_data-packaging-dependencies.
+
+    ms_data-packaging = is_packaging.
+
+    CLEAR ms_data-packaging-sem_version.
+
+    LOOP AT ms_data-packaging-dependencies ASSIGNING <ls_dependency>.
+      CLEAR <ls_dependency>-sem_version.
+    ENDLOOP.
+
   ENDMETHOD.
 
 
@@ -10946,7 +11122,6 @@ CLASS zcl_abapgit_environment IMPLEMENTATION.
       lv_systemedit         TYPE tadir-edtflag,
       lv_sys_cliinddep_edit TYPE t000-ccnocliind,
       lv_is_shadow          TYPE abap_bool,
-      lv_component          TYPE uvers-component,
       ls_upginfo            TYPE uvers,
       lv_is_upgrade         TYPE abap_bool.
 
@@ -10995,6 +11170,14 @@ CLASS zcl_abapgit_environment IMPLEMENTATION.
 
   METHOD zif_abapgit_environment~compare_with_inactive.
     rv_result = zif_abapgit_environment~is_sap_cloud_platform( ).
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_environment~get_basis_release.
+
+    SELECT SINGLE release extrelease FROM cvers INTO (rs_result-release, rs_result-sp)
+      WHERE component = 'SAP_BASIS' ##SUBRC_OK.
+
   ENDMETHOD.
 
 
@@ -11067,7 +11250,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_EXIT IMPLEMENTATION.
+CLASS zcl_abapgit_exit IMPLEMENTATION.
 
 
   METHOD get_instance.
@@ -11244,6 +11427,7 @@ CLASS ZCL_ABAPGIT_EXIT IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
 
 
   METHOD zif_abapgit_exit~pre_calculate_repo_status.
@@ -12086,7 +12270,6 @@ CLASS ZCL_ABAPGIT_LOG IMPLEMENTATION.
     APPEND INITIAL LINE TO mt_log ASSIGNING <ls_log>.
     <ls_log>-msg-text  = iv_msg.
     <ls_log>-msg-type  = iv_type.
-    <ls_log>-rc        = iv_rc.
     <ls_log>-item      = is_item.
     <ls_log>-exception = ix_exc.
 
@@ -12286,14 +12469,6 @@ CLASS ZCL_ABAPGIT_LOG IMPLEMENTATION.
     IF rv_title IS INITIAL.
       rv_title = 'Log'.
     ENDIF.
-  ENDMETHOD.
-
-
-  METHOD zif_abapgit_log~has_rc.
-* todo, this method is only used in unit tests
-
-    READ TABLE mt_log WITH KEY rc = iv_rc TRANSPORTING NO FIELDS.
-    rv_yes = boolc( sy-subrc = 0 ).
   ENDMETHOD.
 
 
@@ -12534,7 +12709,6 @@ CLASS ZCL_ABAPGIT_LXE_TEXTS IMPLEMENTATION.
     DATA:
       lt_langs_str TYPE string_table,
       lv_laiso     TYPE laiso,
-      lv_langu     TYPE spras,
       lv_skip_main_lang_iso TYPE laiso.
 
     FIELD-SYMBOLS:
@@ -16911,8 +17085,6 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
 
   METHOD zif_abapgit_object~deserialize.
 
-    DATA: ls_clskey TYPE seoclskey.
-
     deserialize_abap( ii_xml     = io_xml
                       iv_package = iv_package ).
 
@@ -20198,7 +20370,6 @@ CLASS zcl_abapgit_object_enhs_badi_d IMPLEMENTATION.
           lv_enh_shorttext   TYPE string,
           li_enh_object      TYPE REF TO if_enh_object,
           li_enh_object_docu TYPE REF TO if_enh_object_docu,
-          lv_text            TYPE string,
           lx_enh_root        TYPE REF TO cx_enh_root.
 
     FIELD-SYMBOLS: <ls_enh_badi> LIKE LINE OF lt_enh_badi.
@@ -20282,8 +20453,7 @@ CLASS zcl_abapgit_object_enhs_hook_d IMPLEMENTATION.
           li_enh_object          TYPE REF TO if_enh_object,
           li_enh_object_docu     TYPE REF TO if_enh_object_docu,
           lo_hookdef_tool        TYPE REF TO cl_enh_tool_hook_def,
-          lx_enh_root            TYPE REF TO cx_enh_root,
-          lv_text                TYPE string.
+          lx_enh_root            TYPE REF TO cx_enh_root.
 
     FIELD-SYMBOLS: <ls_hook_definition> TYPE enh_hook_def_ext.
 
@@ -30178,8 +30348,7 @@ CLASS zcl_abapinst_file_status IMPLEMENTATION.
       IF sy-subrc <> 0 OR <ls_result>-path <> <ls_result_idx>-path. " All paths are same
         ii_log->add( iv_msg = |Files for object { <ls_result>-obj_type } {
                               <ls_result>-obj_name } are not placed in the same folder|
-                     iv_type = 'W'
-                     iv_rc   = '1' ).
+                     iv_type = 'W' ).
       ENDIF.
 
     ENDLOOP.
@@ -30201,14 +30370,12 @@ CLASS zcl_abapinst_file_status IMPLEMENTATION.
     LOOP AT lt_res_sort ASSIGNING <ls_result> WHERE obj_type <> 'DEVC' AND packmove = abap_false.
       IF <ls_result>-filename IS NOT INITIAL AND <ls_result>-filename = ls_file-filename.
         ii_log->add( iv_msg  = |Multiple files with same filename, { <ls_result>-filename }|
-                     iv_type = 'W'
-                     iv_rc   = '3' ).
+                     iv_type = 'W' ).
       ENDIF.
 
       IF <ls_result>-filename IS INITIAL.
         ii_log->add( iv_msg  = |Filename is empty for object { <ls_result>-obj_type } { <ls_result>-obj_name }|
-                     iv_type = 'W'
-                     iv_rc   = '4' ).
+                     iv_type = 'W' ).
       ENDIF.
 
       MOVE-CORRESPONDING <ls_result> TO ls_file.
@@ -30238,8 +30405,7 @@ CLASS zcl_abapinst_file_status IMPLEMENTATION.
       IF lv_path <> <ls_result>-path.
         ii_log->add( iv_msg = |Package and path does not match for object, {
                        <ls_result>-obj_type } { <ls_result>-obj_name }|
-                     iv_type = 'W'
-                     iv_rc   = '2' ).
+                     iv_type = 'W' ).
       ENDIF.
 
     ENDLOOP.
@@ -30265,8 +30431,7 @@ CLASS zcl_abapinst_file_status IMPLEMENTATION.
       IF sy-subrc <> 0.
         ii_log->add( iv_msg  = |Changed package assignment for object {
                                <ls_result>-obj_type } { <ls_result>-obj_name }|
-                     iv_type = 'W'
-                     iv_rc   = '5' ).
+                     iv_type = 'W' ).
         APPEND INITIAL LINE TO lt_move_idx ASSIGNING <ls_result_move>.
         <ls_result_move>-obj_type = <ls_result>-obj_type.
         <ls_result_move>-obj_name = <ls_result>-obj_name.
