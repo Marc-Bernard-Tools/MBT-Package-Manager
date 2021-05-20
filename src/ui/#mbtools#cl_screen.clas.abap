@@ -322,10 +322,15 @@ CLASS /mbtools/cl_screen IMPLEMENTATION.
 
   METHOD toolbar.
 
-    DATA: ls_header               TYPE rpy_dyhead,
-          lt_containers           TYPE dycatt_tab,
-          lt_fields_to_containers TYPE dyfatc_tab,
-          lt_flow_logic           TYPE swydyflow.
+    CONSTANTS:
+      lc_toolflag_set TYPE funcname VALUE 'SCWG_TOOLFLAG_SET',
+      lc_toolflag_reset TYPE funcname VALUE 'SCWG_TOOLFLAG_RESET'.
+
+    DATA:
+      ls_header               TYPE rpy_dyhead,
+      lt_containers           TYPE dycatt_tab,
+      lt_fields_to_containers TYPE dyfatc_tab,
+      lt_flow_logic           TYPE swydyflow.
 
     CALL FUNCTION 'RPY_DYNPRO_READ'
       EXPORTING
@@ -352,6 +357,17 @@ CLASS /mbtools/cl_screen IMPLEMENTATION.
 
     ls_header-no_toolbar = boolc( iv_show = abap_false ).
 
+    " Set tool flag to avoid messages
+    CALL FUNCTION 'FUNCTION_EXISTS'
+      EXPORTING
+        funcname           = lc_toolflag_set
+      EXCEPTIONS
+        function_not_exist = 1
+        OTHERS             = 2.
+    IF sy-subrc = 0.
+      CALL FUNCTION lc_toolflag_set.
+    ENDIF.
+
     CALL FUNCTION 'RPY_DYNPRO_INSERT'
       EXPORTING
         header                 = ls_header
@@ -373,6 +389,17 @@ CLASS /mbtools/cl_screen IMPLEMENTATION.
         OTHERS                 = 10.
     IF sy-subrc <> 2 AND sy-subrc <> 0.
       RETURN. " Ignore errors, just exit
+    ENDIF.
+
+    " Reset tool flag
+    CALL FUNCTION 'FUNCTION_EXISTS'
+      EXPORTING
+        funcname           = lc_toolflag_reset
+      EXCEPTIONS
+        function_not_exist = 1
+        OTHERS             = 2.
+    IF sy-subrc = 0.
+      CALL FUNCTION lc_toolflag_reset.
     ENDIF.
 
   ENDMETHOD.
