@@ -13,7 +13,7 @@ INTERFACE /mbtools/if_logger_collection
 ************************************************************************
   METHODS add_logger
     IMPORTING
-      li_logger TYPE REF TO /mbtools/if_logger.
+      ii_logger TYPE REF TO /mbtools/if_logger.
   METHODS display_logs
     IMPORTING
       iv_display_profile_head_size TYPE i DEFAULT 125

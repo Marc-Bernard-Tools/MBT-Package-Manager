@@ -40,12 +40,12 @@ CLASS /mbtools/cl_logger_collection IMPLEMENTATION.
 
 
   METHOD /mbtools/if_logger_collection~add_logger.
-    APPEND li_logger TO mt_loggers.
+    APPEND ii_logger TO mt_loggers.
   ENDMETHOD.
 
 
   METHOD /mbtools/if_logger_collection~display_logs.
-    DATA  ls_display_profile TYPE bal_s_prof.
+    DATA ls_display_profile TYPE bal_s_prof.
 
     ls_display_profile = get_display_profile(
       iv_display_profile_head_size = iv_display_profile_head_size
@@ -75,7 +75,7 @@ CLASS /mbtools/cl_logger_collection IMPLEMENTATION.
       "Todo "Raise Exception Error?
       MESSAGE ID sy-msgid TYPE 'S' NUMBER sy-msgno
         WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4 DISPLAY LIKE sy-msgty.
-    ENDIF .
+    ENDIF.
 
   ENDMETHOD.
 
@@ -86,8 +86,8 @@ CLASS /mbtools/cl_logger_collection IMPLEMENTATION.
       IMPORTING
         e_s_display_profile = rs_return.
 
-    rs_return-head_size = iv_display_profile_head_size .
-    rs_return-tree_size = iv_display_profile_tree_size .
+    rs_return-head_size = iv_display_profile_head_size.
+    rs_return-tree_size = iv_display_profile_tree_size.
     "interesting fact - I can't remember why I needed to move the hidden columns....
     IF rs_return-mess_fcat IS NOT INITIAL.
       SORT rs_return-mess_fcat BY no_out ASCENDING col_pos DESCENDING.
