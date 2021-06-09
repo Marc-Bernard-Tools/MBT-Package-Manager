@@ -11,7 +11,7 @@ CLASS /mbtools/cl_logger DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 *
-* Last update: 2020-08-17
+* Last update: 2021-06-07
 ************************************************************************
   PUBLIC SECTION.
 
@@ -109,14 +109,16 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
   METHOD /mbtools/if_logger~add.
 
     DATA:
-      ls_detailed_msg         TYPE bal_s_msg,
-      lt_exception_data_table TYPE ty_exception_data,
-      lv_free_text_msg        TYPE char200,
-      lo_ctx_type             TYPE REF TO cl_abap_typedescr,
-      ls_ctx_ddic_header      TYPE x030l,
-      lo_msg_type             TYPE REF TO cl_abap_typedescr,
-      ls_formatted_context    TYPE bal_s_cont,
-      ls_formatted_params     TYPE bal_s_parm.
+      ls_detailed_msg                  TYPE bal_s_msg,
+      lt_exception_data_table          TYPE ty_exception_data,
+      lv_free_text_msg                 TYPE char200,
+      lo_ctx_type                      TYPE REF TO cl_abap_typedescr,
+      ls_ctx_ddic_header               TYPE x030l,
+      lo_msg_type                      TYPE REF TO cl_abap_typedescr,
+      ls_formatted_context             TYPE bal_s_cont,
+      ls_formatted_params              TYPE bal_s_parm,
+      lv_message_type                  TYPE symsgty,
+      ls_replacement_bapi_order TYPE bapiret2.
 
     FIELD-SYMBOLS:
       <ls_exception_data>    LIKE LINE OF lt_exception_data_table,
@@ -125,11 +127,12 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
       <ls_bapiret1_msg>      TYPE bapiret1,
       <ls_bapi_msg>          TYPE bapiret2,
       <ls_bapi_coru_msg>     TYPE bapi_coru_return,
-      "<ls_bapi_order_msg>    TYPE bapi_order_return,
       <ls_bdc_msg>           TYPE bdcmsgcoll,
-      "<ls_hrpad_msg>         TYPE ty_hrpad_message_alike,
-      "<ls_rcomp_msg>         TYPE rcomp,
       <lv_context_val>       TYPE any.
+    "Solution manager doens't have BAPI_ORDER_RETURN, RCOMP, PROTT. Therefore avoid using these concrete types
+*                   <bapi_order_msg>    type bapi_order_return,
+*                   <rcomp_msg>         type rcomp,
+*                   <prott_msg>         type prott,
 
     IF iv_context IS NOT INITIAL.
       ASSIGN iv_context TO <lv_context_val>.
@@ -195,15 +198,6 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
       ls_detailed_msg-msgv2 = <ls_bapi_coru_msg>-message_v2.
       ls_detailed_msg-msgv3 = <ls_bapi_coru_msg>-message_v3.
       ls_detailed_msg-msgv4 = <ls_bapi_coru_msg>-message_v4.
-*    ELSEIF lo_msg_type->absolute_name = '\TYPE=BAPI_ORDER_RETURN'.
-*      ASSIGN iv_obj_to_log TO <ls_bapi_order_msg>.
-*      ls_detailed_msg-msgty = <ls_bapi_order_msg>-type.
-*      ls_detailed_msg-msgid = <ls_bapi_order_msg>-id.
-*      ls_detailed_msg-msgno = <ls_bapi_order_msg>-number.
-*      ls_detailed_msg-msgv1 = <ls_bapi_order_msg>-message_v1.
-*      ls_detailed_msg-msgv2 = <ls_bapi_order_msg>-message_v2.
-*      ls_detailed_msg-msgv3 = <ls_bapi_order_msg>-message_v3.
-*      ls_detailed_msg-msgv4 = <ls_bapi_order_msg>-message_v4.
     ELSEIF lo_msg_type->absolute_name = '\TYPE=BDCMSGCOLL'.
       ASSIGN iv_obj_to_log TO <ls_bdc_msg>.
       ls_detailed_msg-msgty = <ls_bdc_msg>-msgtyp.
@@ -222,19 +216,31 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
 *      ls_detailed_msg-msgv2 = <ls_hrpad_msg>-msgv2.
 *      ls_detailed_msg-msgv3 = <ls_hrpad_msg>-msgv3.
 *      ls_detailed_msg-msgv4 = <ls_hrpad_msg>-msgv4.
-*    ELSEIF lo_msg_type->absolute_name = '\TYPE=RCOMP'.
-*      ASSIGN iv_obj_to_log TO <ls_rcomp_msg>.
-*      ls_detailed_msg-msgty = <ls_rcomp_msg>-msgty.
-*      ls_detailed_msg-msgid = <ls_rcomp_msg>-msgid.
-*      ls_detailed_msg-msgno = <ls_rcomp_msg>-msgno.
-*      ls_detailed_msg-msgv1 = <ls_rcomp_msg>-msgv1.
-*      ls_detailed_msg-msgv2 = <ls_rcomp_msg>-msgv2.
-*      ls_detailed_msg-msgv3 = <ls_rcomp_msg>-msgv3.
-*      ls_detailed_msg-msgv4 = <ls_rcomp_msg>-msgv4.
+    ELSEIF lo_msg_type->absolute_name = '\TYPE=BAPI_ORDER_RETURN'.
+      "Solution manager doens't have BAPI_ORDER_RETURN. Therefore avoid using the concrete type
+      MOVE-CORRESPONDING iv_obj_to_log TO ls_replacement_bapi_order.
+      ls_detailed_msg-msgty = ls_replacement_bapi_order-type.
+      ls_detailed_msg-msgid = ls_replacement_bapi_order-id.
+      ls_detailed_msg-msgno = ls_replacement_bapi_order-number.
+      ls_detailed_msg-msgv1 = ls_replacement_bapi_order-message_v1.
+      ls_detailed_msg-msgv2 = ls_replacement_bapi_order-message_v2.
+      ls_detailed_msg-msgv3 = ls_replacement_bapi_order-message_v3.
+      ls_detailed_msg-msgv4 = ls_replacement_bapi_order-message_v4.
+    ELSEIF lo_msg_type->absolute_name = '\TYPE=RCOMP'.
+      "Solution manager doens't have RCOMP. Therefore avoid using the concrete type
+      MOVE-CORRESPONDING iv_obj_to_log TO ls_detailed_msg.
+    ELSEIF lo_msg_type->absolute_name = '\TYPE=PROTT'.
+      "Solution manager doens't have PROTT. Therefore avoid using the concrete type
+      MOVE-CORRESPONDING iv_obj_to_log TO ls_detailed_msg.
     ELSEIF lo_msg_type->type_kind = cl_abap_typedescr=>typekind_oref.
+      IF iv_type IS INITIAL.
+        lv_message_type = if_msg_output=>msgtype_error.
+      ELSE.
+        lv_message_type = iv_type.
+      ENDIF.
       lt_exception_data_table = drill_down_into_exception(
         io_exception   = iv_obj_to_log
-        iv_type        = iv_type
+        iv_type        = lv_message_type
         iv_importance  = iv_importance ).
     ELSEIF lo_msg_type->type_kind = cl_abap_typedescr=>typekind_table.
       ASSIGN iv_obj_to_log TO <lt_table_of_messages>.

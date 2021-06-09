@@ -10,7 +10,7 @@ INTERFACE /mbtools/if_logger
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 *
-* Last update: 2020-08-17
+* Last update: 2021-06-07
 ************************************************************************
   DATA mv_handle TYPE balloghndl READ-ONLY .
   DATA mv_db_number TYPE balognr READ-ONLY .

@@ -12,7 +12,7 @@ CLASS /mbtools/cl_logger_settings DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 *
-* Last update: 2020-08-17
+* Last update: 2021-06-07
 ************************************************************************
 
   PUBLIC SECTION.

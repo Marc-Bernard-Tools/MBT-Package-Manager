@@ -11,7 +11,7 @@ CLASS /mbtools/cl_logger_factory DEFINITION
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
 *
-* Last update: 2020-08-17
+* Last update: 2021-06-07
 ************************************************************************
   PUBLIC SECTION.
 
@@ -41,6 +41,10 @@ CLASS /mbtools/cl_logger_factory DEFINITION
     CLASS-METHODS create_settings
       RETURNING
         VALUE(ro_settings) TYPE REF TO /mbtools/if_logger_settings .
+
+    CLASS-METHODS create_collection
+      RETURNING
+        VALUE(ro_collection) TYPE REF TO /mbtools/if_logger_collection .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -48,6 +52,11 @@ ENDCLASS.
 
 
 CLASS /mbtools/cl_logger_factory IMPLEMENTATION.
+
+
+  METHOD create_collection.
+    CREATE OBJECT ro_collection TYPE /mbtools/cl_logger_collection.
+  ENDMETHOD.
 
 
   METHOD create_log.
