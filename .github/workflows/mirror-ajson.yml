@@ -1,0 +1,36 @@
+name: Mirror AJSON
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1'
+
+jobs:
+  run:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+    - name: Mirror Run
+      run: |
+        git clone https://github.com/Marc-Bernard-Tools/Mirror-AJSON.git
+        ls -l
+        rm src/json/*
+        cp Mirror-AJSON/src/* src/json/
+        rm -rf Mirror-AJSON
+        git status
+    - name: Open PR
+      uses: peter-evans/create-pull-request@v3
+      if: github.repository == 'Marc-Bernard-Tools/MBT-Base'
+      with:
+        title: ajson, Automatic Update
+        body: |
+          Automatic update from mirror
+          https://github.com/Marc-Bernard-Tools/Mirror-AJSON
+
+          Manually close and reopen the pull request to trigger CI
