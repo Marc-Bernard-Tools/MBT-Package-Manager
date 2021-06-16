@@ -2,14 +2,14 @@ CLASS /mbtools/cx_ajson_error DEFINITION
   PUBLIC
   INHERITING FROM cx_static_check
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
-    INTERFACES if_t100_message .
+    INTERFACES if_t100_message.
 
     TYPES:
-      ty_rc TYPE c LENGTH 4 .
+      ty_rc TYPE c LENGTH 4.
 
     CONSTANTS:
       BEGIN OF /mbtools/cx_ajson_error,
@@ -19,14 +19,14 @@ CLASS /mbtools/cx_ajson_error DEFINITION
         attr2 TYPE scx_attrname VALUE 'A2',
         attr3 TYPE scx_attrname VALUE 'A3',
         attr4 TYPE scx_attrname VALUE 'A4',
-      END OF /mbtools/cx_ajson_error .
-    DATA rc TYPE ty_rc READ-ONLY .
-    DATA message TYPE string READ-ONLY .
-    DATA location TYPE string READ-ONLY .
-    DATA a1 TYPE symsgv .
-    DATA a2 TYPE symsgv .
-    DATA a3 TYPE symsgv .
-    DATA a4 TYPE symsgv .
+      END OF /mbtools/cx_ajson_error.
+    DATA rc TYPE ty_rc READ-ONLY.
+    DATA message TYPE string READ-ONLY.
+    DATA location TYPE string READ-ONLY.
+    DATA a1 TYPE symsgv.
+    DATA a2 TYPE symsgv.
+    DATA a3 TYPE symsgv.
+    DATA a4 TYPE symsgv.
 
     METHODS constructor
       IMPORTING
@@ -38,18 +38,18 @@ CLASS /mbtools/cx_ajson_error DEFINITION
         !a1       TYPE symsgv OPTIONAL
         !a2       TYPE symsgv OPTIONAL
         !a3       TYPE symsgv OPTIONAL
-        !a4       TYPE symsgv OPTIONAL .
+        !a4       TYPE symsgv OPTIONAL.
     CLASS-METHODS raise
       IMPORTING
         !iv_msg      TYPE string
         !iv_location TYPE string OPTIONAL
       RAISING
-        /mbtools/cx_ajson_error .
+        /mbtools/cx_ajson_error.
 
-    METHODS if_message~get_text
-        REDEFINITION .
     METHODS if_message~get_longtext
-        REDEFINITION .
+        REDEFINITION.
+    METHODS if_message~get_text
+        REDEFINITION.
   PROTECTED SECTION.
 private section.
 ENDCLASS.
