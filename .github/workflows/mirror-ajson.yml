@@ -17,10 +17,8 @@ jobs:
       with:
         node-version: '14'
     - name: Mirror Run
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       run: |
-        git clone "https://\$GITHUB_TOKEN:x-oauth-basic@github.com/Marc-Bernard-Tools/Mirror-AJSON.git"
+        git clone "https://github.com/Marc-Bernard-Tools/Mirror-AJSON.git"
         ls -l
         rm src/json/*
         cp Mirror-AJSON/src/* src/json/
