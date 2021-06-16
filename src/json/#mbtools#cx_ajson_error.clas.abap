@@ -1,56 +1,51 @@
-CLASS /mbtools/cx_ajson_error DEFINITION
-  PUBLIC
-  INHERITING FROM cx_static_check
-  FINAL
-  CREATE PUBLIC .
+class /mbtools/cx_ajson_error definition
+  public
+  inheriting from CX_STATIC_CHECK
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    INTERFACES if_t100_message .
+  interfaces IF_T100_MESSAGE .
 
-    TYPES:
-      ty_rc TYPE c LENGTH 4 .
+  types:
+    ty_rc type c length 4 .
 
-    CONSTANTS:
-      BEGIN OF /mbtools/cx_ajson_error,
-        msgid TYPE symsgid VALUE '00',
-        msgno TYPE symsgno VALUE '001',
-        attr1 TYPE scx_attrname VALUE 'A1',
-        attr2 TYPE scx_attrname VALUE 'A2',
-        attr3 TYPE scx_attrname VALUE 'A3',
-        attr4 TYPE scx_attrname VALUE 'A4',
-      END OF /mbtools/cx_ajson_error .
-    DATA rc TYPE ty_rc READ-ONLY .
-    DATA message TYPE string READ-ONLY .
-    DATA location TYPE string READ-ONLY .
-    DATA a1 TYPE symsgv .
-    DATA a2 TYPE symsgv .
-    DATA a3 TYPE symsgv .
-    DATA a4 TYPE symsgv .
+  constants:
+    begin of ZCX_AJSON_ERROR,
+      msgid type symsgid value '00',
+      msgno type symsgno value '001',
+      attr1 type scx_attrname value 'A1',
+      attr2 type scx_attrname value 'A2',
+      attr3 type scx_attrname value 'A3',
+      attr4 type scx_attrname value 'A4',
+    end of ZCX_AJSON_ERROR .
+  data RC type TY_RC read-only .
+  data MESSAGE type STRING read-only .
+  data LOCATION type STRING read-only .
+  data A1 type SYMSGV read-only .
+  data A2 type SYMSGV read-only .
+  data A3 type SYMSGV read-only .
+  data A4 type SYMSGV read-only .
 
-    METHODS constructor
-      IMPORTING
-        !textid   LIKE if_t100_message=>t100key OPTIONAL
-        !previous LIKE previous OPTIONAL
-        !rc       TYPE ty_rc OPTIONAL
-        !message  TYPE string OPTIONAL
-        !location TYPE string OPTIONAL
-        !a1       TYPE symsgv OPTIONAL
-        !a2       TYPE symsgv OPTIONAL
-        !a3       TYPE symsgv OPTIONAL
-        !a4       TYPE symsgv OPTIONAL .
-    CLASS-METHODS raise
-      IMPORTING
-        !iv_msg      TYPE string
-        !iv_location TYPE string OPTIONAL
-      RAISING
-        /mbtools/cx_ajson_error .
-
-    METHODS if_message~get_text
-        REDEFINITION .
-    METHODS if_message~get_longtext
-        REDEFINITION .
-  PROTECTED SECTION.
+  methods CONSTRUCTOR
+    importing
+      !TEXTID like IF_T100_MESSAGE=>T100KEY optional
+      !PREVIOUS like PREVIOUS optional
+      !RC type TY_RC optional
+      !MESSAGE type STRING optional
+      !LOCATION type STRING optional
+      !A1 type SYMSGV optional
+      !A2 type SYMSGV optional
+      !A3 type SYMSGV optional
+      !A4 type SYMSGV optional .
+  class-methods RAISE
+    importing
+      !IV_MSG type STRING
+      !IV_LOCATION type STRING optional
+    raising
+      /mbtools/cx_ajson_error .
+protected section.
 private section.
 ENDCLASS.
 
@@ -59,7 +54,7 @@ ENDCLASS.
 CLASS /mbtools/cx_ajson_error IMPLEMENTATION.
 
 
-  method CONSTRUCTOR.
+method CONSTRUCTOR.
 CALL METHOD SUPER->CONSTRUCTOR
 EXPORTING
 PREVIOUS = PREVIOUS
@@ -73,50 +68,40 @@ me->A3 = A3 .
 me->A4 = A4 .
 clear me->textid.
 if textid is initial.
-  IF_T100_MESSAGE~T100KEY = /MBTOOLS/CX_AJSON_ERROR .
+  IF_T100_MESSAGE~T100KEY = ZCX_AJSON_ERROR .
 else.
   IF_T100_MESSAGE~T100KEY = TEXTID.
 endif.
-  endmethod.
+endmethod.
 
 
-  METHOD if_message~get_longtext.
-    result = super->get_longtext( preserve_newlines ).
-  ENDMETHOD.
+method raise.
 
+  data:
+    begin of ls_msg,
+      a1 like a1,
+      a2 like a1,
+      a3 like a1,
+      a4 like a1,
+    end of ls_msg.
 
-  METHOD if_message~get_text.
-    result = super->get_text( ).
-  ENDMETHOD.
+  if iv_location is initial.
+    ls_msg = iv_msg.
+  else.
+    data lv_tmp type string.
+    lv_tmp = iv_msg && | @{ iv_location }|.
+    ls_msg = lv_tmp.
+  endif.
 
+  raise exception type /mbtools/cx_ajson_error
+    exporting
+      textid   = zcx_ajson_error
+      message  = iv_msg
+      location = iv_location
+      a1       = ls_msg-a1
+      a2       = ls_msg-a2
+      a3       = ls_msg-a3
+      a4       = ls_msg-a4.
 
-  METHOD raise.
-
-    DATA:
-      BEGIN OF ls_msg,
-        a1 LIKE a1,
-        a2 LIKE a1,
-        a3 LIKE a1,
-        a4 LIKE a1,
-      END OF ls_msg.
-
-    IF iv_location IS INITIAL.
-      ls_msg = iv_msg.
-    ELSE.
-      DATA lv_tmp TYPE string.
-      lv_tmp = iv_msg && | @{ iv_location }|.
-      ls_msg = lv_tmp.
-    ENDIF.
-
-    RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
-      EXPORTING
-        textid   = /mbtools/cx_ajson_error
-        message  = iv_msg
-        location = iv_location
-        a1       = ls_msg-a1
-        a2       = ls_msg-a2
-        a3       = ls_msg-a3
-        a4       = ls_msg-a4.
-
-  ENDMETHOD.
+endmethod.
 ENDCLASS.
