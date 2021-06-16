@@ -18,7 +18,7 @@ jobs:
         node-version: '14'
     - name: Mirror Run
       run: |
-        git clone https://github.com/Marc-Bernard-Tools/Mirror-AJSON.git
+        git clone git@github.com/Marc-Bernard-Tools/Mirror-AJSON.git
         ls -l
         rm src/json/*
         cp Mirror-AJSON/src/* src/json/
