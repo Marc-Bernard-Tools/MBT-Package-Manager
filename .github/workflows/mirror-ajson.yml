@@ -21,7 +21,7 @@ jobs:
         git clone "https://github.com/Marc-Bernard-Tools/Mirror-AJSON.git"
         ls -l
         rm src/json/*
-        cp Mirror-AJSON/src/* src/json/
+        cp Mirror-AJSON/src/#mbtools#* src/json/
         rm -rf Mirror-AJSON
         git status
     - name: Open PR
