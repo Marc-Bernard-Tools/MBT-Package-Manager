@@ -126,7 +126,8 @@ CLASS ltcl_fields IMPLEMENTATION.
     li_mapping = /mbtools/cl_ajson_mapping=>create_field_mapping( lt_mapping_fields ).
 
     lo_ajson =
-        /mbtools/cl_ajson=>parse( iv_json = '{"field":"value","json.field":"field_value"}' ii_custom_mapping = li_mapping ).
+        /mbtools/cl_ajson=>parse( iv_json = '{"field":"value","json.field":"field_value"}'
+                                  ii_custom_mapping = li_mapping ).
 
     lo_ajson->to_abap( IMPORTING ev_container = ls_result ).
 
