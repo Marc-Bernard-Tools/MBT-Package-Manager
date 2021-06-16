@@ -24,6 +24,8 @@ jobs:
         cp Mirror-AJSON/src/* src/json/
         rm -rf Mirror-AJSON
         git status
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
     - name: Open PR
       uses: peter-evans/create-pull-request@v3
       if: github.repository == 'Marc-Bernard-Tools/MBT-Base'
