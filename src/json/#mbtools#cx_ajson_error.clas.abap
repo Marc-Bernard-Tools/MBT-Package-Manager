@@ -12,14 +12,14 @@ CLASS /mbtools/cx_ajson_error DEFINITION
       ty_rc TYPE c LENGTH 4.
 
     CONSTANTS:
-      BEGIN OF /mbtools/cx_ajson_error,
+      BEGIN OF zcx_ajson_error,
         msgid TYPE symsgid VALUE '00',
         msgno TYPE symsgno VALUE '001',
         attr1 TYPE scx_attrname VALUE 'A1',
         attr2 TYPE scx_attrname VALUE 'A2',
         attr3 TYPE scx_attrname VALUE 'A3',
         attr4 TYPE scx_attrname VALUE 'A4',
-      END OF /mbtools/cx_ajson_error.
+      END OF zcx_ajson_error.
     DATA rc TYPE ty_rc READ-ONLY.
     DATA message TYPE string READ-ONLY.
     DATA location TYPE string READ-ONLY.
@@ -51,7 +51,7 @@ CLASS /mbtools/cx_ajson_error DEFINITION
     METHODS if_message~get_text
         REDEFINITION.
   PROTECTED SECTION.
-private section.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
@@ -59,25 +59,24 @@ ENDCLASS.
 CLASS /mbtools/cx_ajson_error IMPLEMENTATION.
 
 
-  method CONSTRUCTOR.
-CALL METHOD SUPER->CONSTRUCTOR
-EXPORTING
-PREVIOUS = PREVIOUS
-.
-me->RC = RC .
-me->MESSAGE = MESSAGE .
-me->LOCATION = LOCATION .
-me->A1 = A1 .
-me->A2 = A2 .
-me->A3 = A3 .
-me->A4 = A4 .
-clear me->textid.
-if textid is initial.
-  IF_T100_MESSAGE~T100KEY = /MBTOOLS/CX_AJSON_ERROR .
-else.
-  IF_T100_MESSAGE~T100KEY = TEXTID.
-endif.
-  endmethod.
+  METHOD constructor ##ADT_SUPPRESS_GENERATION.
+    CALL METHOD super->constructor
+      EXPORTING
+        previous = previous.
+    me->rc = rc .
+    me->message = message .
+    me->location = location .
+    me->a1 = a1 .
+    me->a2 = a2 .
+    me->a3 = a3 .
+    me->a4 = a4 .
+    CLEAR me->textid.
+    IF textid IS INITIAL.
+      if_t100_message~t100key = zcx_ajson_error .
+    ELSE.
+      if_t100_message~t100key = textid.
+    ENDIF.
+  ENDMETHOD.
 
 
   METHOD if_message~get_longtext.
@@ -110,7 +109,7 @@ endif.
 
     RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
       EXPORTING
-        textid   = /mbtools/cx_ajson_error
+        textid   = zcx_ajson_error
         message  = iv_msg
         location = iv_location
         a1       = ls_msg-a1

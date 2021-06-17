@@ -1,42 +1,41 @@
-class /MBTOOLS/CX_CANCEL definition
-  public
-  inheriting from /MBTOOLS/CX_EXCEPTION
-  final
-  create public .
+CLASS /mbtools/cx_cancel DEFINITION
+  PUBLIC
+  INHERITING FROM /mbtools/cx_exception
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  methods CONSTRUCTOR
-    importing
-      !TEXTID like IF_T100_MESSAGE=>T100KEY optional
-      !PREVIOUS like PREVIOUS optional
-      !MSGV1 type SYMSGV optional
-      !MSGV2 type SYMSGV optional
-      !MSGV3 type SYMSGV optional
-      !MSGV4 type SYMSGV optional .
-protected section.
+    METHODS constructor
+      IMPORTING
+        !textid   LIKE if_t100_message=>t100key OPTIONAL
+        !previous LIKE previous OPTIONAL
+        !msgv1    TYPE symsgv OPTIONAL
+        !msgv2    TYPE symsgv OPTIONAL
+        !msgv3    TYPE symsgv OPTIONAL
+        !msgv4    TYPE symsgv OPTIONAL .
+  PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CX_CANCEL IMPLEMENTATION.
+CLASS /mbtools/cx_cancel IMPLEMENTATION.
 
 
-  method CONSTRUCTOR.
-CALL METHOD SUPER->CONSTRUCTOR
-EXPORTING
-PREVIOUS = PREVIOUS
-MSGV1 = MSGV1
-MSGV2 = MSGV2
-MSGV3 = MSGV3
-MSGV4 = MSGV4
-.
-clear me->textid.
-if textid is initial.
-  IF_T100_MESSAGE~T100KEY = IF_T100_MESSAGE=>DEFAULT_TEXTID.
-else.
-  IF_T100_MESSAGE~T100KEY = TEXTID.
-endif.
-  endmethod.
+  METHOD constructor ##ADT_SUPPRESS_GENERATION.
+    CALL METHOD super->constructor
+      EXPORTING
+        previous = previous
+        msgv1    = msgv1
+        msgv2    = msgv2
+        msgv3    = msgv3
+        msgv4    = msgv4.
+    CLEAR me->textid.
+    IF textid IS INITIAL.
+      if_t100_message~t100key = if_t100_message=>default_textid.
+    ELSE.
+      if_t100_message~t100key = textid.
+    ENDIF.
+  ENDMETHOD.
 ENDCLASS.
