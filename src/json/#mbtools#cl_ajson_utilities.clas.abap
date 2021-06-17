@@ -2,6 +2,15 @@ CLASS /mbtools/cl_ajson_utilities DEFINITION
   PUBLIC
   CREATE PUBLIC .
 
+************************************************************************
+* AJSON
+*
+* Original Author: Copyright (c) 2020 Alexander Tsybulsky
+* https://github.com/sbcgua/ajson
+*
+* Released under MIT License: https://opensource.org/licenses/MIT
+************************************************************************
+
   PUBLIC SECTION.
 
     METHODS diff
