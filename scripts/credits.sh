@@ -11,7 +11,7 @@ credits=$(<$1)
 IFS= read -d '' -r < <(sed -e ':a' -e '$!{N;ba' -e '}' -e 's/[&/\]/\\&/g; s/\n/\\&/g' <<<"$credits")
 replace=${REPLY%$'\n'}
 
-abapfiles="*.clas.abap *.intf.abap"
+abapfiles="$2/*.clas.abap $2/*.intf.abap"
 
 for abapfile in $abapfiles
 do
