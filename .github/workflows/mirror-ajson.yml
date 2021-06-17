@@ -28,7 +28,7 @@ jobs:
       uses: peter-evans/create-pull-request@v3
       if: github.repository == 'Marc-Bernard-Tools/MBT-Base'
       with:
-        title: ajson, Automatic Update
+        title: Automatic Update: AJSON
         body: |
           Automatic update from mirror
           https://github.com/Marc-Bernard-Tools/Mirror-AJSON
