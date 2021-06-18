@@ -4,7 +4,7 @@
 # Add MBT prefix to descriptions in XML files
 #
 
-xmlfiles="$2/*.clas.xml $2/*.intf.xml"
+xmlfiles="$1/*.clas.xml $1/*.intf.xml"
 
 for xmlfile in $xmlfiles
 do
