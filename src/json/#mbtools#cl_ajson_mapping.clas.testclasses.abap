@@ -26,7 +26,8 @@ CLASS ltcl_camel_case IMPLEMENTATION.
 
     li_mapping = /mbtools/cl_ajson_mapping=>create_camel_case( ).
 
-    lo_ajson = /mbtools/cl_ajson=>parse( iv_json = '{"FieldData":"field_value"}' ii_custom_mapping = li_mapping ).
+    lo_ajson = /mbtools/cl_ajson=>parse( iv_json = '{"FieldData":"field_value"}'
+                                         ii_custom_mapping = li_mapping ).
 
     lo_ajson->to_abap( IMPORTING ev_container = ls_result ).
 
@@ -53,7 +54,8 @@ CLASS ltcl_camel_case IMPLEMENTATION.
 
     lo_ajson = /mbtools/cl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
 
-    lo_ajson->set( iv_path = '/' iv_val = ls_result ).
+    lo_ajson->set( iv_path = '/'
+                   iv_val = ls_result ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_ajson->stringify( )
@@ -78,7 +80,8 @@ CLASS ltcl_camel_case IMPLEMENTATION.
 
     lo_ajson = /mbtools/cl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
 
-    lo_ajson->set( iv_path = '/' iv_val = ls_result ).
+    lo_ajson->set( iv_path = '/'
+                   iv_val = ls_result ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_ajson->stringify( )
@@ -167,7 +170,8 @@ CLASS ltcl_fields IMPLEMENTATION.
 
     lo_ajson = /mbtools/cl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
 
-    lo_ajson->set( iv_path = '/' iv_val = ls_result ).
+    lo_ajson->set( iv_path = '/'
+                   iv_val = ls_result ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_ajson->stringify( )
@@ -209,7 +213,8 @@ CLASS ltcl_to_lower IMPLEMENTATION.
 
     lo_ajson = /mbtools/cl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
 
-    lo_ajson->set( iv_path = '/' iv_val = ls_result ).
+    lo_ajson->set( iv_path = '/'
+                   iv_val = ls_result ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_ajson->stringify( )
@@ -251,7 +256,8 @@ CLASS ltcl_to_upper IMPLEMENTATION.
 
     lo_ajson = /mbtools/cl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
 
-    lo_ajson->set( iv_path = '/' iv_val = ls_result ).
+    lo_ajson->set( iv_path = '/'
+                   iv_val = ls_result ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_ajson->stringify( )
