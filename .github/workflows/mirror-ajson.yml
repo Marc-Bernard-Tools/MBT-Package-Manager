@@ -18,7 +18,7 @@ jobs:
         node-version: '14'
     - name: Mirror Run
       run: |
-        git clone "https://github.com/Marc-Bernard-Tools/Mirror-AJSON.git"
+        git clone "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Marc-Bernard-Tools/Mirror-AJSON.git"
         ls -l
         bash scripts/credits.sh scripts/credits-ajson.txt Mirror-AJSON/src
         bash scripts/descriptions.sh Mirror-AJSON/src
