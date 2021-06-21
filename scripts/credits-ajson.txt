@@ -1,5 +1,5 @@
 ************************************************************************
-* AJSON
+* abap json (AJSON)
 *
 * Original Author: Copyright (c) 2020 Alexander Tsybulsky
 * https://github.com/sbcgua/ajson
