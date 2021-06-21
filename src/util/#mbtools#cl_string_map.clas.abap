@@ -1,87 +1,85 @@
 CLASS /mbtools/cl_string_map DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
-* MBT String Map
+* abap string map
 *
 * Original Author: Copyright (c) 2020 Alexander Tsybulsky
 * https://github.com/sbcgua/abap-string-map
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
-*
-* Renamed: to_abap > to_struc
-*
-* Last update: 2021-03-25
 ************************************************************************
 
   PUBLIC SECTION.
+
+    CONSTANTS c_version TYPE string VALUE 'v1.0.2'.
 
     TYPES:
       BEGIN OF ty_entry,
         k TYPE string,
         v TYPE string,
-      END OF ty_entry .
+      END OF ty_entry.
     TYPES:
-      ty_entries TYPE STANDARD TABLE OF ty_entry WITH KEY k .
+      ty_entries TYPE STANDARD TABLE OF ty_entry WITH KEY k.
     TYPES:
-      ty_entries_ts TYPE SORTED TABLE OF ty_entry WITH UNIQUE KEY k .
+      ty_entries_ts TYPE SORTED TABLE OF ty_entry WITH UNIQUE KEY k.
 
-    CONSTANTS c_version TYPE string VALUE 'v1.0.2' ##NO_TEXT.
-    DATA mt_entries TYPE ty_entries_ts READ-ONLY .
+    DATA mt_entries TYPE ty_entries_ts READ-ONLY.
 
     CLASS-METHODS create
       IMPORTING
         !iv_case_insensitive TYPE abap_bool DEFAULT abap_false
-        !iv_from             TYPE any OPTIONAL
+        !iv_from TYPE any OPTIONAL
       RETURNING
-        VALUE(ro_instance)   TYPE REF TO /mbtools/cl_string_map .
+        VALUE(ro_instance) TYPE REF TO /mbtools/cl_string_map.
     METHODS constructor
       IMPORTING
         !iv_case_insensitive TYPE abap_bool DEFAULT abap_false
-        !iv_from             TYPE any OPTIONAL .
+        !iv_from TYPE any OPTIONAL.
+
     METHODS get
       IMPORTING
-        !iv_key       TYPE clike
+        !iv_key TYPE clike
       RETURNING
-        VALUE(rv_val) TYPE string .
+        VALUE(rv_val) TYPE string.
     METHODS has
       IMPORTING
-        !iv_key       TYPE clike
+        !iv_key TYPE clike
       RETURNING
-        VALUE(rv_has) TYPE abap_bool .
+        VALUE(rv_has) TYPE abap_bool.
     METHODS set
       IMPORTING
-        !iv_key       TYPE clike
-        !iv_val       TYPE clike
+        !iv_key TYPE clike
+        !iv_val TYPE clike
       RETURNING
-        VALUE(ro_map) TYPE REF TO /mbtools/cl_string_map .
+        VALUE(ro_map) TYPE REF TO /mbtools/cl_string_map.
     METHODS size
       RETURNING
-        VALUE(rv_size) TYPE i .
+        VALUE(rv_size) TYPE i.
     METHODS is_empty
       RETURNING
-        VALUE(rv_yes) TYPE abap_bool .
+        VALUE(rv_yes) TYPE abap_bool.
     METHODS delete
       IMPORTING
-        !iv_key TYPE clike .
+        !iv_key TYPE clike.
     METHODS keys
       RETURNING
-        VALUE(rt_keys) TYPE string_table .
+        VALUE(rt_keys) TYPE string_table.
     METHODS values
       RETURNING
-        VALUE(rt_values) TYPE string_table .
-    METHODS clear .
+        VALUE(rt_values) TYPE string_table.
+    METHODS clear.
     METHODS to_struc
       CHANGING
-        !cs_container TYPE any .
+        !cs_container TYPE any.
     METHODS from_struc
       IMPORTING
-        !is_container TYPE any .
+        !is_container TYPE any.
     METHODS from_entries
       IMPORTING
-        !it_entries TYPE ANY TABLE .
+        !it_entries TYPE ANY TABLE.
     METHODS from_string
       IMPORTING
         !iv_string_params TYPE csequence.
@@ -90,10 +88,11 @@ CLASS /mbtools/cl_string_map DEFINITION
         VALUE(rv_string) TYPE string.
     METHODS strict
       IMPORTING
-        !iv_strict         TYPE abap_bool DEFAULT abap_true
+        !iv_strict TYPE abap_bool DEFAULT abap_true
       RETURNING
-        VALUE(ro_instance) TYPE REF TO /mbtools/cl_string_map .
-    METHODS freeze .
+        VALUE(ro_instance) TYPE REF TO /mbtools/cl_string_map.
+    METHODS freeze.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
     DATA mv_is_strict TYPE abap_bool.
@@ -101,10 +100,7 @@ CLASS /mbtools/cl_string_map DEFINITION
     DATA mv_case_insensitive TYPE abap_bool.
 ENDCLASS.
 
-
-
 CLASS /mbtools/cl_string_map IMPLEMENTATION.
-
 
   METHOD clear.
 
@@ -116,34 +112,32 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD constructor.
-    DATA lo_type TYPE REF TO cl_abap_typedescr.
-    DATA lo_from TYPE REF TO /mbtools/cl_string_map.
-
     mv_is_strict = abap_true.
     mv_case_insensitive = iv_case_insensitive.
 
     IF iv_from IS NOT INITIAL.
+      DATA lo_type TYPE REF TO cl_abap_typedescr.
       lo_type = cl_abap_typedescr=>describe_by_data( iv_from ).
 
       CASE lo_type->type_kind.
         WHEN cl_abap_typedescr=>typekind_struct1 OR cl_abap_typedescr=>typekind_struct2.
-          from_struc( iv_from ).
+          me->from_struc( iv_from ).
 
         WHEN cl_abap_typedescr=>typekind_oref.
+          DATA lo_from TYPE REF TO /mbtools/cl_string_map.
           TRY.
               lo_from ?= iv_from.
             CATCH cx_sy_move_cast_error.
               lcx_error=>raise( 'Incorrect string map instance to copy from' ).
           ENDTRY.
-          mt_entries = lo_from->mt_entries.
+          me->mt_entries = lo_from->mt_entries.
 
         WHEN cl_abap_typedescr=>typekind_table.
-          from_entries( iv_from ).
+          me->from_entries( iv_from ).
 
         WHEN cl_abap_typedescr=>typekind_string OR cl_abap_typedescr=>typekind_char.
-          from_string( iv_from ).
+          me->from_string( iv_from ).
 
         WHEN OTHERS.
           lcx_error=>raise( |Incorrect input for string_map=>create, typekind { lo_type->type_kind }| ).
@@ -152,33 +146,34 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD create.
     CREATE OBJECT ro_instance
       EXPORTING
         iv_case_insensitive = iv_case_insensitive
-        iv_from             = iv_from.
+        iv_from = iv_from.
   ENDMETHOD.
 
-
   METHOD delete.
-
-    DATA lv_key TYPE string.
 
     IF mv_read_only = abap_true.
       lcx_error=>raise( 'String map is read only' ).
     ENDIF.
 
-    lv_key = iv_key.
+    DATA lv_key TYPE string.
+
+    IF mv_case_insensitive = abap_true.
+      lv_key = to_upper( iv_key ).
+    ELSE.
+      lv_key = iv_key.
+    ENDIF.
+
     DELETE mt_entries WHERE k = lv_key.
 
   ENDMETHOD.
 
-
   METHOD freeze.
     mv_read_only = abap_true.
   ENDMETHOD.
-
 
   METHOD from_entries.
 
@@ -196,21 +191,18 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD from_string.
-
-    DATA lv_key TYPE string.
-    DATA lv_val TYPE string.
-    DATA lt_lines TYPE string_table.
-
-    FIELD-SYMBOLS <i> LIKE LINE OF lt_lines.
 
     IF iv_string_params IS INITIAL.
       RETURN.
     ENDIF.
 
+    DATA lt_lines TYPE string_table.
+    FIELD-SYMBOLS <i> LIKE LINE OF lt_lines.
     SPLIT iv_string_params AT ',' INTO TABLE lt_lines.
 
+    DATA lv_key TYPE string.
+    DATA lv_val TYPE string.
     LOOP AT lt_lines ASSIGNING <i>.
       SPLIT <i> AT '=' INTO lv_key lv_val.
       SHIFT lv_key RIGHT DELETING TRAILING space.
@@ -227,7 +219,6 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-
 
   METHOD from_struc.
 
@@ -260,7 +251,6 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD get.
 
     DATA lv_key TYPE string.
@@ -279,19 +269,24 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD has.
 
-    READ TABLE mt_entries TRANSPORTING NO FIELDS WITH KEY k = iv_key.
+    DATA lv_key TYPE string.
+
+    IF mv_case_insensitive = abap_true.
+      lv_key = to_upper( iv_key ).
+    ELSE.
+      lv_key = iv_key.
+    ENDIF.
+
+    READ TABLE mt_entries TRANSPORTING NO FIELDS WITH KEY k = lv_key.
     rv_has = boolc( sy-subrc = 0 ).
 
   ENDMETHOD.
 
-
   METHOD is_empty.
     rv_yes = boolc( lines( mt_entries ) = 0 ).
   ENDMETHOD.
-
 
   METHOD keys.
 
@@ -301,7 +296,6 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-
 
   METHOD set.
 
@@ -332,19 +326,16 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD size.
 
     rv_size = lines( mt_entries ).
 
   ENDMETHOD.
 
-
   METHOD strict.
     mv_is_strict = iv_strict.
     ro_instance = me.
   ENDMETHOD.
-
 
   METHOD to_string.
 
@@ -361,10 +352,10 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD to_struc.
 
     DATA lo_type TYPE REF TO cl_abap_typedescr.
+    DATA lo_struc TYPE REF TO cl_abap_structdescr.
     DATA lv_field TYPE string.
     FIELD-SYMBOLS <entry> LIKE LINE OF mt_entries.
     FIELD-SYMBOLS <val> TYPE any.
@@ -375,6 +366,7 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
       lcx_error=>raise( 'Only structures supported' ).
     ENDIF.
 
+    lo_struc ?= lo_type.
     LOOP AT mt_entries ASSIGNING <entry>.
       lv_field = to_upper( <entry>-k ).
       ASSIGN COMPONENT lv_field OF STRUCTURE cs_container TO <val>.
@@ -389,7 +381,6 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-
 
   METHOD values.
 
