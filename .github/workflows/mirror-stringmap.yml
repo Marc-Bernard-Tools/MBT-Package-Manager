@@ -1,0 +1,36 @@
+name: Mirror STRINGMAP
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '5 1 * * 0'
+
+jobs:
+  run:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+    - name: Mirror Run
+      run: |
+        git clone "https://github.com/Marc-Bernard-Tools/Mirror-STRINGMAP.git"
+        ls -l
+        bash scripts/credits.sh scripts/credits-stringmap.txt Mirror-STRINGMAP/src
+        bash scripts/descriptions.sh Mirror-STRINGMAP/src
+        rm src/util/#mbtools#cl_string_map*
+        cp Mirror-STRINGMAP/src/#mbtools#* src/util/
+        rm -rf Mirror-STRINGMAP
+        git status
+    - name: Open PR
+      uses: peter-evans/create-pull-request@v3
+      if: github.repository == 'Marc-Bernard-Tools/MBT-Base'
+      with:
+        title: Automatic Update STRINGMAP
+        body: |
+          Automatic update from mirror
+          https://github.com/Marc-Bernard-Tools/Mirror-STRINGMAP
