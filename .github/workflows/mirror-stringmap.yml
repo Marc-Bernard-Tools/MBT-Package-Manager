@@ -22,6 +22,7 @@ jobs:
         ls -l
         bash scripts/credits.sh scripts/credits-stringmap.txt Mirror-STRINGMAP/src
         bash scripts/descriptions.sh Mirror-STRINGMAP/src
+        bash scripts/fixit.sh Mirror-STRINGMAP/src
         rm src/util/#mbtools#cl_string_map*
         cp Mirror-STRINGMAP/src/#mbtools#* src/util/
         rm -rf Mirror-STRINGMAP
