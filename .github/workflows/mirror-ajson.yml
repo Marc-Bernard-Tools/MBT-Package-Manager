@@ -34,5 +34,3 @@ jobs:
         body: |
           Automatic update from mirror
           https://github.com/Marc-Bernard-Tools/Mirror-AJSON
-
-          Manually close and reopen the pull request to trigger CI
