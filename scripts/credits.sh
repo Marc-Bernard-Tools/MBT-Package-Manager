@@ -15,6 +15,8 @@ abapfiles="$2/*.clas.abap $2/*.intf.abap"
 
 for abapfile in $abapfiles
 do
-  echo "Adding credits to $abapfile"
-  sed -i "0,/^$/ s/^$/\n$replace\n/" $abapfile
+  if [[ -e $abapfile ]]; then   
+    echo "Adding credits to $abapfile"  
+    sed -i "0,/^$/ s/^$/\n$replace\n/" $abapfile
+  fi
 done
