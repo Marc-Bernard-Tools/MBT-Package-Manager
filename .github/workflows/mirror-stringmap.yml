@@ -11,12 +11,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup Node.js
       uses: actions/setup-node@v2
       with:
         node-version: '14'
-    - name: Mirror Run
+    - name: Mirror Repository
       run: |
         git clone "https://github.com/Marc-Bernard-Tools/Mirror-STRINGMAP.git"
         ls -l
@@ -27,7 +28,7 @@ jobs:
         cp Mirror-STRINGMAP/src/#mbtools#* src/util/
         rm -rf Mirror-STRINGMAP
         git status
-    - name: Open PR
+    - name: Open Pull Request
       uses: peter-evans/create-pull-request@v3
       if: github.repository == 'Marc-Bernard-Tools/MBT-Base'
       with:
