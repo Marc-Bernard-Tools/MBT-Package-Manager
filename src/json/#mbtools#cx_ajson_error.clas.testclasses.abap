@@ -27,8 +27,8 @@ CLASS ltcl_error IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH /mbtools/cx_ajson_error INTO lx.
         cl_abap_unit_assert=>assert_equals(
-          exp = lv_msg
-          act = lx->get_text( ) ).
+        exp = lv_msg
+        act = lx->get_text( ) ).
     ENDTRY.
 
   ENDMETHOD.
@@ -43,8 +43,8 @@ CLASS ltcl_error IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH /mbtools/cx_ajson_error INTO lx.
         cl_abap_unit_assert=>assert_equals(
-          exp = 'a @b'
-          act = lx->get_text( ) ).
+        exp = 'a @b'
+        act = lx->get_text( ) ).
     ENDTRY.
 
   ENDMETHOD.
