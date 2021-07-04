@@ -31,6 +31,7 @@ jobs:
       uses: peter-evans/create-pull-request@v3
       if: github.repository == 'Marc-Bernard-Tools/MBT-Base'
       with:
+        branch: mbtools/stringmap
         title: Automatic Update STRINGMAP
         body: |
           Automatic update from mirror
