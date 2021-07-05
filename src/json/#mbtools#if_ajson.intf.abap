@@ -2,7 +2,7 @@ INTERFACE /mbtools/if_ajson
   PUBLIC .
 
 ************************************************************************
-* MBT AJSON Interface
+* abap json (AJSON)
 *
 * Original Author: Copyright (c) 2020 Alexander Tsybulsky
 * https://github.com/sbcgua/ajson
@@ -10,7 +10,7 @@ INTERFACE /mbtools/if_ajson
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
 
-  CONSTANTS version TYPE string VALUE 'v1.0.3'.
+  CONSTANTS version TYPE string VALUE 'v1.0.4'.
   CONSTANTS origin TYPE string VALUE 'https://github.com/sbcgua/ajson'.
 
   INTERFACES /mbtools/if_ajson_reader.
@@ -28,12 +28,12 @@ INTERFACE /mbtools/if_ajson
 
   TYPES:
     BEGIN OF ty_node,
-      path     TYPE string,
-      name     TYPE string,
-      type     TYPE string,
-      value    TYPE string,
-      index    TYPE i,
-      order    TYPE i,
+      path TYPE string,
+      name TYPE string,
+      type TYPE string,
+      value TYPE string,
+      index TYPE i,
+      order TYPE i,
       children TYPE i,
     END OF ty_node .
   TYPES:
