@@ -11,7 +11,7 @@ CLASS lcx_error DEFINITION FINAL INHERITING FROM cx_no_check.
         attr3 TYPE scx_attrname VALUE '',
         attr4 TYPE scx_attrname VALUE '',
       END OF c_error_signature.
-    DATA: msg TYPE string.
+    DATA msg TYPE string READ-ONLY.
 
     CLASS-METHODS raise
       IMPORTING
@@ -21,10 +21,10 @@ ENDCLASS.
 
 CLASS lcx_error IMPLEMENTATION.
   METHOD raise.
-    DATA lx_error TYPE REF TO lcx_error.
-    CREATE OBJECT lx_error.
-    lx_error->msg = iv_msg.
-    lx_error->if_t100_message~t100key = c_error_signature.
-    RAISE EXCEPTION lx_error.
+    DATA lx_e TYPE REF TO lcx_error.
+    CREATE OBJECT lx_e.
+    lx_e->msg = iv_msg.
+    lx_e->if_t100_message~t100key = c_error_signature.
+    RAISE EXCEPTION lx_e.
   ENDMETHOD.
 ENDCLASS.
