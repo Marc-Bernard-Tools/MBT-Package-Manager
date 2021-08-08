@@ -11,6 +11,8 @@ do
   if [[ -e $abapfile ]]; then   
     echo "Fixing abaplint issues in $abapfile"
     sed -i 's|CONSTANTS version|CONSTANTS c_version|g' $abapfile
+    sed -i 's|CONSTANTS origin|CONSTANTS c_origin|g' $abapfile
+    sed -i 's|CONSTANTS license|CONSTANTS c_license|g' $abapfile
     sed -i 's|tty_entries|ty_entries|g' $abapfile
     sed -i 's|tts_entries|ty_entries_ts|g' $abapfile
     sed -i 's| me->| |g' $abapfile
