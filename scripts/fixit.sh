@@ -17,5 +17,6 @@ do
     sed -i 's|tts_entries|ty_entries_ts|g' $abapfile
     sed -i 's| me->| |g' $abapfile
     sed -i 's|lty_pair|ty_pair|g' $abapfile
+    sed -i 's| <l>| <lv_entry>|g' $abapfile
   fi
 done
