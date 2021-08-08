@@ -1,15 +1,14 @@
 CLASS /mbtools/cl_ajson DEFINITION
   PUBLIC
   CREATE PRIVATE .
+
 ************************************************************************
-* MBT AJSON
+* abap json (AJSON)
 *
 * Original Author: Copyright (c) 2020 Alexander Tsybulsky
 * https://github.com/sbcgua/ajson
 *
 * Released under MIT License: https://opensource.org/licenses/MIT
-*
-* Last update: 2021-01-17
 ************************************************************************
 
   PUBLIC SECTION.
@@ -64,6 +63,7 @@ CLASS /mbtools/cl_ajson DEFINITION
         !ii_custom_mapping TYPE REF TO /mbtools/if_ajson_mapping OPTIONAL
       RETURNING
         VALUE(ro_instance) TYPE REF TO /mbtools/cl_ajson.
+
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -99,6 +99,131 @@ ENDCLASS.
 
 
 CLASS /mbtools/cl_ajson IMPLEMENTATION.
+
+
+  METHOD create_empty.
+    CREATE OBJECT ro_instance.
+    ro_instance->mi_custom_mapping = ii_custom_mapping.
+  ENDMETHOD.
+
+
+  METHOD delete_subtree.
+
+    DATA lv_parent_path TYPE string.
+    DATA lv_parent_path_len TYPE i.
+    FIELD-SYMBOLS <node> LIKE LINE OF mt_json_tree.
+    READ TABLE mt_json_tree ASSIGNING <node>
+      WITH KEY
+        path = iv_path
+        name = iv_name.
+    IF sy-subrc = 0. " Found ? delete !
+      IF <node>-children > 0. " only for objects and arrays
+        lv_parent_path = iv_path && iv_name && '/'.
+        lv_parent_path_len = strlen( lv_parent_path ).
+        LOOP AT mt_json_tree ASSIGNING <node>.
+          IF strlen( <node>-path ) >= lv_parent_path_len
+            AND substring( val = <node>-path
+                           len = lv_parent_path_len ) = lv_parent_path.
+            DELETE mt_json_tree INDEX sy-tabix.
+          ENDIF.
+        ENDLOOP.
+      ENDIF.
+
+      DELETE mt_json_tree WHERE path = iv_path AND name = iv_name.
+      rv_deleted = abap_true.
+
+      DATA ls_path TYPE /mbtools/if_ajson=>ty_path_name.
+      ls_path = lcl_utils=>split_path( iv_path ).
+      READ TABLE mt_json_tree ASSIGNING <node>
+        WITH KEY
+          path = ls_path-path
+          name = ls_path-name.
+      IF sy-subrc = 0.
+        <node>-children = <node>-children - 1.
+      ENDIF.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD get_item.
+
+    FIELD-SYMBOLS <item> LIKE LINE OF mt_json_tree.
+    DATA ls_path_name TYPE /mbtools/if_ajson=>ty_path_name.
+    ls_path_name = lcl_utils=>split_path( iv_path ).
+
+    READ TABLE mt_json_tree
+      ASSIGNING <item>
+      WITH KEY
+        path = ls_path_name-path
+        name = ls_path_name-name.
+    IF sy-subrc = 0.
+      GET REFERENCE OF <item> INTO rv_item.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD parse.
+
+    DATA lo_parser TYPE REF TO lcl_json_parser.
+
+    CREATE OBJECT ro_instance.
+    CREATE OBJECT lo_parser.
+    ro_instance->mt_json_tree = lo_parser->parse( iv_json ).
+    ro_instance->mi_custom_mapping = ii_custom_mapping.
+
+    IF iv_freeze = abap_true.
+      ro_instance->freeze( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD prove_path_exists.
+
+    DATA lt_path TYPE string_table.
+    DATA lr_node LIKE LINE OF rt_node_stack.
+    DATA lr_node_parent LIKE LINE OF rt_node_stack.
+    DATA lv_cur_path TYPE string.
+    DATA lv_cur_name TYPE string.
+    DATA ls_new_node LIKE LINE OF mt_json_tree.
+
+    SPLIT iv_path AT '/' INTO TABLE lt_path.
+    DELETE lt_path WHERE table_line IS INITIAL.
+
+    DO.
+      lr_node_parent = lr_node.
+      READ TABLE mt_json_tree REFERENCE INTO lr_node
+        WITH KEY
+          path = lv_cur_path
+          name = lv_cur_name.
+      IF sy-subrc <> 0. " New node, assume it is always object as it has a named child, use touch_array to init array
+        CLEAR ls_new_node.
+        IF lr_node_parent IS NOT INITIAL. " if has parent
+          lr_node_parent->children = lr_node_parent->children + 1.
+          IF lr_node_parent->type = /mbtools/if_ajson=>node_type-array.
+            ls_new_node-index = lcl_utils=>validate_array_index(
+              iv_path  = lv_cur_path
+              iv_index = lv_cur_name ).
+          ENDIF.
+        ENDIF.
+        ls_new_node-path = lv_cur_path.
+        ls_new_node-name = lv_cur_name.
+        ls_new_node-type = /mbtools/if_ajson=>node_type-object.
+        INSERT ls_new_node INTO TABLE mt_json_tree REFERENCE INTO lr_node.
+      ENDIF.
+      INSERT lr_node INTO rt_node_stack INDEX 1.
+      lv_cur_path = lv_cur_path && lv_cur_name && '/'.
+      READ TABLE lt_path INDEX sy-index INTO lv_cur_name.
+      IF sy-subrc <> 0.
+        EXIT. " no more segments
+      ENDIF.
+    ENDDO.
+
+    ASSERT lv_cur_path = iv_path. " Just in case
+
+  ENDMETHOD.
 
 
   METHOD /mbtools/if_ajson_reader~array_to_string_table.
@@ -292,8 +417,10 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
     LOOP AT mt_json_tree INTO ls_item.
       " TODO potentially improve performance due to sorted tree (all path started from same prefix go in a row)
       IF strlen( ls_item-path ) >= lv_path_len
-          AND substring( val = ls_item-path len = lv_path_len ) = lv_normalized_path.
-        ls_item-path = substring( val = ls_item-path off = lv_path_len - 1 ). " less closing '/'
+          AND substring( val = ls_item-path
+                         len = lv_path_len ) = lv_normalized_path.
+        ls_item-path = substring( val = ls_item-path
+                                  off = lv_path_len - 1 ). " less closing '/'
         INSERT ls_item INTO TABLE lo_section->mt_json_tree.
       ELSEIF ls_item-path = ls_path_parts-path AND ls_item-name = ls_path_parts-name.
         CLEAR: ls_item-path, ls_item-name. " this becomes a new root
@@ -536,6 +663,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
   METHOD /mbtools/if_ajson_writer~set_timestamp.
 
     DATA:
+      lv_tz            TYPE tznzone,
       lv_date          TYPE d,
       lv_time          TYPE t,
       lv_timestamp_iso TYPE string.
@@ -545,7 +673,8 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
       lv_date = '00010101'.
     ELSE.
 
-      CONVERT TIME STAMP iv_val TIME ZONE 'UTC'
+      lv_tz = 'UTC'.
+      CONVERT TIME STAMP iv_val TIME ZONE lv_tz
         INTO DATE lv_date TIME lv_time.
 
     ENDIF.
@@ -630,129 +759,5 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
   METHOD /mbtools/if_ajson~keep_item_order.
     mv_keep_item_order = abap_true.
-  ENDMETHOD.
-
-
-  METHOD create_empty.
-    CREATE OBJECT ro_instance.
-    ro_instance->mi_custom_mapping = ii_custom_mapping.
-  ENDMETHOD.
-
-
-  METHOD delete_subtree.
-
-    DATA lv_parent_path TYPE string.
-    DATA lv_parent_path_len TYPE i.
-    FIELD-SYMBOLS <node> LIKE LINE OF mt_json_tree.
-    READ TABLE mt_json_tree ASSIGNING <node>
-      WITH KEY
-        path = iv_path
-        name = iv_name.
-    IF sy-subrc = 0. " Found ? delete !
-      IF <node>-children > 0. " only for objects and arrays
-        lv_parent_path = iv_path && iv_name && '/'.
-        lv_parent_path_len = strlen( lv_parent_path ).
-        LOOP AT mt_json_tree ASSIGNING <node>.
-          IF strlen( <node>-path ) >= lv_parent_path_len
-            AND substring( val = <node>-path len = lv_parent_path_len ) = lv_parent_path.
-            DELETE mt_json_tree INDEX sy-tabix.
-          ENDIF.
-        ENDLOOP.
-      ENDIF.
-
-      DELETE mt_json_tree WHERE path = iv_path AND name = iv_name.
-      rv_deleted = abap_true.
-
-      DATA ls_path TYPE /mbtools/if_ajson=>ty_path_name.
-      ls_path = lcl_utils=>split_path( iv_path ).
-      READ TABLE mt_json_tree ASSIGNING <node>
-        WITH KEY
-          path = ls_path-path
-          name = ls_path-name.
-      IF sy-subrc = 0.
-        <node>-children = <node>-children - 1.
-      ENDIF.
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD get_item.
-
-    FIELD-SYMBOLS <item> LIKE LINE OF mt_json_tree.
-    DATA ls_path_name TYPE /mbtools/if_ajson=>ty_path_name.
-    ls_path_name = lcl_utils=>split_path( iv_path ).
-
-    READ TABLE mt_json_tree
-      ASSIGNING <item>
-      WITH KEY
-        path = ls_path_name-path
-        name = ls_path_name-name.
-    IF sy-subrc = 0.
-      GET REFERENCE OF <item> INTO rv_item.
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD parse.
-
-    DATA lo_parser TYPE REF TO lcl_json_parser.
-
-    CREATE OBJECT ro_instance.
-    CREATE OBJECT lo_parser.
-    ro_instance->mt_json_tree = lo_parser->parse( iv_json ).
-    ro_instance->mi_custom_mapping = ii_custom_mapping.
-
-    IF iv_freeze = abap_true.
-      ro_instance->freeze( ).
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD prove_path_exists.
-
-    DATA lt_path TYPE string_table.
-    DATA lr_node LIKE LINE OF rt_node_stack.
-    DATA lr_node_parent LIKE LINE OF rt_node_stack.
-    DATA lv_cur_path TYPE string.
-    DATA lv_cur_name TYPE string.
-    DATA ls_new_node LIKE LINE OF mt_json_tree.
-
-    SPLIT iv_path AT '/' INTO TABLE lt_path.
-    DELETE lt_path WHERE table_line IS INITIAL.
-
-    DO.
-      lr_node_parent = lr_node.
-      READ TABLE mt_json_tree REFERENCE INTO lr_node
-        WITH KEY
-          path = lv_cur_path
-          name = lv_cur_name.
-      IF sy-subrc <> 0. " New node, assume it is always object as it has a named child, use touch_array to init array
-        CLEAR ls_new_node.
-        IF lr_node_parent IS NOT INITIAL. " if has parent
-          lr_node_parent->children = lr_node_parent->children + 1.
-          IF lr_node_parent->type = /mbtools/if_ajson=>node_type-array.
-            ls_new_node-index = lcl_utils=>validate_array_index(
-              iv_path  = lv_cur_path
-              iv_index = lv_cur_name ).
-          ENDIF.
-        ENDIF.
-        ls_new_node-path = lv_cur_path.
-        ls_new_node-name = lv_cur_name.
-        ls_new_node-type = /mbtools/if_ajson=>node_type-object.
-        INSERT ls_new_node INTO TABLE mt_json_tree REFERENCE INTO lr_node.
-      ENDIF.
-      INSERT lr_node INTO rt_node_stack INDEX 1.
-      lv_cur_path = lv_cur_path && lv_cur_name && '/'.
-      READ TABLE lt_path INDEX sy-index INTO lv_cur_name.
-      IF sy-subrc <> 0.
-        EXIT. " no more segments
-      ENDIF.
-    ENDDO.
-
-    ASSERT lv_cur_path = iv_path. " Just in case
-
   ENDMETHOD.
 ENDCLASS.

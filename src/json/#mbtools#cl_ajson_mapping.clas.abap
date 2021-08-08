@@ -3,29 +3,41 @@ CLASS /mbtools/cl_ajson_mapping DEFINITION
   FINAL
   CREATE PUBLIC.
 
-  PUBLIC SECTION.
+************************************************************************
+* abap json (AJSON)
+*
+* Original Author: Copyright (c) 2020 Alexander Tsybulsky
+* https://github.com/sbcgua/ajson
+*
+* Released under MIT License: https://opensource.org/licenses/MIT
+************************************************************************
 
+  PUBLIC SECTION.
     CLASS-METHODS create_camel_case
       IMPORTING
-        !it_mapping_fields   TYPE /mbtools/if_ajson_mapping=>ty_mapping_fields OPTIONAL
-        !iv_first_json_upper TYPE abap_bool DEFAULT abap_true
+        it_mapping_fields   TYPE /mbtools/if_ajson_mapping=>ty_mapping_fields OPTIONAL
+        iv_first_json_upper TYPE abap_bool DEFAULT abap_true
       RETURNING
-        VALUE(ri_mapping)    TYPE REF TO /mbtools/if_ajson_mapping.
+        VALUE(ri_mapping)   TYPE REF TO /mbtools/if_ajson_mapping.
+
     CLASS-METHODS create_upper_case
       IMPORTING
-        !it_mapping_fields TYPE /mbtools/if_ajson_mapping=>ty_mapping_fields OPTIONAL
+        it_mapping_fields TYPE /mbtools/if_ajson_mapping=>ty_mapping_fields OPTIONAL
       RETURNING
-        VALUE(ri_mapping)  TYPE REF TO /mbtools/if_ajson_mapping.
+        VALUE(ri_mapping) TYPE REF TO /mbtools/if_ajson_mapping.
+
     CLASS-METHODS create_lower_case
       IMPORTING
-        !it_mapping_fields TYPE /mbtools/if_ajson_mapping=>ty_mapping_fields OPTIONAL
+        it_mapping_fields TYPE /mbtools/if_ajson_mapping=>ty_mapping_fields OPTIONAL
       RETURNING
-        VALUE(ri_mapping)  TYPE REF TO /mbtools/if_ajson_mapping.
+        VALUE(ri_mapping) TYPE REF TO /mbtools/if_ajson_mapping.
+
     CLASS-METHODS create_field_mapping
       IMPORTING
-        !it_mapping_fields TYPE /mbtools/if_ajson_mapping=>ty_mapping_fields
+        it_mapping_fields TYPE /mbtools/if_ajson_mapping=>ty_mapping_fields
       RETURNING
-        VALUE(ri_mapping)  TYPE REF TO /mbtools/if_ajson_mapping.
+        VALUE(ri_mapping) TYPE REF TO /mbtools/if_ajson_mapping.
+
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -47,9 +59,9 @@ CLASS /mbtools/cl_ajson_mapping IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD create_field_mapping.
+  METHOD create_upper_case.
 
-    CREATE OBJECT ri_mapping TYPE lcl_mapping_fields
+    CREATE OBJECT ri_mapping TYPE lcl_mapping_to_upper
       EXPORTING
         it_mapping_fields = it_mapping_fields.
 
@@ -65,11 +77,13 @@ CLASS /mbtools/cl_ajson_mapping IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD create_upper_case.
+  METHOD create_field_mapping.
 
-    CREATE OBJECT ri_mapping TYPE lcl_mapping_to_upper
+    CREATE OBJECT ri_mapping TYPE lcl_mapping_fields
       EXPORTING
         it_mapping_fields = it_mapping_fields.
 
   ENDMETHOD.
+
+
 ENDCLASS.
