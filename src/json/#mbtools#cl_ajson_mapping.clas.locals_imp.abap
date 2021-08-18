@@ -57,14 +57,16 @@ CLASS lcl_mapping_to_upper IMPLEMENTATION.
 
   METHOD /mbtools/if_ajson_mapping~to_abap.
 
-    rv_result = mi_mapping_fields->to_abap( iv_path = iv_path iv_name = iv_name ).
+    rv_result = mi_mapping_fields->to_abap( iv_path = iv_path
+                                            iv_name = iv_name ).
 
   ENDMETHOD.
 
 
   METHOD /mbtools/if_ajson_mapping~to_json.
 
-    rv_result = mi_mapping_fields->to_json( iv_path = iv_path iv_name = iv_name ).
+    rv_result = mi_mapping_fields->to_json( iv_path = iv_path
+                                            iv_name = iv_name ).
 
     IF rv_result IS NOT INITIAL. " Mapping found
       RETURN.
@@ -90,14 +92,16 @@ CLASS lcl_mapping_to_lower IMPLEMENTATION.
 
   METHOD /mbtools/if_ajson_mapping~to_abap.
 
-    rv_result = mi_mapping_fields->to_abap( iv_path = iv_path iv_name = iv_name ).
+    rv_result = mi_mapping_fields->to_abap( iv_path = iv_path
+                                            iv_name = iv_name ).
 
   ENDMETHOD.
 
 
   METHOD /mbtools/if_ajson_mapping~to_json.
 
-    rv_result = mi_mapping_fields->to_json( iv_path = iv_path iv_name = iv_name ).
+    rv_result = mi_mapping_fields->to_json( iv_path = iv_path
+                                            iv_name = iv_name ).
 
     IF rv_result IS NOT INITIAL. " Mapping found
       RETURN.
@@ -124,7 +128,8 @@ CLASS lcl_mapping_camel IMPLEMENTATION.
 
   METHOD /mbtools/if_ajson_mapping~to_abap.
 
-    rv_result = mi_mapping_fields->to_abap( iv_path = iv_path iv_name = iv_name ).
+    rv_result = mi_mapping_fields->to_abap( iv_path = iv_path
+                                            iv_name = iv_name ).
 
     IF rv_result IS NOT INITIAL. " Mapping found
       RETURN.
@@ -132,7 +137,7 @@ CLASS lcl_mapping_camel IMPLEMENTATION.
 
     rv_result = iv_name.
 
-    REPLACE ALL OCCURRENCES OF REGEX `([a-z])([A-Z])` IN rv_result WITH `$1_$2`.
+    REPLACE ALL OCCURRENCES OF REGEX `([a-z])([A-Z])` IN rv_result WITH `$1_$2`. "#EC NOTEXT
 
   ENDMETHOD.
 
@@ -144,7 +149,8 @@ CLASS lcl_mapping_camel IMPLEMENTATION.
     DATA lv_from TYPE i.
     FIELD-SYMBOLS <token> LIKE LINE OF lt_tokens.
 
-    rv_result = mi_mapping_fields->to_json( iv_path = iv_path iv_name = iv_name ).
+    rv_result = mi_mapping_fields->to_json( iv_path = iv_path
+                                            iv_name = iv_name ).
 
     IF rv_result IS NOT INITIAL. " Mapping found
       RETURN.

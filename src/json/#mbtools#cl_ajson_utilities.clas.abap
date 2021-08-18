@@ -2,6 +2,15 @@ CLASS /mbtools/cl_ajson_utilities DEFINITION
   PUBLIC
   CREATE PUBLIC .
 
+************************************************************************
+* abap json (AJSON)
+*
+* Original Author: Copyright (c) 2020 Alexander Tsybulsky
+* https://github.com/sbcgua/ajson
+*
+* Released under MIT License: https://opensource.org/licenses/MIT
+************************************************************************
+
   PUBLIC SECTION.
 
     METHODS diff
@@ -30,9 +39,9 @@ CLASS /mbtools/cl_ajson_utilities DEFINITION
 
     DATA mo_json_a TYPE REF TO /mbtools/if_ajson .
     DATA mo_json_b TYPE REF TO /mbtools/if_ajson .
-    DATA mo_insert TYPE REF TO /mbtools/if_ajson_writer .
-    DATA mo_delete TYPE REF TO /mbtools/if_ajson_writer .
-    DATA mo_change TYPE REF TO /mbtools/if_ajson_writer .
+    DATA mo_insert TYPE REF TO /mbtools/if_ajson .
+    DATA mo_delete TYPE REF TO /mbtools/if_ajson .
+    DATA mo_change TYPE REF TO /mbtools/if_ajson .
 
     METHODS diff_a_b
       IMPORTING
@@ -63,7 +72,7 @@ CLASS /mbtools/cl_ajson_utilities IMPLEMENTATION.
 
     DO.
       LOOP AT io_json->mt_json_tree INTO ls_json_tree
-        WHERE type = 'array' AND children = 0.
+          WHERE type = 'array' AND children = 0.
 
         io_json->delete( ls_json_tree-path && ls_json_tree-name ).
 
@@ -71,7 +80,7 @@ CLASS /mbtools/cl_ajson_utilities IMPLEMENTATION.
       lv_subrc = sy-subrc.
 
       LOOP AT io_json->mt_json_tree INTO ls_json_tree
-        WHERE type = 'object' AND children = 0.
+          WHERE type = 'object' AND children = 0.
 
         io_json->delete( ls_json_tree-path && ls_json_tree-name ).
 
