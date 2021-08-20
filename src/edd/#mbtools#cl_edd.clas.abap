@@ -122,7 +122,7 @@ CLASS /mbtools/cl_edd DEFINITION
       IMPORTING
         !iv_data       TYPE string
       RETURNING
-        VALUE(ro_json) TYPE REF TO /mbtools/if_ajson_reader
+        VALUE(ro_json) TYPE REF TO /mbtools/if_ajson
       RAISING
         /mbtools/cx_exception.
     CLASS-METHODS _adjust_html
@@ -159,7 +159,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
     DATA:
       lv_endpoint TYPE string,
       lv_data     TYPE string,
-      lo_json     TYPE REF TO /mbtools/if_ajson_reader.
+      lo_json     TYPE REF TO /mbtools/if_ajson.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
@@ -231,7 +231,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
     DATA:
       lv_endpoint TYPE string,
       lv_data     TYPE string,
-      lo_json     TYPE REF TO /mbtools/if_ajson_reader.
+      lo_json     TYPE REF TO /mbtools/if_ajson.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
@@ -286,7 +286,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
     DATA:
       lv_endpoint TYPE string,
       lv_data     TYPE string,
-      lo_json     TYPE REF TO /mbtools/if_ajson_reader.
+      lo_json     TYPE REF TO /mbtools/if_ajson.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
 
@@ -331,7 +331,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
       lv_endpoint TYPE string,
       lv_data     TYPE string,
       lv_sections TYPE string,
-      lo_json     TYPE REF TO /mbtools/if_ajson_reader,
+      lo_json     TYPE REF TO /mbtools/if_ajson,
       lx_error    TYPE REF TO /mbtools/cx_ajson_error.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
@@ -391,8 +391,8 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
       lv_endpoint TYPE string,
       lv_data     TYPE string,
       lv_sections TYPE string,
-      lo_json_all TYPE REF TO /mbtools/if_ajson_reader,
-      lo_json     TYPE REF TO /mbtools/if_ajson_reader,
+      lo_json_all TYPE REF TO /mbtools/if_ajson,
+      lo_json     TYPE REF TO /mbtools/if_ajson,
       lx_error    TYPE REF TO /mbtools/cx_ajson_error.
 
     FIELD-SYMBOLS:
