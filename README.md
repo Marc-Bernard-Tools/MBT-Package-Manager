@@ -1,4 +1,5 @@
 ![abap package version](https://img.shields.io/endpoint?url=https://shield.abap.space/version-shield-json/github/Marc-Bernard-Tools/Marc-Bernard-Tools-Versions/.apack-manifest.xml/dependencies/github.com/Marc-Bernard-Tools/MBT-Base&label=version&color=darkgray)
+![license](https://img.shields.io/github/license/Marc-Bernard-Tools/Marc-Bernard-Tools-Versions)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
 # MBT Base
