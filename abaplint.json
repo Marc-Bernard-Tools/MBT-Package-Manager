@@ -201,7 +201,10 @@
 			"spaces": 1
 		},
 		"cyclic_oo": {
-			"exclude": [],
+			"exclude": [
+				"#mbtools#cl_logger.*",
+				"#mbtools#if_gui.*"
+			],
 			"severity": "Error",
 			"skip": []
 		},
