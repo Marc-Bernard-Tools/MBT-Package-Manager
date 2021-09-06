@@ -796,7 +796,7 @@
 			"severity": "Error"
 		},
 		"unused_ddic": {
-			"exclude": [],
+			"exclude": ["*.xml"],
 			"severity": "Error"
 		},
 		"unused_methods": {
