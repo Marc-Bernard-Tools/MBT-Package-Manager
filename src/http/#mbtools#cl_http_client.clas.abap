@@ -12,6 +12,14 @@ CLASS /mbtools/cl_http_client DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
+    TYPES:
+      BEGIN OF ty_multipart,
+        ctype TYPE string,
+        cdata TYPE string,
+      END OF ty_multipart.
+    TYPES:
+      ty_multiparts TYPE STANDARD TABLE OF ty_multipart WITH DEFAULT KEY.
+
     METHODS constructor
       IMPORTING
         !ii_client TYPE REF TO if_http_client .
@@ -51,7 +59,7 @@ CLASS /mbtools/cl_http_client DEFINITION
         /mbtools/cx_exception .
     METHODS get_multipart
       RETURNING
-        VALUE(rt_multipart) TYPE /mbtools/cl_http=>ty_multiparts .
+        VALUE(rt_multipart) TYPE ty_multiparts .
   PROTECTED SECTION.
   PRIVATE SECTION.
     DATA: mi_client TYPE REF TO if_http_client,

@@ -12,14 +12,6 @@ CLASS /mbtools/cl_http DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    TYPES:
-      BEGIN OF ty_multipart,
-        ctype TYPE string,
-        cdata TYPE string,
-      END OF ty_multipart.
-    TYPES:
-      ty_multiparts TYPE STANDARD TABLE OF ty_multipart WITH DEFAULT KEY.
-
     CONSTANTS:
       BEGIN OF c_scheme,
         digest TYPE string VALUE 'Digest' ##NO_TEXT,
@@ -45,7 +37,7 @@ CLASS /mbtools/cl_http DEFINITION
         !iv_request      TYPE string DEFAULT if_http_request=>co_request_method_get
         !iv_content      TYPE string OPTIONAL
         !iv_accept       TYPE string OPTIONAL
-        !it_multipart    TYPE ty_multiparts OPTIONAL
+        !it_multipart    TYPE /mbtools/cl_http_client=>ty_multiparts OPTIONAL
       RETURNING
         VALUE(ro_client) TYPE REF TO /mbtools/cl_http_client
       RAISING
@@ -167,7 +159,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
     DATA:
       li_client    TYPE REF TO if_http_client,
       li_part      TYPE REF TO if_http_entity,
-      ls_multipart TYPE ty_multipart,
+      ls_multipart TYPE /mbtools/cl_http_client=>ty_multipart,
       lv_text      TYPE string.
 
     cl_http_client=>create_by_destination(
