@@ -369,10 +369,9 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
 
     CREATE OBJECT li_event TYPE /mbtools/cl_gui_event
       EXPORTING
-        ii_gui_services = me
-        iv_action       = iv_action
-        iv_getdata      = iv_getdata
-        it_postdata     = it_postdata.
+        iv_action   = iv_action
+        iv_getdata  = iv_getdata
+        it_postdata = it_postdata.
 
     TRY.
         LOOP AT mt_event_handlers INTO li_handler.

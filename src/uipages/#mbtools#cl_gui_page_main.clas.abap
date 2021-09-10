@@ -682,8 +682,8 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     DATA:
       lo_bundle TYPE REF TO /mbtools/cl_tool,
-      ls_tool   TYPE /mbtools/cl_tool_manager=>ty_manifest,
-      lt_tools  TYPE /mbtools/cl_tool_manager=>ty_manifests.
+      ls_tool   TYPE /mbtools/if_tool=>ty_manifest,
+      lt_tools  TYPE /mbtools/if_tool=>ty_manifests.
 
     ri_html = /mbtools/cl_html=>create( ).
 
@@ -715,8 +715,8 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
   METHOD render_bundles.
 
     DATA:
-      ls_bundle  TYPE /mbtools/cl_tool_manager=>ty_manifest,
-      lt_bundles TYPE /mbtools/cl_tool_manager=>ty_manifests.
+      ls_bundle  TYPE /mbtools/if_tool=>ty_manifest,
+      lt_bundles TYPE /mbtools/if_tool=>ty_manifests.
 
     lt_bundles = /mbtools/cl_tool_manager=>select(
       iv_get_bundles = abap_true
@@ -820,8 +820,8 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
   METHOD render_tools.
 
     DATA:
-      ls_tool  TYPE /mbtools/cl_tool_manager=>ty_manifest,
-      lt_tools TYPE /mbtools/cl_tool_manager=>ty_manifests.
+      ls_tool  TYPE /mbtools/if_tool=>ty_manifest,
+      lt_tools TYPE /mbtools/if_tool=>ty_manifests.
 
     lt_tools = /mbtools/cl_tool_manager=>select( ).
 
@@ -857,8 +857,8 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     DATA:
       lo_tool  TYPE REF TO /mbtools/cl_tool,
-      ls_tool  TYPE /mbtools/cl_tool_manager=>ty_manifest,
-      lt_tools TYPE /mbtools/cl_tool_manager=>ty_manifests,
+      ls_tool  TYPE /mbtools/if_tool=>ty_manifest,
+      lt_tools TYPE /mbtools/if_tool=>ty_manifests,
       lv_html  TYPE string,
       li_html  TYPE REF TO /mbtools/if_html.
 

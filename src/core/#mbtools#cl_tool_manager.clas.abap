@@ -10,9 +10,6 @@ CLASS /mbtools/cl_tool_manager DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    TYPES ty_manifest TYPE /mbtools/manifest.
-    TYPES:
-      ty_manifests TYPE STANDARD TABLE OF ty_manifest WITH DEFAULT KEY.
     TYPES ty_tool TYPE /mbtools/tool_with_text.
     TYPES:
       ty_tools TYPE STANDARD TABLE OF ty_tool WITH DEFAULT KEY.
@@ -33,7 +30,7 @@ CLASS /mbtools/cl_tool_manager DEFINITION
         VALUE(ro_tool) TYPE REF TO /mbtools/cl_tool.
     CLASS-METHODS manifests
       RETURNING
-        VALUE(rt_manifests) TYPE ty_manifests.
+        VALUE(rt_manifests) TYPE /mbtools/if_tool=>ty_manifests.
     CLASS-METHODS select
       IMPORTING
         VALUE(iv_pattern)     TYPE csequence OPTIONAL
@@ -42,7 +39,7 @@ CLASS /mbtools/cl_tool_manager DEFINITION
         VALUE(iv_get_tools)   TYPE abap_bool DEFAULT abap_true
         VALUE(iv_admin)       TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(rt_manifests)   TYPE ty_manifests.
+        VALUE(rt_manifests)   TYPE /mbtools/if_tool=>ty_manifests.
     CLASS-METHODS list
       IMPORTING
         VALUE(iv_pattern)     TYPE csequence OPTIONAL
@@ -177,8 +174,8 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
   METHOD action_bundles.
 
     DATA:
-      ls_manifest  TYPE ty_manifest,
-      lt_manifests TYPE ty_manifests,
+      ls_manifest  TYPE /mbtools/if_tool=>ty_manifest,
+      lt_manifests TYPE /mbtools/if_tool=>ty_manifests,
       li_progress  TYPE REF TO /mbtools/if_progress,
       lv_result    TYPE abap_bool.
 
@@ -226,8 +223,8 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
   METHOD action_tools.
 
     DATA:
-      ls_manifest  TYPE ty_manifest,
-      lt_manifests TYPE ty_manifests,
+      ls_manifest  TYPE /mbtools/if_tool=>ty_manifest,
+      lt_manifests TYPE /mbtools/if_tool=>ty_manifests,
       li_progress  TYPE REF TO /mbtools/if_progress,
       lv_result    TYPE abap_bool.
 
@@ -299,8 +296,8 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
   METHOD check.
 
     DATA:
-      ls_manifest  TYPE ty_manifest,
-      lt_manifests TYPE ty_manifests,
+      ls_manifest  TYPE /mbtools/if_tool=>ty_manifest,
+      lt_manifests TYPE /mbtools/if_tool=>ty_manifests,
       ls_product   TYPE /mbtools/cl_edd=>ty_product,
       lt_products  TYPE /mbtools/cl_edd=>ty_products,
       li_progress  TYPE REF TO /mbtools/if_progress,
@@ -499,7 +496,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
 
   METHOD is_base_only.
 
-    DATA lt_manifests TYPE ty_manifests.
+    DATA lt_manifests TYPE /mbtools/if_tool=>ty_manifests.
 
     " Get all installed and active tools
     lt_manifests = select( ).
@@ -515,8 +512,8 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
   METHOD list.
 
     DATA:
-      ls_manifest  TYPE ty_manifest,
-      lt_manifests TYPE ty_manifests,
+      ls_manifest  TYPE /mbtools/if_tool=>ty_manifest,
+      lt_manifests TYPE /mbtools/if_tool=>ty_manifests,
       ls_tool      LIKE LINE OF rt_tools.
 
     lt_manifests = select(
@@ -545,7 +542,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
 
     DATA:
       ls_instance LIKE LINE OF gt_instances,
-      ls_manifest TYPE ty_manifest.
+      ls_manifest TYPE /mbtools/if_tool=>ty_manifest.
 
     LOOP AT gt_instances INTO ls_instance.
       ls_manifest = ls_instance-instance->get_manifest( ).
@@ -561,7 +558,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
 
     DATA:
       ls_instance LIKE LINE OF gt_instances,
-      ls_manifest TYPE ty_manifest,
+      ls_manifest TYPE /mbtools/if_tool=>ty_manifest,
       lo_tool     TYPE REF TO /mbtools/cl_tool.
 
     LOOP AT gt_instances INTO ls_instance.
