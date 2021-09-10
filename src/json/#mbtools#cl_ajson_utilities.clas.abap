@@ -72,7 +72,7 @@ CLASS /mbtools/cl_ajson_utilities IMPLEMENTATION.
 
     DO.
       LOOP AT io_json->mt_json_tree INTO ls_json_tree
-          WHERE type = 'array' AND children = 0.
+        WHERE type = 'array' AND children = 0.
 
         io_json->delete( ls_json_tree-path && ls_json_tree-name ).
 
@@ -80,7 +80,7 @@ CLASS /mbtools/cl_ajson_utilities IMPLEMENTATION.
       lv_subrc = sy-subrc.
 
       LOOP AT io_json->mt_json_tree INTO ls_json_tree
-          WHERE type = 'object' AND children = 0.
+        WHERE type = 'object' AND children = 0.
 
         io_json->delete( ls_json_tree-path && ls_json_tree-name ).
 

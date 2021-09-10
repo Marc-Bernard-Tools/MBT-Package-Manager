@@ -376,8 +376,8 @@ CLASS lcl_json_serializer IMPLEMENTATION.
     ENDCASE.
 
     IF mv_indent_step > 0
-        AND ( is_node-type = /mbtools/if_ajson=>node_type-array OR is_node-type = /mbtools/if_ajson=>node_type-object )
-        AND is_node-children > 0.
+      AND ( is_node-type = /mbtools/if_ajson=>node_type-array OR is_node-type = /mbtools/if_ajson=>node_type-object )
+      AND is_node-children > 0.
       mv_level = mv_level + 1.
       lv_item = lv_item && cl_abap_char_utilities=>newline.
     ENDIF.
@@ -981,7 +981,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
               ct_nodes = ct_nodes ).
 
         ELSEIF io_type->type_kind = cl_abap_typedescr=>typekind_oref
-            AND cl_abap_typedescr=>describe_by_object_ref( iv_data )->absolute_name = gv_ajson_absolute_type_name.
+          AND cl_abap_typedescr=>describe_by_object_ref( iv_data )->absolute_name = gv_ajson_absolute_type_name.
           convert_ajson(
             EXPORTING
               io_json   = iv_data
@@ -1036,7 +1036,11 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
       <n>-name  = is_prefix-name.
     ENDIF.
 
-    IF io_type->absolute_name = '\TYPE-POOL=ABAP\TYPE=ABAP_BOOL' OR io_type->absolute_name = '\TYPE=XFELD'.
+    IF io_type->absolute_name = '\TYPE-POOL=ABAP\TYPE=ABAP_BOOL'
+        OR io_type->absolute_name = '\TYPE=ABAP_BOOLEAN'
+        OR io_type->absolute_name = '\TYPE=XSDBOOLEAN'
+        OR io_type->absolute_name = '\TYPE=FLAG'
+        OR io_type->absolute_name = '\TYPE=XFELD'.
       <n>-type = /mbtools/if_ajson=>node_type-boolean.
       IF iv_data IS NOT INITIAL.
         <n>-value = 'true'.
@@ -1050,7 +1054,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
       <n>-type = /mbtools/if_ajson=>node_type-number.
       <n>-value = |{ iv_data }|.
     ELSE.
-      /mbtools/cx_ajson_error=>raise( |Unexpected elemetary type [{
+      /mbtools/cx_ajson_error=>raise( |Unexpected elementary type [{
         io_type->type_kind }] @{ is_prefix-path && is_prefix-name }| ).
     ENDIF.
 
@@ -1256,7 +1260,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
       ELSEIF iv_type = /mbtools/if_ajson=>node_type-number AND iv_data CN '0123456789. E+-'.
         /mbtools/cx_ajson_error=>raise( |Unexpected numeric value [{ iv_data }] @{ lv_prefix }| ).
       ELSEIF iv_type <> /mbtools/if_ajson=>node_type-string AND iv_type <> /mbtools/if_ajson=>node_type-boolean
-          AND iv_type <> /mbtools/if_ajson=>node_type-null AND iv_type <> /mbtools/if_ajson=>node_type-number.
+        AND iv_type <> /mbtools/if_ajson=>node_type-null AND iv_type <> /mbtools/if_ajson=>node_type-number.
         /mbtools/cx_ajson_error=>raise( |Unexpected type for value [{ iv_type },{ iv_data }] @{ lv_prefix }| ).
       ENDIF.
     ELSEIF io_type->type_kind CO 'bsI8PaeF'. " Numeric
