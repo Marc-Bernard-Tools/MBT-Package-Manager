@@ -797,7 +797,7 @@
 		},
 		"unused_ddic": {
 			"exclude": [],
-			"severity": "Error"
+			"severity": "Warning"
 		},
 		"unused_methods": {
 			"exclude": [],
