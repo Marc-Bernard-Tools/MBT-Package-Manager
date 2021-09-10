@@ -10,13 +10,6 @@ CLASS /mbtools/cl_tool DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    TYPES:
-      BEGIN OF ty_license,
-        key    TYPE string,
-        valid  TYPE abap_bool,
-        expire TYPE d,
-      END OF ty_license.
-
     CONSTANTS:
       " Global Constant
       BEGIN OF c_reg,
@@ -109,7 +102,7 @@ CLASS /mbtools/cl_tool DEFINITION
     METHODS launch.
     METHODS get_license
       RETURNING
-        VALUE(rs_result) TYPE ty_license.
+        VALUE(rs_result) TYPE /mbtools/if_definitions=>ty_license.
     " Tool License
     METHODS is_licensed
       IMPORTING

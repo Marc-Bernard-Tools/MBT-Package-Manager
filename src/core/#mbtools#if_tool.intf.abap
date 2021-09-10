@@ -10,8 +10,10 @@ INTERFACE /mbtools/if_tool
   TYPES ty_tool TYPE /mbtools/tool.
 
   TYPES ty_manifest TYPE /mbtools/manifest.
-  TYPES:
-    ty_manifests TYPE STANDARD TABLE OF ty_manifest WITH DEFAULT KEY.
+  TYPES ty_manifests TYPE /mbtools/manifests.
+
+  TYPES ty_tool_with_text TYPE /mbtools/tool_with_text.
+  TYPES ty_tools_with_text TYPE /mbtools/tools_with_text.
 
   METHODS title
     RETURNING

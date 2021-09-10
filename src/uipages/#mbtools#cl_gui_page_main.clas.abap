@@ -446,7 +446,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
   METHOD get_description_license.
 
-    DATA ls_license TYPE /mbtools/cl_tool=>ty_license.
+    DATA ls_license TYPE /mbtools/if_definitions=>ty_license.
 
     ls_license = io_tool->get_license( ).
 

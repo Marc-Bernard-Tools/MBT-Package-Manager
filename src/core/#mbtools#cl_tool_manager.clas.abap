@@ -10,10 +10,6 @@ CLASS /mbtools/cl_tool_manager DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    TYPES ty_tool TYPE /mbtools/tool_with_text.
-    TYPES:
-      ty_tools TYPE STANDARD TABLE OF ty_tool WITH DEFAULT KEY.
-
     " Length of MBT Installer package name
     CONSTANTS c_name_length TYPE i VALUE 90 ##NO_TEXT.
 
@@ -48,7 +44,7 @@ CLASS /mbtools/cl_tool_manager DEFINITION
         VALUE(iv_get_tools)   TYPE abap_bool DEFAULT abap_true
         VALUE(iv_admin)       TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(rt_tools)       TYPE ty_tools.
+        VALUE(rt_tools)       TYPE /mbtools/if_tool=>ty_tools_with_text.
     CLASS-METHODS f4
       IMPORTING
         VALUE(iv_pattern)     TYPE csequence OPTIONAL
@@ -375,7 +371,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
   METHOD f4.
 
     DATA:
-      lt_tools  TYPE ty_tools,
+      lt_tools  TYPE /mbtools/if_tool=>ty_tools_with_text,
       ls_return TYPE ddshretval,
       lt_return TYPE TABLE OF ddshretval.
 

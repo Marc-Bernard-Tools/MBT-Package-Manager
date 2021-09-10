@@ -95,10 +95,16 @@ INTERFACE /mbtools/if_definitions
   TYPES:
     BEGIN OF ty_file.
       INCLUDE TYPE ty_file_signature.
-  TYPES: data TYPE xstring,
+      TYPES: data TYPE xstring,
     END OF ty_file.
   TYPES:
     ty_files_tt TYPE STANDARD TABLE OF ty_file WITH DEFAULT KEY.
+  TYPES:
+    BEGIN OF ty_license,
+      key    TYPE string,
+      valid  TYPE abap_bool,
+      expire TYPE d,
+    END OF ty_license.
 
   CONSTANTS c_mbt TYPE string VALUE 'Marc Bernard Tools' ##NO_TEXT.
   CONSTANTS c_namespace TYPE devclass VALUE '/MBTOOLS/' ##NO_TEXT.
