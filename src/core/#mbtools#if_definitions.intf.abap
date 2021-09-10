@@ -95,7 +95,7 @@ INTERFACE /mbtools/if_definitions
   TYPES:
     BEGIN OF ty_file.
       INCLUDE TYPE ty_file_signature.
-      TYPES: data TYPE xstring,
+  TYPES: data TYPE xstring,
     END OF ty_file.
   TYPES:
     ty_files_tt TYPE STANDARD TABLE OF ty_file WITH DEFAULT KEY.
