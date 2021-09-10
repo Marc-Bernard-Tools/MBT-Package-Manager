@@ -122,8 +122,8 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
         lv_parent_path_len = strlen( lv_parent_path ).
         LOOP AT mt_json_tree ASSIGNING <node>.
           IF strlen( <node>-path ) >= lv_parent_path_len
-              AND substring( val = <node>-path
-                             len = lv_parent_path_len ) = lv_parent_path.
+            AND substring( val = <node>-path
+                           len = lv_parent_path_len ) = lv_parent_path.
             DELETE mt_json_tree INDEX sy-tabix.
           ENDIF.
         ENDLOOP.
@@ -500,8 +500,8 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
     ENDIF.
 
     IF iv_node_type IS NOT INITIAL
-        AND iv_node_type <> /mbtools/if_ajson=>node_type-boolean AND iv_node_type <> /mbtools/if_ajson=>node_type-null
-        AND iv_node_type <> /mbtools/if_ajson=>node_type-number AND iv_node_type <> /mbtools/if_ajson=>node_type-string.
+      AND iv_node_type <> /mbtools/if_ajson=>node_type-boolean AND iv_node_type <> /mbtools/if_ajson=>node_type-null
+      AND iv_node_type <> /mbtools/if_ajson=>node_type-number AND iv_node_type <> /mbtools/if_ajson=>node_type-string.
       /mbtools/cx_ajson_error=>raise( |Unexpected type { iv_node_type }| ).
     ENDIF.
 

@@ -10,7 +10,7 @@ INTERFACE /mbtools/if_ajson
 * Released under MIT License: https://opensource.org/licenses/MIT
 ************************************************************************
 
-  CONSTANTS version TYPE string VALUE 'v1.1.0-pre1'. "#EC NOTEXT
+  CONSTANTS version TYPE string VALUE 'v1.1.0'. "#EC NOTEXT
   CONSTANTS origin TYPE string VALUE 'https://github.com/sbcgua/ajson'. "#EC NOTEXT
   CONSTANTS license TYPE string VALUE 'MIT'. "#EC NOTEXT
 
