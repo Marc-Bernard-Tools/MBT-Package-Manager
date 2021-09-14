@@ -2,15 +2,13 @@ CLASS /mbtools/cl_html_viewer DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
-************************************************************************
-* MBT HTML Viewer
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - HTML Viewer
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   PUBLIC SECTION.
 
     INTERFACES /mbtools/if_html_viewer .

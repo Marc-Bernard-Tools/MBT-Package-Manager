@@ -1,14 +1,12 @@
 INTERFACE /mbtools/if_html
   PUBLIC .
-************************************************************************
-* MBT HTML
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - HTML
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   CONSTANTS:
     BEGIN OF c_action_type,
       sapevent  TYPE c VALUE 'E',

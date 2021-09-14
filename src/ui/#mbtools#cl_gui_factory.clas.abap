@@ -1,15 +1,13 @@
 CLASS /mbtools/cl_gui_factory DEFINITION
   PUBLIC
   CREATE PRIVATE.
-************************************************************************
-* MBT GUI Factory
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - GUI  Factory
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   PUBLIC SECTION.
 
     CLASS-METHODS get_asset_manager

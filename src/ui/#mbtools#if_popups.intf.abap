@@ -1,14 +1,11 @@
 INTERFACE /mbtools/if_popups
   PUBLIC .
 
-
 ************************************************************************
-* MBT Popups
+* Marc Bernard Tools - Popups
 *
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
 ************************************************************************
   METHODS popup_search_help
     IMPORTING

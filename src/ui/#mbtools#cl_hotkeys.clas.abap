@@ -3,15 +3,13 @@ CLASS /mbtools/cl_hotkeys DEFINITION
   INHERITING FROM /mbtools/cl_gui_component
   FINAL
   CREATE PUBLIC .
-************************************************************************
-* MBT Hotkeys
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - Hotkeys
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   PUBLIC SECTION.
 
     INTERFACES /mbtools/if_gui_hotkey_ctl .

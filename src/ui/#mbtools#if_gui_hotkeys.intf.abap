@@ -1,14 +1,12 @@
 INTERFACE /mbtools/if_gui_hotkeys
   PUBLIC .
-************************************************************************
-* MBT GUI Hotkey Definitions
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - GUI Hotkey Definitions
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   TYPES:
     BEGIN OF ty_hotkey_with_descr,
       ui_component TYPE string,

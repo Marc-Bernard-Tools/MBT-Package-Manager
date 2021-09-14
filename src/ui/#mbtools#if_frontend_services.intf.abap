@@ -1,14 +1,12 @@
 INTERFACE /mbtools/if_frontend_services
   PUBLIC .
-************************************************************************
-* MBT Frontend Services
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - Frontend Services
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   METHODS file_upload
     IMPORTING
       !iv_path       TYPE string

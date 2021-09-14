@@ -2,15 +2,13 @@ CLASS /mbtools/cl_gui_css_processor DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
-************************************************************************
-* MBT GUI CSS Processor
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - GUI CSS Processor
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   PUBLIC SECTION.
 
     METHODS constructor

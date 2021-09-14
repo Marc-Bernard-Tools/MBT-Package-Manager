@@ -2,15 +2,13 @@ CLASS /mbtools/cl_url DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
-************************************************************************
-* MBT Login Manager
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - URL
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   PUBLIC SECTION.
 
     CLASS-METHODS validate

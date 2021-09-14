@@ -1,15 +1,13 @@
 CLASS /mbtools/cl_exception_viewer DEFINITION
   PUBLIC
   CREATE PUBLIC .
-************************************************************************
-* MBT Exception Viewer
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - Exception Viewer
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   PUBLIC SECTION.
 
     METHODS constructor

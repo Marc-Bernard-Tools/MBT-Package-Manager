@@ -3,11 +3,11 @@ CLASS /mbtools/cl_hash DEFINITION
   CREATE PUBLIC .
 
 ************************************************************************
-* MBT Hash Functions
+* Marc Bernard Tools - Hash Functions
 *
-* (c) MBT 2020 https://marcbernardtools.com/
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
 ************************************************************************
-
   PUBLIC SECTION.
 
     CLASS-METHODS sha1

@@ -2,15 +2,13 @@ CLASS /mbtools/cl_frontend_services DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
-************************************************************************
-* MBT Frontend Services
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - Frontend Services
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   PUBLIC SECTION.
 
     INTERFACES /mbtools/if_frontend_services .
@@ -20,7 +18,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_FRONTEND_SERVICES IMPLEMENTATION.
+CLASS /mbtools/cl_frontend_services IMPLEMENTATION.
 
 
   METHOD /mbtools/if_frontend_services~file_download.

@@ -4,12 +4,10 @@ CLASS /mbtools/cl_html_lib DEFINITION
   CREATE PUBLIC .
 
 ************************************************************************
-* MBT HTML Library
+* Marc Bernard Tools - HTML Library
 *
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
 ************************************************************************
   PUBLIC SECTION.
 

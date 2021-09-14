@@ -1,14 +1,12 @@
 INTERFACE /mbtools/if_gui_asset_manager
   PUBLIC .
-************************************************************************
-* MBT GUI Asset Manager
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - GUI Asset Manager
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   TYPES:
     BEGIN OF ty_web_asset,
       url          TYPE w3url,

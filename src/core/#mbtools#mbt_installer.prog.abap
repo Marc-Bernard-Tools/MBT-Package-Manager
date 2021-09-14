@@ -1,12 +1,9 @@
 REPORT /mbtools/mbt_installer.
 
 ************************************************************************
-* MBT Installer
+* Marc Bernard Tools - Installer
 *
-* This program installs and uninstalls any Marc Bernard Tool
-*
-* Copyright (c) 2021 Marc Bernard Tools
-* https://marcbernardtools.com/
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -20,6 +17,8 @@ REPORT /mbtools/mbt_installer.
 *
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see https://www.gnu.org/licenses/.
+*
+* SPDX-License-Identifier: GPL-3.0-or-later
 ************************************************************************
 
 CONSTANTS:
@@ -142,7 +141,7 @@ CLASS zcx_abapgit_exception DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    CONSTANTS gc_generic_error_msg TYPE string VALUE `An error occured (ZCX_ABAPGIT_EXCEPTION)` ##NO_TEXT.
+    CONSTANTS c_generic_error_msg TYPE string VALUE `An error occured (ZCX_ABAPGIT_EXCEPTION)` ##NO_TEXT.
 
     CLASS-METHODS split_text_to_symsg
       IMPORTING
@@ -354,7 +353,7 @@ CLASS zcx_abapgit_exception IMPLEMENTATION.
     DATA lv_text TYPE string.
 
     IF iv_text IS INITIAL.
-      lv_text = gc_generic_error_msg.
+      lv_text = c_generic_error_msg.
     ELSE.
       lv_text = iv_text.
     ENDIF.
@@ -1495,16 +1494,17 @@ INTERFACE zif_abapgit_definitions
     END OF ty_ancestor .
   TYPES:
     BEGIN OF ty_repo_item,
-      obj_type TYPE tadir-object,
-      obj_name TYPE tadir-obj_name,
-      inactive TYPE abap_bool,
-      sortkey  TYPE i,
-      path     TYPE string,
-      is_dir   TYPE abap_bool,
-      changes  TYPE i,
-      lstate   TYPE c LENGTH 1,
-      rstate   TYPE c LENGTH 1,
-      files    TYPE ty_repo_file_tt,
+      obj_type   TYPE tadir-object,
+      obj_name   TYPE tadir-obj_name,
+      inactive   TYPE abap_bool,
+      sortkey    TYPE i,
+      path       TYPE string,
+      is_dir     TYPE abap_bool,
+      changes    TYPE i,
+      lstate     TYPE c LENGTH 1,
+      rstate     TYPE c LENGTH 1,
+      files      TYPE ty_repo_file_tt,
+      changed_by TYPE xubname,
     END OF ty_repo_item .
   TYPES:
     ty_repo_item_tt TYPE STANDARD TABLE OF ty_repo_item WITH DEFAULT KEY .
@@ -1683,9 +1683,9 @@ INTERFACE zif_abapgit_definitions
     END OF c_action.
   CONSTANTS c_spagpa_param_repo_key TYPE c LENGTH 20 VALUE 'REPO_KEY' ##NO_TEXT.
   CONSTANTS c_spagpa_param_package TYPE c LENGTH 20 VALUE 'PACKAGE' ##NO_TEXT.
-  CONSTANTS gc_yes TYPE ty_yes_no VALUE 'Y'.
-  CONSTANTS gc_no TYPE ty_yes_no VALUE 'N'.
-  CONSTANTS gc_partial TYPE ty_yes_no_partial VALUE 'P'.
+  CONSTANTS c_yes TYPE ty_yes_no VALUE 'Y'.
+  CONSTANTS c_no TYPE ty_yes_no VALUE 'N'.
+  CONSTANTS c_partial TYPE ty_yes_no_partial VALUE 'P'.
 
   TYPES:
     ty_method TYPE c LENGTH 1 .
@@ -8039,20 +8039,68 @@ CLASS lcl_json_parser DEFINITION FINAL.
       RAISING
         zcx_abapgit_ajson_error cx_sxml_error.
 
+    methods _get_location
+      importing
+        iv_json            type string
+        iv_offset          type i
+      returning
+        value(rv_location) type string.
+
 ENDCLASS.
 
 CLASS lcl_json_parser IMPLEMENTATION.
 
-  METHOD parse.
-    DATA lx_sxml TYPE REF TO cx_sxml_error.
-    TRY.
-        rt_json_tree = _parse( iv_json ).
-      CATCH cx_sxml_error INTO lx_sxml.
+  method parse.
+    data lx_sxml type ref to cx_sxml_parse_error.
+    data lv_location type string.
+    try.
+      rt_json_tree = _parse( iv_json ).
+    catch cx_sxml_parse_error into lx_sxml.
+        lv_location = _get_location(
+          iv_json   = iv_json
+          iv_offset = lx_sxml->xml_offset ).
         zcx_abapgit_ajson_error=>raise(
-        iv_msg      = |Json parsing error (SXML): { lx_sxml->get_text( ) }|
-        iv_location = '@PARSER' ).
-    ENDTRY.
-  ENDMETHOD.
+          iv_msg      = |Json parsing error (SXML): { lx_sxml->get_text( ) }|
+          iv_location = lv_location ).
+    endtry.
+  endmethod.
+
+  method _get_location.
+
+    data lv_json type string.
+    data lv_offset type i.
+    data lt_text type table of string.
+    data lv_text type string.
+    data lv_line type i.
+    data lv_pos type i.
+
+    lv_offset = iv_offset.
+    if lv_offset < 0.
+      lv_offset = 0.
+    endif.
+    if lv_offset > strlen( iv_json ).
+      lv_offset = strlen( iv_json ).
+    endif.
+
+    lv_json = iv_json(lv_offset).
+
+    replace all occurrences of cl_abap_char_utilities=>cr_lf
+      in lv_json with cl_abap_char_utilities=>newline.
+
+    split lv_json at cl_abap_char_utilities=>newline into table lt_text.
+
+    lv_line = lines( lt_text ).
+    if lv_line = 0.
+      lv_line = 1.
+      lv_pos = 1.
+    else.
+      read table lt_text index lv_line into lv_text.
+      lv_pos = strlen( lv_text ) + 1.
+    endif.
+
+    rv_location = |Line { lv_line }, Offset { lv_pos }|.
+
+  endmethod.
 
   METHOD _parse.
 
@@ -8956,7 +9004,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
       <n>-type = zif_abapgit_ajson=>node_type-number.
       <n>-value = |{ iv_data }|.
     ELSE.
-      zcx_abapgit_ajson_error=>raise( |Unexpected elemetary type [{
+      zcx_abapgit_ajson_error=>raise( |Unexpected elementary type [{
         io_type->type_kind }] @{ is_prefix-path && is_prefix-name }| ).
     ENDIF.
 
@@ -9592,6 +9640,8 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       zcx_abapgit_ajson_error=>raise( 'This json instance is read only' ).
     ENDIF.
 
+    ri_json = me.
+
     IF iv_val IS INITIAL AND iv_ignore_empty = abap_true AND iv_node_type IS INITIAL.
       RETURN. " nothing to assign
     ENDIF.
@@ -9662,12 +9712,12 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
     lr_parent->children = lr_parent->children + 1.
     INSERT LINES OF lt_new_nodes INTO TABLE mt_json_tree.
 
-    ri_json = me.
-
   ENDMETHOD.
 
 
   METHOD zif_abapgit_ajson~set_boolean.
+
+    ri_json = me.
 
     DATA lv_bool TYPE abap_bool.
     lv_bool = boolc( iv_val IS NOT INITIAL ).
@@ -9676,15 +9726,14 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       iv_path = iv_path
       iv_val  = lv_bool ).
 
-    ri_json = me.
-
   ENDMETHOD.
 
 
   METHOD zif_abapgit_ajson~set_date.
 
-    DATA lv_val TYPE string.
+    ri_json = me.
 
+    DATA lv_val TYPE string.
     IF iv_val IS NOT INITIAL.
       lv_val = iv_val+0(4) && '-' && iv_val+4(2) && '-' && iv_val+6(2).
     ENDIF.
@@ -9694,24 +9743,24 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       iv_path = iv_path
       iv_val  = lv_val ).
 
-    ri_json = me.
-
   ENDMETHOD.
 
 
   METHOD zif_abapgit_ajson~set_integer.
+
+    ri_json = me.
 
     zif_abapgit_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = iv_val ).
 
-    ri_json = me.
-
   ENDMETHOD.
 
 
   METHOD zif_abapgit_ajson~set_null.
+
+    ri_json = me.
 
     DATA lv_null_ref TYPE REF TO data.
     zif_abapgit_ajson~set(
@@ -9719,12 +9768,12 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       iv_path = iv_path
       iv_val  = lv_null_ref ).
 
-    ri_json = me.
-
   ENDMETHOD.
 
 
   METHOD zif_abapgit_ajson~set_string.
+
+    ri_json = me.
 
     DATA lv_val TYPE string.
     lv_val = iv_val.
@@ -9732,8 +9781,6 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_val ).
-
-    ri_json = me.
 
   ENDMETHOD.
 
@@ -9746,6 +9793,8 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       lv_date          TYPE d,
       lv_time          TYPE t,
       lv_timestamp_iso TYPE string.
+
+    ri_json = me.
 
     IF iv_val IS INITIAL.
       " The zero value is January 1, year 1, 00:00:00.000000000 UTC.
@@ -9767,8 +9816,6 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_timestamp_iso ).
-
-    ri_json = me.
 
   ENDMETHOD.
 
@@ -28514,7 +28561,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_REQUIREMENT_HELPER IMPLEMENTATION.
+CLASS zcl_abapgit_requirement_helper IMPLEMENTATION.
 
 
   METHOD get_requirement_met_status.
@@ -28571,9 +28618,9 @@ CLASS ZCL_ABAPGIT_REQUIREMENT_HELPER IMPLEMENTATION.
 
     READ TABLE lt_met_status TRANSPORTING NO FIELDS WITH KEY met = abap_false.
     IF sy-subrc = 0.
-      rv_status = zif_abapgit_definitions=>gc_no.
+      rv_status = zif_abapgit_definitions=>c_no.
     ELSE.
-      rv_status = zif_abapgit_definitions=>gc_yes.
+      rv_status = zif_abapgit_definitions=>c_yes.
     ENDIF.
 
   ENDMETHOD.
@@ -31934,7 +31981,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
     TRY.
         lv_met = zcl_abapgit_requirement_helper=>is_requirements_met( gt_requirements ).
 
-        IF lv_met = zif_abapgit_definitions=>gc_no.
+        IF lv_met = zif_abapgit_definitions=>c_no.
           zcx_abapinst_exception=>raise( |Minimum requirements for software components have not been met| ).
         ENDIF.
       CATCH zcx_abapgit_exception INTO lx_error.

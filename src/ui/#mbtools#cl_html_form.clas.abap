@@ -2,15 +2,13 @@ CLASS /mbtools/cl_html_form DEFINITION
   PUBLIC
   FINAL
   CREATE PRIVATE .
-************************************************************************
-* MBT HTML Form
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - HTML Form
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   PUBLIC SECTION.
 
     CONSTANTS c_rows TYPE string VALUE 'rows' ##NO_TEXT.

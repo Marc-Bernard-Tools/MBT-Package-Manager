@@ -4,9 +4,10 @@ CLASS /mbtools/cl_utilities DEFINITION
   CREATE PUBLIC.
 
 ************************************************************************
-* MBT Utilities
+* Marc Bernard Tools - Utilities
 *
-* (c) MBT 2020 https://marcbernardtools.com/
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
 ************************************************************************
   PUBLIC SECTION.
 

@@ -2,15 +2,13 @@ CLASS /mbtools/cl_gui_component DEFINITION
   PUBLIC
   ABSTRACT
   CREATE PUBLIC .
-************************************************************************
-* MBT GUI Component
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - GUI Component
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   PUBLIC SECTION.
 
     CONSTANTS:
@@ -37,7 +35,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_GUI_COMPONENT IMPLEMENTATION.
+CLASS /mbtools/cl_gui_component IMPLEMENTATION.
 
 
   METHOD gui_services.

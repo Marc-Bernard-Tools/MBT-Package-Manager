@@ -1,14 +1,12 @@
 INTERFACE /mbtools/if_gui_event
   PUBLIC.
-************************************************************************
-* MBT GUI Event
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - GUI Event
+*
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
+************************************************************************
   DATA mv_action TYPE string READ-ONLY.
   DATA mv_getdata TYPE string READ-ONLY.
   DATA mt_postdata TYPE cnht_post_data_tab READ-ONLY.

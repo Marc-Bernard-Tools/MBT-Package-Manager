@@ -3,6 +3,12 @@ CLASS /mbtools/cl_gui_buttons DEFINITION
   FINAL
   CREATE PUBLIC .
 
+************************************************************************
+* Marc Bernard Tools - GUI Buttons
+*
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
+************************************************************************
   PUBLIC SECTION.
     CLASS-METHODS admin
       RETURNING VALUE(rv_html_string) TYPE string.

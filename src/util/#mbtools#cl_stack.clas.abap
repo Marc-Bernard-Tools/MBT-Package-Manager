@@ -4,14 +4,14 @@ CLASS /mbtools/cl_stack DEFINITION
   CREATE PUBLIC .
 
 ************************************************************************
-* MBT Stack
+* Marc Bernard Tools - Stack
 *
 * Based on https://blogs.sap.com/2017/03/25/noitab-a-stack/
 * by Jacques Nomssi Nzali
 *
-* (c) MBT 2020 https://marcbernardtools.com/
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
 ************************************************************************
-
   PUBLIC SECTION.
     METHODS push
       IMPORTING

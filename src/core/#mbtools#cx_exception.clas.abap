@@ -1,9 +1,14 @@
-"! abapGit general error
 CLASS /mbtools/cx_exception DEFINITION
   PUBLIC
   INHERITING FROM cx_static_check
   CREATE PUBLIC .
 
+************************************************************************
+* Marc Bernard Tools - Exception
+*
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
+************************************************************************
   PUBLIC SECTION.
 
     INTERFACES if_t100_message .

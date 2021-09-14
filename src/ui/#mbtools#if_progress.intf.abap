@@ -1,14 +1,12 @@
 INTERFACE /mbtools/if_progress
   PUBLIC .
-************************************************************************
-* MBT Progress Indicator
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - Progress Indicator
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   METHODS hide.
   METHODS show
     IMPORTING

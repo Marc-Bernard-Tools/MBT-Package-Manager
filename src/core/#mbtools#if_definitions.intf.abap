@@ -2,9 +2,10 @@ INTERFACE /mbtools/if_definitions
   PUBLIC.
 
 ************************************************************************
-* MBT Definitions
+* Marc Bernard Tools - Definitions
 *
-* (c) MBT 2020 https://marcbernardtools.com/
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
 ************************************************************************
   TYPES:
     ty_icon TYPE c LENGTH 4. " icon_d

@@ -4,12 +4,10 @@ CLASS /mbtools/cl_proxy_config DEFINITION
   CREATE PUBLIC .
 
 ************************************************************************
-* MBT Proxy Configuration
+* Marc Bernard Tools - Proxy Configuration
 *
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
 ************************************************************************
   PUBLIC SECTION.
 

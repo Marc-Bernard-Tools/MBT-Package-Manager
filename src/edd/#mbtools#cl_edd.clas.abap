@@ -4,11 +4,12 @@ CLASS /mbtools/cl_edd DEFINITION
   CREATE PUBLIC.
 
 ************************************************************************
-* MBT Easy Digital Downloads API
+* Marc Bernard Tools - Easy Digital Downloads API
 *
 * https://docs.easydigitaldownloads.com/article/384-software-licensing-api
 *
-* (c) MBT 2020 https://marcbernardtools.com/
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
 ************************************************************************
   PUBLIC SECTION.
 

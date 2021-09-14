@@ -1,7 +1,12 @@
 INTERFACE /mbtools/if_html_viewer
   PUBLIC .
 
-
+************************************************************************
+* Marc Bernard Tools - HTML Viewer
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   CONSTANTS c_id_sapevent TYPE i VALUE 1 ##NO_TEXT.
 
   EVENTS sapevent

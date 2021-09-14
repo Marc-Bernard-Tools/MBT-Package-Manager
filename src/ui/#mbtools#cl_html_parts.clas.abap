@@ -2,15 +2,13 @@ CLASS /mbtools/cl_html_parts DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
-************************************************************************
-* MBT HTML Parts
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - HTML Parts
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   PUBLIC SECTION.
 
     METHODS add_part
@@ -54,7 +52,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_HTML_PARTS IMPLEMENTATION.
+CLASS /mbtools/cl_html_parts IMPLEMENTATION.
 
 
   METHOD add_part.

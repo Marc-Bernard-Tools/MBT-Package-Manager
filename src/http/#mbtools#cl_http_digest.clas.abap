@@ -1,15 +1,13 @@
 CLASS /mbtools/cl_http_digest DEFINITION
   PUBLIC
   CREATE PUBLIC .
-************************************************************************
-* MBT HTTP Digest Authentication
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - HTTP Digest Authentication
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   PUBLIC SECTION.
 
     METHODS constructor

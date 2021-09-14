@@ -4,14 +4,11 @@ CLASS /mbtools/cl_gui_router DEFINITION
   CREATE PUBLIC .
 
 ************************************************************************
-* MBT GUI Router
+* Marc Bernard Tools - GUI Router
 *
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
 ************************************************************************
-
   PUBLIC SECTION.
 
     INTERFACES /mbtools/if_gui_event_handler .

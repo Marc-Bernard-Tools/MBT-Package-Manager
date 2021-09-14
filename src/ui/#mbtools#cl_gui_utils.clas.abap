@@ -2,15 +2,13 @@ CLASS /mbtools/cl_gui_utils DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
-************************************************************************
-* MBT GUI Utilities
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - GUI Utilities
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   PUBLIC SECTION.
 
     CLASS-METHODS is_renderable
@@ -29,7 +27,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_GUI_UTILS IMPLEMENTATION.
+CLASS /mbtools/cl_gui_utils IMPLEMENTATION.
 
 
   METHOD is_event_handler.

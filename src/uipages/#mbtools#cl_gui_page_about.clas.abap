@@ -5,11 +5,11 @@ CLASS /mbtools/cl_gui_page_about DEFINITION
   CREATE PUBLIC .
 
 ************************************************************************
-* MBT GUI Page About
+* Marc Bernard Tools - GUI Page About
 *
-* (c) MBT 2020 https://marcbernardtools.com/
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
 ************************************************************************
-
   PUBLIC SECTION.
 
     INTERFACES /mbtools/if_gui_event_handler .

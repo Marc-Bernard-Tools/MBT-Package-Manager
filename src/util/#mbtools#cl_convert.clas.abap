@@ -3,14 +3,11 @@ CLASS /mbtools/cl_convert DEFINITION
   CREATE PUBLIC .
 
 ************************************************************************
-* MBT Conversions
+* Marc Bernard Tools - Conversions
 *
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
 ************************************************************************
-
   PUBLIC SECTION.
 
     CLASS-METHODS base64_to_xstring

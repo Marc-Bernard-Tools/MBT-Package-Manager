@@ -2,15 +2,13 @@ CLASS /mbtools/cl_progress DEFINITION
   PUBLIC
   FINAL
   CREATE PROTECTED .
-************************************************************************
-* MBT Progress Indicator
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - Progress Indicator
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   PUBLIC SECTION.
 
     INTERFACES /mbtools/if_progress .
@@ -44,7 +42,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_PROGRESS IMPLEMENTATION.
+CLASS /mbtools/cl_progress IMPLEMENTATION.
 
 
   METHOD /mbtools/if_progress~hide.

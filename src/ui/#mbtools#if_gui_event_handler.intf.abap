@@ -1,14 +1,11 @@
 INTERFACE /mbtools/if_gui_event_handler
   PUBLIC .
 
-
 ************************************************************************
-* MBT GUI Event Handler
+* Marc Bernard Tools - GUI Error Handler
 *
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
 ************************************************************************
   TYPES:
     BEGIN OF ty_handling_result,

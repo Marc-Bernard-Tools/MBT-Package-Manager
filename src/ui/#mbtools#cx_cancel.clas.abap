@@ -4,6 +4,12 @@ CLASS /mbtools/cx_cancel DEFINITION
   FINAL
   CREATE PUBLIC .
 
+************************************************************************
+* Marc Bernard Tools - Exception for Cancelling Action
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   PUBLIC SECTION.
 
     METHODS constructor

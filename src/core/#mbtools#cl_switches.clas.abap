@@ -4,12 +4,13 @@ CLASS /mbtools/cl_switches DEFINITION
   CREATE PUBLIC.
 
 ************************************************************************
-* MBT Switches
+* Marc Bernard Tools - Switches
 *
 * WARNING: DO NOT CHANGE!
 * Syntax errors in this class may impact system stability
 *
-* (c) MBT 2020 https://marcbernardtools.com/
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
 ************************************************************************
   PUBLIC SECTION.
 

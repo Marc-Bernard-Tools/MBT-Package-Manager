@@ -1,10 +1,9 @@
 REPORT /mbtools/mbt_support.
 
 ************************************************************************
-* MBT Support
+* Marc Bernard Tools - Support
 *
-* Copyright (c) 2021 Marc Bernard Tools
-* https://marcbernardtools.com/
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,6 +17,8 @@ REPORT /mbtools/mbt_support.
 *
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see https://www.gnu.org/licenses/.
+*
+* SPDX-License-Identifier: GPL-3.0-or-later
 ************************************************************************
 
 TABLES:

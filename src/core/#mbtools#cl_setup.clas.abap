@@ -3,6 +3,12 @@ CLASS /mbtools/cl_setup DEFINITION
   FINAL
   CREATE PUBLIC.
 
+************************************************************************
+* Marc Bernard Tools - Setup
+*
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
+************************************************************************
   PUBLIC SECTION.
 
     CLASS-METHODS class_constructor.

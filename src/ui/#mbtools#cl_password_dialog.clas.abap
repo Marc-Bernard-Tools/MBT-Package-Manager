@@ -2,15 +2,13 @@ CLASS /mbtools/cl_password_dialog DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
-************************************************************************
-* MBT Password Popup
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - Password Popup
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   PUBLIC SECTION.
 
     CLASS-METHODS popup
@@ -25,7 +23,7 @@ ENDCLASS.
 
 
 
-CLASS /MBTOOLS/CL_PASSWORD_DIALOG IMPLEMENTATION.
+CLASS /mbtools/cl_password_dialog IMPLEMENTATION.
 
 
   METHOD popup.

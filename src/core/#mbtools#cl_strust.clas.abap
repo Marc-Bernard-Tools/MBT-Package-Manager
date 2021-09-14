@@ -1,14 +1,20 @@
 CLASS /mbtools/cl_strust DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
+************************************************************************
+* Marc Bernard Tools - Trust Management
+*
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
+************************************************************************
   PUBLIC SECTION.
 
     TYPES:
-      ty_line        TYPE c LENGTH 80 .
+      ty_line        TYPE c LENGTH 80.
     TYPES:
-      ty_certificate TYPE STANDARD TABLE OF ty_line WITH DEFAULT KEY .
+      ty_certificate TYPE STANDARD TABLE OF ty_line WITH DEFAULT KEY.
     TYPES:
       BEGIN OF ty_certattr,
         subject     TYPE string,
@@ -19,48 +25,48 @@ CLASS /mbtools/cl_strust DEFINITION
         datefrom    TYPE d,
         dateto      TYPE d,
         certificate TYPE xstring,
-      END OF ty_certattr .
+      END OF ty_certattr.
     TYPES:
-      ty_certattr_tt TYPE STANDARD TABLE OF ty_certattr WITH DEFAULT KEY .
+      ty_certattr_tt TYPE STANDARD TABLE OF ty_certattr WITH DEFAULT KEY.
 
     METHODS constructor
       IMPORTING
         !iv_context TYPE psecontext
         !iv_applic  TYPE ssfappl
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS load
       IMPORTING
         !iv_create TYPE abap_bool DEFAULT abap_false
         !iv_id     TYPE ssfid OPTIONAL
         !iv_org    TYPE string OPTIONAL
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS add
       IMPORTING
         !it_certificate TYPE ty_certificate
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS get_own_certificate
       RETURNING
         VALUE(rs_result) TYPE ty_certattr
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS get_certificate_list
       RETURNING
         VALUE(rt_result) TYPE ty_certattr_tt
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS remove
       IMPORTING
         VALUE(iv_subject) TYPE string
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS update
       RETURNING
         VALUE(rt_result) TYPE ty_certattr_tt
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
   PROTECTED SECTION.
   PRIVATE SECTION.
 

@@ -1,14 +1,12 @@
 INTERFACE /mbtools/if_gui_hotkey_ctl
   PUBLIC .
-************************************************************************
-* MBT GUI Hotkey Controller
-*
-* Original Author: Copyright (c) 2014 abapGit Contributors
-* http://www.abapgit.org
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-************************************************************************
 
+************************************************************************
+* Marc Bernard Tools - GUI Hotkey Controller
+*
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
+************************************************************************
   METHODS register_hotkeys
     IMPORTING
       !ii_hotkeys TYPE REF TO /mbtools/if_gui_hotkeys .
