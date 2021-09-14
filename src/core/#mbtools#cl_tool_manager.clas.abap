@@ -656,6 +656,8 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
+    rv_result = abap_true.
+
   ENDMETHOD.
 
 
