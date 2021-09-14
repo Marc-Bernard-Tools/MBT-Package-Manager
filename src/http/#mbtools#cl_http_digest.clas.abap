@@ -122,9 +122,9 @@ CLASS /mbtools/cl_http_digest IMPLEMENTATION.
 
     lv_value = ii_client->response->get_header_field( 'www-authenticate' ) ##NO_TEXT.
 
-    FIND REGEX 'realm="([\w ]+)"' IN lv_value SUBMATCHES mv_realm ##NO_TEXT.
-    FIND REGEX 'qop="(\w+)"' IN lv_value SUBMATCHES mv_qop ##NO_TEXT.
-    FIND REGEX 'nonce="([\w=/+\$]+)"' IN lv_value SUBMATCHES mv_nonce ##NO_TEXT.
+    FIND REGEX 'realm="([\w ]+)"' IN lv_value SUBMATCHES mv_realm ##NO_TEXT ##SUBRC_OK.
+    FIND REGEX 'qop="(\w+)"' IN lv_value SUBMATCHES mv_qop ##NO_TEXT ##SUBRC_OK.
+    FIND REGEX 'nonce="([\w=/+\$]+)"' IN lv_value SUBMATCHES mv_nonce ##NO_TEXT ##SUBRC_OK.
 
   ENDMETHOD.
 

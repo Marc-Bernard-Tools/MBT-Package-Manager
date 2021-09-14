@@ -112,7 +112,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
     ENDIF.
 
     rv_scheme = ii_client->response->get_header_field( 'www-authenticate' ).
-    FIND REGEX '^(\w+)' IN rv_scheme SUBMATCHES rv_scheme.
+    FIND REGEX '^(\w+)' IN rv_scheme SUBMATCHES rv_scheme ##SUBRC_OK.
 
     CASE rv_scheme.
       WHEN c_scheme-digest.
@@ -366,7 +366,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
     <ls_list>-hostname = 'localhost'.
 
     FIND REGEX 'https?://([^/^:]*)' IN iv_url
-      SUBMATCHES lv_host.
+      SUBMATCHES lv_host ##SUBRC_OK.
 
     READ TABLE lt_list WITH KEY hostname = lv_host TRANSPORTING NO FIELDS ##WARN_OK.
     rv_bool = boolc( sy-subrc = 0 ).

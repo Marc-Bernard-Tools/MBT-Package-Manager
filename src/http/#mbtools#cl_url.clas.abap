@@ -114,7 +114,7 @@ CLASS /mbtools/cl_url IMPLEMENTATION.
     DATA: lv_host TYPE string ##NEEDED.
 
     FIND REGEX '(.*://[^/]*)(.*)' IN iv_url
-      SUBMATCHES lv_host rv_path_name.
+      SUBMATCHES lv_host rv_path_name ##SUBRC_OK.
 
   ENDMETHOD.
 

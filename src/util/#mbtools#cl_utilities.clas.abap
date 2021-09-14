@@ -306,9 +306,11 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
           WHEN c_property-database.
             ev_value = get_db_release( )-srvrel.
           WHEN c_property-database_release.
-            FIND FIRST OCCURRENCE OF REGEX '(\d+)\.\d+\.*' IN get_db_release( )-srvrel SUBMATCHES ev_value.
+            FIND FIRST OCCURRENCE OF REGEX '(\d+)\.\d+\.*' IN get_db_release( )-srvrel
+              SUBMATCHES ev_value ##SUBRC_OK.
           WHEN c_property-database_patch.
-            FIND FIRST OCCURRENCE OF REGEX '\d+\.(\d+)\.*' IN get_db_release( )-srvrel SUBMATCHES ev_value.
+            FIND FIRST OCCURRENCE OF REGEX '\d+\.(\d+)\.*' IN get_db_release( )-srvrel
+              SUBMATCHES ev_value ##SUBRC_OK.
           WHEN c_property-dbsl_release.
             SPLIT get_db_release( )-dbsl_vers AT '.' INTO ev_value lv_property.
           WHEN c_property-dbsl_patch.

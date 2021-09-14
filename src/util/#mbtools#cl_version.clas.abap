@@ -159,12 +159,12 @@ CLASS /mbtools/cl_version IMPLEMENTATION.
     SPLIT iv_version AT '-' INTO lv_version lv_prerelease.
 
     FIND FIRST OCCURRENCE OF REGEX lc_version_pattern
-      IN lv_version SUBMATCHES lv_version_n.
+      IN lv_version SUBMATCHES lv_version_n ##SUBRC_OK.
 
     IF lv_prerelease IS NOT INITIAL.
 
       FIND FIRST OCCURRENCE OF REGEX lc_prerelease_pattern
-        IN lv_prerelease SUBMATCHES lv_prerelease_n.
+        IN lv_prerelease SUBMATCHES lv_prerelease_n ##SUBRC_OK.
 
     ENDIF.
 
