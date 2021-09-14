@@ -804,25 +804,14 @@
 			"severity": "Error"
 		},
 		"unused_types": {
-			"exclude": [
-				"#mbtools#.*_ajson.*",
-				"#mbtools#if_definitions.intf.abap"
-			],
+			"exclude": [],
 			"severity": "Error",
 			"skipNames": []
 		},
 		"unused_variables": {
-			"exclude": [
-				"#mbtools#cl_datetime.clas.abap",
-				"#mbtools#cl_tree.clas.abap"
-			],
+			"exclude": [],
 			"severity": "Error",
-			"skipNames": [
-				"C_TITLE",
-				"C_TOOL",
-				"IO_TOOL",
-				"RV_RESULT"
-			]
+			"skipNames": []
 		},
 		"use_bool_expression": {
 			"exclude": [],
