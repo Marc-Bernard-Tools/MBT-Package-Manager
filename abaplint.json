@@ -804,9 +804,14 @@
 			"severity": "Error"
 		},
 		"unused_types": {
+			"exclude": [
+				"#mbtools#if_definitions.intf.abap"
+			],
 			"exclude": [],
 			"severity": "Error",
-			"skipNames": []
+			"skipNames": [
+				"C_TOOL"
+			]
 		},
 		"unused_variables": {
 			"exclude": [],
