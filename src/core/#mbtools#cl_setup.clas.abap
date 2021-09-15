@@ -228,8 +228,9 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
         IF gv_drop = abap_true.
           lo_strust->remove( c_subject ).
         ELSE.
-          lo_strust->add( _get_certificate_ca( ) ).
-          lo_strust->add( _get_certificate_ica( ) ).
+          " Root and intermediate certificates
+          " lo_strust->add( _get_certificate_ca( ) )
+          " lo_strust->add( _get_certificate_ica( ) )
           lo_strust->add( _get_certificate_mbt( ) ).
           lo_strust->update( ).
         ENDIF.
