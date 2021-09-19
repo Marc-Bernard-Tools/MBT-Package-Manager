@@ -4,12 +4,10 @@ CLASS /mbtools/cl_string_map DEFINITION
   CREATE PUBLIC.
 
 ************************************************************************
-* abap string map
+* abap json (AJSON)
 *
-* Original Author: Copyright (c) 2020 Alexander Tsybulsky
-* https://github.com/sbcgua/abap-string-map
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
+* Copyright 2020 Alexander Tsybulsky <https://github.com/sbcgua/abap-string-map>
+* SPDX-License-Identifier: MIT
 ************************************************************************
 
   PUBLIC SECTION.
