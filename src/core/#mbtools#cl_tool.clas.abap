@@ -962,8 +962,7 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
     DATA:
       lo_reg_tool   TYPE REF TO /mbtools/cl_registry,
-      lo_reg_bundle TYPE REF TO /mbtools/cl_registry,
-      lo_reg_entry  TYPE REF TO /mbtools/cl_registry.
+      lo_reg_bundle TYPE REF TO /mbtools/cl_registry.
 
     TRY.
         " Is tool already registered?

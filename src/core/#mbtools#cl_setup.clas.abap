@@ -44,12 +44,6 @@ CLASS /mbtools/cl_setup DEFINITION
 
     CLASS-METHODS _application_log.
     CLASS-METHODS _certificates.
-    CLASS-METHODS _get_certificate_ca
-      RETURNING
-        VALUE(rt_result) TYPE /mbtools/cl_strust=>ty_certificate.
-    CLASS-METHODS _get_certificate_ica
-      RETURNING
-        VALUE(rt_result) TYPE /mbtools/cl_strust=>ty_certificate.
     CLASS-METHODS _get_certificate_mbt
       RETURNING
         VALUE(rt_result) TYPE /mbtools/cl_strust=>ty_certificate.
@@ -238,77 +232,6 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
       CATCH /mbtools/cx_exception INTO lx_error.
         MESSAGE lx_error TYPE 'I' DISPLAY LIKE 'E'.
     ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD _get_certificate_ca.
-
-    " subject=C = US, O = DigiCert Inc, OU = www.digicert.com, CN = DigiCert Global Root CA
-    " issuer=C = US, O = DigiCert Inc, OU = www.digicert.com, CN = DigiCert Global Root CA
-    " notBefore=Nov 10 00:00:00 2006 GMT
-    " notAfter=Nov 10 00:00:00 2031 GMT
-
-    APPEND '-----BEGIN CERTIFICATE-----' TO rt_result.
-    APPEND 'MIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBh' TO rt_result.
-    APPEND 'MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3' TO rt_result.
-    APPEND 'd3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBD' TO rt_result.
-    APPEND 'QTAeFw0wNjExMTAwMDAwMDBaFw0zMTExMTAwMDAwMDBaMGExCzAJBgNVBAYTAlVT' TO rt_result.
-    APPEND 'MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j' TO rt_result.
-    APPEND 'b20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IENBMIIBIjANBgkqhkiG' TO rt_result.
-    APPEND '9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4jvhEXLeqKTTo1eqUKKPC3eQyaKl7hLOllsB' TO rt_result.
-    APPEND 'CSDMAZOnTjC3U/dDxGkAV53ijSLdhwZAAIEJzs4bg7/fzTtxRuLWZscFs3YnFo97' TO rt_result.
-    APPEND 'nh6Vfe63SKMI2tavegw5BmV/Sl0fvBf4q77uKNd0f3p4mVmFaG5cIzJLv07A6Fpt' TO rt_result.
-    APPEND '43C/dxC//AH2hdmoRBBYMql1GNXRor5H4idq9Joz+EkIYIvUX7Q6hL+hqkpMfT7P' TO rt_result.
-    APPEND 'T19sdl6gSzeRntwi5m3OFBqOasv+zbMUZBfHWymeMr/y7vrTC0LUq7dBMtoM1O/4' TO rt_result.
-    APPEND 'gdW7jVg/tRvoSSiicNoxBN33shbyTApOB6jtSj1etX+jkMOvJwIDAQABo2MwYTAO' TO rt_result.
-    APPEND 'BgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUA95QNVbR' TO rt_result.
-    APPEND 'TLtm8KPiGxvDl7I90VUwHwYDVR0jBBgwFoAUA95QNVbRTLtm8KPiGxvDl7I90VUw' TO rt_result.
-    APPEND 'DQYJKoZIhvcNAQEFBQADggEBAMucN6pIExIK+t1EnE9SsPTfrgT1eXkIoyQY/Esr' TO rt_result.
-    APPEND 'hMAtudXH/vTBH1jLuG2cenTnmCmrEbXjcKChzUyImZOMkXDiqw8cvpOp/2PV5Adg' TO rt_result.
-    APPEND '06O/nVsJ8dWO41P0jmP6P6fbtGbfYmbW0W5BjfIttep3Sp+dWOIrWcBAI+0tKIJF' TO rt_result.
-    APPEND 'PnlUkiaY4IBIqDfv8NZ5YBberOgOzW6sRBc4L0na4UU+Krk2U886UAb3LujEV0ls' TO rt_result.
-    APPEND 'YSEY1QSteDwsOoBrp+uvFRTp2InBuThs4pFsiv9kuXclVzDAGySj4dzp30d8tbQk' TO rt_result.
-    APPEND 'CAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4=' TO rt_result.
-    APPEND '-----END CERTIFICATE-----' TO rt_result.
-
-  ENDMETHOD.
-
-
-  METHOD _get_certificate_ica.
-
-    " subject=C = US, O = DigiCert Inc, OU = www.digicert.com, CN = Encryption Everywhere DV TLS CA - G1
-    " issuer=C = US, O = DigiCert Inc, OU = www.digicert.com, CN = DigiCert Global Root CA
-    " notBefore=Nov 27 12:46:10 2017 GMT
-    " notAfter=Nov 27 12:46:10 2027 GMT
-
-    APPEND '-----BEGIN CERTIFICATE-----' TO rt_result.
-    APPEND 'MIIEqjCCA5KgAwIBAgIQAnmsRYvBskWr+YBTzSybsTANBgkqhkiG9w0BAQsFADBh' TO rt_result.
-    APPEND 'MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3' TO rt_result.
-    APPEND 'd3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBD' TO rt_result.
-    APPEND 'QTAeFw0xNzExMjcxMjQ2MTBaFw0yNzExMjcxMjQ2MTBaMG4xCzAJBgNVBAYTAlVT' TO rt_result.
-    APPEND 'MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j' TO rt_result.
-    APPEND 'b20xLTArBgNVBAMTJEVuY3J5cHRpb24gRXZlcnl3aGVyZSBEViBUTFMgQ0EgLSBH' TO rt_result.
-    APPEND 'MTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALPeP6wkab41dyQh6mKc' TO rt_result.
-    APPEND 'oHqt3jRIxW5MDvf9QyiOR7VfFwK656es0UFiIb74N9pRntzF1UgYzDGu3ppZVMdo' TO rt_result.
-    APPEND 'lbxhm6dWS9OK/lFehKNT0OYI9aqk6F+U7cA6jxSC+iDBPXwdF4rs3KRyp3aQn6pj' TO rt_result.
-    APPEND 'pp1yr7IB6Y4zv72Ee/PlZ/6rK6InC6WpK0nPVOYR7n9iDuPe1E4IxUMBH/T33+3h' TO rt_result.
-    APPEND 'yuH3dvfgiWUOUkjdpMbyxX+XNle5uEIiyBsi4IvbcTCh8ruifCIi5mDXkZrnMT8n' TO rt_result.
-    APPEND 'wfYCV6v6kDdXkbgGRLKsR4pucbJtbKqIkUGxuZI2t7pfewKRc5nWecvDBZf3+p1M' TO rt_result.
-    APPEND 'pA8CAwEAAaOCAU8wggFLMB0GA1UdDgQWBBRVdE+yck/1YLpQ0dfmUVyaAYca1zAf' TO rt_result.
-    APPEND 'BgNVHSMEGDAWgBQD3lA1VtFMu2bwo+IbG8OXsj3RVTAOBgNVHQ8BAf8EBAMCAYYw' TO rt_result.
-    APPEND 'HQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMBIGA1UdEwEB/wQIMAYBAf8C' TO rt_result.
-    APPEND 'AQAwNAYIKwYBBQUHAQEEKDAmMCQGCCsGAQUFBzABhhhodHRwOi8vb2NzcC5kaWdp' TO rt_result.
-    APPEND 'Y2VydC5jb20wQgYDVR0fBDswOTA3oDWgM4YxaHR0cDovL2NybDMuZGlnaWNlcnQu' TO rt_result.
-    APPEND 'Y29tL0RpZ2lDZXJ0R2xvYmFsUm9vdENBLmNybDBMBgNVHSAERTBDMDcGCWCGSAGG' TO rt_result.
-    APPEND '/WwBAjAqMCgGCCsGAQUFBwIBFhxodHRwczovL3d3dy5kaWdpY2VydC5jb20vQ1BT' TO rt_result.
-    APPEND 'MAgGBmeBDAECATANBgkqhkiG9w0BAQsFAAOCAQEAK3Gp6/aGq7aBZsxf/oQ+TD/B' TO rt_result.
-    APPEND 'SwW3AU4ETK+GQf2kFzYZkby5SFrHdPomunx2HBzViUchGoofGgg7gHW0W3MlQAXW' TO rt_result.
-    APPEND 'M0r5LUvStcr82QDWYNPaUy4taCQmyaJ+VB+6wxHstSigOlSNF2a6vg4rgexixeiV' TO rt_result.
-    APPEND '4YSB03Yqp2t3TeZHM9ESfkus74nQyW7pRGezj+TC44xCagCQQOzzNmzEAP2SnCrJ' TO rt_result.
-    APPEND 'sNE2DpRVMnL8J6xBRdjmOsC3N6cQuKuRXbzByVBjCqAA8t1L0I+9wXJerLPyErjy' TO rt_result.
-    APPEND 'rMKWaBFLmfK/AHNF4ZihwPGOc7w6UHczBZXH5RFzJNnww+WnKuTPI0HfnVH8lg==' TO rt_result.
-    APPEND '-----END CERTIFICATE-----' TO rt_result.
 
   ENDMETHOD.
 
