@@ -41,6 +41,7 @@ CLASS /mbtools/cl_tool DEFINITION
         key_lic_key          TYPE string VALUE 'LicenseKey' ##NO_TEXT,
         key_lic_valid        TYPE string VALUE 'LicenseValid' ##NO_TEXT,
         key_lic_expire       TYPE string VALUE 'LicenseExpiration' ##NO_TEXT,
+        val_lic_expire       TYPE d      VALUE '99991231',
         " Settings
         settings             TYPE string VALUE 'Settings' ##NO_TEXT,
         key_offline          TYPE string VALUE 'IsOffline' ##NO_TEXT,
@@ -227,6 +228,25 @@ CLASS /mbtools/cl_tool DEFINITION
     CLASS-DATA go_reg_root TYPE REF TO /mbtools/cl_registry.
     DATA ms_manifest TYPE /mbtools/manifest.
 
+    METHODS _register_general
+      IMPORTING
+        !io_reg_tool TYPE REF TO /mbtools/cl_registry
+        !iv_exists   TYPE abap_bool
+      RAISING
+        /mbtools/cx_exception.
+    METHODS _register_properties
+      IMPORTING
+        !io_reg_tool TYPE REF TO /mbtools/cl_registry
+        !iv_exists   TYPE abap_bool
+        !iv_update   TYPE abap_bool
+      RAISING
+        /mbtools/cx_exception.
+    METHODS _register_init
+      IMPORTING
+        !io_reg_tool TYPE REF TO /mbtools/cl_registry
+        !iv_exists   TYPE abap_bool
+      RAISING
+        /mbtools/cx_exception.
     CLASS-METHODS _get_reg_bundle
       IMPORTING
         !iv_bundle_id    TYPE i
@@ -237,6 +257,13 @@ CLASS /mbtools/cl_tool DEFINITION
         !iv_name         TYPE string
       RETURNING
         VALUE(ro_result) TYPE REF TO /mbtools/cl_registry.
+    METHODS _get_time
+      IMPORTING
+        !iv_name         TYPE string
+        !iv_key          TYPE string
+        !iv_internal     TYPE abap_bool
+      RETURNING
+        VALUE(rv_result) TYPE string.
     METHODS _determine_class
       RETURNING
         VALUE(rv_class) TYPE string.
@@ -482,78 +509,24 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
   METHOD get_install_time.
 
-    DATA:
-      lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
-      lo_reg_entry TYPE REF TO /mbtools/cl_registry,
-      lv_install   TYPE timestamp.
-
     CHECK ms_manifest-is_bundle IS INITIAL.
 
-    TRY.
-        " Is tool already registered?
-        lo_reg_tool = _get_reg_tool( ms_manifest-name ).
-        IF lo_reg_tool IS NOT BOUND.
-          RETURN.
-        ENDIF.
-
-        " Properties
-        lo_reg_entry = lo_reg_tool->get_subentry( c_reg-properties ).
-        IF lo_reg_entry IS BOUND.
-          lv_install = lo_reg_entry->get_value( c_reg-key_install_time ).
-          IF iv_internal = abap_true.
-            rv_result = lv_install.
-          ELSE.
-            rv_result = /mbtools/cl_datetime=>human_time_diff( lv_install ) && ' ago'.
-          ENDIF.
-        ELSEIF iv_internal = abap_false.
-          rv_result = 'never'.
-        ENDIF.
-
-      CATCH cx_root.
-        IF iv_internal = abap_false.
-          rv_result = 'n/a'.
-        ENDIF.
-    ENDTRY.
+    rv_result = _get_time(
+      iv_name     = ms_manifest-name
+      iv_key      = c_reg-key_install_time
+      iv_internal = iv_internal ).
 
   ENDMETHOD.
 
 
   METHOD get_last_update.
 
-    DATA:
-      lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
-      lo_reg_entry TYPE REF TO /mbtools/cl_registry,
-      lv_update    TYPE timestamp.
-
     CHECK ms_manifest-is_bundle IS INITIAL.
 
-    TRY.
-        " Is tool already registered?
-        lo_reg_tool = _get_reg_tool( ms_manifest-name ).
-        IF lo_reg_tool IS NOT BOUND.
-          RETURN.
-        ENDIF.
-
-        " Properties
-        lo_reg_entry = lo_reg_tool->get_subentry( c_reg-properties ).
-        IF lo_reg_entry IS BOUND.
-          lv_update = lo_reg_entry->get_value( c_reg-key_update_time ).
-          IF iv_internal = abap_true.
-            rv_result = lv_update.
-          ELSEIF lv_update IS INITIAL.
-            rv_result = 'never'.
-          ELSE.
-            rv_result = /mbtools/cl_datetime=>human_time_diff( lv_update ) && ' ago'.
-          ENDIF.
-        ELSEIF iv_internal = abap_false.
-          rv_result = 'never'.
-        ENDIF.
-
-      CATCH cx_root.
-        IF iv_internal = abap_false.
-          rv_result = 'n/a'.
-        ENDIF.
-    ENDTRY.
+    rv_result = _get_time(
+      iv_name     = ms_manifest-name
+      iv_key      = c_reg-key_update_time
+      iv_internal = iv_internal ).
 
   ENDMETHOD.
 
@@ -978,7 +951,7 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
     lo_reg_entry->set_value( c_reg-key_lic_key ).
     lo_reg_entry->set_value( c_reg-key_lic_valid ).
     lo_reg_entry->set_value( iv_key   = c_reg-key_lic_expire
-                             iv_value = '99991231' ).
+                             iv_value = c_reg-val_lic_expire ).
 
     lo_reg_entry->save( ).
 
@@ -990,8 +963,7 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
     DATA:
       lo_reg_tool   TYPE REF TO /mbtools/cl_registry,
       lo_reg_bundle TYPE REF TO /mbtools/cl_registry,
-      lo_reg_entry  TYPE REF TO /mbtools/cl_registry,
-      lv_timestamp  TYPE timestamp.
+      lo_reg_entry  TYPE REF TO /mbtools/cl_registry.
 
     TRY.
         " Is tool already registered?
@@ -1022,100 +994,20 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
         ENDIF.
 
         " General
-        IF rv_result = abap_true.
-          lo_reg_entry = lo_reg_tool->get_subentry( c_reg-general ).
-        ELSE.
-          lo_reg_entry = lo_reg_tool->add_subentry( c_reg-general ).
-        ENDIF.
-        IF lo_reg_entry IS BOUND.
-          lo_reg_entry->set_value( iv_key   = c_reg-key_name
-                                   iv_value = ms_manifest-name ).
-          lo_reg_entry->set_value( iv_key   = c_reg-key_version
-                                   iv_value = ms_manifest-version ).
-          lo_reg_entry->set_value( iv_key   = c_reg-key_title
-                                   iv_value = ms_manifest-title ).
-          lo_reg_entry->set_value( iv_key   = c_reg-key_description
-                                   iv_value = ms_manifest-description ).
-          IF ms_manifest-is_bundle IS INITIAL.
-            lo_reg_entry->set_value( iv_key   = c_reg-key_namespace
-                                     iv_value = /mbtools/if_definitions=>c_namespace ).
-            lo_reg_entry->set_value( iv_key   = c_reg-key_package
-                                     iv_value = ms_manifest-package ).
-            lo_reg_entry->set_value( iv_key   = c_reg-key_class
-                                     iv_value = ms_manifest-class ).
-          ENDIF.
-          lo_reg_entry->save( ).
-        ENDIF.
+        _register_general(
+          io_reg_tool = lo_reg_tool
+          iv_exists   = rv_result ).
 
         " Properties
-        IF rv_result = abap_true.
-          lo_reg_entry = lo_reg_tool->get_subentry( c_reg-properties ).
-        ELSE.
-          lo_reg_entry = lo_reg_tool->add_subentry( c_reg-properties ).
-        ENDIF.
-        IF lo_reg_entry IS BOUND.
-          GET TIME STAMP FIELD lv_timestamp.
-          IF rv_result = abap_true.
-            IF iv_update = abap_true.
-              lo_reg_entry->set_value( iv_key = c_reg-key_update_time
-                                       iv_value = lv_timestamp ).
-              lo_reg_entry->set_value( iv_key = c_reg-key_update_user
-                                       iv_value = sy-uname ).
-            ENDIF.
-          ELSE.
-            lo_reg_entry->set_value( iv_key   = c_reg-key_install_time
-                                     iv_value = lv_timestamp ).
-            lo_reg_entry->set_value( iv_key   = c_reg-key_install_user
-                                     iv_value = sy-uname ).
-            lo_reg_entry->set_value( c_reg-key_update_time ).
-            lo_reg_entry->set_value( c_reg-key_update_user ).
-          ENDIF.
-          lo_reg_entry->save( ).
-        ENDIF.
+        _register_properties(
+          io_reg_tool = lo_reg_tool
+          iv_exists   = rv_result
+          iv_update   = iv_update ).
 
         " Initialize on first run
-        IF rv_result = abap_false.
-          " Switches
-          IF ms_manifest-is_bundle IS INITIAL.
-            lo_reg_entry = lo_reg_tool->add_subentry( c_reg-switches ).
-            IF lo_reg_entry IS BOUND.
-              lo_reg_entry->set_value( c_reg-key_active ).
-              lo_reg_entry->set_value( c_reg-key_debug ).
-              lo_reg_entry->set_value( c_reg-key_trace ).
-              lo_reg_entry->save( ).
-            ENDIF.
-          ENDIF.
-
-          " License
-          lo_reg_entry = lo_reg_tool->add_subentry( c_reg-license ).
-          IF lo_reg_entry IS BOUND.
-            lo_reg_entry->set_value( iv_key   = c_reg-key_lic_id
-                                     iv_value = ms_manifest-download_id ).
-            lo_reg_entry->set_value( iv_key   = c_reg-key_lic_bundle
-                                     iv_value = ms_manifest-bundle_id ).
-            lo_reg_entry->set_value( iv_key   = c_reg-key_lic_expire
-                                     iv_value = '99991231' ).
-            lo_reg_entry->set_value( c_reg-key_lic_key ).
-            lo_reg_entry->set_value( c_reg-key_lic_valid ).
-            lo_reg_entry->save( ).
-          ENDIF.
-
-          " Settings
-          IF ms_manifest-is_bundle IS INITIAL.
-            lo_reg_entry = lo_reg_tool->add_subentry( c_reg-settings ).
-          ENDIF.
-
-          " Update
-          lo_reg_entry = lo_reg_tool->add_subentry( c_reg-update ).
-          IF lo_reg_entry IS BOUND.
-            lo_reg_entry->set_value( c_reg-key_new_version ).
-            lo_reg_entry->set_value( c_reg-key_description_html ).
-            lo_reg_entry->set_value( c_reg-key_changelog_html ).
-            lo_reg_entry->set_value( c_reg-key_changelog_url ).
-            lo_reg_entry->set_value( c_reg-key_download_url ).
-            lo_reg_entry->save( ).
-          ENDIF.
-        ENDIF.
+        _register_init(
+          io_reg_tool = lo_reg_tool
+          iv_exists   = rv_result ).
 
         " Save
         lo_reg_tool->save( ).
@@ -1308,6 +1200,159 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
       CATCH cx_root.
         RETURN.
     ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD _get_time.
+
+    DATA:
+      lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
+      lo_reg_entry TYPE REF TO /mbtools/cl_registry,
+      lv_timestamp TYPE timestamp.
+
+    TRY.
+        " Is tool already registered?
+        lo_reg_tool = _get_reg_tool( iv_name ).
+        IF lo_reg_tool IS NOT BOUND.
+          RETURN.
+        ENDIF.
+
+        " Properties
+        lo_reg_entry = lo_reg_tool->get_subentry( c_reg-properties ).
+        IF lo_reg_entry IS BOUND.
+          lv_timestamp = lo_reg_entry->get_value( iv_key ).
+          IF iv_internal = abap_true.
+            rv_result = lv_timestamp.
+          ELSE.
+            rv_result = /mbtools/cl_datetime=>human_time_diff( lv_timestamp ) && ' ago'.
+          ENDIF.
+        ELSEIF iv_internal = abap_false.
+          rv_result = 'never'.
+        ENDIF.
+
+      CATCH cx_root.
+        IF iv_internal = abap_false.
+          rv_result = 'n/a'.
+        ENDIF.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD _register_general.
+
+    DATA lo_reg_entry TYPE REF TO /mbtools/cl_registry.
+
+    IF iv_exists = abap_true.
+      lo_reg_entry = io_reg_tool->get_subentry( c_reg-general ).
+    ELSE.
+      lo_reg_entry = io_reg_tool->add_subentry( c_reg-general ).
+    ENDIF.
+    IF lo_reg_entry IS BOUND.
+      lo_reg_entry->set_value( iv_key   = c_reg-key_name
+                               iv_value = ms_manifest-name ).
+      lo_reg_entry->set_value( iv_key   = c_reg-key_version
+                               iv_value = ms_manifest-version ).
+      lo_reg_entry->set_value( iv_key   = c_reg-key_title
+                               iv_value = ms_manifest-title ).
+      lo_reg_entry->set_value( iv_key   = c_reg-key_description
+                               iv_value = ms_manifest-description ).
+      IF ms_manifest-is_bundle IS INITIAL.
+        lo_reg_entry->set_value( iv_key   = c_reg-key_namespace
+                                 iv_value = /mbtools/if_definitions=>c_namespace ).
+        lo_reg_entry->set_value( iv_key   = c_reg-key_package
+                                 iv_value = ms_manifest-package ).
+        lo_reg_entry->set_value( iv_key   = c_reg-key_class
+                                 iv_value = ms_manifest-class ).
+      ENDIF.
+      lo_reg_entry->save( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD _register_init.
+
+    DATA lo_reg_entry TYPE REF TO /mbtools/cl_registry.
+
+    " Only for new registrations
+    IF iv_exists = abap_false.
+      " Switches
+      IF ms_manifest-is_bundle IS INITIAL.
+        lo_reg_entry = io_reg_tool->add_subentry( c_reg-switches ).
+        IF lo_reg_entry IS BOUND.
+          lo_reg_entry->set_value( c_reg-key_active ).
+          lo_reg_entry->set_value( c_reg-key_debug ).
+          lo_reg_entry->set_value( c_reg-key_trace ).
+          lo_reg_entry->save( ).
+        ENDIF.
+      ENDIF.
+
+      " License
+      lo_reg_entry = io_reg_tool->add_subentry( c_reg-license ).
+      IF lo_reg_entry IS BOUND.
+        lo_reg_entry->set_value( iv_key   = c_reg-key_lic_id
+                                 iv_value = ms_manifest-download_id ).
+        lo_reg_entry->set_value( iv_key   = c_reg-key_lic_bundle
+                                 iv_value = ms_manifest-bundle_id ).
+        lo_reg_entry->set_value( iv_key   = c_reg-key_lic_expire
+                                 iv_value = c_reg-val_lic_expire ).
+        lo_reg_entry->set_value( c_reg-key_lic_key ).
+        lo_reg_entry->set_value( c_reg-key_lic_valid ).
+        lo_reg_entry->save( ).
+      ENDIF.
+
+      " Settings
+      IF ms_manifest-is_bundle IS INITIAL.
+        lo_reg_entry = io_reg_tool->add_subentry( c_reg-settings ).
+      ENDIF.
+
+      " Update
+      lo_reg_entry = io_reg_tool->add_subentry( c_reg-update ).
+      IF lo_reg_entry IS BOUND.
+        lo_reg_entry->set_value( c_reg-key_new_version ).
+        lo_reg_entry->set_value( c_reg-key_description_html ).
+        lo_reg_entry->set_value( c_reg-key_changelog_html ).
+        lo_reg_entry->set_value( c_reg-key_changelog_url ).
+        lo_reg_entry->set_value( c_reg-key_download_url ).
+        lo_reg_entry->save( ).
+      ENDIF.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD _register_properties.
+
+    DATA:
+      lo_reg_entry TYPE REF TO /mbtools/cl_registry,
+      lv_timestamp TYPE timestamp.
+
+    IF iv_exists = abap_true.
+      lo_reg_entry = io_reg_tool->get_subentry( c_reg-properties ).
+    ELSE.
+      lo_reg_entry = io_reg_tool->add_subentry( c_reg-properties ).
+    ENDIF.
+    IF lo_reg_entry IS BOUND.
+      GET TIME STAMP FIELD lv_timestamp.
+      IF iv_exists = abap_true.
+        IF iv_update = abap_true.
+          lo_reg_entry->set_value( iv_key = c_reg-key_update_time
+                                   iv_value = lv_timestamp ).
+          lo_reg_entry->set_value( iv_key = c_reg-key_update_user
+                                   iv_value = sy-uname ).
+        ENDIF.
+      ELSE.
+        lo_reg_entry->set_value( iv_key   = c_reg-key_install_time
+                                 iv_value = lv_timestamp ).
+        lo_reg_entry->set_value( iv_key   = c_reg-key_install_user
+                                 iv_value = sy-uname ).
+        lo_reg_entry->set_value( c_reg-key_update_time ).
+        lo_reg_entry->set_value( c_reg-key_update_user ).
+      ENDIF.
+      lo_reg_entry->save( ).
+    ENDIF.
 
   ENDMETHOD.
 ENDCLASS.
