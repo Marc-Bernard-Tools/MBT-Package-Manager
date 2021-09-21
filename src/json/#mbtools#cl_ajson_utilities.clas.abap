@@ -5,10 +5,8 @@ CLASS /mbtools/cl_ajson_utilities DEFINITION
 ************************************************************************
 * abap json (AJSON)
 *
-* Original Author: Copyright (c) 2020 Alexander Tsybulsky
-* https://github.com/sbcgua/ajson
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
+* Copyright 2020 Alexander Tsybulsky <https://github.com/sbcgua/ajson>
+* SPDX-License-Identifier: MIT
 ************************************************************************
 
   PUBLIC SECTION.
