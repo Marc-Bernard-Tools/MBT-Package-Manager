@@ -1,0 +1,36 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Marc Bernard Tools - Version Overview
+Upstream-Contact: Marc Bernard <hello@marcbernardtools.com>
+Source: https://github.com/Marc-Bernard-Tools/Marc-Bernard-Tools-Versions
+
+Files: *
+Copyright: 2021 Marc Bernard <https://marcbernardtools.com/>
+License: GPL-3.0-or-later
+
+Files: /src/*font_awesome*
+Copyright: 2021 Font Awesome <https://fontawesome.com/>
+License: OFL-1.1-RFN
+
+Files: /src/*font_righteous*
+Copyright: 2011 by Brian J. Bonislawsky DBA Astigmatic (AOETI) <astigma@astigmatic.com>
+License: OFL-1.1-RFN
+
+Files: /src/*font_open_sans*
+Copyright: 2020 The Open Sans Project Authors (https://github.com/googlefonts/opensans)
+License: OFL-1.1
+
+Files: /src/json/*
+Copyright: 2020 Alexander Tsybulsky <https://github.com/sbcgua/ajson>
+License: MIT
+
+Files: /src/stringmap/*
+Copyright: 2020 Alexander Tsybulsky <https://github.com/sbcgua/abap-string-map>
+License: MIT
+
+Files: /src/log/*
+Copyright: 2017 Eric Peterson <https://github.com/ABAP-Logger/ABAP-Logger>
+License: MIT
+
+Files: /src/reg/*
+Copyright 2015 Martin Ceronio <https://ceronio.net/>
+License: MIT
