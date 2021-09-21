@@ -4,10 +4,8 @@ INTERFACE /mbtools/if_ajson
 ************************************************************************
 * abap json (AJSON)
 *
-* Original Author: Copyright (c) 2020 Alexander Tsybulsky
-* https://github.com/sbcgua/ajson
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
+* Copyright 2020 Alexander Tsybulsky <https://github.com/sbcgua/ajson>
+* SPDX-License-Identifier: MIT
 ************************************************************************
 
   CONSTANTS version TYPE string VALUE 'v1.1.0'. "#EC NOTEXT
