@@ -19,6 +19,14 @@ Files: src/*font_open_sans*
 Copyright: 2020 The Open Sans Project Authors <https://github.com/googlefonts/opensans>
 License: OFL-1.1
 
+Files: src/http/*
+Copyright: 2014 abapGit Contributors <https://github.com/abapGit/abapGit>
+License: MIT
+
+Files: src/ui/*
+Copyright: 2014 abapGit Contributors <https://github.com/abapGit/abapGit>
+License: MIT
+
 Files: src/json/*
 Copyright: 2020 Alexander Tsybulsky <https://github.com/sbcgua/ajson>
 License: MIT
