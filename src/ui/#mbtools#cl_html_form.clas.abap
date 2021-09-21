@@ -813,10 +813,10 @@ CLASS /mbtools/cl_html_form IMPLEMENTATION.
   METHOD render_field_table.
 
     DATA:
-      lv_value     TYPE string,
-      lv_readonly  TYPE string,
-      lv_rows      TYPE i,
-      lv_cell_id   TYPE string.
+      lv_value    TYPE string,
+      lv_readonly TYPE string,
+      lv_rows     TYPE i,
+      lv_cell_id  TYPE string.
 
     FIELD-SYMBOLS <ls_subitem> LIKE LINE OF is_field-subitems.
 

@@ -109,15 +109,15 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
   METHOD /mbtools/if_logger~add.
 
     DATA:
-      ls_detailed_msg                  TYPE bal_s_msg,
-      lt_exception_data_table          TYPE ty_exception_data,
-      lv_free_text_msg                 TYPE char200,
-      lo_ctx_type                      TYPE REF TO cl_abap_typedescr,
-      ls_ctx_ddic_header               TYPE x030l,
-      lo_msg_type                      TYPE REF TO cl_abap_typedescr,
-      ls_formatted_context             TYPE bal_s_cont,
-      ls_formatted_params              TYPE bal_s_parm,
-      lv_message_type                  TYPE symsgty,
+      ls_detailed_msg           TYPE bal_s_msg,
+      lt_exception_data_table   TYPE ty_exception_data,
+      lv_free_text_msg          TYPE char200,
+      lo_ctx_type               TYPE REF TO cl_abap_typedescr,
+      ls_ctx_ddic_header        TYPE x030l,
+      lo_msg_type               TYPE REF TO cl_abap_typedescr,
+      ls_formatted_context      TYPE bal_s_cont,
+      ls_formatted_params       TYPE bal_s_parm,
+      lv_message_type           TYPE symsgty,
       ls_replacement_bapi_order TYPE bapiret2.
 
     FIELD-SYMBOLS:

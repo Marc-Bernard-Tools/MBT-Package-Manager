@@ -324,7 +324,7 @@ CLASS /mbtools/cl_screen IMPLEMENTATION.
   METHOD toolbar.
 
     CONSTANTS:
-      lc_toolflag_set TYPE funcname VALUE 'SCWG_TOOLFLAG_SET',
+      lc_toolflag_set   TYPE funcname VALUE 'SCWG_TOOLFLAG_SET',
       lc_toolflag_reset TYPE funcname VALUE 'SCWG_TOOLFLAG_RESET'.
 
     DATA:
