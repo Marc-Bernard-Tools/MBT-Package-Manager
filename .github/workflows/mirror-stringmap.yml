@@ -24,8 +24,8 @@ jobs:
         bash scripts/credits.sh scripts/credits-stringmap.txt Mirror-STRINGMAP/src
         bash scripts/descriptions.sh Mirror-STRINGMAP/src
         bash scripts/fixit.sh Mirror-STRINGMAP/src
-        rm src/util/#mbtools#cl_string_map*
-        cp Mirror-STRINGMAP/src/#mbtools#* src/util/
+        rm src/stringmap/#mbtools#cl_string_map*
+        cp Mirror-STRINGMAP/src/#mbtools#* src/stringmap/
         rm -rf Mirror-STRINGMAP
         git status
     - name: Open Pull Request
