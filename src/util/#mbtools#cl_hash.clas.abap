@@ -1,6 +1,6 @@
 CLASS /mbtools/cl_hash DEFINITION
   PUBLIC
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * Marc Bernard Tools - Hash Functions
@@ -17,21 +17,28 @@ CLASS /mbtools/cl_hash DEFINITION
       RETURNING
         VALUE(rv_sha1) TYPE /mbtools/if_definitions=>ty_sha1
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     CLASS-METHODS sha1_blob
       IMPORTING
         !iv_data       TYPE xstring
       RETURNING
         VALUE(rv_sha1) TYPE /mbtools/if_definitions=>ty_sha1
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     CLASS-METHODS sha1_raw
       IMPORTING
         !iv_data       TYPE xstring
       RETURNING
         VALUE(rv_sha1) TYPE /mbtools/if_definitions=>ty_sha1
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
+    CLASS-METHODS sha1_string
+      IMPORTING
+        !iv_data       TYPE csequence
+      RETURNING
+        VALUE(rv_sha1) TYPE /mbtools/if_definitions=>ty_sha1
+      RAISING
+        /mbtools/cx_exception.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -79,11 +86,33 @@ CLASS /mbtools/cl_hash IMPLEMENTATION.
           lx_error TYPE REF TO cx_abap_message_digest.
     TRY.
         cl_abap_hmac=>calculate_hmac_for_raw(
-      EXPORTING
-        if_key        = lv_key
-        if_data       = iv_data
-      IMPORTING
-        ef_hmacstring = lv_hash ).
+          EXPORTING
+            if_key        = lv_key
+            if_data       = iv_data
+          IMPORTING
+            ef_hmacstring = lv_hash ).
+      CATCH cx_abap_message_digest INTO lx_error.
+        /mbtools/cx_exception=>raise_with_text( lx_error ).
+    ENDTRY.
+
+    rv_sha1 = lv_hash.
+    TRANSLATE rv_sha1 TO LOWER CASE.
+
+  ENDMETHOD.
+
+
+  METHOD sha1_string.
+
+    DATA: lv_hash  TYPE string,
+          lv_key   TYPE xstring,
+          lx_error TYPE REF TO cx_abap_message_digest.
+    TRY.
+        cl_abap_hmac=>calculate_hmac_for_char(
+          EXPORTING
+            if_key        = lv_key
+            if_data       = iv_data
+          IMPORTING
+            ef_hmacstring = lv_hash ).
       CATCH cx_abap_message_digest INTO lx_error.
         /mbtools/cx_exception=>raise_with_text( lx_error ).
     ENDTRY.
