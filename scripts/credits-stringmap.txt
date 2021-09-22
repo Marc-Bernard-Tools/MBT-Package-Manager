@@ -1,5 +1,5 @@
 ************************************************************************
-* abap json (AJSON)
+* abap string map
 *
 * Copyright 2020 Alexander Tsybulsky <https://github.com/sbcgua/abap-string-map>
 * SPDX-License-Identifier: MIT
