@@ -157,7 +157,7 @@ CLASS /mbtools/cl_aphp IMPLEMENTATION.
     " Takes JSON string and returns PHP-serialized value
     " https://www.php.net/manual/en/function.serialize.php
 
-    /mbtools/cx_ajson_error=>raise( |Not implemented yet| ). "##TODO
+    /mbtools/cx_ajson_error=>raise( |Not implemented yet| ) ##TODO.
 
   ENDMETHOD.
 
@@ -293,7 +293,7 @@ CLASS /mbtools/cl_aphp IMPLEMENTATION.
       IF sy-subrc <> 0.
         /mbtools/cx_ajson_error=>raise( |Data error type "a"| ).
       ENDIF.
-      SPLIT lv_data AT ';' INTO lv_val lv_data. "##TODO assumes ; does not occur in value
+      SPLIT lv_data AT ';' INTO lv_val lv_data ##TODO. "assumes ; does not occur in value
       IF sy-subrc <> 0.
         /mbtools/cx_ajson_error=>raise( |Data error type "a"| ).
       ENDIF.
@@ -375,7 +375,7 @@ CLASS /mbtools/cl_aphp IMPLEMENTATION.
 
     " O:strlen(object name):object name:object size:
     " {s:strlen(property name):property name:property definition;...(repeated per property)}
-    /mbtools/cx_ajson_error=>raise( |Not implemented type "O"| ). "##TODO
+    /mbtools/cx_ajson_error=>raise( |Not implemented type "O"| ) ##TODO.
 
   ENDMETHOD.
 
@@ -383,7 +383,7 @@ CLASS /mbtools/cl_aphp IMPLEMENTATION.
   METHOD unserialize_reference.
 
     " R:...
-    /mbtools/cx_ajson_error=>raise( |Not implemented type "R"| ). "##TODO
+    /mbtools/cx_ajson_error=>raise( |Not implemented type "R"| ) ##TODO.
 
   ENDMETHOD.
 ENDCLASS.
