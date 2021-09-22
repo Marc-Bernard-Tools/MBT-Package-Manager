@@ -191,6 +191,11 @@
 			],
 			"severity": "Warning"
 		},
+		"constant_classes": {
+			"exclude": [],
+			"mapping": [],
+			"severity": "Error"
+		},
 		"constructor_visibility_public": {
 			"exclude": [],
 			"severity": "Error"
@@ -604,6 +609,7 @@
 			"parameter": true,
 			"ranges": true,
 			"refresh": true,
+			"regex": true,
 			"requested": true,
 			"selectWithoutInto": true,
 			"setExtended": true,
@@ -632,6 +638,10 @@
 			"severity": "Error"
 		},
 		"parser_missing_space": {
+			"exclude": [],
+			"severity": "Error"
+		},
+		"pragma_placement": {
 			"exclude": [],
 			"severity": "Error"
 		},
