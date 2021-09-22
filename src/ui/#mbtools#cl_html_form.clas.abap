@@ -417,7 +417,7 @@ CLASS /mbtools/cl_html_form IMPLEMENTATION.
       IF <ls_field>-type = c_field_type-checkbox.
         ro_form_data->set(
           iv_key = <ls_field>-name
-          iv_val = boolc( lv_value = 'on' ) ).
+          iv_val = |{ boolc( lv_value = 'on' ) }| ).
       ELSEIF <ls_field>-type = c_field_type-text AND <ls_field>-upper_case = abap_true.
         ro_form_data->set(
           iv_key = <ls_field>-name
