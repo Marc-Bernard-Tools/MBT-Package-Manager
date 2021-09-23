@@ -104,7 +104,7 @@
 			"move": true,
 			"refresh": true,
 			"severity": "Error",
-      			"sort": true,
+			"sort": true,
 			"unassign": true,
 			"write": true
 		},
@@ -283,9 +283,9 @@
 			"while": true
 		},
 		"exit_or_check": {
-			"allowCheck": false,
+			"allowCheck": true,
 			"allowExit": false,
-			"exclude": [".*"],
+			"exclude": [],
 			"severity": "Error"
 		},
 		"exporting": {
@@ -859,7 +859,6 @@
 	"syntax": {
 		"errorNamespace": "^(/MBTOOLS/|LCL_|LIF_|Y|Z)",
 		"globalConstants": [
-			"cl_abap_char_utilities=>horizontal_tab",
 			"cndp_lifetime_transaction",
 			"cndp_sap_subtype_unknown",
 			"rs_c_obj_dtel",
