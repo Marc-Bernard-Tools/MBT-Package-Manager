@@ -65,19 +65,19 @@ CLASS zcx_abapgit_exception DEFINITION
     INTERFACES if_t100_message .
 
     CONSTANTS:
-      BEGIN OF gc_section_text,
+      BEGIN OF c_section_text,
         cause           TYPE string VALUE `Cause`,
         system_response TYPE string VALUE `System response`,
         what_to_do      TYPE string VALUE `Procedure`,
         sys_admin       TYPE string VALUE `System administration`,
-      END OF gc_section_text .
+      END OF c_section_text .
     CONSTANTS:
-      BEGIN OF gc_section_token,
+      BEGIN OF c_section_token,
         cause           TYPE string VALUE `&CAUSE&`,
         system_response TYPE string VALUE `&SYSTEM_RESPONSE&`,
         what_to_do      TYPE string VALUE `&WHAT_TO_DO&`,
         sys_admin       TYPE string VALUE `&SYS_ADMIN&`,
-      END OF gc_section_token .
+      END OF c_section_token .
     DATA msgv1 TYPE symsgv READ-ONLY .
     DATA msgv2 TYPE symsgv READ-ONLY .
     DATA msgv3 TYPE symsgv READ-ONLY .
@@ -412,14 +412,14 @@ CLASS zcx_abapgit_exception IMPLEMENTATION.
   METHOD replace_section_head_with_text.
 
     CASE cs_itf-tdline.
-      WHEN gc_section_token-cause.
-        cs_itf-tdline = gc_section_text-cause.
-      WHEN gc_section_token-system_response.
-        cs_itf-tdline = gc_section_text-system_response.
-      WHEN gc_section_token-what_to_do.
-        cs_itf-tdline = gc_section_text-what_to_do.
-      WHEN gc_section_token-sys_admin.
-        cs_itf-tdline = gc_section_text-sys_admin.
+      WHEN c_section_token-cause.
+        cs_itf-tdline = c_section_text-cause.
+      WHEN c_section_token-system_response.
+        cs_itf-tdline = c_section_text-system_response.
+      WHEN c_section_token-what_to_do.
+        cs_itf-tdline = c_section_text-what_to_do.
+      WHEN c_section_token-sys_admin.
+        cs_itf-tdline = c_section_text-sys_admin.
     ENDCASE.
 
   ENDMETHOD.
@@ -1250,17 +1250,6 @@ INTERFACE zif_abapgit_definitions
   TYPES:
     ty_git_tag_list_tt TYPE STANDARD TABLE OF ty_git_tag WITH DEFAULT KEY .
   TYPES:
-    BEGIN OF ty_hotkey,
-      ui_component TYPE string,
-      action       TYPE string,
-      hotkey       TYPE string,
-    END OF ty_hotkey .
-  TYPES:
-    ty_hotkey_tt TYPE STANDARD TABLE OF ty_hotkey
-                    WITH NON-UNIQUE DEFAULT KEY
-                    WITH NON-UNIQUE SORTED KEY action
-                         COMPONENTS ui_component action.
-  TYPES:
     BEGIN OF ty_git_user,
       name  TYPE string,
       email TYPE string,
@@ -1515,7 +1504,6 @@ INTERFACE zif_abapgit_definitions
       show_default_repo      TYPE abap_bool,
       link_hints_enabled     TYPE abap_bool,
       link_hint_key          TYPE c LENGTH 1,
-      hotkeys                TYPE ty_hotkey_tt,
       parallel_proc_disabled TYPE abap_bool,
       icon_scaling           TYPE c LENGTH 1,
       ui_theme               TYPE string,
@@ -1720,7 +1708,7 @@ ENDINTERFACE.
 INTERFACE zif_abapgit_ajson
   .
 
-  CONSTANTS version TYPE string VALUE 'v1.1.0-pre1'. "#EC NOTEXT
+  CONSTANTS version TYPE string VALUE 'v1.1.0'. "#EC NOTEXT
   CONSTANTS origin TYPE string VALUE 'https://github.com/sbcgua/ajson'. "#EC NOTEXT
   CONSTANTS license TYPE string VALUE 'MIT'. "#EC NOTEXT
 
@@ -2228,6 +2216,7 @@ INTERFACE zif_abapgit_objects
       overwrite  TYPE i VALUE 3,
       delete     TYPE i VALUE 4,
       delete_add TYPE i VALUE 5,
+      packmove   TYPE i VALUE 6,
     END OF c_deserialize_action.
 
 ENDINTERFACE.
@@ -2366,6 +2355,7 @@ INTERFACE zif_abapgit_exit
   METHODS custom_serialize_abap_clif
     IMPORTING
       !is_class_key    TYPE seoclskey
+      !it_source       TYPE zif_abapgit_definitions=>ty_string_tt OPTIONAL
     RETURNING
       VALUE(rt_source) TYPE zif_abapgit_definitions=>ty_string_tt
     RAISING
@@ -3061,8 +3051,8 @@ ENDINTERFACE.
 INTERFACE zif_abapgit_version
    .
 
-  CONSTANTS gc_xml_version TYPE string VALUE 'v1.0.0' ##NO_TEXT.
-  CONSTANTS gc_abap_version TYPE string VALUE '1.109.0' ##NO_TEXT.
+  CONSTANTS c_xml_version TYPE string VALUE 'v1.0.0' ##NO_TEXT.
+  CONSTANTS c_abap_version TYPE string VALUE '1.111.0' ##NO_TEXT.
 
 ENDINTERFACE.
 CLASS zcl_abapgit_adt_link DEFINITION
@@ -3841,7 +3831,6 @@ CLASS zcl_abapgit_hash DEFINITION
         VALUE(rv_sha1) TYPE zif_abapgit_definitions=>ty_sha1
       RAISING
         zcx_abapgit_exception .
-
     CLASS-METHODS sha1_commit
       IMPORTING
         !iv_data       TYPE xstring
@@ -3849,7 +3838,6 @@ CLASS zcl_abapgit_hash DEFINITION
         VALUE(rv_sha1) TYPE zif_abapgit_definitions=>ty_sha1
       RAISING
         zcx_abapgit_exception .
-
     CLASS-METHODS sha1_tree
       IMPORTING
         !iv_data       TYPE xstring
@@ -3857,7 +3845,6 @@ CLASS zcl_abapgit_hash DEFINITION
         VALUE(rv_sha1) TYPE zif_abapgit_definitions=>ty_sha1
       RAISING
         zcx_abapgit_exception .
-
     CLASS-METHODS sha1_tag
       IMPORTING
         !iv_data       TYPE xstring
@@ -3865,7 +3852,6 @@ CLASS zcl_abapgit_hash DEFINITION
         VALUE(rv_sha1) TYPE zif_abapgit_definitions=>ty_sha1
       RAISING
         zcx_abapgit_exception .
-
     CLASS-METHODS sha1_blob
       IMPORTING
         !iv_data       TYPE xstring
@@ -3873,11 +3859,16 @@ CLASS zcl_abapgit_hash DEFINITION
         VALUE(rv_sha1) TYPE zif_abapgit_definitions=>ty_sha1
       RAISING
         zcx_abapgit_exception .
-
-
     CLASS-METHODS sha1_raw
       IMPORTING
         !iv_data       TYPE xstring
+      RETURNING
+        VALUE(rv_sha1) TYPE zif_abapgit_definitions=>ty_sha1
+      RAISING
+        zcx_abapgit_exception .
+    CLASS-METHODS sha1_string
+      IMPORTING
+        !iv_data       TYPE string
       RETURNING
         VALUE(rv_sha1) TYPE zif_abapgit_definitions=>ty_sha1
       RAISING
@@ -5152,20 +5143,44 @@ CLASS zcl_abapgit_object_enho_hook DEFINITION .
   PROTECTED SECTION.
   PRIVATE SECTION.
     TYPES: BEGIN OF ty_spaces,
-             full_name TYPE string.
-    TYPES: spaces TYPE STANDARD TABLE OF i WITH DEFAULT KEY,
+             full_name TYPE string,
+             spaces    TYPE STANDARD TABLE OF i WITH DEFAULT KEY,
            END OF ty_spaces.
 
     TYPES: ty_spaces_tt TYPE STANDARD TABLE OF ty_spaces WITH DEFAULT KEY.
 
+    TYPES: BEGIN OF ty_file,
+             name TYPE string,
+             file TYPE string,
+           END OF ty_file.
+
+    TYPES: ty_files TYPE HASHED TABLE OF ty_file WITH UNIQUE KEY name.
+
+    CONSTANTS c_enhancement TYPE string VALUE 'ENHANCEMENT 0 *.' ##NO_TEXT.
+    CONSTANTS c_endenhancement TYPE string VALUE 'ENDENHANCEMENT.' ##NO_TEXT.
+
     DATA: ms_item TYPE zif_abapgit_definitions=>ty_item.
     DATA: mo_files TYPE REF TO zcl_abapgit_objects_files.
 
+    METHODS add_sources
+      CHANGING
+        !ct_enhancements TYPE enh_hook_impl_it
+        !ct_files        TYPE ty_files
+      RAISING
+        zcx_abapgit_exception .
+    METHODS read_sources
+      CHANGING
+        !ct_enhancements TYPE enh_hook_impl_it
+        !ct_files        TYPE ty_files
+      RAISING
+        zcx_abapgit_exception .
     METHODS hook_impl_deserialize
-      IMPORTING it_spaces TYPE ty_spaces_tt
-      CHANGING  ct_impl   TYPE enh_hook_impl_it
-      RAISING   zcx_abapgit_exception.
-
+      IMPORTING
+        !it_spaces TYPE ty_spaces_tt
+      CHANGING
+        !ct_impl   TYPE enh_hook_impl_it
+      RAISING
+        zcx_abapgit_exception .
 ENDCLASS.
 CLASS zcl_abapgit_object_enho_class DEFINITION .
 
@@ -6557,11 +6572,6 @@ CLASS zcl_abapgit_tadir DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    METHODS exists
-      IMPORTING
-        !is_item         TYPE zif_abapgit_definitions=>ty_item
-      RETURNING
-        VALUE(rv_exists) TYPE abap_bool .
     METHODS check_exists
       IMPORTING
         !it_tadir       TYPE zif_abapgit_definitions=>ty_tadir_tt
@@ -8039,68 +8049,73 @@ CLASS lcl_json_parser DEFINITION FINAL.
       RAISING
         zcx_abapgit_ajson_error cx_sxml_error.
 
-    methods _get_location
-      importing
-        iv_json            type string
-        iv_offset          type i
-      returning
-        value(rv_location) type string.
+    METHODS _get_location
+      IMPORTING
+        iv_json            TYPE string
+        iv_offset          TYPE i
+      RETURNING
+        VALUE(rv_location) TYPE string.
 
 ENDCLASS.
 
 CLASS lcl_json_parser IMPLEMENTATION.
 
-  method parse.
-    data lx_sxml type ref to cx_sxml_parse_error.
-    data lv_location type string.
-    try.
-      rt_json_tree = _parse( iv_json ).
-    catch cx_sxml_parse_error into lx_sxml.
+  METHOD parse.
+    DATA lx_sxml_parse TYPE REF TO cx_sxml_parse_error.
+    DATA lx_sxml TYPE REF TO cx_sxml_error.
+    DATA lv_location TYPE string.
+    TRY.
+        rt_json_tree = _parse( iv_json ).
+      CATCH cx_sxml_parse_error INTO lx_sxml_parse.
         lv_location = _get_location(
-          iv_json   = iv_json
-          iv_offset = lx_sxml->xml_offset ).
+        iv_json   = iv_json
+        iv_offset = lx_sxml_parse->xml_offset ).
         zcx_abapgit_ajson_error=>raise(
-          iv_msg      = |Json parsing error (SXML): { lx_sxml->get_text( ) }|
-          iv_location = lv_location ).
-    endtry.
-  endmethod.
+        iv_msg      = |Json parsing error (SXML): { lx_sxml_parse->get_text( ) }|
+        iv_location = lv_location ).
+      CATCH cx_sxml_error INTO lx_sxml.
+        zcx_abapgit_ajson_error=>raise(
+        iv_msg      = |Json parsing error (SXML): { lx_sxml->get_text( ) }|
+        iv_location = '@PARSER' ).
+    ENDTRY.
+  ENDMETHOD.
 
-  method _get_location.
+  METHOD _get_location.
 
-    data lv_json type string.
-    data lv_offset type i.
-    data lt_text type table of string.
-    data lv_text type string.
-    data lv_line type i.
-    data lv_pos type i.
+    DATA lv_json TYPE string.
+    DATA lv_offset TYPE i.
+    DATA lt_text TYPE TABLE OF string.
+    DATA lv_text TYPE string.
+    DATA lv_line TYPE i.
+    DATA lv_pos TYPE i.
 
     lv_offset = iv_offset.
-    if lv_offset < 0.
+    IF lv_offset < 0.
       lv_offset = 0.
-    endif.
-    if lv_offset > strlen( iv_json ).
+    ENDIF.
+    IF lv_offset > strlen( iv_json ).
       lv_offset = strlen( iv_json ).
-    endif.
+    ENDIF.
 
     lv_json = iv_json(lv_offset).
 
-    replace all occurrences of cl_abap_char_utilities=>cr_lf
-      in lv_json with cl_abap_char_utilities=>newline.
+    REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>cr_lf
+      IN lv_json WITH cl_abap_char_utilities=>newline.
 
-    split lv_json at cl_abap_char_utilities=>newline into table lt_text.
+    SPLIT lv_json AT cl_abap_char_utilities=>newline INTO TABLE lt_text.
 
     lv_line = lines( lt_text ).
-    if lv_line = 0.
+    IF lv_line = 0.
       lv_line = 1.
       lv_pos = 1.
-    else.
-      read table lt_text index lv_line into lv_text.
+    ELSE.
+      READ TABLE lt_text INDEX lv_line INTO lv_text.
       lv_pos = strlen( lv_text ) + 1.
-    endif.
+    ENDIF.
 
     rv_location = |Line { lv_line }, Offset { lv_pos }|.
 
-  endmethod.
+  ENDMETHOD.
 
   METHOD _parse.
 
@@ -8990,7 +9005,11 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
       <n>-name  = is_prefix-name.
     ENDIF.
 
-    IF io_type->absolute_name = '\TYPE-POOL=ABAP\TYPE=ABAP_BOOL' OR io_type->absolute_name = '\TYPE=XFELD'.
+    IF io_type->absolute_name = '\TYPE-POOL=ABAP\TYPE=ABAP_BOOL'
+        OR io_type->absolute_name = '\TYPE=ABAP_BOOLEAN'
+        OR io_type->absolute_name = '\TYPE=XSDBOOLEAN'
+        OR io_type->absolute_name = '\TYPE=FLAG'
+        OR io_type->absolute_name = '\TYPE=XFELD'.
       <n>-type = zif_abapgit_ajson=>node_type-boolean.
       IF iv_data IS NOT INITIAL.
         <n>-value = 'true'.
@@ -11650,11 +11669,23 @@ CLASS ZCL_ABAPGIT_EXIT IMPLEMENTATION.
 
   METHOD zif_abapgit_exit~custom_serialize_abap_clif.
 
+    " This exit might be called twice per object
+    " 1st call: it_source = initial
+    "    Can be used for serializing complete source
+    "    If source is returned, there will be no second call
+    " 2nd call: it_source = code as serialized by abapGit
+    "    Can be used for post-processing of source
     IF gi_exit IS NOT INITIAL.
       TRY.
-          rt_source = gi_exit->custom_serialize_abap_clif( is_class_key ).
+          rt_source = gi_exit->custom_serialize_abap_clif(
+            is_class_key = is_class_key
+            it_source    = it_source ).
         CATCH cx_sy_ref_is_initial cx_sy_dyn_call_illegal_method ##NO_HANDLER.
       ENDTRY.
+    ENDIF.
+
+    IF rt_source IS INITIAL.
+      rt_source = it_source.
     ENDIF.
 
   ENDMETHOD.
@@ -12362,7 +12393,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_HASH IMPLEMENTATION.
+CLASS zcl_abapgit_hash IMPLEMENTATION.
 
 
   METHOD adler32.
@@ -12455,6 +12486,28 @@ CLASS ZCL_ABAPGIT_HASH IMPLEMENTATION.
           lx_error TYPE REF TO cx_abap_message_digest.
     TRY.
         cl_abap_hmac=>calculate_hmac_for_raw(
+      EXPORTING
+        if_key        = lv_key
+        if_data       = iv_data
+      IMPORTING
+        ef_hmacstring = lv_hash ).
+      CATCH cx_abap_message_digest INTO lx_error.
+        zcx_abapgit_exception=>raise_with_text( lx_error ).
+    ENDTRY.
+
+    rv_sha1 = lv_hash.
+    TRANSLATE rv_sha1 TO LOWER CASE.
+
+  ENDMETHOD.
+
+
+  METHOD sha1_string.
+
+    DATA: lv_hash  TYPE string,
+          lv_key   TYPE xstring,
+          lx_error TYPE REF TO cx_abap_message_digest.
+    TRY.
+        cl_abap_hmac=>calculate_hmac_for_char(
       EXPORTING
         if_key        = lv_key
         if_data       = iv_data
@@ -14146,7 +14199,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_XML IMPLEMENTATION.
+CLASS zcl_abapgit_xml IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -14161,7 +14214,7 @@ CLASS ZCL_ABAPGIT_XML IMPLEMENTATION.
     DATA: lv_version TYPE string.
     DATA: lv_file    TYPE string.
 
-    lv_version = |abapGit version: { zif_abapgit_version=>gc_abap_version }|.
+    lv_version = |abapGit version: { zif_abapgit_version=>c_abap_version }|.
     IF mv_filename IS NOT INITIAL.
       lv_file = |File: { mv_filename }|.
     ENDIF.
@@ -14226,7 +14279,7 @@ CLASS ZCL_ABAPGIT_XML IMPLEMENTATION.
                                                 name = c_abapgit_tag ).
     li_version = li_element->if_ixml_node~get_attributes(
       )->get_named_item_ns( c_attr_version ).
-    IF li_version->get_value( ) <> zif_abapgit_version=>gc_xml_version.
+    IF li_version->get_value( ) <> zif_abapgit_version=>c_xml_version.
       display_version_mismatch( ).
     ENDIF.
 
@@ -14730,7 +14783,7 @@ CLASS zcl_abapgit_xml_output IMPLEMENTATION.
 
     li_git = mi_xml_doc->create_element( c_abapgit_tag ).
     li_git->set_attribute( name = c_attr_version
-                           value = zif_abapgit_version=>gc_xml_version ).
+                           value = zif_abapgit_version=>c_xml_version ).
     IF NOT is_metadata IS INITIAL.
       li_git->set_attribute( name  = c_attr_serializer
                              value = is_metadata-class ).
@@ -15387,6 +15440,11 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
           ELSE.
             CLEAR <ls_field>-foreignkey.
           ENDIF.
+        ENDIF.
+
+        IF <ls_field>-from_dict = abap_true AND
+           <ls_field>-modific   <> 'F'.
+          CLEAR <ls_field>-text.
         ENDIF.
       ENDLOOP.
 
@@ -17017,6 +17075,10 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
 
       REPLACE ALL OCCURRENCES OF iv_from_interface && '~descriptor' IN TABLE ct_source
                             WITH iv_to_interface && '~descriptor' IGNORING CASE.
+      REPLACE ALL OCCURRENCES OF iv_from_interface && '=>' IN TABLE ct_source
+                            WITH iv_to_interface && '=>' IGNORING CASE.
+      REPLACE ALL OCCURRENCES OF iv_from_interface && '->' IN TABLE ct_source
+                            WITH iv_to_interface && '->' IGNORING CASE.
     ENDIF.
 
   ENDMETHOD.
@@ -18344,7 +18406,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_OBJECT_DOMA IMPLEMENTATION.
+CLASS zcl_abapgit_object_doma IMPLEMENTATION.
 
 
   METHOD deserialize_texts.
@@ -18552,11 +18614,11 @@ CLASS ZCL_ABAPGIT_OBJECT_DOMA IMPLEMENTATION.
     FIELD-SYMBOLS <ls_dd07v> TYPE dd07v.
 
     io_xml->read( EXPORTING iv_name = 'DD01V'
-                  CHANGING cg_data = ls_dd01v ).
+                  CHANGING  cg_data = ls_dd01v ).
     io_xml->read( EXPORTING iv_name = 'DD07V_TAB'
-                  CHANGING cg_data = lt_dd07v ).
+                  CHANGING  cg_data = lt_dd07v ).
 
-    corr_insert( iv_package = iv_package
+    corr_insert( iv_package      = iv_package
                  ig_object_class = 'DICT' ).
 
     lv_name = ms_item-obj_name. " type conversion
@@ -18596,7 +18658,7 @@ CLASS ZCL_ABAPGIT_OBJECT_DOMA IMPLEMENTATION.
 
   METHOD zif_abapgit_object~exists.
 
-    DATA: lv_domname TYPE dd01l-domname.
+    DATA lv_domname TYPE dd01l-domname.
 
     SELECT SINGLE domname FROM dd01l INTO lv_domname
       WHERE domname = ms_item-obj_name.
@@ -18646,6 +18708,7 @@ CLASS ZCL_ABAPGIT_OBJECT_DOMA IMPLEMENTATION.
           lv_masklen TYPE c LENGTH 4,
           lt_dd07v   TYPE TABLE OF dd07v.
 
+    FIELD-SYMBOLS <ls_dd07v> TYPE dd07v.
 
     lv_name = ms_item-obj_name.
 
@@ -18688,6 +18751,10 @@ CLASS ZCL_ABAPGIT_OBJECT_DOMA IMPLEMENTATION.
     SORT lt_dd07v BY
       valpos ASCENDING
       ddlanguage ASCENDING.
+
+    LOOP AT lt_dd07v ASSIGNING <ls_dd07v>.
+      CLEAR <ls_dd07v>-domname.
+    ENDLOOP.
 
     io_xml->add( iv_name = 'DD01V'
                  ig_data = ls_dd01v ).
@@ -19544,6 +19611,41 @@ ENDCLASS.
 CLASS zcl_abapgit_object_enho_hook IMPLEMENTATION.
 
 
+  METHOD add_sources.
+
+    DATA lv_source TYPE string.
+    DATA ls_file LIKE LINE OF ct_files.
+
+    FIELD-SYMBOLS <ls_enhancement> LIKE LINE OF ct_enhancements.
+
+    LOOP AT ct_enhancements ASSIGNING <ls_enhancement>.
+      " Use hash as filename since full_name is very long
+      CLEAR ls_file.
+      ls_file-name = <ls_enhancement>-full_name.
+      ls_file-file = substring(
+        val = zcl_abapgit_hash=>sha1_string( <ls_enhancement>-full_name )
+        len = 8 ).
+      INSERT ls_file INTO TABLE ct_files.
+
+      " Add full name as comment and put code between enhancement statements
+      lv_source = c_enhancement.
+      REPLACE '*' IN lv_source WITH ms_item-obj_name.
+      INSERT lv_source INTO <ls_enhancement>-source INDEX 1.
+
+      lv_source = |"Name: { <ls_enhancement>-full_name }|.
+      INSERT lv_source INTO <ls_enhancement>-source INDEX 1.
+
+      APPEND c_endenhancement TO <ls_enhancement>-source.
+
+      mo_files->add_abap( iv_extra = ls_file-file
+                          it_abap  = <ls_enhancement>-source ).
+
+      CLEAR <ls_enhancement>-source.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD constructor.
     ms_item = is_item.
     mo_files = io_files.
@@ -19575,6 +19677,36 @@ CLASS zcl_abapgit_object_enho_hook IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD read_sources.
+
+    DATA lv_source TYPE string.
+    DATA ls_file LIKE LINE OF ct_files.
+    DATA lv_from TYPE i.
+    DATA lv_to TYPE i.
+
+    FIELD-SYMBOLS <ls_enhancement> LIKE LINE OF ct_enhancements.
+
+    LOOP AT ct_enhancements ASSIGNING <ls_enhancement>.
+      READ TABLE ct_files INTO ls_file WITH TABLE KEY name = <ls_enhancement>-full_name.
+      IF sy-subrc = 0.
+        <ls_enhancement>-source = mo_files->read_abap( iv_extra = ls_file-file ).
+        " Get code between enhancement statements
+        LOOP AT <ls_enhancement>-source INTO lv_source.
+          IF lv_source CP c_enhancement.
+            lv_from = sy-tabix.
+          ENDIF.
+          IF lv_source CP c_endenhancement.
+            lv_to = sy-tabix.
+          ENDIF.
+        ENDLOOP.
+        DELETE <ls_enhancement>-source FROM lv_to.
+        DELETE <ls_enhancement>-source TO lv_from.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD zif_abapgit_object_enho~deserialize.
 
     DATA: lv_shorttext       TYPE string,
@@ -19584,6 +19716,7 @@ CLASS zcl_abapgit_object_enho_hook IMPLEMENTATION.
           lv_package         TYPE devclass,
           ls_original_object TYPE enh_hook_admin,
           lt_spaces          TYPE ty_spaces_tt,
+          lt_files           TYPE ty_files,
           lt_enhancements    TYPE enh_hook_impl_it,
           lx_enh_root        TYPE REF TO cx_enh_root.
 
@@ -19596,12 +19729,17 @@ CLASS zcl_abapgit_object_enho_hook IMPLEMENTATION.
                   CHANGING cg_data  = ls_original_object ).
     ii_xml->read( EXPORTING iv_name = 'ENHANCEMENTS'
                   CHANGING cg_data  = lt_enhancements ).
+    ii_xml->read( EXPORTING iv_name = 'FILES'
+                  CHANGING cg_data  = lt_files ).
     ii_xml->read( EXPORTING iv_name = 'SPACES'
                   CHANGING cg_data  = lt_spaces ).
 
     " todo: kept for compatibility, remove after grace period #3680
     hook_impl_deserialize( EXPORTING it_spaces = lt_spaces
                            CHANGING ct_impl    = lt_enhancements ).
+
+    read_sources( CHANGING ct_enhancements = lt_enhancements
+                           ct_files        = lt_files ).
 
     lv_enhname = ms_item-obj_name.
     lv_package = iv_package.
@@ -19652,10 +19790,10 @@ CLASS zcl_abapgit_object_enho_hook IMPLEMENTATION.
           lo_hook_impl       TYPE REF TO cl_enh_tool_hook_impl,
           ls_original_object TYPE enh_hook_admin,
           lt_spaces          TYPE ty_spaces_tt,
+          lt_files           TYPE ty_files,
           lt_enhancements    TYPE enh_hook_impl_it.
 
     FIELD-SYMBOLS: <ls_enhancement> LIKE LINE OF lt_enhancements.
-
 
     lo_hook_impl ?= ii_enh_tool.
 
@@ -19676,14 +19814,19 @@ CLASS zcl_abapgit_object_enho_hook IMPLEMENTATION.
              <ls_enhancement>-id.
     ENDLOOP.
 
+    add_sources( CHANGING ct_enhancements = lt_enhancements
+                          ct_files        = lt_files ).
+
     ii_xml->add( iv_name = 'TOOL'
                  ig_data = ii_enh_tool->get_tool( ) ).
-    ii_xml->add( ig_data = lv_shorttext
-                 iv_name = 'SHORTTEXT' ).
-    ii_xml->add( ig_data = ls_original_object
-                 iv_name = 'ORIGINAL_OBJECT' ).
+    ii_xml->add( iv_name = 'SHORTTEXT'
+                 ig_data = lv_shorttext ).
+    ii_xml->add( iv_name = 'ORIGINAL_OBJECT'
+                 ig_data = ls_original_object ).
     ii_xml->add( iv_name = 'ENHANCEMENTS'
                  ig_data = lt_enhancements ).
+    ii_xml->add( iv_name = 'FILES'
+                 ig_data = lt_files ).
     ii_xml->add( iv_name = 'SPACES'
                  ig_data = lt_spaces ).
 
@@ -25822,6 +25965,7 @@ CLASS ZCL_ABAPGIT_OBJECT_TABL IMPLEMENTATION.
     DELETE lt_dd08v WHERE noinherit = 'N'.
     LOOP AT lt_dd05m ASSIGNING <ls_dd05m>.
       CLEAR <ls_dd05m>-tabname.
+      CLEAR <ls_dd05m>-leng.
       lv_index = sy-tabix.
       READ TABLE lt_dd08v WITH KEY fieldname = <ls_dd05m>-fieldname TRANSPORTING NO FIELDS.
       IF sy-subrc <> 0.
@@ -28091,6 +28235,11 @@ CLASS zcl_abapgit_oo_serializer IMPLEMENTATION.
       CATCH cx_sy_dyn_call_error.
         rt_source = serialize_abap_old( is_class_key ).
     ENDTRY.
+
+    " Call exit again for optional post-processing
+    rt_source = zcl_abapgit_exit=>get_instance( )->custom_serialize_abap_clif(
+      is_class_key = is_class_key
+      it_source    = rt_source ).
   ENDMETHOD.
 
 
@@ -29337,7 +29486,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_TADIR IMPLEMENTATION.
+CLASS zcl_abapgit_tadir IMPLEMENTATION.
 
 
   METHOD add_local_packages.
@@ -29504,7 +29653,7 @@ CLASS ZCL_ABAPGIT_TADIR IMPLEMENTATION.
       ls_item-obj_name = <ls_tadir>-obj_name.
       ls_item-devclass = <ls_tadir>-devclass.
 
-      IF exists( ls_item ) = abap_true.
+      IF zcl_abapinst_objects=>exists( ls_item ) = abap_true.
         APPEND <ls_tadir> TO rt_tadir.
       ENDIF.
     ENDLOOP.
@@ -29542,22 +29691,6 @@ CLASS ZCL_ABAPGIT_TADIR IMPLEMENTATION.
       <ls_tadir>-path = lv_path.
 
     ENDLOOP.
-  ENDMETHOD.
-
-
-  METHOD exists.
-
-    IF is_item IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    IF zcl_abapinst_objects=>is_supported( is_item ) = abap_false.
-      rv_exists = abap_true.
-      RETURN.
-    ENDIF.
-
-    rv_exists = zcl_abapinst_objects=>exists( is_item ).
-
   ENDMETHOD.
 
 
@@ -29643,7 +29776,7 @@ CLASS ZCL_ABAPGIT_TADIR IMPLEMENTATION.
     ls_item-obj_type = ls_tadir-object.
     ls_item-obj_name = ls_tadir-obj_name.
     ls_item-devclass = ls_tadir-devclass.
-    IF exists( ls_item ) = abap_false.
+    IF zcl_abapinst_objects=>exists( ls_item ) = abap_false.
       RETURN.
     ENDIF.
 
@@ -29750,23 +29883,15 @@ CLASS zcl_abapgit_url IMPLEMENTATION.
 
   METHOD regex.
 
-    FIND REGEX '(https?://[^/]*)(.*/)(.*)\.git$' IN iv_url
+    FIND REGEX '^(https?://[^/]*)(.*/)(.*)\.git$' IN iv_url
       SUBMATCHES ev_host ev_path ev_name.
     IF sy-subrc <> 0.
-      FIND REGEX '(https?://[^/]*)(.*/)(.*)$' IN iv_url
+      FIND REGEX '^(https?://[^/]*)(.*/)(.*)$' IN iv_url
         SUBMATCHES ev_host ev_path ev_name.
       IF sy-subrc <> 0.
         zcx_abapgit_exception=>raise( 'Malformed URL' ).
       ENDIF.
     ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD validate.
-
-    name( iv_url      = iv_url
-          iv_validate = abap_true ).
 
   ENDMETHOD.
 
@@ -29798,6 +29923,12 @@ CLASS zcl_abapgit_url IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD validate.
+
+    name( iv_url      = iv_url
+          iv_validate = abap_true ).
+
+  ENDMETHOD.
 ENDCLASS.
 
 
@@ -34888,6 +35019,8 @@ ENDCLASS.
 *&---------------------------------------------------------------------*
 *&  Include           /MBTOOLS/MBT_TEMPLATE_1_DEFS
 *&---------------------------------------------------------------------*
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
 
 TABLES:
   sscrfields.
@@ -34901,6 +35034,8 @@ DATA:
 *&---------------------------------------------------------------------*
 *&  Include           /MBTOOLS/MBT_TEMPLATE_2_BANNER
 *&---------------------------------------------------------------------*
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
 
 CONSTANTS:
   c_banner_id   TYPE string VALUE '/MBTOOLS/MBT_INSTALLER',
@@ -34948,6 +35083,8 @@ ENDFORM.
 *&---------------------------------------------------------------------*
 *&  Include           /MBTOOLS/MBT_TEMPLATE_3_SCREEN
 *&---------------------------------------------------------------------*
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
 
 " Function Keys
 SELECTION-SCREEN FUNCTION KEY: 1, 2.
@@ -35224,6 +35361,8 @@ SELECTION-SCREEN:
 *&---------------------------------------------------------------------*
 *&  Include           /MBTOOLS/MBT_TEMPLATE_4_INIT
 *&---------------------------------------------------------------------*
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
 
 INITIALIZATION.
 
@@ -35394,6 +35533,8 @@ INITIALIZATION.
 *&---------------------------------------------------------------------*
 *&  Include           /MBTOOLS/MBT_TEMPLATE_5_AT
 *&---------------------------------------------------------------------*
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
 
 AT SELECTION-SCREEN.
 
@@ -35481,6 +35622,8 @@ AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_req_e.
 *&---------------------------------------------------------------------*
 *&  Include           /MBTOOLS/MBT_TEMPLATE_6_START
 *&---------------------------------------------------------------------*
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
 
 START-OF-SELECTION.
 
