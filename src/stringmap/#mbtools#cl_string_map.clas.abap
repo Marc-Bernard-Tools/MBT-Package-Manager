@@ -12,7 +12,7 @@ CLASS /mbtools/cl_string_map DEFINITION
 
   PUBLIC SECTION.
 
-    CONSTANTS c_version TYPE string VALUE 'v1.0.2'.
+    CONSTANTS c_version TYPE string VALUE 'v1.0.3'.
     CONSTANTS c_origin TYPE string VALUE 'https://github.com/sbcgua/abap-string-map'.
     CONSTANTS c_license TYPE string VALUE 'MIT'.
 
