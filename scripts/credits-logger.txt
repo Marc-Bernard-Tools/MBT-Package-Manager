@@ -1,0 +1,6 @@
+************************************************************************
+* abap logger
+*
+* Copyright 2017 Eric Peterson <https://github.com/ABAP-Logger/ABAP-Logger>
+* SPDX-License-Identifier: MIT
+************************************************************************
