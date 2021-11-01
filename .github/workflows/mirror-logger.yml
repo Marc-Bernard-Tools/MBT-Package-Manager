@@ -1,0 +1,39 @@
+name: Mirror LOGGER
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '5 1 * * 0'
+
+jobs:
+  run:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+    - name: Mirror Repository
+      run: |
+        git clone "https://github.com/Marc-Bernard-Tools/Mirror-LOGGER.git"
+        ls -l
+        bash scripts/credits.sh scripts/credits-logger.txt Mirror-LOGGER/src
+        bash scripts/descriptions.sh Mirror-LOGGER/src
+        bash scripts/fixit.sh Mirror-LOGGER/src
+        rm src/log/#mbtools#*
+        cp Mirror-LOGGER/src/#mbtools#* src/log/
+        rm -rf Mirror-LOGGER
+        git status
+    - name: Open Pull Request
+      uses: peter-evans/create-pull-request@v3
+      if: github.repository == 'Marc-Bernard-Tools/MBT-Base'
+      with:
+        branch: mbtools/logger
+        title: Automatic Update LOGGER
+        body: |
+          Automatic update from mirror
+          https://github.com/Marc-Bernard-Tools/Mirror-LOGGER
