@@ -139,6 +139,10 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
         wt_object_text = gt_object_texts.
 
     " Add texts for non-transportable objects (or from previous releases)
+    ls_object_text-pgmid  = 'HEAD'.
+    ls_object_text-object = 'SYST'.
+    ls_object_text-text   = 'System Head'(107).
+    COLLECT ls_object_text INTO gt_object_texts.
     ls_object_text-pgmid  = 'R3TR'.
     ls_object_text-object = 'LSYS'.
     ls_object_text-text   = 'Source System'(100).
@@ -166,7 +170,7 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
     COLLECT ls_object_text INTO gt_object_texts.
 
     " Add Workbench Development Objects
-    SELECT type AS object singular AS text FROM euobjt APPENDING TABLE gt_object_texts
+    SELECT type AS object type AS type singular AS text FROM euobjt APPENDING TABLE gt_object_texts
       WHERE spras = sy-langu ORDER BY type singular ##SUBRC_OK. "#EC CI_GENBUFF
 
     SORT gt_object_texts.
