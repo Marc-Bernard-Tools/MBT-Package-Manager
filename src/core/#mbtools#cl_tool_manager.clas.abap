@@ -536,8 +536,6 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
 
     ENDLOOP.
 
-    SORT rt_tools BY name AS TEXT.
-
   ENDMETHOD.
 
 
@@ -609,7 +607,11 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
 
     ENDLOOP.
 
-    SORT rt_manifests BY bundle_id name is_extension.
+    IF iv_get_bundles = abap_true.
+      SORT rt_manifests BY bundle_id name is_extension.
+    ELSE.
+      SORT rt_manifests BY name is_extension.
+    ENDIF.
 
   ENDMETHOD.
 
