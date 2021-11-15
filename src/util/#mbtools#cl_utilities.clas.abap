@@ -108,6 +108,11 @@ CLASS /mbtools/cl_utilities DEFINITION
         VALUE(iv_parameter) TYPE clike
       RETURNING
         VALUE(rv_value)     TYPE string.
+    CLASS-METHODS get_profile_parameter_name
+      IMPORTING
+        VALUE(iv_parameter) TYPE clike
+      RETURNING
+        VALUE(rv_result)    TYPE string.
     CLASS-METHODS get_user_parameter
       IMPORTING
         !iv_parameter    TYPE clike
@@ -119,6 +124,7 @@ CLASS /mbtools/cl_utilities DEFINITION
         !iv_value     TYPE clike.
   PROTECTED SECTION.
   PRIVATE SECTION.
+    CONSTANTS c_original_name TYPE string VALUE 'ORIG:' ##NO_TEXT.
 
     CLASS-DATA:
       gt_cvers TYPE SORTED TABLE OF cvers WITH UNIQUE KEY component.
@@ -277,6 +283,13 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
     IF rv_value IS INITIAL.
       rv_value = c_unknown.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD get_profile_parameter_name.
+
+    rv_result = get_profile_parameter( c_original_name && iv_parameter ).
 
   ENDMETHOD.
 
@@ -637,6 +650,10 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
           ro_parameters->set(
             iv_key = <lv_name>
             iv_val = <lv_value> ).
+          " Original parameter name
+          ro_parameters->set(
+            iv_key = c_original_name && <lv_name>
+            iv_val = <lv_name> ).
         ENDLOOP.
 
       CATCH cx_root.
@@ -653,6 +670,10 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
           ro_parameters->set(
             iv_key = |{ <lv_name> }|
             iv_val = |{ <lv_value> }| ).
+          " Original parameter name
+          ro_parameters->set(
+            iv_key = c_original_name && <lv_name>
+            iv_val = <lv_name> ).
         ENDLOOP.
     ENDTRY.
 
