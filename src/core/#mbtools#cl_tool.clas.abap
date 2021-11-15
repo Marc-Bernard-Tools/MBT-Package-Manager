@@ -38,6 +38,7 @@ CLASS /mbtools/cl_tool DEFINITION
         license              TYPE string VALUE '.License' ##NO_TEXT,
         key_lic_id           TYPE string VALUE 'ID' ##NO_TEXT,
         key_lic_bundle       TYPE string VALUE 'BundleID' ##NO_TEXT,
+        key_lic_extension    TYPE string VALUE 'ExtensionID' ##NO_TEXT,
         key_lic_key          TYPE string VALUE 'LicenseKey' ##NO_TEXT,
         key_lic_valid        TYPE string VALUE 'LicenseValid' ##NO_TEXT,
         key_lic_expire       TYPE string VALUE 'LicenseExpiration' ##NO_TEXT,
@@ -96,6 +97,9 @@ CLASS /mbtools/cl_tool DEFINITION
       RETURNING
         VALUE(rv_result) TYPE abap_bool.
     METHODS is_bundle
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool.
+    METHODS is_extension
       RETURNING
         VALUE(rv_result) TYPE abap_bool.
     METHODS has_launch
@@ -167,6 +171,9 @@ CLASS /mbtools/cl_tool DEFINITION
     METHODS get_download_id
       RETURNING
         VALUE(rv_result) TYPE i.
+    METHODS get_extension_id
+      RETURNING
+        VALUE(rv_result) TYPE i.
     METHODS get_html_changelog
       RETURNING
         VALUE(rv_result) TYPE string.
@@ -222,6 +229,7 @@ CLASS /mbtools/cl_tool DEFINITION
     METHODS get_shortcut
       RETURNING
         VALUE(rv_result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -423,9 +431,7 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
 
   METHOD get_bundle_id.
-
     rv_result = ms_manifest-bundle_id.
-
   ENDMETHOD.
 
 
@@ -446,6 +452,11 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
   METHOD get_download_id.
     rv_result = ms_manifest-download_id.
+  ENDMETHOD.
+
+
+  METHOD get_extension_id.
+    rv_result = ms_manifest-extension_id.
   ENDMETHOD.
 
 
@@ -782,6 +793,11 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD is_extension.
+    rv_result = ms_manifest-is_extension.
+  ENDMETHOD.
+
+
   METHOD is_licensed.
 
     DATA:
@@ -1098,26 +1114,23 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
     ENDIF.
     CHECK lo_reg_tool IS BOUND.
 
-    " Get license
-    lo_reg_entry = lo_reg_tool->get_subentry( c_reg-license ).
+    " Get update
+    lo_reg_entry = lo_reg_tool->get_subentry( c_reg-update ).
     CHECK lo_reg_entry IS BOUND.
 
-    " If newer version is available, save info
+    " If same or newer version is available, save info
     IF /mbtools/cl_version=>compare( iv_current = ms_manifest-version
-                                     iv_compare = iv_version ) < 0
+                                     iv_compare = iv_version ) <= 0
       OR iv_version = '1.0.0' OR iv_force = abap_true.
-
-      lo_reg_entry = lo_reg_tool->get_subentry( c_reg-update ).
-      CHECK lo_reg_entry IS BOUND.
 
       lo_reg_entry->set_value( iv_key   = c_reg-key_new_version
                                iv_value = iv_version ).
-      lo_reg_entry->set_value( iv_key   = c_reg-key_description_html
-                               iv_value = iv_description ).
       lo_reg_entry->set_value( iv_key   = c_reg-key_changelog_url
                                iv_value = iv_changelog_url ).
       lo_reg_entry->set_value( iv_key   = c_reg-key_changelog_html
                                iv_value = iv_changelog ).
+      lo_reg_entry->set_value( iv_key   = c_reg-key_description_html
+                               iv_value = iv_description ).
       lo_reg_entry->set_value( iv_key   = c_reg-key_download_url
                                iv_value = iv_download_url ).
 
@@ -1221,10 +1234,14 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
         lo_reg_entry = lo_reg_tool->get_subentry( c_reg-properties ).
         IF lo_reg_entry IS BOUND.
           lv_timestamp = lo_reg_entry->get_value( iv_key ).
-          IF iv_internal = abap_true.
-            rv_result = lv_timestamp.
+          IF lv_timestamp IS INITIAL.
+            rv_result = 'never'.
           ELSE.
-            rv_result = /mbtools/cl_datetime=>human_time_diff( lv_timestamp ) && ' ago'.
+            IF iv_internal = abap_true.
+              rv_result = lv_timestamp.
+            ELSE.
+              rv_result = /mbtools/cl_datetime=>human_time_diff( lv_timestamp ) && ' ago'.
+            ENDIF.
           ENDIF.
         ELSEIF iv_internal = abap_false.
           rv_result = 'never'.
@@ -1295,6 +1312,8 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
                                  iv_value = ms_manifest-download_id ).
         lo_reg_entry->set_value( iv_key   = c_reg-key_lic_bundle
                                  iv_value = ms_manifest-bundle_id ).
+        lo_reg_entry->set_value( iv_key   = c_reg-key_lic_extension
+                                 iv_value = ms_manifest-extension_id ).
         lo_reg_entry->set_value( iv_key   = c_reg-key_lic_expire
                                  iv_value = c_reg-val_lic_expire ).
         lo_reg_entry->set_value( c_reg-key_lic_key ).

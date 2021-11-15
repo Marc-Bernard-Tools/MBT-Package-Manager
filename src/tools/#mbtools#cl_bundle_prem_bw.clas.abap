@@ -4,7 +4,7 @@ CLASS /mbtools/cl_bundle_prem_bw DEFINITION
   CREATE PUBLIC.
 
 ************************************************************************
-* MBT Premium BW
+* MBT BW Bundle
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
@@ -15,10 +15,10 @@ CLASS /mbtools/cl_bundle_prem_bw DEFINITION
     CONSTANTS:
       BEGIN OF c_tool,
         version     TYPE string VALUE '1.0.0' ##NO_TEXT,
-        title       TYPE string VALUE 'MBT Premium BW' ##NO_TEXT,
+        title       TYPE string VALUE 'MBT BW Tools' ##NO_TEXT,
         is_bundle   TYPE c VALUE abap_true,
         bundle_id   TYPE i VALUE 2,
-        download_id TYPE i VALUE 4542,
+        download_id TYPE i VALUE 5653,
         description TYPE string VALUE
         'World-class tools and enhancements for SAP BW and SAP BW/4HANA' ##NO_TEXT,
       END OF c_tool.

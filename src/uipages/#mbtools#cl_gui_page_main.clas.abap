@@ -691,8 +691,9 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
     lo_bundle = /mbtools/cl_tool_manager=>factory( iv_title ).
 
     lt_tools = /mbtools/cl_tool_manager=>select(
-      iv_bundle_id = lo_bundle->get_bundle_id( )
-      iv_admin     = abap_true ).
+      iv_bundle_id      = lo_bundle->get_bundle_id( )
+      iv_admin          = abap_true
+      iv_get_extensions = abap_true ).
 
     IF lt_tools IS INITIAL.
       RETURN.
@@ -759,6 +760,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
       lv_description TYPE string,
       lv_update      TYPE string,
       lv_class       TYPE string,
+      lv_extension   TYPE string,
       lv_img         TYPE string.
 
     lo_tool = /mbtools/cl_tool_manager=>factory( iv_title ).
@@ -773,6 +775,10 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
     lv_img = |<img src="{ register_thumbnail( lo_tool ) }" alt="{ lo_tool->get_title( ) }">|.
 
     ri_html = /mbtools/cl_html=>create( ).
+
+    IF lo_tool->is_extension( ) = abap_true.
+      ri_html->add( '<div class="extension">' ).
+    ENDIF.
 
     ri_html->add( |<table><tr class="{ lv_class }">| ).
 
@@ -814,6 +820,10 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
     ri_html->add( '</td>' ).
 
     ri_html->add( '</tr></table>' ).
+
+    IF lo_tool->is_extension( ) = abap_true.
+      ri_html->add( '</div>' ).
+    ENDIF.
 
   ENDMETHOD.
 

@@ -2,24 +2,24 @@
 <abapGit version="v1.0.0" serializer="LCL_OBJECT_W3MI" serializer_version="v2.0.0">
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
-   <NAME>/MBTOOLS/MBT_PREMIUM_BW_TN</NAME>
-   <TEXT>MBT Premium BW (Thumbnail)</TEXT>
+   <NAME>/MBTOOLS/MBT_BW_TOOLS_TN</NAME>
+   <TEXT>MBT BW Tools (Thumbnail)</TEXT>
    <PARAMS>
     <WWWPARAMS>
      <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_PREMIUM_BW_TN</OBJID>
+     <OBJID>/MBTOOLS/MBT_BW_TOOLS_TN</OBJID>
      <NAME>fileextension</NAME>
      <VALUE>.jpg</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
      <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_PREMIUM_BW_TN</OBJID>
+     <OBJID>/MBTOOLS/MBT_BW_TOOLS_TN</OBJID>
      <NAME>filename</NAME>
      <VALUE>MBT_Premium_BW_TN.jpg</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
      <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_PREMIUM_BW_TN</OBJID>
+     <OBJID>/MBTOOLS/MBT_BW_TOOLS_TN</OBJID>
      <NAME>mimetype</NAME>
      <VALUE>image/jpeg</VALUE>
     </WWWPARAMS>

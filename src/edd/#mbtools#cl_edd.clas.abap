@@ -15,7 +15,7 @@ CLASS /mbtools/cl_edd DEFINITION
 
     TYPES:
       BEGIN OF ty_product,
-        id            TYPE string,
+        id            TYPE i,
         license       TYPE string,
         version       TYPE string,
         description   TYPE string,
@@ -415,7 +415,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     LOOP AT ct_products ASSIGNING <ls_product>.
 
-      lo_json = lo_json_all->slice( |/{ <ls_product>-id }| ).
+      lo_json = lo_json_all->slice( condense( |/{ <ls_product>-id }| ) ).
 
       <ls_product>-version = lo_json->get_string( '/new_version' ).
       <ls_product>-changelog_url = lo_json->get_string( '/url' ).
@@ -567,7 +567,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
       rv_endpoint = rv_endpoint && '&products[' && c_edd_param-id && '][url]=SystemID_' &&
                     c_edd_param-sysid && '_SystemNumber_' && c_edd_param-sysno.
 
-      REPLACE ALL OCCURRENCES OF c_edd_param-id  IN rv_endpoint WITH ls_products-id.
+      REPLACE ALL OCCURRENCES OF c_edd_param-id  IN rv_endpoint WITH condense( |{ ls_products-id }| ).
       REPLACE ALL OCCURRENCES OF c_edd_param-key IN rv_endpoint WITH ls_products-license.
     ENDLOOP.
 

@@ -1,10 +1,10 @@
-CLASS /mbtools/cl_bundle_free DEFINITION
+CLASS /mbtools/cl_bundle_foundation DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
-* MBT Free Tools
+* MBT Foundation Bundle
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
@@ -15,13 +15,13 @@ CLASS /mbtools/cl_bundle_free DEFINITION
     CONSTANTS:
       BEGIN OF c_tool,
         version     TYPE string VALUE '1.0.0' ##NO_TEXT,
-        title       TYPE string VALUE 'MBT Free Tools' ##NO_TEXT,
+        title       TYPE string VALUE 'MBT Foundation' ##NO_TEXT,
         is_bundle   TYPE c VALUE abap_true,
         bundle_id   TYPE i VALUE 0,
-        download_id TYPE i VALUE 4480,
+        download_id TYPE i VALUE 5648,
         description TYPE string
-        VALUE 'Everything you need to get started with Marc Bernard Tools' ##NO_TEXT,
-      END OF c_tool .
+        VALUE 'Framework for Managing Marc Bernard Tools' ##NO_TEXT,
+      END OF c_tool.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -29,7 +29,7 @@ ENDCLASS.
 
 
 
-CLASS /mbtools/cl_bundle_free IMPLEMENTATION.
+CLASS /mbtools/cl_bundle_foundation IMPLEMENTATION.
 
 
   METHOD /mbtools/if_tool~install.

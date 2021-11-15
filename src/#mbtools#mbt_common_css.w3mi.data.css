@@ -1149,7 +1149,9 @@ div.debug_container p {
     margin: 0;
     padding-left: 70px;
 }
-
+.tools ul div.extension {
+    margin-left: 70px;
+}
 .tool-row.active .tool-thumbnail {
     border-left: 5px solid #04c;
 }

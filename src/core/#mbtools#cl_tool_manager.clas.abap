@@ -30,31 +30,34 @@ CLASS /mbtools/cl_tool_manager DEFINITION
         VALUE(rt_manifests) TYPE /mbtools/if_tool=>ty_manifests.
     CLASS-METHODS select
       IMPORTING
-        VALUE(iv_pattern)     TYPE csequence OPTIONAL
-        VALUE(iv_bundle_id)   TYPE i DEFAULT -1
-        VALUE(iv_get_bundles) TYPE abap_bool DEFAULT abap_false
-        VALUE(iv_get_tools)   TYPE abap_bool DEFAULT abap_true
-        VALUE(iv_admin)       TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_pattern)        TYPE csequence OPTIONAL
+        VALUE(iv_bundle_id)      TYPE i DEFAULT -1
+        VALUE(iv_get_bundles)    TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_get_tools)      TYPE abap_bool DEFAULT abap_true
+        VALUE(iv_get_extensions) TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_admin)          TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(rt_manifests)   TYPE /mbtools/if_tool=>ty_manifests.
+        VALUE(rt_manifests)      TYPE /mbtools/if_tool=>ty_manifests.
     CLASS-METHODS list
       IMPORTING
-        VALUE(iv_pattern)     TYPE csequence OPTIONAL
-        VALUE(iv_bundle_id)   TYPE i DEFAULT -1
-        VALUE(iv_get_bundles) TYPE abap_bool DEFAULT abap_false
-        VALUE(iv_get_tools)   TYPE abap_bool DEFAULT abap_true
-        VALUE(iv_admin)       TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_pattern)        TYPE csequence OPTIONAL
+        VALUE(iv_bundle_id)      TYPE i DEFAULT -1
+        VALUE(iv_get_bundles)    TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_get_tools)      TYPE abap_bool DEFAULT abap_true
+        VALUE(iv_get_extensions) TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_admin)          TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(rt_tools)       TYPE /mbtools/if_tool=>ty_tools_with_text.
+        VALUE(rt_tools)          TYPE /mbtools/if_tool=>ty_tools_with_text.
     CLASS-METHODS f4
       IMPORTING
-        VALUE(iv_pattern)     TYPE csequence OPTIONAL
-        VALUE(iv_bundle_id)   TYPE i DEFAULT -1
-        VALUE(iv_get_bundles) TYPE abap_bool DEFAULT abap_false
-        VALUE(iv_get_tools)   TYPE abap_bool DEFAULT abap_true
-        VALUE(iv_admin)       TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_pattern)        TYPE csequence OPTIONAL
+        VALUE(iv_bundle_id)      TYPE i DEFAULT -1
+        VALUE(iv_get_bundles)    TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_get_tools)      TYPE abap_bool DEFAULT abap_true
+        VALUE(iv_get_extensions) TYPE abap_bool DEFAULT abap_false
+        VALUE(iv_admin)          TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(rv_title)       TYPE string.
+        VALUE(rv_title)          TYPE string.
     CLASS-METHODS action_tools
       IMPORTING
         !iv_action       TYPE string
@@ -329,6 +332,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
           ASSERT sy-subrc = 0.
 
           lv_result = ls_manifest-manager->update_version(
+            iv_force         = abap_true
             iv_version       = ls_product-version
             iv_description   = ls_product-description
             iv_changelog_url = ls_product-changelog_url
@@ -377,11 +381,12 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
       lt_return TYPE TABLE OF ddshretval.
 
     lt_tools = list(
-      iv_pattern     = iv_pattern
-      iv_bundle_id   = iv_bundle_id
-      iv_get_bundles = iv_get_bundles
-      iv_get_tools   = iv_get_tools
-      iv_admin       = iv_admin ).
+      iv_pattern        = iv_pattern
+      iv_bundle_id      = iv_bundle_id
+      iv_get_bundles    = iv_get_bundles
+      iv_get_tools      = iv_get_tools
+      iv_get_extensions = iv_get_extensions
+      iv_admin          = iv_admin ).
 
     " Show F4-Popup
     CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
@@ -514,11 +519,12 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
       ls_tool      LIKE LINE OF rt_tools.
 
     lt_manifests = select(
-      iv_pattern     = iv_pattern
-      iv_bundle_id   = iv_bundle_id
-      iv_get_bundles = iv_get_bundles
-      iv_get_tools   = iv_get_tools
-      iv_admin       = iv_admin ).
+      iv_pattern        = iv_pattern
+      iv_bundle_id      = iv_bundle_id
+      iv_get_bundles    = iv_get_bundles
+      iv_get_tools      = iv_get_tools
+      iv_get_extensions = iv_get_extensions
+      iv_admin          = iv_admin ).
 
     LOOP AT lt_manifests INTO ls_manifest.
 
@@ -567,9 +573,13 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      " Filter by bundle/tool type
+      " Filter by bundle/tool/extension type
       IF lo_tool->is_bundle( ) = abap_true.
         IF iv_get_bundles = abap_false.
+          CONTINUE.
+        ENDIF.
+      ELSEIF lo_tool->is_extension( ) = abap_true.
+        IF iv_get_extensions = abap_false.
           CONTINUE.
         ENDIF.
       ELSE.
@@ -599,7 +609,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
 
     ENDLOOP.
 
-    SORT rt_manifests BY name AS TEXT.
+    SORT rt_manifests BY bundle_id name is_extension.
 
   ENDMETHOD.
 

@@ -4,7 +4,7 @@ CLASS /mbtools/cl_bundle_prem_basis DEFINITION
   CREATE PUBLIC.
 
 ************************************************************************
-* MBT Premium Basis
+* MBT Basis Bundle
 *
 * (c) MBT 2020 https://marcbernardtools.com/
 ************************************************************************
@@ -15,10 +15,10 @@ CLASS /mbtools/cl_bundle_prem_basis DEFINITION
     CONSTANTS:
       BEGIN OF c_tool,
         version     TYPE string VALUE '1.0.0' ##NO_TEXT,
-        title       TYPE string VALUE 'MBT Premium Basis' ##NO_TEXT,
+        title       TYPE string VALUE 'MBT Basis Tools' ##NO_TEXT,
         is_bundle   TYPE c VALUE abap_true,
         bundle_id   TYPE i VALUE 1,
-        download_id TYPE i VALUE 4540,
+        download_id TYPE i VALUE 5651,
         description TYPE string
         VALUE 'Improved user experience and productivity with enhancements for SAP Basis' ##NO_TEXT,
       END OF c_tool.
