@@ -923,11 +923,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
   METHOD restart.
 
-    /mbtools/cl_utilities=>set_user_parameter(
-      iv_parameter = '/MBTOOLS/MODE'
-      iv_value     = /mbtools/if_actions=>go_admin ).
-
-    SUBMIT /mbtools/mbt.
+    SUBMIT /mbtools/mbt WITH p_mode = /mbtools/if_actions=>go_admin.
 
   ENDMETHOD.
 

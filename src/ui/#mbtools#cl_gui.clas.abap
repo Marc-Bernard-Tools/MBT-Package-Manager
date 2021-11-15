@@ -25,6 +25,8 @@ CLASS /mbtools/cl_gui DEFINITION
       END OF c_event_state.
 
     METHODS go_home
+      IMPORTING
+        !iv_mode TYPE string
       RAISING
         /mbtools/cx_exception.
     METHODS back
@@ -335,8 +337,12 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
       CLEAR: mt_stack, mt_event_handlers.
       APPEND mi_router TO mt_event_handlers.
 
-      lv_mode = /mbtools/cl_utilities=>get_user_parameter( '/MBTOOLS/MODE' ).
-      lv_mode = to_lower( lv_mode ).
+      IF iv_mode IS INITIAL.
+        lv_mode = /mbtools/cl_utilities=>get_user_parameter( '/MBTOOLS/MODE' ).
+        lv_mode = to_lower( lv_mode ).
+      ELSE.
+        lv_mode = iv_mode .
+      ENDIF.
 
       IF lv_mode = /mbtools/if_actions=>go_admin.
         " doesn't accept strings directly

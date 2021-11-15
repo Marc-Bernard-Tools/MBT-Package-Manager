@@ -24,6 +24,8 @@ REPORT /mbtools/mbt.
 TABLES:
   sscrfields.
 
+PARAMETERS: p_mode TYPE string NO-DISPLAY.
+
 *-----------------------------------------------------------------------
 * Main Screen
 *-----------------------------------------------------------------------
@@ -99,7 +101,7 @@ CLASS lcl_main IMPLEMENTATION.
     DATA lx_error TYPE REF TO cx_root.
 
     TRY.
-        /mbtools/cl_gui_factory=>get_gui( )->go_home( ).
+        /mbtools/cl_gui_factory=>get_gui( )->go_home( p_mode ).
 
         CALL SELECTION-SCREEN c_dynnr-main. " trigger screen
       CATCH cx_root INTO lx_error.
