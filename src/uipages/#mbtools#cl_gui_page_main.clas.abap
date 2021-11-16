@@ -760,7 +760,6 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
       lv_description TYPE string,
       lv_update      TYPE string,
       lv_class       TYPE string,
-      lv_extension   TYPE string,
       lv_img         TYPE string.
 
     lo_tool = /mbtools/cl_tool_manager=>factory( iv_title ).

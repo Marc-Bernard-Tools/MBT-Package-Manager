@@ -1236,12 +1236,10 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
           lv_timestamp = lo_reg_entry->get_value( iv_key ).
           IF lv_timestamp IS INITIAL.
             rv_result = 'never'.
+          ELSEIF iv_internal = abap_true.
+            rv_result = lv_timestamp.
           ELSE.
-            IF iv_internal = abap_true.
-              rv_result = lv_timestamp.
-            ELSE.
-              rv_result = /mbtools/cl_datetime=>human_time_diff( lv_timestamp ) && ' ago'.
-            ENDIF.
+            rv_result = /mbtools/cl_datetime=>human_time_diff( lv_timestamp ) && ' ago'.
           ENDIF.
         ELSEIF iv_internal = abap_false.
           rv_result = 'never'.

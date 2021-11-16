@@ -341,7 +341,7 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
         lv_mode = /mbtools/cl_utilities=>get_user_parameter( '/MBTOOLS/MODE' ).
         lv_mode = to_lower( lv_mode ).
       ELSE.
-        lv_mode = iv_mode .
+        lv_mode = iv_mode.
       ENDIF.
 
       IF lv_mode = /mbtools/if_actions=>go_admin.
