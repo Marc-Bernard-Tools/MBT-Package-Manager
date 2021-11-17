@@ -11,6 +11,14 @@
      <MIN_RELEASE>731</MIN_RELEASE>
     </item>
    </REQUIREMENTS>
+   <PACKAGING>
+    <NAME>MBT Base</NAME>
+    <VERSION>1.2.0</VERSION>
+    <DESCRIPTION>Foundation for Marc Bernard Tools</DESCRIPTION>
+    <GIT_URL>https://github.com/Marc-Bernard-Tools/MBT-Base</GIT_URL>
+    <TARGET_PACKAGE>/MBTOOLS/BC</TARGET_PACKAGE>
+    <LOGO>/MBTOOLS/MBT_BASE_TN</LOGO>
+   </PACKAGING>
   </DATA>
  </asx:values>
 </asx:abap>
