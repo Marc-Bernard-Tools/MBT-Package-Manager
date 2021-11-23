@@ -10,8 +10,7 @@
 		"exclude": [
 			"#mbtools#mbt_installer.prog.abap",
 			"#mbtools#mbt_template.prog.abap",
-			"#mbtools#.*_ajson.*",
-			"#mbtools#.*_logger.*"
+			"#mbtools#cl_logger.clas.testclasses.abap"
 		],
 		"files": "/src/**/*.*",
 		"skipGeneratedFunctionGroups": true,
@@ -74,6 +73,7 @@
 			"define": true,
 			"describeLines": true,
 			"exclude": [
+				"#mbtools#.._logger.*",
 				"#mbtools#cl_utilities.clas.abap"
 			],
 			"severity": "Error",
@@ -133,7 +133,8 @@
 			"assign": true,
 			"authorityCheck": true,
 			"exclude": [
-				"#mbtools#.._ajson.*"
+				"#mbtools#.._ajson.*",
+				"#mbtools#.._logger.*"
 			],
 			"find": true,
 			"insertDatabase": true,
@@ -160,6 +161,8 @@
 		"class_attribute_names": {
 			"constants": "^C_.+$",
 			"exclude": [
+				"#mbtools#.._ajson.*",
+				"#mbtools#.._logger.*",
 				"#mbtools#cl_tree_level.clas.abap",
 				"#mbtools#if_actions.intf.abap",
 				"#mbtools#if_manifest.intf.abap"
@@ -184,7 +187,9 @@
 		},
 		"commented_code": {
 			"allowIncludeInFugr": true,
-			"exclude": [],
+			"exclude": [
+				"#mbtools#.._logger.*"
+			],
 			"severity": "Warning"
 		},
 		"constant_classes": {
@@ -203,6 +208,7 @@
 		},
 		"cyclic_oo": {
 			"exclude": [
+				"#mbtools#cl_logger.*",
 				"#mbtools#if_gui.*"
 			],
 			"severity": "Error",
@@ -417,7 +423,9 @@
 		},
 		"line_break_multiple_parameters": {
 			"count": 1,
-			"exclude": [],
+			"exclude": [
+				"#mbtools#.._ajson.*"
+			],
 			"severity": "Error"
 		},
 		"line_break_style": {
@@ -425,12 +433,16 @@
 			"severity": "Error"
 		},
 		"line_length": {
-			"exclude": [],
+			"exclude": [
+				"#mbtools#.._logger.*"
+			],
 			"length": 120,
 			"severity": "Error"
 		},
 		"line_only_punc": {
-			"exclude": [],
+			"exclude": [
+				"#mbtools#.._logger.*"
+			],
 			"ignoreExceptions": true,
 			"severity": "Error"
 		},
@@ -450,6 +462,8 @@
 		},
 		"local_variable_names": {
 			"exclude": [
+				"#mbtools#.._ajson.*",
+				"#mbtools#.._logger.*",
 				"#mbtools#cl_string_map.clas.abap"
 			],
 			"expectedConstant": "^LC_.+$",
@@ -500,7 +514,10 @@
 		},
 		"method_parameter_names": {
 			"changing": "^C._.+$",
-			"exclude": [],
+			"exclude": [
+				"#mbtools#.._ajson.*",
+				"#mbtools#.._logger.*"
+			],
 			"exporting": "^E._.+$",
 			"ignoreExceptions": true,
 			"ignoreNames": [
@@ -532,7 +549,9 @@
 		},
 		"nesting": {
 			"depth": 5,
-			"exclude": [],
+			"exclude": [
+				"#mbtools#.._ajson.*"
+			],
 			"severity": "Error"
 		},
 		"newline_between_methods": {
@@ -544,6 +563,7 @@
 		"no_public_attributes": {
 			"allowReadOnly": true,
 			"exclude": [
+				"#mbtools#.._ajson.*",
 				"#mbtools#cl_registry_ui.clas.abap",
 				"#mbtools#cl_tree_level.clas.abap"
 			],
@@ -551,7 +571,7 @@
 		},
 		"no_yoda_conditions": {
 			"exclude": [],
-		  "onlyConstants": true,
+  			"onlyConstants": true,
 			"severity": "Error"
 		},
 		"object_naming": {
@@ -608,7 +628,9 @@
 			"withHeaderLine": true
 		},
 		"omit_parameter_name": {
-			"exclude": [],
+			"exclude": [
+				"#mbtools#.._ajson.*"
+			],
 			"severity": "Error"
 		},
 		"omit_receiving": {
@@ -636,7 +658,9 @@
 			"severity": "Error"
 		},
 		"prefer_is_not": {
-			"exclude": [],
+			"exclude": [
+				"#mbtools#.._ajson.*"
+			],
 			"severity": "Error"
 		},
 		"prefer_raise_exception_new": {
@@ -767,7 +791,10 @@
 			"severity": "Error"
 		},
 		"types_naming": {
-			"exclude": [],
+			"exclude": [
+				"#mbtools#.._ajson.*",
+				"#mbtools#.._logger.*"
+			],
 			"pattern": "^TY_.+$",
 			"severity": "Error"
 		},
