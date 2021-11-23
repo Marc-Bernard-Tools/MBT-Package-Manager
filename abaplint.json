@@ -10,8 +10,8 @@
 		"exclude": [
 			"#mbtools#mbt_installer.prog.abap",
 			"#mbtools#mbt_template.prog.abap",
-			"#mbtools#.._ajson.*",
-			"#mbtools#.._logger.*"
+			"#mbtools#.*_ajson.*",
+			"#mbtools#.*_logger.*"
 		],
 		"files": "/src/**/*.*",
 		"skipGeneratedFunctionGroups": true,
