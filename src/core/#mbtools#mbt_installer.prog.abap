@@ -31610,7 +31610,7 @@ CLASS zcl_abapinst_file_status IMPLEMENTATION.
         <ls_result> = build_new_local( <ls_local> ).
         " Check if same file exists in different location
         READ TABLE lt_remote ASSIGNING <ls_remote>
-          WITH KEY filename = <ls_local>-file-filename.
+          WITH TABLE KEY file COMPONENTS filename = <ls_local>-file-filename.
         IF sy-subrc = 0 AND <ls_local>-file-sha1 = <ls_remote>-sha1.
           <ls_result>-packmove = abap_true.
         ELSEIF sy-subrc = 4.
@@ -33129,7 +33129,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
     CREATE OBJECT ri_config TYPE zcl_abapgit_data_config.
 
     READ TABLE gt_remote ASSIGNING <ls_remote>
-      WITH KEY path = zif_abapgit_data_config=>c_default_path.
+      WITH KEY path = zif_abapgit_data_config=>c_default_path ##PRIMKEY[FILE_PATH].
     IF sy-subrc = 0.
       ri_config->from_json( gt_remote ).
     ENDIF.
@@ -33141,7 +33141,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
     FIELD-SYMBOLS: <ls_remote> LIKE LINE OF it_remote.
 
-    READ TABLE it_remote ASSIGNING <ls_remote> WITH KEY
+    READ TABLE it_remote ASSIGNING <ls_remote> WITH TABLE KEY file_path COMPONENTS
       path     = zif_abapgit_definitions=>c_root_dir
       filename = zif_abapgit_definitions=>c_dot_abapgit.
     IF sy-subrc = 0.
@@ -33161,7 +33161,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
     FIELD-SYMBOLS: <ls_remote> LIKE LINE OF it_remote.
 
-    READ TABLE it_remote ASSIGNING <ls_remote> WITH KEY
+    READ TABLE it_remote ASSIGNING <ls_remote> WITH TABLE KEY file_path COMPONENTS
       path     = zif_abapgit_definitions=>c_root_dir
       filename = '.apack-manifest.xml'.
     IF sy-subrc = 0.
@@ -34037,7 +34037,8 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      READ TABLE it_remote WITH KEY filename = is_result-filename INTO ls_remote_file.
+      READ TABLE it_remote INTO ls_remote_file
+        WITH TABLE KEY file COMPONENTS filename = is_result-filename.
       IF sy-subrc <> 0. "if file does not exist in remote, we don't need to validate
         RETURN.
       ENDIF.
