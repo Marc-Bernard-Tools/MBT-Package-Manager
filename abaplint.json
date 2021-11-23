@@ -225,6 +225,8 @@
 			"deleteTextpool": true,
 			"dynamicSQL": true,
 			"exclude": [
+				"#mbtools#cl_sap.clas.abap",
+				"#mbtools#cl_tool_manager.clas.abap",
 				"#mbtools#cl_utilities.clas.abap"
 			],
 			"execSQL": true,
