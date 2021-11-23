@@ -10,7 +10,7 @@
 		"exclude": [
 			"#mbtools#mbt_installer.prog.abap",
 			"#mbtools#mbt_template.prog.abap",
-			"#mbtools#.._ajson.*"
+			"#mbtools#.._ajson.*",
 			"#mbtools#.._logger.*"
 		],
 		"files": "/src/**/*.*",
