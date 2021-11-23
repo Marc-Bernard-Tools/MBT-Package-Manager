@@ -208,7 +208,7 @@
 		},
 		"cyclic_oo": {
 			"exclude": [
-				"#mbtools#cl_logger.*",
+				"#mbtools#.._logger.*",
 				"#mbtools#if_gui.*"
 			],
 			"severity": "Error",
