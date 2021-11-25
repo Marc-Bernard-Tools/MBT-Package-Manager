@@ -906,3 +906,25 @@ window.addEventListener("beforeunload", function (event) {
   var scrollPos = document.querySelector("html").scrollTop;
   window.sessionStorage.setItem(scrollItem, scrollPos);
 });
+
+/* STICKY HEADERS */
+
+/* https://www.w3schools.com/howto/howto_js_navbar_sticky.asp */
+/* Note: We have to use JS since IE does not support CSS position:sticky */
+
+// When the user scrolls the page, execute toggleSticky
+window.onscroll = function() { toggleSticky() };
+
+// Add the sticky class to the navbar when you reach its scroll position.
+// Remove "sticky" when you leave the scroll position
+function toggleSticky() {
+  var header = document.getElementById("header");
+  var sticky = header.offsetTop;
+  var stickyClass = "sticky";
+
+  if (window.pageYOffset >= sticky) {
+    header.classList.add( stickyClass );
+  } else {
+    header.classList.remove( stickyClass );
+  }
+}

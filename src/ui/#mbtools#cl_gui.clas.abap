@@ -115,7 +115,9 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
 
   METHOD /mbtools/if_gui_services~cache_all_assets.
 
-    DATA lt_assets TYPE /mbtools/if_gui_asset_manager=>ty_web_assets.
+    DATA:
+      lx_error  TYPE REF TO /mbtools/cx_exception,
+      lt_assets TYPE /mbtools/if_gui_asset_manager=>ty_web_assets.
 
     FIELD-SYMBOLS <ls_asset> LIKE LINE OF lt_assets.
 
@@ -130,8 +132,9 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
             iv_type    = <ls_asset>-type
             iv_subtype = <ls_asset>-subtype ).
         ENDLOOP.
-      CATCH /mbtools/cx_exception.
-        ASSERT 0 = 1.
+      CATCH /mbtools/cx_exception INTO lx_error.
+        " Some asset is missing
+        MESSAGE lx_error TYPE 'E' DISPLAY LIKE 'I'.
     ENDTRY.
 
   ENDMETHOD.
@@ -156,10 +159,10 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
 
       mi_html_viewer->load_data(
         EXPORTING
+          iv_url          = iv_url
           iv_type         = iv_type
           iv_subtype      = iv_subtype
           iv_size         = lv_size
-          iv_url          = iv_url
         IMPORTING
           ev_assigned_url = rv_url
         CHANGING
@@ -183,10 +186,10 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
 
       mi_html_viewer->load_data(
         EXPORTING
+          iv_url          = iv_url
           iv_type         = iv_type
           iv_subtype      = iv_subtype
           iv_size         = lv_size
-          iv_url          = iv_url
         IMPORTING
           ev_assigned_url = rv_url
         CHANGING
@@ -196,7 +199,9 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
 
     ENDIF.
 
-    ASSERT sy-subrc = 0. " Image data error
+    IF sy-subrc <> 0.
+      /mbtools/cx_exception=>raise( |Error caching data for HTML viewer: { iv_url }| ).
+    ENDIF.
 
   ENDMETHOD.
 

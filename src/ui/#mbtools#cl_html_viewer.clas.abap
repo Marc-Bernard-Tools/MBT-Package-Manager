@@ -82,7 +82,7 @@ CLASS /mbtools/cl_html_viewer IMPLEMENTATION.
         cntl_error             = 3
         html_syntax_notcorrect = 4 ).
     IF sy-subrc <> 0.
-      /mbtools/cx_exception=>raise( 'Error loading data for HTML viewer' ).
+      /mbtools/cx_exception=>raise( |Error loading data for HTML viewer: { iv_url }| ).
     ENDIF.
 
   ENDMETHOD.

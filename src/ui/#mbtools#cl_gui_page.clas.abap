@@ -149,6 +149,8 @@ CLASS /mbtools/cl_gui_page IMPLEMENTATION.
 
     ri_html->add( header( ) ).
 
+    ri_html->add( '<div class="not_sticky">' ).
+
     ri_html->add( render_content( ) ).
 
     ri_html->add( render_hotkey_overview( ) ).
@@ -159,6 +161,8 @@ CLASS /mbtools/cl_gui_page IMPLEMENTATION.
       iv_part_category = c_html_parts-hidden_forms ).
 
     ri_html->add( footer( ) ).
+
+    ri_html->add( '</div><!--not_sticky-->' ).              "#EC NOTEXT
 
     ri_html->add( '</div><!--outer-->' ).                   "#EC NOTEXT
 

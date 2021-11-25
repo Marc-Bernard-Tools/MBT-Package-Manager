@@ -222,7 +222,6 @@ body .dark a:focus {
     color: #b00;
 }
 
-
 /* GLOBALS */
 
 img {
@@ -1098,6 +1097,12 @@ div.corner-hint {
 .dialog li.with-command input[type="submit"] {
     height: 2.5em;
 }
+.dialog li.with-command div.input-logo {
+  display: table-cell;
+  width: 128px;
+  height: 128px;
+  padding-right: 1em;
+}
 .dialog fieldset {
     margin-top: 1em;
     border: 1px solid;
@@ -1199,4 +1204,25 @@ td.tool-actions {
 }
 .tool-license input[type="text"] {
     width: 250px;
+}
+
+/* STICKY HEADERS */
+
+/* https://www.w3schools.com/howto/howto_js_navbar_sticky.asp */
+/* Note: We have to use JS since IE does not support CSS position:sticky */
+
+/* The sticky class is added to the navbar with JS when it reaches its scroll position */
+.sticky {
+  position: fixed;
+  top: 0;
+  z-index: 10;
+  width: 100%;
+  height: 60px;
+  margin-bottom: 3px;
+}
+
+/* Add some top padding to the page content to prevent sudden quick movement
+   as the navigation bar gets a new position at the top of the page */
+.sticky + .not_sticky {
+  padding-top: 60px;
 }
