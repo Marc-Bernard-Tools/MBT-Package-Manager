@@ -15,7 +15,7 @@ CLASS /mbtools/cl_bundle_prem_basis DEFINITION
     CONSTANTS:
       BEGIN OF c_tool,
         version     TYPE string VALUE '1.0.0' ##NO_TEXT,
-        title       TYPE string VALUE 'MBT Basis Tools' ##NO_TEXT,
+        title       TYPE string VALUE 'Basis Tools' ##NO_TEXT,
         is_bundle   TYPE c VALUE abap_true,
         bundle_id   TYPE i VALUE 1,
         download_id TYPE i VALUE 5651,

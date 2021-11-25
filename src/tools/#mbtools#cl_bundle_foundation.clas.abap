@@ -15,7 +15,7 @@ CLASS /mbtools/cl_bundle_foundation DEFINITION
     CONSTANTS:
       BEGIN OF c_tool,
         version     TYPE string VALUE '1.0.0' ##NO_TEXT,
-        title       TYPE string VALUE 'MBT Foundation' ##NO_TEXT,
+        title       TYPE string VALUE 'Foundation' ##NO_TEXT,
         is_bundle   TYPE c VALUE abap_true,
         bundle_id   TYPE i VALUE 0,
         download_id TYPE i VALUE 5648,
