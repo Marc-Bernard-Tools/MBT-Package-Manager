@@ -277,7 +277,9 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
   METHOD class_constructor.
 
-    gi_log = /mbtools/cl_logger_factory=>create_log( 'EDD' ).
+    gi_log = /mbtools/cl_logger_factory=>create_log(
+               iv_object    = '/MBTOOLS/'
+               iv_subobject = 'EDD' ).
 
   ENDMETHOD.
 

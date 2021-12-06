@@ -5,12 +5,10 @@ CLASS /mbtools/cl_timer DEFINITION
 
   PUBLIC SECTION.
 
-    METHODS start
-      IMPORTING
-        !title TYPE string OPTIONAL.
+    METHODS start.
     METHODS end
       IMPORTING
-        !title           TYPE string OPTIONAL
+        !iv_title        TYPE string OPTIONAL
       RETURNING
         VALUE(rv_result) TYPE string.
   PROTECTED SECTION.
@@ -45,10 +43,10 @@ CLASS /mbtools/cl_timer IMPLEMENTATION.
 
     lv_sec = lv_runtime. " round to 2 decimal places
 
-    IF title IS INITIAL.
+    IF iv_title IS INITIAL.
       rv_result = |Runtime: { lv_sec } seconds|.
     ELSE.
-      rv_result = |{ title } { lv_sec } seconds|.
+      rv_result = |{ iv_title } { lv_sec } seconds|.
     ENDIF.
 
   ENDMETHOD.
