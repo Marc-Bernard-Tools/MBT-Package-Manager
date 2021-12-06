@@ -226,6 +226,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
       ls_manifest  TYPE /mbtools/if_tool=>ty_manifest,
       lt_manifests TYPE /mbtools/if_tool=>ty_manifests,
       li_progress  TYPE REF TO /mbtools/if_progress,
+      lo_timer     TYPE REF TO /mbtools/cl_timer,
       lv_result    TYPE abap_bool.
 
     IF iv_action = /mbtools/if_actions=>tools_check.
@@ -233,7 +234,9 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    gi_log->timer_start( ).
+    CREATE OBJECT lo_timer.
+
+    lo_timer->start( ).
 
     " Just tools (no bundles)
     lt_manifests = select( iv_admin = abap_true ).
@@ -288,7 +291,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
 
     li_progress->hide( ).
 
-    gi_log->timer_end( ).
+    gi_log->i( lo_timer->end( ) ).
 
   ENDMETHOD.
 
@@ -301,9 +304,12 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
       ls_product   TYPE /mbtools/cl_edd=>ty_product,
       lt_products  TYPE /mbtools/cl_edd=>ty_products,
       li_progress  TYPE REF TO /mbtools/if_progress,
+      lo_timer     TYPE REF TO /mbtools/cl_timer,
       lv_result    TYPE abap_bool.
 
-    gi_log->timer_start( ).
+    CREATE OBJECT lo_timer.
+
+    lo_timer->start( ).
 
     " Just tools (no bundles)
     lt_manifests = select( iv_admin = abap_true ).
@@ -350,7 +356,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
 
     li_progress->hide( ).
 
-    gi_log->timer_end( ).
+    gi_log->i( lo_timer->end( ) ).
 
   ENDMETHOD.
 

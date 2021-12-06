@@ -471,10 +471,13 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     DATA:
       lv_rfcdest TYPE rfcdest,
+      lo_timer   TYPE REF TO /mbtools/cl_timer,
       lo_client  TYPE REF TO /mbtools/cl_http_client,
       lx_error   TYPE REF TO /mbtools/cx_exception.
 
-    gi_log->timer_start( ).
+    CREATE OBJECT lo_timer.
+
+    lo_timer->start( ).
 
     lv_rfcdest = /mbtools/cl_setup=>get_rfc_destination( ).
 
@@ -502,7 +505,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
         RAISE EXCEPTION lx_error.
     ENDTRY.
 
-    gi_log->timer_end( ).
+    gi_log->i( lo_timer->end( ) ).
 
   ENDMETHOD.
 
