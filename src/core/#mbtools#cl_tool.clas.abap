@@ -229,7 +229,6 @@ CLASS /mbtools/cl_tool DEFINITION
     METHODS get_shortcut
       RETURNING
         VALUE(rv_result) TYPE string.
-
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -904,7 +903,11 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
     lo_reg_entry = lo_reg_tool->get_subentry( c_reg-license ).
     CHECK lo_reg_entry IS BOUND.
 
-    lv_id = lo_reg_entry->get_value( c_reg-key_lic_id ).
+    IF ms_manifest-is_extension = abap_true.
+      lv_id = lo_reg_entry->get_value( c_reg-key_lic_extension ).
+    ELSE.
+      lv_id = lo_reg_entry->get_value( c_reg-key_lic_id ).
+    ENDIF.
 
     lv_license = escape( val    = to_lower( iv_license )
                          format = cl_abap_format=>e_url_full ).
@@ -1234,10 +1237,10 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
         lo_reg_entry = lo_reg_tool->get_subentry( c_reg-properties ).
         IF lo_reg_entry IS BOUND.
           lv_timestamp = lo_reg_entry->get_value( iv_key ).
-          IF lv_timestamp IS INITIAL.
-            rv_result = 'never'.
-          ELSEIF iv_internal = abap_true.
+          IF iv_internal = abap_true.
             rv_result = lv_timestamp.
+          ELSEIF lv_timestamp IS INITIAL.
+            rv_result = 'never'.
           ELSE.
             rv_result = /mbtools/cl_datetime=>human_time_diff( lv_timestamp ) && ' ago'.
           ENDIF.
@@ -1310,8 +1313,10 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
                                  iv_value = ms_manifest-download_id ).
         lo_reg_entry->set_value( iv_key   = c_reg-key_lic_bundle
                                  iv_value = ms_manifest-bundle_id ).
-        lo_reg_entry->set_value( iv_key   = c_reg-key_lic_extension
-                                 iv_value = ms_manifest-extension_id ).
+        IF ms_manifest-is_extension = abap_true.
+          lo_reg_entry->set_value( iv_key   = c_reg-key_lic_extension
+                                   iv_value = ms_manifest-extension_id ).
+        ENDIF.
         lo_reg_entry->set_value( iv_key   = c_reg-key_lic_expire
                                  iv_value = c_reg-val_lic_expire ).
         lo_reg_entry->set_value( c_reg-key_lic_key ).

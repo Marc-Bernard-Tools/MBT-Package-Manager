@@ -620,13 +620,12 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
                 iv_hint  = 'Deactivate tool' ) ).
           ENDIF.
 
+          ri_html->add_a(
+            iv_act = |{ /mbtools/if_actions=>tool_info }?name={ io_tool->get_name( ) }|
+            iv_txt = ri_html->icon(
+              iv_name  = 'globe/black'
+              iv_hint  = 'Show more information about tool' ) ).
         ENDIF.
-
-        ri_html->add_a(
-          iv_act = |{ /mbtools/if_actions=>tool_info }?name={ io_tool->get_name( ) }|
-          iv_txt = ri_html->icon(
-            iv_name  = 'globe/black'
-            iv_hint  = 'Show more information about tool' ) ).
 
       WHEN c_mode-license.
 

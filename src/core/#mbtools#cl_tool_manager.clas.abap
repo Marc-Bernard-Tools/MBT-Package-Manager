@@ -576,16 +576,18 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
         IF iv_get_bundles = abap_false.
           CONTINUE.
         ENDIF.
-      ELSEIF lo_tool->is_extension( ) = abap_true.
-        IF iv_get_extensions = abap_false.
-          CONTINUE.
-        ENDIF.
       ELSE.
         IF iv_get_tools = abap_false.
           CONTINUE.
         ENDIF.
         " Filter by admin
         IF iv_admin = abap_false.
+          " Extensions
+          IF lo_tool->is_extension( ) = abap_true.
+            IF iv_get_extensions = abap_false.
+              CONTINUE.
+            ENDIF.
+          ENDIF.
           " No inactive
           IF lo_tool->is_active( ) = abap_false.
             CONTINUE.
@@ -627,7 +629,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
       ls_cont TYPE ty_content.
 
     lv_name = io_tool->get_name( ).
-    SELECT SINGLE * FROM (lc_tabname) INTO ls_inst WHERE name = lv_name.
+    SELECT SINGLE * FROM (lc_tabname) INTO ls_cont WHERE name = lv_name.
     IF sy-subrc = 0.
       ls_inst-pack            = io_tool->get_package( ).
       ls_inst-version         = io_tool->get_version( ).
