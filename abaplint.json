@@ -215,7 +215,9 @@
 			"skip": []
 		},
 		"cyclomatic_complexity": {
-			"exclude": [],
+			"exclude": [
+				"#mbtools#.._logger.*"
+			],
 			"max": 22,
 			"severity": "Error"
 		},
@@ -323,6 +325,7 @@
 				"^syuzeit$"
 			],
 			"exclude": [
+				"#mbtools#.._logger.*",
 				"#mbtools#cl_registry_ui.clas.abap",
 				"#mbtools#cl_tree.clas.abap"
 			],
@@ -448,7 +451,9 @@
 		},
 		"local_class_naming": {
 			"exception": "^LCX_.+$",
-			"exclude": [],
+			"exclude": [
+				"#mbtools#.._logger.*"
+			],
 			"ignoreNames": [],
 			"ignorePatterns": [],
 			"local": "^LCL_.+$",
@@ -634,7 +639,9 @@
 			"severity": "Error"
 		},
 		"omit_receiving": {
-			"exclude": [],
+			"exclude": [
+				"#mbtools#.._logger.*"
+			],
 			"severity": "Error"
 		},
 		"parser_702_chaining": {
