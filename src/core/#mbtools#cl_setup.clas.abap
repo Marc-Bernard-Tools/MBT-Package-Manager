@@ -238,42 +238,48 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
 
   METHOD _get_certificate_mbt.
 
-    " subject=CN = marcbernardtools.com
-    " issuer=C = US, O = DigiCert Inc, OU = www.digicert.com, CN = Encryption Everywhere DV TLS CA - G1
-    " notBefore=Feb  5 00:00:00 2021 GMT
-    " notAfter=Feb  4 23:59:59 2022 GMT
+    " subject=CN = *.marcbernardtools.com
+    " issuer=C = US, O = DigiCert Inc, CN = RapidSSL TLS DV RSA Mixed SHA256 2020 CA-1
+    " notBefore=Dec  2 00:00:00 2021 GMT
+    " notAfter=Dec  1 23:59:59 2022 GMT
 
     APPEND '-----BEGIN CERTIFICATE-----' TO rt_result.
-    APPEND 'MIIFnDCCBISgAwIBAgIQBZeXovPOlrfpuWF5fi887jANBgkqhkiG9w0BAQsFADBu' TO rt_result.
-    APPEND 'MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3' TO rt_result.
-    APPEND 'd3cuZGlnaWNlcnQuY29tMS0wKwYDVQQDEyRFbmNyeXB0aW9uIEV2ZXJ5d2hlcmUg' TO rt_result.
-    APPEND 'RFYgVExTIENBIC0gRzEwHhcNMjEwMjA1MDAwMDAwWhcNMjIwMjA0MjM1OTU5WjAf' TO rt_result.
-    APPEND 'MR0wGwYDVQQDExRtYXJjYmVybmFyZHRvb2xzLmNvbTCCASIwDQYJKoZIhvcNAQEB' TO rt_result.
-    APPEND 'BQADggEPADCCAQoCggEBAOneZOHKp7ROZYou0wXTectzYkZ9D5eopYGvx8F7xqk4' TO rt_result.
-    APPEND 'jBqhoEoDxMYvsxllq5ObXGn+Akq+v7W3PNdjq3PCw4lPjXhRRDP9m0cYuGB54ea7' TO rt_result.
-    APPEND 'Dgk7R+2vV0xL+6mfdphmW9qs1g5ArYfxIjsYD0iJqXhmwItHMQAvXe4NRqxUfQUC' TO rt_result.
-    APPEND 'qAIViLSNGNY7ch1xRU5wkPiOP2CGJN0vLDIWYOWWKWgi6QNq7hkVwRncb3fdr+tH' TO rt_result.
-    APPEND 'KO+Vn7uh6ZnUp5/OzLnVkb/c4Tusi4imA2Mwoyy5AIWpcQnuEBVHTPq12uMmwcIW' TO rt_result.
-    APPEND 'twYxh7wF18Ep67Q2tAXBvf2BbXrLZL8L4ZpjpKIYJgcCAwEAAaOCAoMwggJ/MB8G' TO rt_result.
-    APPEND 'A1UdIwQYMBaAFFV0T7JyT/VgulDR1+ZRXJoBhxrXMB0GA1UdDgQWBBTsmfSLbqqf' TO rt_result.
-    APPEND 'T76P0bO68KitWLsgUDA5BgNVHREEMjAwghRtYXJjYmVybmFyZHRvb2xzLmNvbYIY' TO rt_result.
-    APPEND 'd3d3Lm1hcmNiZXJuYXJkdG9vbHMuY29tMA4GA1UdDwEB/wQEAwIFoDAdBgNVHSUE' TO rt_result.
-    APPEND 'FjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwPgYDVR0gBDcwNTAzBgZngQwBAgEwKTAn' TO rt_result.
-    APPEND 'BggrBgEFBQcCARYbaHR0cDovL3d3dy5kaWdpY2VydC5jb20vQ1BTMIGABggrBgEF' TO rt_result.
-    APPEND 'BQcBAQR0MHIwJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmRpZ2ljZXJ0LmNvbTBK' TO rt_result.
-    APPEND 'BggrBgEFBQcwAoY+aHR0cDovL2NhY2VydHMuZGlnaWNlcnQuY29tL0VuY3J5cHRp' TO rt_result.
-    APPEND 'b25FdmVyeXdoZXJlRFZUTFNDQS1HMS5jcnQwCQYDVR0TBAIwADCCAQMGCisGAQQB' TO rt_result.
-    APPEND '1nkCBAIEgfQEgfEA7wB2ACl5vvCeOTkh8FZzn2Old+W+V32cYAr4+U1dJlwlXceE' TO rt_result.
-    APPEND 'AAABd3RHCWoAAAQDAEcwRQIhAKF8xFk+Wt3/f76IZC1SmksREmVs5tBEH5Gq5Ovq' TO rt_result.
-    APPEND '/28XAiB8BuB/PuahN7JzkcRrl8DhLUWl0NAvqZVqw5hQn9cT+wB1ACJFRQdZVSRW' TO rt_result.
-    APPEND 'lj+hL/H3bYbgIyZjrcBLf13Gg1xu4g8CAAABd3RHCZ8AAAQDAEYwRAIgOVfNC0Gy' TO rt_result.
-    APPEND 'TalwfvXU5pmMvEwx6YqDxVnLqxxU1cmF1/ICIBD3U+u/4ftr+CWy7XBTN0BpkJ8/' TO rt_result.
-    APPEND '5dt+BZT2Vz4j9C9eMA0GCSqGSIb3DQEBCwUAA4IBAQAV+Dna6jC6uWaYgFLwqO9t' TO rt_result.
-    APPEND '2KrV/vs7+Um+9ZdQnTmadrAnibZk4bRWBgwrURnvYgF91OhcJWMTgZRCciRm6ekJ' TO rt_result.
-    APPEND 'EMLj94j5a8w34J7IDxEZmcVlxwr5O6KyG8oIA6BJZWM93GQipu+yro+QxzWOuA6K' TO rt_result.
-    APPEND 'dTyOI0wkyFIDyGJiu7m15elbdTDtC8bLQN/nsWSO/8yG618Zh7yqPLCHVLV9WPOT' TO rt_result.
-    APPEND 'oLgOlYpeyQ3EElFMBdQAO7phV4moFScjH+5xQTfSJJg1xVnF+mq/H1a7E3ASKw13' TO rt_result.
-    APPEND 'HSbqF6XUB5+k2U2qznGJd3fvSS0sTDjuFAcwOb8Xjcy+LQefzgMRSWJxdLRkQ8dt' TO rt_result.
+    APPEND 'MIIGpTCCBY2gAwIBAgIQBrWAPHKvSN4DbXv5pnydyDANBgkqhkiG9w0BAQsFADBZ' TO rt_result.
+    APPEND 'MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMTMwMQYDVQQDEypS' TO rt_result.
+    APPEND 'YXBpZFNTTCBUTFMgRFYgUlNBIE1peGVkIFNIQTI1NiAyMDIwIENBLTEwHhcNMjEx' TO rt_result.
+    APPEND 'MjAyMDAwMDAwWhcNMjIxMjAxMjM1OTU5WjAhMR8wHQYDVQQDDBYqLm1hcmNiZXJu' TO rt_result.
+    APPEND 'YXJkdG9vbHMuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyi0A' TO rt_result.
+    APPEND '0pzk/ayqqHw/QCLUX1994tUj2oZd3YbaWXtsuwE0PkgB+KWGs71yZhUK5kFlUZLX' TO rt_result.
+    APPEND 'cHNdoBI6SUHMOecvrJVwXSZIGfN8dKPhV4wH3yX/tVllN3WN9HaP9z+WnxNbHPCK' TO rt_result.
+    APPEND 'TWgoI2jL8lDlog2yAMWyogiHfAPWRmcJpsxXlgUIL3aUmPIB6x8QNTzieH28whnj' TO rt_result.
+    APPEND 'lC1Jp7JtyLjNIyjncHv/pkDXPkYnfK4uxPcg35rmT+V8gWNOFybSzzDQfH5xtI0p' TO rt_result.
+    APPEND 'uBWDjeU/GDDn5MG/YEov+rJdbEyFa64tNgXfZfJ/gOhkoybAu6TjLiaPFril9r2p' TO rt_result.
+    APPEND 'KstgiwWpjA9MQ0ShQwIDAQABo4IDnzCCA5swHwYDVR0jBBgwFoAUpI3lvnx55HAj' TO rt_result.
+    APPEND 'bS4pNK0jWNz1MX8wHQYDVR0OBBYEFGmVRfco54gMFO4hgw7dDU3Krc5kMDcGA1Ud' TO rt_result.
+    APPEND 'EQQwMC6CFioubWFyY2Jlcm5hcmR0b29scy5jb22CFG1hcmNiZXJuYXJkdG9vbHMu' TO rt_result.
+    APPEND 'Y29tMA4GA1UdDwEB/wQEAwIFoDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUH' TO rt_result.
+    APPEND 'AwIwgZsGA1UdHwSBkzCBkDBGoESgQoZAaHR0cDovL2NybDMuZGlnaWNlcnQuY29t' TO rt_result.
+    APPEND 'L1JhcGlkU1NMVExTRFZSU0FNaXhlZFNIQTI1NjIwMjBDQS0xLmNybDBGoESgQoZA' TO rt_result.
+    APPEND 'aHR0cDovL2NybDQuZGlnaWNlcnQuY29tL1JhcGlkU1NMVExTRFZSU0FNaXhlZFNI' TO rt_result.
+    APPEND 'QTI1NjIwMjBDQS0xLmNybDA+BgNVHSAENzA1MDMGBmeBDAECATApMCcGCCsGAQUF' TO rt_result.
+    APPEND 'BwIBFhtodHRwOi8vd3d3LmRpZ2ljZXJ0LmNvbS9DUFMwgYUGCCsGAQUFBwEBBHkw' TO rt_result.
+    APPEND 'dzAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuZGlnaWNlcnQuY29tME8GCCsGAQUF' TO rt_result.
+    APPEND 'BzAChkNodHRwOi8vY2FjZXJ0cy5kaWdpY2VydC5jb20vUmFwaWRTU0xUTFNEVlJT' TO rt_result.
+    APPEND 'QU1peGVkU0hBMjU2MjAyMENBLTEuY3J0MAkGA1UdEwQCMAAwggF+BgorBgEEAdZ5' TO rt_result.
+    APPEND 'AgQCBIIBbgSCAWoBaAB3AEalVet1+pEgMLWiiWn0830RLEF0vv1JuIWr8vxw/m1H' TO rt_result.
+    APPEND 'AAABfXwMzXcAAAQDAEgwRgIhALMaIotYG3JL8IoIUMMVDL3C/IWxWf6jbBqW2j1/' TO rt_result.
+    APPEND 'dmyDAiEAu/aZVSgFoVHYrq3fCjjt2F6acwdvW8s1VostzvHNmUcAdgBRo7D1/QF5' TO rt_result.
+    APPEND 'nFZtuDd4jwykeswbJ8v3nohCmg3+1IsF5QAAAX18DM1dAAAEAwBHMEUCIDPOurlB' TO rt_result.
+    APPEND 'sGz1jDH8ybDQZdvVq2PxWpt0DERJ0T6fBgniAiEA5HaEU7HbDi6cAaBupUZt9A2E' TO rt_result.
+    APPEND 'VZ+ZyKmsyduqdyr+IsIAdQBByMqx3yJGShDGoToJQodeTjGLGwPr60vHaPCQYpYG' TO rt_result.
+    APPEND '9gAAAX18DM1PAAAEAwBGMEQCIEwWZkB0a3z7IxcpWfC1Qyfza2LoKgKwazyfuFKh' TO rt_result.
+    APPEND 'CDCgAiA/h2botmYPojXJtvWHNvtBscuaxhfJ6rfv/oRWmcTQGjANBgkqhkiG9w0B' TO rt_result.
+    APPEND 'AQsFAAOCAQEAsMQYLfR16m1FR44brzsCEn7iqPo6rCXNe3+OdGFXgorqqYEcB56f' TO rt_result.
+    APPEND 'LWf3v4WS4Cv4qe8PqVAORDrQA7vvOY5YUBo/MwNDKhuKgX0FWnPcAk2mXsPlHVD+' TO rt_result.
+    APPEND '0Wte5LQ69RrrljS5JMhHx6lxDBoJ2xNCoYKvnaU2pM/96mjFThGTrc5fjV0aCkV6' TO rt_result.
+    APPEND 'U8v2a29DkjjkNcwrKSxMas5mthLDj45C9YfKWb7KE2tJyDtpPW+wAHiZOE/D6Cqd' TO rt_result.
+    APPEND 'otXalaJVRqVVQwUfVnibX9hP2P9+bT2pe4vK7Em8UVxYRvOUhutBJy+lDKTlJW6R' TO rt_result.
+    APPEND 'Oo9q8UScXXu4kI3nvdVWm7s3yGCKufmP4g==' TO rt_result.
     APPEND '-----END CERTIFICATE-----' TO rt_result.
 
   ENDMETHOD.
