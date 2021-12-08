@@ -26,8 +26,8 @@ CONSTANTS:
   c_home    TYPE string VALUE 'https://marcbernardtools.com/' ##NO_TEXT,
   c_github  TYPE string VALUE 'github.com' ##NO_TEXT.
 
-INTERFACE zif_abapgit_definitions DEFERRED.
 INTERFACE zif_abapgit_ajson DEFERRED.
+INTERFACE zif_abapgit_definitions DEFERRED.
 INTERFACE zif_abapgit_data_config DEFERRED.
 INTERFACE zif_abapgit_data_deserializer DEFERRED.
 INTERFACE zif_abapgit_data_serializer DEFERRED.
@@ -1132,7 +1132,6 @@ CLASS zcx_abapinst_exception IMPLEMENTATION.
 
   ENDMETHOD.
 ENDCLASS.
-CLASS zcl_abapgit_adt_link DEFINITION DEFERRED.
 CLASS zcl_abapgit_ajson DEFINITION DEFERRED.
 CLASS zcl_abapgit_convert DEFINITION DEFERRED.
 CLASS zcl_abapgit_data_config DEFINITION DEFERRED.
@@ -1229,6 +1228,244 @@ CLASS zcl_abapinst_persistence DEFINITION DEFERRED.
 CLASS zcl_abapinst_screen DEFINITION DEFERRED.
 CLASS zcl_abapinst_setup DEFINITION DEFERRED.
 CLASS zcl_abapinst_textpool DEFINITION DEFERRED.
+INTERFACE zif_abapgit_ajson
+  .
+
+  CONSTANTS version TYPE string VALUE 'v1.1.1-beta'. "#EC NOTEXT
+  CONSTANTS origin TYPE string VALUE 'https://github.com/sbcgua/ajson'. "#EC NOTEXT
+  CONSTANTS license TYPE string VALUE 'MIT'. "#EC NOTEXT
+
+  CONSTANTS:
+    BEGIN OF node_type,
+      boolean TYPE string VALUE 'bool',
+      string  TYPE string VALUE 'str',
+      number  TYPE string VALUE 'num',
+      null    TYPE string VALUE 'null',
+      array   TYPE string VALUE 'array',
+      object  TYPE string VALUE 'object',
+    END OF node_type.
+
+  TYPES:
+    BEGIN OF ty_node,
+      path TYPE string,
+      name TYPE string,
+      type TYPE string,
+      value TYPE string,
+      index TYPE i,
+      order TYPE i,
+      children TYPE i,
+    END OF ty_node .
+  TYPES:
+    ty_nodes_tt TYPE STANDARD TABLE OF ty_node WITH KEY path name .
+  TYPES:
+    ty_nodes_ts TYPE SORTED TABLE OF ty_node
+      WITH UNIQUE KEY path name
+      WITH NON-UNIQUE SORTED KEY array_index COMPONENTS path index
+      WITH NON-UNIQUE SORTED KEY item_order COMPONENTS path order .
+  TYPES:
+    BEGIN OF ty_path_name,
+      path TYPE string,
+      name TYPE string,
+    END OF ty_path_name.
+
+  " DATA
+
+  DATA mt_json_tree TYPE ty_nodes_ts READ-ONLY.
+
+  " METHODS
+
+  METHODS freeze.
+  METHODS keep_item_order
+    RETURNING
+      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson.
+
+  " METHODS ex.reader
+
+  METHODS exists
+    IMPORTING
+      iv_path TYPE string
+    RETURNING
+      VALUE(rv_exists) TYPE abap_bool.
+
+  METHODS members
+    IMPORTING
+      iv_path TYPE string
+    RETURNING
+      VALUE(rt_members) TYPE string_table.
+
+  METHODS get
+    IMPORTING
+      iv_path TYPE string
+    RETURNING
+      VALUE(rv_value) TYPE string.
+
+  METHODS get_node_type
+    IMPORTING
+      iv_path TYPE string
+    RETURNING
+      VALUE(rv_node_type) TYPE string.
+
+  METHODS get_boolean
+    IMPORTING
+      iv_path TYPE string
+    RETURNING
+      VALUE(rv_value) TYPE abap_bool.
+
+  METHODS get_integer
+    IMPORTING
+      iv_path TYPE string
+    RETURNING
+      VALUE(rv_value) TYPE i.
+
+  METHODS get_number
+    IMPORTING
+      iv_path TYPE string
+    RETURNING
+      VALUE(rv_value) TYPE f.
+
+  METHODS get_date
+    IMPORTING
+      iv_path TYPE string
+    RETURNING
+      VALUE(rv_value) TYPE d.
+
+  METHODS get_timestamp
+    IMPORTING
+      iv_path TYPE string
+    RETURNING
+      VALUE(rv_value) TYPE timestamp.
+
+  METHODS get_string
+    IMPORTING
+      iv_path TYPE string
+    RETURNING
+      VALUE(rv_value) TYPE string.
+
+  METHODS slice
+    IMPORTING
+      iv_path TYPE string
+    RETURNING
+      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson.
+
+  METHODS to_abap
+    EXPORTING
+      ev_container TYPE any
+    RAISING
+      zcx_abapgit_ajson_error.
+
+  METHODS array_to_string_table
+    IMPORTING
+      iv_path TYPE string
+    RETURNING
+      VALUE(rt_string_table) TYPE string_table
+    RAISING
+      zcx_abapgit_ajson_error.
+
+  " METHODS ex.writer
+
+  METHODS clear
+    RAISING
+      zcx_abapgit_ajson_error.
+
+  METHODS set
+    IMPORTING
+      iv_path TYPE string
+      iv_val TYPE any
+      iv_ignore_empty TYPE abap_bool DEFAULT abap_true
+      iv_node_type TYPE string OPTIONAL
+    RETURNING
+      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
+    RAISING
+      zcx_abapgit_ajson_error.
+
+  METHODS set_boolean
+    IMPORTING
+      iv_path TYPE string
+      iv_val TYPE any
+    RETURNING
+      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
+    RAISING
+      zcx_abapgit_ajson_error.
+
+  METHODS set_string
+    IMPORTING
+      iv_path TYPE string
+      iv_val TYPE clike
+    RETURNING
+      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
+    RAISING
+      zcx_abapgit_ajson_error.
+
+  METHODS set_integer
+    IMPORTING
+      iv_path TYPE string
+      iv_val TYPE i
+    RETURNING
+      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
+    RAISING
+      zcx_abapgit_ajson_error.
+
+  METHODS set_date
+    IMPORTING
+      iv_path TYPE string
+      iv_val TYPE d
+    RETURNING
+      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
+    RAISING
+      zcx_abapgit_ajson_error.
+
+  METHODS set_timestamp
+    IMPORTING
+      iv_path TYPE string
+      iv_val TYPE timestamp
+    RETURNING
+      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
+    RAISING
+      zcx_abapgit_ajson_error.
+
+  METHODS set_null
+    IMPORTING
+      iv_path TYPE string
+    RETURNING
+      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
+    RAISING
+      zcx_abapgit_ajson_error.
+
+  METHODS delete
+    IMPORTING
+      iv_path TYPE string
+    RETURNING
+      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
+    RAISING
+      zcx_abapgit_ajson_error.
+
+  METHODS touch_array
+    IMPORTING
+      iv_path TYPE string
+      iv_clear TYPE abap_bool DEFAULT abap_false
+    RETURNING
+      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
+    RAISING
+      zcx_abapgit_ajson_error.
+
+  METHODS push
+    IMPORTING
+      iv_path TYPE string
+      iv_val TYPE any
+    RETURNING
+      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
+    RAISING
+      zcx_abapgit_ajson_error.
+
+  METHODS stringify
+    IMPORTING
+      iv_indent TYPE i DEFAULT 0
+    RETURNING
+      VALUE(rv_json) TYPE string
+    RAISING
+      zcx_abapgit_ajson_error.
+
+ENDINTERFACE.
 INTERFACE zif_abapgit_definitions
    .
 
@@ -1623,9 +1860,10 @@ INTERFACE zif_abapgit_definitions
     END OF c_git_branch.
   CONSTANTS:
     BEGIN OF c_diff,
-      insert TYPE c LENGTH 1 VALUE 'I',
-      delete TYPE c LENGTH 1 VALUE 'D',
-      update TYPE c LENGTH 1 VALUE 'U',
+      unchanged TYPE c LENGTH 1 VALUE ' ',
+      insert    TYPE c LENGTH 1 VALUE 'I',
+      delete    TYPE c LENGTH 1 VALUE 'D',
+      update    TYPE c LENGTH 1 VALUE 'U',
     END OF c_diff .
   CONSTANTS:
     BEGIN OF c_type,
@@ -1761,244 +1999,6 @@ INTERFACE zif_abapgit_definitions
       main_language_only    TYPE abap_bool,
       translation_languages TYPE ty_languages,
     END OF ty_i18n_params .
-
-ENDINTERFACE.
-INTERFACE zif_abapgit_ajson
-  .
-
-  CONSTANTS version TYPE string VALUE 'v1.1.1-beta'. "#EC NOTEXT
-  CONSTANTS origin TYPE string VALUE 'https://github.com/sbcgua/ajson'. "#EC NOTEXT
-  CONSTANTS license TYPE string VALUE 'MIT'. "#EC NOTEXT
-
-  CONSTANTS:
-    BEGIN OF node_type,
-      boolean TYPE string VALUE 'bool',
-      string  TYPE string VALUE 'str',
-      number  TYPE string VALUE 'num',
-      null    TYPE string VALUE 'null',
-      array   TYPE string VALUE 'array',
-      object  TYPE string VALUE 'object',
-    END OF node_type.
-
-  TYPES:
-    BEGIN OF ty_node,
-      path TYPE string,
-      name TYPE string,
-      type TYPE string,
-      value TYPE string,
-      index TYPE i,
-      order TYPE i,
-      children TYPE i,
-    END OF ty_node .
-  TYPES:
-    ty_nodes_tt TYPE STANDARD TABLE OF ty_node WITH KEY path name .
-  TYPES:
-    ty_nodes_ts TYPE SORTED TABLE OF ty_node
-      WITH UNIQUE KEY path name
-      WITH NON-UNIQUE SORTED KEY array_index COMPONENTS path index
-      WITH NON-UNIQUE SORTED KEY item_order COMPONENTS path order .
-  TYPES:
-    BEGIN OF ty_path_name,
-      path TYPE string,
-      name TYPE string,
-    END OF ty_path_name.
-
-  " DATA
-
-  DATA mt_json_tree TYPE ty_nodes_ts READ-ONLY.
-
-  " METHODS
-
-  METHODS freeze.
-  METHODS keep_item_order
-    RETURNING
-      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson.
-
-  " METHODS ex.reader
-
-  METHODS exists
-    IMPORTING
-      iv_path TYPE string
-    RETURNING
-      VALUE(rv_exists) TYPE abap_bool.
-
-  METHODS members
-    IMPORTING
-      iv_path TYPE string
-    RETURNING
-      VALUE(rt_members) TYPE string_table.
-
-  METHODS get
-    IMPORTING
-      iv_path TYPE string
-    RETURNING
-      VALUE(rv_value) TYPE string.
-
-  METHODS get_node_type
-    IMPORTING
-      iv_path TYPE string
-    RETURNING
-      VALUE(rv_node_type) TYPE string.
-
-  METHODS get_boolean
-    IMPORTING
-      iv_path TYPE string
-    RETURNING
-      VALUE(rv_value) TYPE abap_bool.
-
-  METHODS get_integer
-    IMPORTING
-      iv_path TYPE string
-    RETURNING
-      VALUE(rv_value) TYPE i.
-
-  METHODS get_number
-    IMPORTING
-      iv_path TYPE string
-    RETURNING
-      VALUE(rv_value) TYPE f.
-
-  METHODS get_date
-    IMPORTING
-      iv_path TYPE string
-    RETURNING
-      VALUE(rv_value) TYPE d.
-
-  METHODS get_timestamp
-    IMPORTING
-      iv_path TYPE string
-    RETURNING
-      VALUE(rv_value) TYPE timestamp.
-
-  METHODS get_string
-    IMPORTING
-      iv_path TYPE string
-    RETURNING
-      VALUE(rv_value) TYPE string.
-
-  METHODS slice
-    IMPORTING
-      iv_path TYPE string
-    RETURNING
-      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson.
-
-  METHODS to_abap
-    EXPORTING
-      ev_container TYPE any
-    RAISING
-      zcx_abapgit_ajson_error.
-
-  METHODS array_to_string_table
-    IMPORTING
-      iv_path TYPE string
-    RETURNING
-      VALUE(rt_string_table) TYPE string_table
-    RAISING
-      zcx_abapgit_ajson_error.
-
-  " METHODS ex.writer
-
-  METHODS clear
-    RAISING
-      zcx_abapgit_ajson_error.
-
-  METHODS set
-    IMPORTING
-      iv_path TYPE string
-      iv_val TYPE any
-      iv_ignore_empty TYPE abap_bool DEFAULT abap_true
-      iv_node_type TYPE string OPTIONAL
-    RETURNING
-      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
-    RAISING
-      zcx_abapgit_ajson_error.
-
-  METHODS set_boolean
-    IMPORTING
-      iv_path TYPE string
-      iv_val TYPE any
-    RETURNING
-      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
-    RAISING
-      zcx_abapgit_ajson_error.
-
-  METHODS set_string
-    IMPORTING
-      iv_path TYPE string
-      iv_val TYPE clike
-    RETURNING
-      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
-    RAISING
-      zcx_abapgit_ajson_error.
-
-  METHODS set_integer
-    IMPORTING
-      iv_path TYPE string
-      iv_val TYPE i
-    RETURNING
-      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
-    RAISING
-      zcx_abapgit_ajson_error.
-
-  METHODS set_date
-    IMPORTING
-      iv_path TYPE string
-      iv_val TYPE d
-    RETURNING
-      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
-    RAISING
-      zcx_abapgit_ajson_error.
-
-  METHODS set_timestamp
-    IMPORTING
-      iv_path TYPE string
-      iv_val TYPE timestamp
-    RETURNING
-      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
-    RAISING
-      zcx_abapgit_ajson_error.
-
-  METHODS set_null
-    IMPORTING
-      iv_path TYPE string
-    RETURNING
-      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
-    RAISING
-      zcx_abapgit_ajson_error.
-
-  METHODS delete
-    IMPORTING
-      iv_path TYPE string
-    RETURNING
-      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
-    RAISING
-      zcx_abapgit_ajson_error.
-
-  METHODS touch_array
-    IMPORTING
-      iv_path TYPE string
-      iv_clear TYPE abap_bool DEFAULT abap_false
-    RETURNING
-      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
-    RAISING
-      zcx_abapgit_ajson_error.
-
-  METHODS push
-    IMPORTING
-      iv_path TYPE string
-      iv_val TYPE any
-    RETURNING
-      VALUE(ri_json) TYPE REF TO zif_abapgit_ajson
-    RAISING
-      zcx_abapgit_ajson_error.
-
-  METHODS stringify
-    IMPORTING
-      iv_indent TYPE i DEFAULT 0
-    RETURNING
-      VALUE(rv_json) TYPE string
-    RAISING
-      zcx_abapgit_ajson_error.
 
 ENDINTERFACE.
 INTERFACE zif_abapgit_data_config
@@ -2165,8 +2165,6 @@ INTERFACE zif_abapgit_dot_abapgit .
       name           TYPE string,
       version        TYPE string,
       sem_version    TYPE zif_abapgit_definitions=>ty_version,
-      git_url        TYPE string,
-      target_package TYPE devclass,
     END OF ty_dependency,
 
     ty_dependencies TYPE STANDARD TABLE OF ty_dependency WITH NON-UNIQUE DEFAULT KEY,
@@ -2176,7 +2174,6 @@ INTERFACE zif_abapgit_dot_abapgit .
       version           TYPE string,
       sem_version       TYPE zif_abapgit_definitions=>ty_version,
       description       TYPE string,
-      git_url           TYPE string,
       target_package    TYPE devclass,
       logo              TYPE string,
     END OF ty_descriptor,
@@ -2442,6 +2439,17 @@ INTERFACE zif_abapgit_exit
       !ct_remote    TYPE zif_abapgit_definitions=>ty_files_tt
     RAISING
       zcx_abapgit_exception .
+  METHODS serialize_postprocess
+    IMPORTING
+      !iv_package TYPE devclass
+      !ii_log     TYPE REF TO zif_abapgit_log
+    CHANGING
+      !ct_files   TYPE zif_abapgit_definitions=>ty_files_item_tt.
+  METHODS adjust_display_filename
+    IMPORTING
+      !iv_filename       TYPE string
+    RETURNING
+      VALUE(rv_filename) TYPE string.
 ENDINTERFACE.
 INTERFACE zif_abapgit_frontend_services .
 
@@ -3209,62 +3217,9 @@ INTERFACE zif_abapgit_version
    .
 
   CONSTANTS c_xml_version TYPE string VALUE 'v1.0.0' ##NO_TEXT.
-  CONSTANTS c_abap_version TYPE string VALUE '1.112.0' ##NO_TEXT.
+  CONSTANTS c_abap_version TYPE string VALUE '1.113.0' ##NO_TEXT.
 
 ENDINTERFACE.
-CLASS zcl_abapgit_adt_link DEFINITION
-
-  FINAL
-  CREATE PUBLIC.
-
-  PUBLIC SECTION.
-
-    CLASS-METHODS jump
-      IMPORTING
-        !iv_obj_name     TYPE zif_abapgit_definitions=>ty_item-obj_name
-        !iv_obj_type     TYPE zif_abapgit_definitions=>ty_item-obj_type
-        !iv_sub_obj_name TYPE zif_abapgit_definitions=>ty_item-obj_name OPTIONAL
-        !iv_line_number  TYPE i OPTIONAL
-      RAISING
-        zcx_abapgit_exception.
-
-  PROTECTED SECTION.
-
-    CLASS-METHODS generate
-      IMPORTING
-        !iv_obj_name     TYPE zif_abapgit_definitions=>ty_item-obj_name
-        !iv_obj_type     TYPE zif_abapgit_definitions=>ty_item-obj_type
-        !iv_sub_obj_name TYPE zif_abapgit_definitions=>ty_item-obj_name OPTIONAL
-        !iv_line_number  TYPE i OPTIONAL
-      RETURNING
-        VALUE(rv_result) TYPE string
-      RAISING
-        zcx_abapgit_exception.
-
-  PRIVATE SECTION.
-
-    CLASS-METHODS get_adt_objects_and_names
-      IMPORTING
-        iv_obj_name       TYPE zif_abapgit_definitions=>ty_item-obj_name
-        iv_obj_type       TYPE zif_abapgit_definitions=>ty_item-obj_type
-      EXPORTING
-        eo_adt_uri_mapper TYPE REF TO object
-        eo_adt_objectref  TYPE REF TO object
-        ev_program        TYPE progname
-        ev_include        TYPE progname
-      RAISING
-        zcx_abapgit_exception.
-
-    CLASS-METHODS is_adt_jump_possible
-      IMPORTING
-        io_object                      TYPE REF TO cl_wb_object
-        io_adt                         TYPE REF TO object
-      RETURNING
-        VALUE(rv_is_adt_jump_possible) TYPE abap_bool
-      RAISING
-        zcx_abapgit_exception.
-
-ENDCLASS.
 CLASS zcl_abapgit_ajson DEFINITION
 
   CREATE PRIVATE .
@@ -7932,190 +7887,6 @@ CLASS zcl_abapinst_textpool DEFINITION
 
     METHODS _load .
 ENDCLASS.
-
-
-
-CLASS zcl_abapgit_adt_link IMPLEMENTATION.
-
-
-  METHOD generate.
-
-    DATA: lv_adt_link       TYPE string.
-    DATA: lo_adt_uri_mapper TYPE REF TO object.
-    DATA: lo_adt_objref     TYPE REF TO object.
-    DATA: lo_adt_sub_objref TYPE REF TO object.
-    DATA: lv_program        TYPE progname.
-    DATA: lv_include        TYPE progname.
-
-    FIELD-SYMBOLS: <lv_uri> TYPE string.
-
-    get_adt_objects_and_names(
-      EXPORTING
-        iv_obj_name       = iv_obj_name
-        iv_obj_type       = iv_obj_type
-      IMPORTING
-        eo_adt_uri_mapper = lo_adt_uri_mapper
-        eo_adt_objectref  = lo_adt_objref
-        ev_program        = lv_program
-        ev_include        = lv_include ).
-
-    TRY.
-        IF iv_sub_obj_name IS NOT INITIAL.
-
-          IF ( lv_program <> iv_obj_name AND lv_include IS INITIAL ) OR
-             ( lv_program = lv_include AND iv_sub_obj_name IS NOT INITIAL ).
-            lv_include = iv_sub_obj_name.
-          ENDIF.
-
-          CALL METHOD lo_adt_uri_mapper->('IF_ADT_URI_MAPPER~MAP_INCLUDE_TO_OBJREF')
-            EXPORTING
-              program     = lv_program
-              include     = lv_include
-              line        = iv_line_number
-              line_offset = 0
-              end_line    = iv_line_number
-              end_offset  = 1
-            RECEIVING
-              result      = lo_adt_sub_objref.
-          IF lo_adt_sub_objref IS NOT INITIAL.
-            lo_adt_objref = lo_adt_sub_objref.
-          ENDIF.
-
-        ENDIF.
-
-        ASSIGN ('LO_ADT_OBJREF->REF_DATA-URI') TO <lv_uri>.
-        ASSERT sy-subrc = 0.
-
-        CONCATENATE 'adt://' sy-sysid <lv_uri> INTO lv_adt_link.
-
-        rv_result = lv_adt_link.
-
-      CATCH cx_root.
-        zcx_abapgit_exception=>raise( 'ADT Jump Error' ).
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD get_adt_objects_and_names.
-
-    DATA lv_obj_type       TYPE trobjtype.
-    DATA lv_obj_name       TYPE trobj_name.
-    DATA lo_object         TYPE REF TO cl_wb_object.
-    DATA lo_adt            TYPE REF TO object.
-
-    FIELD-SYMBOLS <lv_uri> TYPE string.
-
-    lv_obj_name = iv_obj_name.
-    lv_obj_type = iv_obj_type.
-
-    TRY.
-        cl_wb_object=>create_from_transport_key(
-          EXPORTING
-            p_object    = lv_obj_type
-            p_obj_name  = lv_obj_name
-          RECEIVING
-            p_wb_object = lo_object
-          EXCEPTIONS
-            OTHERS      = 1 ).
-        IF sy-subrc <> 0.
-          zcx_abapgit_exception=>raise( 'ADT Jump Error' ).
-        ENDIF.
-
-        CALL METHOD ('CL_ADT_TOOLS_CORE_FACTORY')=>('GET_INSTANCE')
-          RECEIVING
-            result = lo_adt.
-
-        IF is_adt_jump_possible( io_object = lo_object
-                                 io_adt    = lo_adt ) = abap_false.
-          zcx_abapgit_exception=>raise( 'ADT Jump Error' ).
-        ENDIF.
-
-        CALL METHOD lo_adt->('IF_ADT_TOOLS_CORE_FACTORY~GET_URI_MAPPER')
-          RECEIVING
-            result = eo_adt_uri_mapper.
-
-        CALL METHOD eo_adt_uri_mapper->('IF_ADT_URI_MAPPER~MAP_WB_OBJECT_TO_OBJREF')
-          EXPORTING
-            wb_object = lo_object
-          RECEIVING
-            result    = eo_adt_objectref.
-
-        ASSIGN ('EO_ADT_OBJECTREF->REF_DATA-URI') TO <lv_uri>.
-        ASSERT sy-subrc = 0.
-
-        CALL METHOD eo_adt_uri_mapper->('IF_ADT_URI_MAPPER~MAP_OBJREF_TO_INCLUDE')
-          EXPORTING
-            uri     = <lv_uri>
-          IMPORTING
-            program = ev_program
-            include = ev_include.
-
-      CATCH cx_root.
-        zcx_abapgit_exception=>raise( 'ADT Jump Error' ).
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD is_adt_jump_possible.
-
-    DATA: lo_wb_request         TYPE REF TO cl_wb_request,
-          lo_adt_uri_mapper_vit TYPE REF TO object,
-          lv_vit_wb_request     TYPE abap_bool.
-
-    cl_wb_request=>create_from_object_ref(
-      EXPORTING
-        p_wb_object       = io_object
-      RECEIVING
-        p_wb_request      = lo_wb_request
-      EXCEPTIONS
-        illegal_operation = 1
-        cancelled         = 2
-        OTHERS            = 3 ).
-
-    IF sy-subrc <> 0.
-      zcx_abapgit_exception=>raise( 'ADT Jump Error' ).
-    ENDIF.
-
-    TRY.
-        CALL METHOD io_adt->('IF_ADT_TOOLS_CORE_FACTORY~GET_URI_MAPPER_VIT')
-          RECEIVING
-            result = lo_adt_uri_mapper_vit.
-
-        CALL METHOD lo_adt_uri_mapper_vit->('IF_ADT_URI_MAPPER_VIT~IS_VIT_WB_REQUEST')
-          EXPORTING
-            wb_request = lo_wb_request
-          RECEIVING
-            result     = lv_vit_wb_request.
-
-        rv_is_adt_jump_possible = boolc( NOT lv_vit_wb_request = abap_true ).
-
-      CATCH cx_root.
-        zcx_abapgit_exception=>raise( 'ADT Jump Error' ).
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD jump.
-
-    DATA lv_adt_link TYPE string.
-
-    TRY.
-        lv_adt_link = generate(
-          iv_obj_name     = iv_obj_name
-          iv_obj_type     = iv_obj_type
-          iv_sub_obj_name = iv_sub_obj_name
-          iv_line_number  = iv_line_number ).
-
-
-      CATCH cx_root.
-        zcx_abapgit_exception=>raise( 'ADT Jump Error' ).
-    ENDTRY.
-
-  ENDMETHOD.
-ENDCLASS.
 **********************************************************************
 * UTILS
 **********************************************************************
@@ -11891,7 +11662,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_EXIT IMPLEMENTATION.
+CLASS zcl_abapgit_exit IMPLEMENTATION.
 
 
   METHOD get_instance.
@@ -11919,6 +11690,21 @@ CLASS ZCL_ABAPGIT_EXIT IMPLEMENTATION.
               iv_commit_hash        = iv_commit_hash
             CHANGING
               cv_display_url        = cv_display_url ).
+        CATCH cx_sy_ref_is_initial cx_sy_dyn_call_illegal_method ##NO_HANDLER.
+      ENDTRY.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_exit~adjust_display_filename.
+
+    IF gi_exit IS NOT INITIAL.
+      TRY.
+          rv_filename = gi_exit->adjust_display_filename( iv_filename ).
+          IF rv_filename IS INITIAL.
+            rv_filename = iv_filename.
+          ENDIF.
         CATCH cx_sy_ref_is_initial cx_sy_dyn_call_illegal_method ##NO_HANDLER.
       ENDTRY.
     ENDIF.
@@ -12129,6 +11915,23 @@ CLASS ZCL_ABAPGIT_EXIT IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zif_abapgit_exit~serialize_postprocess.
+
+    IF gi_exit IS NOT INITIAL.
+      TRY.
+          gi_exit->serialize_postprocess(
+            EXPORTING
+              iv_package = iv_package
+              ii_log     = ii_log
+            CHANGING
+              ct_files   = ct_files ).
+        CATCH cx_sy_ref_is_initial cx_sy_dyn_call_illegal_method ##NO_HANDLER.
+      ENDTRY.
+    ENDIF.
+
+  ENDMETHOD.
+
+
 
 
 ENDCLASS.
@@ -12296,6 +12099,8 @@ CLASS zcl_abapgit_folder_logic IMPLEMENTATION.
             lv_parentcl }, child: { iv_package }| ).
         ENDIF.
 
+        " Map hidden dot-folders and namespaces
+        TRANSLATE lv_path USING '$.'.
         TRANSLATE lv_path USING '/#'.
         TRANSLATE lv_path TO LOWER CASE.
         CONCATENATE lv_path '/' INTO lv_path.
@@ -12347,6 +12152,8 @@ CLASS zcl_abapgit_folder_logic IMPLEMENTATION.
 
     WHILE lv_path CA '/'.
       SPLIT lv_path AT '/' INTO lv_new lv_path.
+      " Map hidden dot-folders
+      TRANSLATE lv_new USING '.$'.
 
       CASE io_dot->get_folder_logic( ).
         WHEN zif_abapgit_dot_abapgit=>c_folder_logic-full.
@@ -14290,7 +14097,7 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
       lc_sqsc       TYPE c LENGTH 4  VALUE 'SQSC',
       lc_stob       TYPE c LENGTH 4  VALUE 'STOB',
       lc_ntab       TYPE c LENGTH 14 VALUE 'NTTT NTTB NTDT',
-      lc_ddls       TYPE c LENGTH 4  VALUE 'DDLS',
+      lc_ddls       TYPE c LENGTH 14 VALUE 'DDLS DRUL DTDC',
       lc_switches   TYPE c LENGTH 24 VALUE 'SF01 SF02 SFSW SFBS SFBF',
       lc_enhd       TYPE c LENGTH 4  VALUE 'ENHD'.
 
@@ -22171,40 +21978,6 @@ ENDCLASS.
 CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
 
 
-  METHOD belongs_incl_to_other_fugr.
-    " make sure that the include belongs to the function group
-    " like in LSEAPFAP Form TADIR_MAINTENANCE
-    DATA ls_tadir TYPE tadir.
-    DATA lv_namespace TYPE rs38l-namespace.
-    DATA lv_area TYPE rs38l-area.
-    DATA lv_include TYPE rs38l-include.
-
-    rv_belongs_to_other_fugr = abap_false.
-    IF iv_include(1) = 'L' OR iv_include+1 CS '/L'.
-      lv_include = iv_include.
-      ls_tadir-object = 'FUGR'.
-
-      CALL FUNCTION 'FUNCTION_INCLUDE_SPLIT'
-        IMPORTING
-          namespace = lv_namespace
-          group     = lv_area
-        CHANGING
-          include   = lv_include
-        EXCEPTIONS
-          OTHERS    = 1.
-      IF lv_area(1) = 'X'.    " "EXIT"-function-module
-        ls_tadir-object = 'FUGS'.
-      ENDIF.
-      IF sy-subrc = 0.
-        CONCATENATE lv_namespace lv_area INTO ls_tadir-obj_name.
-        IF ls_tadir-obj_name <> ms_item-obj_name.
-          rv_belongs_to_other_fugr = abap_true.
-        ENDIF.
-      ENDIF.
-    ENDIF.
-  ENDMETHOD.
-
-
   METHOD check_rfc_parameters.
 
 * function module RS_FUNCTIONMODULE_INSERT does the same deep down, but the right error
@@ -23264,6 +23037,40 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
                    ig_data = ls_cua ).
     ENDIF.
 
+  ENDMETHOD.
+
+
+  METHOD belongs_incl_to_other_fugr.
+    " make sure that the include belongs to the function group
+    " like in LSEAPFAP Form TADIR_MAINTENANCE
+    DATA ls_tadir TYPE tadir.
+    DATA lv_namespace TYPE rs38l-namespace.
+    DATA lv_area TYPE rs38l-area.
+    DATA lv_include TYPE rs38l-include.
+
+    rv_belongs_to_other_fugr = abap_false.
+    IF iv_include(1) = 'L' OR iv_include+1 CS '/L'.
+      lv_include = iv_include.
+      ls_tadir-object = 'FUGR'.
+
+      CALL FUNCTION 'FUNCTION_INCLUDE_SPLIT'
+        IMPORTING
+          namespace = lv_namespace
+          group     = lv_area
+        CHANGING
+          include   = lv_include
+        EXCEPTIONS
+          OTHERS    = 1.
+      IF lv_area(1) = 'X'.    " "EXIT"-function-module
+        ls_tadir-object = 'FUGS'.
+      ENDIF.
+      IF sy-subrc = 0.
+        CONCATENATE lv_namespace lv_area INTO ls_tadir-obj_name.
+        IF ls_tadir-obj_name <> ms_item-obj_name.
+          rv_belongs_to_other_fugr = abap_true.
+        ENDIF.
+      ENDIF.
+    ENDIF.
   ENDMETHOD.
 ENDCLASS.
 
@@ -34037,7 +33844,8 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      READ TABLE it_remote WITH KEY filename = is_result-filename INTO ls_remote_file.
+      READ TABLE it_remote INTO ls_remote_file
+        WITH TABLE KEY file COMPONENTS filename = is_result-filename.
       IF sy-subrc <> 0. "if file does not exist in remote, we don't need to validate
         RETURN.
       ENDIF.
@@ -35399,7 +35207,7 @@ CLASS zcl_abapinst_screen IMPLEMENTATION.
         WHEN 'T02'. " SAP Package
           lv_show = boolc( iv_options = abap_true AND iv_mbt = abap_false ).
         WHEN 'T03'. " Transport
-          lv_show = boolc( iv_options = abap_true AND iv_mbt = abap_false ).
+          lv_show = abap_true. "boolc( iv_options = abap_true AND iv_mbt = abap_false )
         WHEN 'T04'. " Authentication
           lv_show = boolc( iv_zip_i = abap_true ).
         WHEN 'T05'. " Uninstall (only for SUBMIT)
