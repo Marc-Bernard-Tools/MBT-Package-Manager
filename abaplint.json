@@ -227,6 +227,7 @@
 			"deleteTextpool": true,
 			"dynamicSQL": true,
 			"exclude": [
+				"#mbtools#mbt_switch_all.prog.abap",
 				"#mbtools#cl_sap.clas.abap",
 				"#mbtools#cl_tool_manager.clas.abap",
 				"#mbtools#cl_utilities.clas.abap"
@@ -540,7 +541,7 @@
 		},
 		"modify_only_own_db_tables": {
 			"exclude": [],
-			"ownTables": "^(/MBTOOLS/|BAL|USR05)",
+			"ownTables": "^(/MBTOOLS/|BAL|USR05|BADIIMPL_ENH)",
 			"reportDynamic": false,
 			"severity": "Error"
 		},
