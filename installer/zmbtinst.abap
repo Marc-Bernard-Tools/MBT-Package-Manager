@@ -7546,6 +7546,11 @@ CLASS zcl_abapinst_objects DEFINITION
         !iv_native_only TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(rv_bool)  TYPE abap_bool .
+    CLASS-METHODS is_type_supported
+      IMPORTING
+        !iv_obj_type   TYPE zif_abapgit_definitions=>ty_item-obj_type
+      RETURNING
+        VALUE(rv_bool) TYPE abap_bool .
     CLASS-METHODS exists
       IMPORTING
         !is_item       TYPE zif_abapgit_definitions=>ty_item
@@ -7665,6 +7670,10 @@ CLASS zcl_abapinst_objects DEFINITION
         !iv_obj_type TYPE tadir-object
       RAISING
         zcx_abapgit_exception .
+    CLASS-METHODS change_package_assignments
+      IMPORTING
+        !is_item TYPE zif_abapgit_definitions=>ty_item
+        !ii_log  TYPE REF TO zif_abapgit_log.
 ENDCLASS.
 CLASS zcl_abapinst_persistence DEFINITION
 
@@ -33763,6 +33772,28 @@ ENDCLASS.
 CLASS zcl_abapinst_objects IMPLEMENTATION.
 
 
+  METHOD change_package_assignments.
+
+    CALL FUNCTION 'TR_TADIR_INTERFACE'
+      EXPORTING
+        wi_tadir_pgmid    = 'R3TR'
+        wi_tadir_object   = is_item-obj_type
+        wi_tadir_obj_name = is_item-obj_name
+        wi_tadir_devclass = is_item-devclass
+        wi_test_modus     = abap_false
+      EXCEPTIONS
+        OTHERS            = 1.
+    IF sy-subrc = 0.
+      ii_log->add_success( iv_msg  = |Object { is_item-obj_name } assigned to package { is_item-devclass }|
+                           is_item = is_item ).
+    ELSE.
+      ii_log->add_error( iv_msg  = |Package change of object { is_item-obj_name } failed|
+                         is_item = is_item ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD check_main_package.
 
     " check package restrictions, closed package, descriptive or
@@ -33829,13 +33860,13 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
 * before pull, this is useful eg. when overwriting a TABL object.
 * only the main XML file is used for comparison
 
-    DATA: ls_remote_file      TYPE zif_abapgit_definitions=>ty_file,
-          li_remote_version   TYPE REF TO zif_abapgit_xml_input,
-          lv_count            TYPE i,
-          ls_result           TYPE zif_abapgit_comparator=>ty_result,
-          lv_answer           TYPE string,
-          li_comparator       TYPE REF TO zif_abapgit_comparator,
-          ls_item             TYPE zif_abapgit_definitions=>ty_item.
+    DATA: ls_remote_file    TYPE zif_abapgit_definitions=>ty_file,
+          li_remote_version TYPE REF TO zif_abapgit_xml_input,
+          lv_count          TYPE i,
+          ls_result         TYPE zif_abapgit_comparator=>ty_result,
+          lv_answer         TYPE string,
+          li_comparator     TYPE REF TO zif_abapgit_comparator,
+          ls_item           TYPE zif_abapgit_definitions=>ty_item.
 
     FIND ALL OCCURRENCES OF '.' IN is_result-filename MATCH COUNT lv_count.
 
@@ -34146,6 +34177,15 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
             lv_path = <ls_result>-path.
           ENDIF.
 
+          IF <ls_result>-packmove = abap_true.
+            " Move object to new package
+            ls_item-devclass = lv_package.
+            change_package_assignments( is_item = ls_item
+                                        ii_log  = ii_log ).
+            " No other changes required
+            CONTINUE.
+          ENDIF.
+
           CREATE OBJECT lo_files
             EXPORTING
               is_item = ls_item
@@ -34271,13 +34311,23 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
 
     DATA: li_obj TYPE REF TO zif_abapgit_object.
 
+    " Might be called for objects without tadir entry
+    IF is_item IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    " For unsupported objects, assume object exists
+    IF is_type_supported( is_item-obj_type ) = abap_false.
+      rv_bool = abap_true.
+      RETURN.
+    ENDIF.
 
     TRY.
         li_obj = create_object( is_item = is_item
                                 iv_language = zif_abapgit_definitions=>c_english ).
         rv_bool = li_obj->exists( ).
       CATCH zcx_abapgit_exception.
-* ignore all errors and assume the object exists
+        " Ignore errors and assume the object exists
         rv_bool = abap_true.
     ENDTRY.
 
@@ -34459,6 +34509,19 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD is_type_supported.
+
+    " If necessary, initialize list
+    IF gt_supported_obj_types IS INITIAL.
+      supported_list( ).
+    ENDIF.
+
+    READ TABLE gt_supported_obj_types TRANSPORTING NO FIELDS WITH TABLE KEY table_line = iv_obj_type.
+    rv_bool = boolc( sy-subrc = 0 ).
+
+  ENDMETHOD.
+
+
   METHOD map_results_to_items.
 
     DATA: ls_item LIKE LINE OF rt_items.
@@ -34593,8 +34656,8 @@ CLASS zcl_abapinst_objects IMPLEMENTATION.
 
   METHOD supported_list.
 
-    DATA: lt_objects   TYPE STANDARD TABLE OF ko100,
-          ls_item      TYPE zif_abapgit_definitions=>ty_item.
+    DATA: lt_objects TYPE STANDARD TABLE OF ko100,
+          ls_item    TYPE zif_abapgit_definitions=>ty_item.
 
     FIELD-SYMBOLS <ls_object> LIKE LINE OF lt_objects.
 
