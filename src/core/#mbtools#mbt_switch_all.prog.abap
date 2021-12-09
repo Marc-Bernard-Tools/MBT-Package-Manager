@@ -36,6 +36,7 @@ PARAMETERS:
 SELECTION-SCREEN END OF BLOCK b200.
 
 DATA:
+  gv_msg  TYPE string,
   gv_enh  TYPE progname,
   gt_enh  TYPE TABLE OF progname,
   gv_ext  TYPE enhincludeextension,
@@ -54,7 +55,7 @@ START-OF-SELECTION.
   " Get all includes for MBT enhancement implementations
   SELECT name FROM progdir INTO TABLE gt_enh
     WHERE name LIKE '/MBTOOLS/%' AND subc = 'I'
-    ORDER BY PRIMARY KEY.
+    ORDER BY name.
   IF sy-subrc <> 0.
     WRITE: / 'No MBT enhancements implemented' COLOR COL_TOTAL.
     EXIT.
@@ -65,7 +66,8 @@ START-OF-SELECTION.
   DELETE gt_enh WHERE table_line CP '/MBTOOLS/BC_EXCEPTION*'.
 
   LOOP AT gt_enh INTO gv_enh.
-    WRITE: / |MBT enhancement implementation { gv_enh }| COLOR COL_NORMAL.
+    gv_msg = |MBT enhancement implementation { gv_enh }|.
+    WRITE: / gv_msg COLOR COL_NORMAL.
     SKIP.
 
     gv_ext = gv_enh+30(1).
@@ -93,9 +95,11 @@ START-OF-SELECTION.
       STATE 'A'
       PROGRAM TYPE 'I'.
     IF sy-subrc = 0.
-      WRITE: / |MBT enhancement implementation { gv_enh } successfully updated| COLOR COL_POSITIVE.
+      gv_msg = |MBT enhancement implementation { gv_enh } successfully updated|.
+      WRITE: / gv_msg COLOR COL_POSITIVE.
     ELSE.
-      WRITE: / |Error updating MBT enhancement implementation { gv_enh }| COLOR COL_NEGATIVE.
+      gv_msg = |Error updating MBT enhancement implementation { gv_enh }|.
+      WRITE: / gv_msg COLOR COL_NEGATIVE.
     ENDIF.
 
     INSERT REPORT gv_enh FROM gt_code
