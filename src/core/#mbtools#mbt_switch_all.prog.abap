@@ -58,7 +58,7 @@ START-OF-SELECTION.
     ORDER BY name.
   IF sy-subrc <> 0.
     WRITE: / 'No MBT enhancements implemented' COLOR COL_TOTAL.
-    EXIT.
+    RETURN.
   ENDIF.
 
   " Keep only enhancements (but not for own exception class)
@@ -82,7 +82,7 @@ START-OF-SELECTION.
         WHEN p_off.
           PERFORM code_off CHANGING <gv_code>.
         WHEN p_show.
-          WRITE : / <gv_code>.
+          WRITE: / <gv_code>.
       ENDCASE.
     ENDLOOP.
     IF p_show = abap_true.
