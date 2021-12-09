@@ -35,9 +35,6 @@ PARAMETERS:
   p_off  RADIOBUTTON GROUP g0.
 SELECTION-SCREEN END OF BLOCK b200.
 
-TABLES:
-  progdir.
-
 DATA:
   gv_enh  TYPE progname,
   gt_enh  TYPE TABLE OF progname,
@@ -56,7 +53,12 @@ START-OF-SELECTION.
 
   " Get all includes for MBT enhancement implementations
   SELECT name FROM progdir INTO TABLE gt_enh
-    WHERE name LIKE '/MBTOOLS/%' AND subc = 'I'.
+    WHERE name LIKE '/MBTOOLS/%' AND subc = 'I'
+    ORDER BY PRIMARY KEY.
+  IF sy-subrc <> 0.
+    WRITE: / 'No MBT enhancements implemented' COLOR COL_TOTAL.
+    EXIT.
+  ENDIF.
 
   " Keep only enhancements (but not for own exception class)
   DELETE gt_enh WHERE table_line+30(1) <> 'E'.
@@ -121,7 +123,7 @@ START-OF-SELECTION.
     ENDIF.
   ENDIF.
 
-FORM code_on CHANGING cv_line.
+FORM code_on CHANGING cv_line TYPE string.
   " Keep open and close statements
   IF cv_line CP 'ENHANCEMENT *' OR cv_line = 'ENDENHANCEMENT.' OR cv_line CP 'METHOD *' OR cv_line = 'ENDMETHOD.'.
     RETURN.
@@ -132,7 +134,7 @@ FORM code_on CHANGING cv_line.
   ENDIF.
 ENDFORM.
 
-FORM code_off CHANGING cv_line.
+FORM code_off CHANGING cv_line TYPE string.
   " Keep open and close statements
   IF cv_line CP 'ENHANCEMENT *' OR cv_line = 'ENDENHANCEMENT.' OR cv_line CP 'METHOD *' OR cv_line = 'ENDMETHOD.'.
     RETURN.
