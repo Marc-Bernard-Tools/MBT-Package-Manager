@@ -1,6 +1,7 @@
 ![abap package version](https://img.shields.io/endpoint?url=https://shield.abap.space/version-shield-json/github/Marc-Bernard-Tools/Marc-Bernard-Tools-Versions/.apack-manifest.xml/dependencies/github.com/Marc-Bernard-Tools/MBT-Base&label=version&color=darkgray)
 [![license](https://img.shields.io/github/license/Marc-Bernard-Tools/Marc-Bernard-Tools-Versions)](LICENSE)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg)](CODE_OF_CONDUCT.md)
+[![REUSE status](https://api.reuse.software/badge/github.com/Marc-Bernard-Tools/MBT-Base)](https://api.reuse.software/info/github.com/Marc-Bernard-Tools/MBT-Base)
+[![contributor covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg)](CODE_OF_CONDUCT.md)
 ![abaplint](https://github.com/sbcgua/ajson/workflows/abaplint/badge.svg)
 
 # MBT Base
