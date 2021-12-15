@@ -23,6 +23,10 @@ Files: src/http/*
 Copyright: 2014 abapGit Contributors <https://github.com/abapGit/abapGit>
 License: MIT
 
+Files: src/inst/*
+Copyright: 2014 abapGit Contributors <https://github.com/abapGit/abapGit>
+License: MIT
+
 Files: src/ui/*
 Copyright: 2014 abapGit Contributors <https://github.com/abapGit/abapGit>
 License: MIT
@@ -41,4 +45,8 @@ License: MIT
 
 Files: src/reg/*
 Copyright: 2015 Martin Ceronio <https://ceronio.net/>
+License: MIT
+
+Files: installer/*
+Copyright: 2014 abapGit Contributors <https://github.com/abapGit/abapGit>
 License: MIT
