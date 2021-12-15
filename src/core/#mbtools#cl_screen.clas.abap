@@ -1,6 +1,6 @@
 CLASS /mbtools/cl_screen DEFINITION
   PUBLIC
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * Marc Bernard Tools - Screen
@@ -11,26 +11,26 @@ CLASS /mbtools/cl_screen DEFINITION
   PUBLIC SECTION.
 
     TYPES:
-      ty_screen_field TYPE c LENGTH 83 .
+      ty_screen_field TYPE c LENGTH 83.
 
-    CLASS-DATA gv_copyright TYPE string READ-ONLY .
-    CLASS-DATA gv_about TYPE string READ-ONLY .
-    CLASS-DATA gv_documentation TYPE string READ-ONLY .
-    CLASS-DATA gv_tool_page TYPE string READ-ONLY .
-    CLASS-DATA gv_website_name TYPE string READ-ONLY .
-    CLASS-DATA gv_website_domain TYPE string READ-ONLY .
-    CLASS-DATA gv_terms TYPE string READ-ONLY .
-    CLASS-DATA gv_version TYPE string READ-ONLY .
+    CLASS-DATA gv_copyright TYPE string READ-ONLY.
+    CLASS-DATA gv_about TYPE string READ-ONLY.
+    CLASS-DATA gv_documentation TYPE string READ-ONLY.
+    CLASS-DATA gv_tool_page TYPE string READ-ONLY.
+    CLASS-DATA gv_website_name TYPE string READ-ONLY.
+    CLASS-DATA gv_website_domain TYPE string READ-ONLY.
+    CLASS-DATA gv_terms TYPE string READ-ONLY.
+    CLASS-DATA gv_version TYPE string READ-ONLY.
 
-    CLASS-METHODS class_constructor .
+    CLASS-METHODS class_constructor.
     METHODS constructor
       IMPORTING
-        !iv_title TYPE csequence .
+        !iv_title TYPE csequence.
     CLASS-METHODS factory
       IMPORTING
         !iv_title        TYPE csequence DEFAULT /mbtools/cl_tool_bc=>c_tool-title
       RETURNING
-        VALUE(ro_screen) TYPE REF TO /mbtools/cl_screen .
+        VALUE(ro_screen) TYPE REF TO /mbtools/cl_screen.
     METHODS init
       EXPORTING
         !ev_text      TYPE ty_screen_field
@@ -41,48 +41,51 @@ CLASS /mbtools/cl_screen DEFINITION
         !ev_docu      TYPE ty_screen_field
         !ev_tool      TYPE ty_screen_field
         !ev_home      TYPE ty_screen_field
-        !ev_lice      TYPE ty_screen_field .
+        !ev_lice      TYPE ty_screen_field.
     METHODS header
       IMPORTING
         VALUE(iv_icon)   TYPE icon_d
         VALUE(iv_text)   TYPE csequence OPTIONAL
       RETURNING
-        VALUE(rv_result) TYPE ty_screen_field .
+        VALUE(rv_result) TYPE ty_screen_field.
     METHODS icon
       IMPORTING
         VALUE(iv_icon)   TYPE icon_d
         VALUE(iv_text)   TYPE csequence OPTIONAL
         VALUE(iv_quick)  TYPE csequence OPTIONAL
       RETURNING
-        VALUE(rv_result) TYPE ty_screen_field .
+        VALUE(rv_result) TYPE ty_screen_field.
     METHODS logo
       IMPORTING
         VALUE(iv_show) TYPE abap_bool DEFAULT abap_true
         VALUE(iv_top)  TYPE i OPTIONAL
-        VALUE(iv_left) TYPE i OPTIONAL .
+        VALUE(iv_left) TYPE i OPTIONAL.
+    METHODS copyright
+      RETURNING
+        VALUE(rv_result) TYPE string.
     METHODS banner
       IMPORTING
         VALUE(iv_show) TYPE abap_bool DEFAULT abap_true
         VALUE(iv_top)  TYPE i DEFAULT 4
         VALUE(iv_left) TYPE i DEFAULT 20
-          PREFERRED PARAMETER iv_show .
+          PREFERRED PARAMETER iv_show.
     METHODS ucomm
       IMPORTING
-        VALUE(iv_ok_code) TYPE sy-ucomm .
+        VALUE(iv_ok_code) TYPE sy-ucomm.
     METHODS toolbar
       IMPORTING
         !iv_dynnr TYPE sy-dynnr
         !iv_cprog TYPE sy-cprog DEFAULT sy-cprog
-        !iv_show  TYPE abap_bool DEFAULT abap_false .
+        !iv_show  TYPE abap_bool DEFAULT abap_false.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    CLASS-DATA go_logo_dock TYPE REF TO cl_gui_docking_container .
-    CLASS-DATA go_logo TYPE REF TO cl_gui_picture .
-    CLASS-DATA gv_logo_url TYPE /mbtools/value .
-    CLASS-DATA go_banner_dock TYPE REF TO cl_gui_docking_container .
-    CLASS-DATA go_banner TYPE REF TO cl_gui_picture .
-    CLASS-DATA gv_banner_url TYPE /mbtools/value .
+    CLASS-DATA go_logo_dock TYPE REF TO cl_gui_docking_container.
+    CLASS-DATA go_logo TYPE REF TO cl_gui_picture.
+    CLASS-DATA gv_logo_url TYPE /mbtools/value.
+    CLASS-DATA go_banner_dock TYPE REF TO cl_gui_docking_container.
+    CLASS-DATA go_banner TYPE REF TO cl_gui_picture.
+    CLASS-DATA gv_banner_url TYPE /mbtools/value.
 
     DATA mo_tool TYPE REF TO /mbtools/cl_tool.
 ENDCLASS.
@@ -178,6 +181,11 @@ CLASS /mbtools/cl_screen IMPLEMENTATION.
 
   METHOD constructor.
     mo_tool = /mbtools/cl_tool_manager=>factory( iv_title ).
+  ENDMETHOD.
+
+
+  METHOD copyright.
+    rv_result = gv_copyright.
   ENDMETHOD.
 
 

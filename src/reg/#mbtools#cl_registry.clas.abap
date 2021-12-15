@@ -11,12 +11,10 @@ CLASS /mbtools/cl_registry DEFINITION
 * Implementation of a registry for storing arbitrary values (similar
 * to the MS Windows registry)
 *
-* Original Author: (c) Martin Ceronio (2015), http://ceronio.net
-* https://ceronio.net/2015/05/arbitrary-value-store-registry-for-abap/
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-*
 * Ported to namespace and enhanced by Marc Bernard Tools
+*
+* Copyright 2015 Martin Ceronio <http://ceronio.net>
+* SPDX-License-Identifier: MIT
 ************************************************************************
   PUBLIC SECTION.
 

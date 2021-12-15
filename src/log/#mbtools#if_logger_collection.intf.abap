@@ -2,14 +2,10 @@ INTERFACE /mbtools/if_logger_collection
   PUBLIC .
 
 ************************************************************************
-* MBT Logger
+* abap logger
 *
-* Original Author: Copyright (c) 2017 Eric Peterson
-* https://github.com/epeterson320/ABAP-Logger
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-*
-* Last update: 2021-06-07
+* Copyright 2017 Eric Peterson <https://github.com/ABAP-Logger/ABAP-Logger>
+* SPDX-License-Identifier: MIT
 ************************************************************************
   METHODS add_logger
     IMPORTING

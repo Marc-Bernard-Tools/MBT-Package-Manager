@@ -3,14 +3,10 @@ INTERFACE /mbtools/if_logger
 
 
 ************************************************************************
-* MBT Logger
+* abap logger
 *
-* Original Author: Copyright (c) 2017 Eric Peterson
-* https://github.com/epeterson320/ABAP-Logger
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-*
-* Last update: 2021-06-07
+* Copyright 2017 Eric Peterson <https://github.com/ABAP-Logger/ABAP-Logger>
+* SPDX-License-Identifier: MIT
 ************************************************************************
   DATA mv_handle TYPE balloghndl READ-ONLY .
   DATA mv_db_number TYPE balognr READ-ONLY .

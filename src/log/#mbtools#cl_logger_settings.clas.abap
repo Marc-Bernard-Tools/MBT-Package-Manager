@@ -5,16 +5,11 @@ CLASS /mbtools/cl_logger_settings DEFINITION
   GLOBAL FRIENDS /mbtools/cl_logger_factory .
 
 ************************************************************************
-* MBT Logger
+* abap logger
 *
-* Original Author: Copyright (c) 2017 Eric Peterson
-* https://github.com/epeterson320/ABAP-Logger
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
-*
-* Last update: 2021-06-07
+* Copyright 2017 Eric Peterson <https://github.com/ABAP-Logger/ABAP-Logger>
+* SPDX-License-Identifier: MIT
 ************************************************************************
-
   PUBLIC SECTION.
 
     INTERFACES /mbtools/if_logger_settings .
