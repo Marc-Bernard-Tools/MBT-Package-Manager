@@ -1,6 +1,12 @@
 INTERFACE /mbtools/if_objects
   PUBLIC .
 
+************************************************************************
+* MBT Objects
+*
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
+************************************************************************
 
 * Note: All constants must by unique and some constants don't exist in lower releases
 * BW-WHM

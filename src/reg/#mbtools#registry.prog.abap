@@ -4,12 +4,13 @@ REPORT /mbtools/registry MESSAGE-ID /mbtools/bc.
 *
 * Viewer and editor for registry stored in /MBTOOLS/REGS
 *
-* Original Author: (c) Martin Ceronio (2015), http://ceronio.net
-* https://ceronio.net/2015/05/arbitrary-value-store-registry-for-abap/
-*
-* Released under MIT License: https://opensource.org/licenses/MIT
+* Implementation of a registry for storing arbitrary values (similar
+* to the MS Windows registry)
 *
 * Ported to namespace and enhanced by Marc Bernard Tools
+*
+* Copyright 2015 Martin Ceronio <http://ceronio.net>
+* SPDX-License-Identifier: MIT
 ************************************************************************
 
 " For splitter container

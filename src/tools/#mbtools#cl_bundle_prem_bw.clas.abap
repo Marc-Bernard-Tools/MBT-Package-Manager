@@ -6,7 +6,8 @@ CLASS /mbtools/cl_bundle_prem_bw DEFINITION
 ************************************************************************
 * MBT BW Bundle
 *
-* (c) MBT 2020 https://marcbernardtools.com/
+* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* SPDX-License-Identifier: GPL-3.0-or-later
 ************************************************************************
   PUBLIC SECTION.
 

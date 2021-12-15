@@ -1,5 +1,6 @@
 CLASS /mbtools/cl_http_digest DEFINITION
   PUBLIC
+  FINAL
   CREATE PUBLIC .
 
 ************************************************************************

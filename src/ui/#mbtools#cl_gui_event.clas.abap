@@ -6,8 +6,8 @@ CLASS /mbtools/cl_gui_event DEFINITION
 ************************************************************************
 * Marc Bernard Tools - GUI Event
 *
-* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
-* SPDX-License-Identifier: GPL-3.0-or-later
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* SPDX-License-Identifier: MIT
 ************************************************************************
   PUBLIC SECTION.
 
