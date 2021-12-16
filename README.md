@@ -18,7 +18,7 @@ For details, visit **[Marc Bernard Tools](https://marcbernardtools.com/downloads
 
 ## Installation
 
-Use the [MBT Installer](https://marcbernardtools.com/downloads/mbt-installer/) to deploy the repository to your SAP system. For more infornation, see 
+Use the [MBT Installer](https://marcbernardtools.com/downloads/mbt-installer/) to deploy the repository to your SAP system. For more information, see 
 [Installation Instructions](https://marcbernardtools.com/docs/marc-bernard-tools/installation/).
 
 ## Contributions
