@@ -206,7 +206,9 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
       ev_valid = abap_true.
     ENDIF.
 
-    ev_expire = lo_json->get_date( '/expires' ) ##NO_TEXT.
+    lv_data = lo_json->get_string( '/expires' ) ##NO_TEXT.
+
+    ev_expire = lv_data(4) && lv_data+5(2) && lv_data+8(2).
 
   ENDMETHOD.
 
@@ -270,7 +272,9 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
       ev_valid = abap_true.
     ENDIF.
 
-    ev_expire = lo_json->get_date( 'expires' ) ##NO_TEXT.
+    lv_data = lo_json->get_date( 'expires' ) ##NO_TEXT.
+
+    ev_expire = lv_data(4) && lv_data+5(2) && lv_data+8(2).
 
   ENDMETHOD.
 
@@ -516,7 +520,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     DATA: lv_system_no TYPE slic_sysid.
 
-    " http://yoursite.com/?edd_action={request type}&item_id={id}&license={key}
+    " https://marcbernardtools.com/?edd_action={request type}&item_id={id}&license={key}
     " &url=SystemID_{system_id}_SystemNumber_{system_number}
     rv_endpoint = '/?edd_action=' && c_edd_param-action && '&item_id=' && c_edd_param-id.
     rv_endpoint = rv_endpoint && '&license=' && c_edd_param-key.
