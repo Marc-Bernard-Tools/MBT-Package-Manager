@@ -6,6 +6,6 @@ TYPES: BEGIN OF ty_exception,
          level     TYPE i,
          exception TYPE REF TO cx_root,
        END OF ty_exception,
-       ty_exceptions TYPE STANDARD TABLE OF ty_exception.
+       tty_exception TYPE STANDARD TABLE OF ty_exception.
 
-TYPES: ty_exception_data TYPE STANDARD TABLE OF bal_s_exc WITH DEFAULT KEY.
+TYPES tty_exception_data TYPE STANDARD TABLE OF bal_s_exc WITH DEFAULT KEY.
