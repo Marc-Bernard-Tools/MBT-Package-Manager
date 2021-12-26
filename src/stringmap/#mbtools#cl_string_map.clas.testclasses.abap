@@ -56,8 +56,8 @@ CLASS ltcl_string_map IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH cx_root INTO lx_e.
         cl_abap_unit_assert=>assert_equals(
-        exp = 'Incorrect input for string_map=>create, typekind I'
-        act = lx_e->get_text( ) ).
+          exp = 'Incorrect input for string_map=>create, typekind I'
+          act = lx_e->get_text( ) ).
     ENDTRY.
 
     TRY.
@@ -65,8 +65,8 @@ CLASS ltcl_string_map IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH cx_root INTO lx_e.
         cl_abap_unit_assert=>assert_equals(
-        exp = 'Incorrect string map instance to copy from'
-        act = lx_e->get_text( ) ).
+          exp = 'Incorrect string map instance to copy from'
+          act = lx_e->get_text( ) ).
     ENDTRY.
 
     " From obj
@@ -132,24 +132,24 @@ CLASS ltcl_string_map IMPLEMENTATION.
 
     TRY.
         lo_cut->set(
-        iv_key = 'A'
-        iv_val = '2' ).
+          iv_key = 'A'
+          iv_val = '2' ).
         cl_abap_unit_assert=>fail( ).
       CATCH cx_root INTO lx_e.
         cl_abap_unit_assert=>assert_equals(
-        exp = 'String map is read only'
-        act = lx_e->get_text( ) ).
+          exp = 'String map is read only'
+          act = lx_e->get_text( ) ).
     ENDTRY.
 
     TRY.
         lo_cut->set(
-        iv_key = 'B'
-        iv_val = '2' ).
+          iv_key = 'B'
+          iv_val = '2' ).
         cl_abap_unit_assert=>fail( ).
       CATCH cx_root INTO lx_e.
         cl_abap_unit_assert=>assert_equals(
-        exp = 'String map is read only'
-        act = lx_e->get_text( ) ).
+          exp = 'String map is read only'
+          act = lx_e->get_text( ) ).
     ENDTRY.
 
     TRY.
@@ -157,8 +157,8 @@ CLASS ltcl_string_map IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH cx_root INTO lx_e.
         cl_abap_unit_assert=>assert_equals(
-        exp = 'String map is read only'
-        act = lx_e->get_text( ) ).
+          exp = 'String map is read only'
+          act = lx_e->get_text( ) ).
     ENDTRY.
 
     TRY.
@@ -166,8 +166,8 @@ CLASS ltcl_string_map IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH cx_root INTO lx_e.
         cl_abap_unit_assert=>assert_equals(
-        exp = 'String map is read only'
-        act = lx_e->get_text( ) ).
+          exp = 'String map is read only'
+          act = lx_e->get_text( ) ).
     ENDTRY.
 
     TRY.
@@ -178,8 +178,8 @@ CLASS ltcl_string_map IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH cx_root INTO lx_e.
         cl_abap_unit_assert=>assert_equals(
-        exp = 'String map is read only'
-        act = lx_e->get_text( ) ).
+          exp = 'String map is read only'
+          act = lx_e->get_text( ) ).
     ENDTRY.
 
     TRY.
@@ -187,8 +187,8 @@ CLASS ltcl_string_map IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH cx_root INTO lx_e.
         cl_abap_unit_assert=>assert_equals(
-        exp = 'String map is read only'
-        act = lx_e->get_text( ) ).
+          exp = 'String map is read only'
+          act = lx_e->get_text( ) ).
     ENDTRY.
 
     TRY.
@@ -196,8 +196,8 @@ CLASS ltcl_string_map IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH cx_root INTO lx_e.
         cl_abap_unit_assert=>assert_equals(
-        exp = 'String map is read only'
-        act = lx_e->get_text( ) ).
+          exp = 'String map is read only'
+          act = lx_e->get_text( ) ).
     ENDTRY.
 
     TRY.
@@ -205,8 +205,8 @@ CLASS ltcl_string_map IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH cx_root INTO lx_e.
         cl_abap_unit_assert=>assert_equals(
-        exp = 'String map is read only'
-        act = lx_e->get_text( ) ).
+          exp = 'String map is read only'
+          act = lx_e->get_text( ) ).
     ENDTRY.
 
   ENDMETHOD.
@@ -464,8 +464,8 @@ CLASS ltcl_string_map IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH cx_root INTO lx_e.
         cl_abap_unit_assert=>assert_equals(
-        exp = 'Component Z not found in target'
-        act = lx_e->get_text( ) ).
+          exp = 'Component Z not found in target'
+          act = lx_e->get_text( ) ).
     ENDTRY.
 
     lo_struc = lo_cut->strict( abap_false ).
@@ -489,8 +489,8 @@ CLASS ltcl_string_map IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH cx_root INTO lx_e.
         cl_abap_unit_assert=>assert_equals(
-        exp = 'Only structures supported'
-        act = lx_e->get_text( ) ).
+          exp = 'Only structures supported'
+          act = lx_e->get_text( ) ).
     ENDTRY.
 
     TRY.
@@ -498,8 +498,8 @@ CLASS ltcl_string_map IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH cx_root INTO lx_e.
         cl_abap_unit_assert=>assert_equals(
-        exp = 'Only structures supported'
-        act = lx_e->get_text( ) ).
+          exp = 'Only structures supported'
+          act = lx_e->get_text( ) ).
     ENDTRY.
 
   ENDMETHOD.
@@ -697,8 +697,8 @@ CLASS ltcl_string_map IMPLEMENTATION.
         lo_cut->from_string( `x=y,  ` ).
       CATCH lcx_error INTO lx_e.
         cl_abap_unit_assert=>assert_char_cp(
-        act = lx_e->get_text( )
-        exp = 'Empty key*' ).
+          act = lx_e->get_text( )
+          exp = 'Empty key*' ).
     ENDTRY.
 
   ENDMETHOD.
