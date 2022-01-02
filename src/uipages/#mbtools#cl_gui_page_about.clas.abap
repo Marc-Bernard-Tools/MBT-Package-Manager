@@ -109,7 +109,7 @@ CLASS /mbtools/cl_gui_page_about IMPLEMENTATION.
       iv_txt = 'Support'
       io_sub = lo_support_menu
     )->add(
-      iv_txt = /mbtools/cl_html=>icon( iv_name  = 'bars/grey' )
+      iv_txt = /mbtools/cl_html=>icon( iv_name = 'bars/grey' )
       io_sub = lo_bar_menu ).
 
   ENDMETHOD.

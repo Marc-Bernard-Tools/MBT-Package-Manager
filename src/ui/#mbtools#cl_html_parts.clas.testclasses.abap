@@ -31,13 +31,13 @@ CLASS ltcl_part_collections IMPLEMENTATION.
     CREATE OBJECT lo_parts.
     lo_parts->add_part(
       iv_collection = 'ABC'
-      ii_part = lo_html1 ).
+      ii_part       = lo_html1 ).
     lo_parts->add_part(
       iv_collection = 'ABC'
-      ii_part = lo_html2 ).
+      ii_part       = lo_html2 ).
     lo_parts->add_part(
       iv_collection = 'XYZ'
-      ii_part = lo_html3 ).
+      ii_part       = lo_html3 ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_parts->get_collection_size( 'ABC' )

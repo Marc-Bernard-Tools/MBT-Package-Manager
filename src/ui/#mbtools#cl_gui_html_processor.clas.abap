@@ -149,7 +149,8 @@ CLASS /mbtools/cl_gui_html_processor IMPLEMENTATION.
         ignore_case = abap_true
         pattern     = lc_css_re.
 
-    lo_matcher = lo_css_re->create_matcher( text = substring( val = iv_html len = lv_head_end ) ).
+    lo_matcher = lo_css_re->create_matcher( text = substring( val = iv_html
+                                                              len = lv_head_end ) ).
     WHILE lo_matcher->find_next( ) = abap_true.
       lv_css_path = lo_matcher->get_submatch( 1 ).
       IF is_preserved( lv_css_path ) = abap_false.

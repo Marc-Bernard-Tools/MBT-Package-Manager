@@ -147,7 +147,7 @@ CLASS /mbtools/cl_popups IMPLEMENTATION.
 
     TRY.
         cl_salv_table=>factory( IMPORTING r_salv_table = mo_select_list_popup
-                                CHANGING  t_table = <lt_table> ).
+                                CHANGING  t_table      = <lt_table> ).
 
         CASE iv_selection_mode.
           WHEN if_salv_c_selection_mode=>single.
@@ -159,7 +159,7 @@ CLASS /mbtools/cl_popups IMPLEMENTATION.
         ENDCASE.
 
         mo_select_list_popup->set_screen_status( pfstatus = lv_pfstatus
-                                                 report = 'SAPMSVIM' ).
+                                                 report   = 'SAPMSVIM' ).
 
         mo_select_list_popup->set_screen_popup( start_column = iv_start_column
                                                 end_column   = iv_end_column

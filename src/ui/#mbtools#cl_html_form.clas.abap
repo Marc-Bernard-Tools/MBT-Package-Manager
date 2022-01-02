@@ -426,7 +426,8 @@ CLASS /mbtools/cl_html_form IMPLEMENTATION.
         " Numeric value is checked in validation
         ro_form_data->set(
           iv_key = <ls_field>-name
-          iv_val = condense( val = lv_value del = ` ` ) ).
+          iv_val = condense( val = lv_value
+                             del = ` ` ) ).
       ELSEIF <ls_field>-type = c_field_type-table.
         lv_rows = io_form_data->get( |{ <ls_field>-name }-{ c_rows }| ).
         DO lv_rows TIMES.

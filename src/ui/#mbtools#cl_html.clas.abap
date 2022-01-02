@@ -232,7 +232,10 @@ CLASS /mbtools/cl_html IMPLEMENTATION.
 
     LOOP AT mt_buffer ASSIGNING <lv_line>.
       APPEND <lv_line> TO lt_temp ASSIGNING <lv_line_c>.
-      indent_line( CHANGING cs_context = ls_context cv_line = <lv_line_c> ).
+      indent_line(
+        CHANGING
+          cs_context = ls_context
+          cv_line    = <lv_line_c> ).
     ENDLOOP.
 
     CONCATENATE LINES OF lt_temp INTO rv_html SEPARATED BY cl_abap_char_utilities=>newline.
@@ -297,7 +300,7 @@ CLASS /mbtools/cl_html IMPLEMENTATION.
     ENDIF.
 
     lv_xpixel = cl_gui_cfw=>compute_pixel_from_metric( x_or_y = 'X'
-                                                       in = 1 ).
+                                                       in     = 1 ).
     IF lv_xpixel >= 2.
       lv_large_icon = ' fa-lg'. "<<<MBT
     ENDIF.

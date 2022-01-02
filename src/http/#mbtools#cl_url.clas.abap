@@ -65,7 +65,7 @@ CLASS /mbtools/cl_url IMPLEMENTATION.
 
   METHOD host.
 
-    regex( EXPORTING iv_url = iv_url
+    regex( EXPORTING iv_url  = iv_url
            IMPORTING ev_host = rv_host ).
 
   ENDMETHOD.
@@ -85,7 +85,7 @@ CLASS /mbtools/cl_url IMPLEMENTATION.
     DATA: lv_path TYPE string.
 
     TRY.
-        regex( EXPORTING iv_url = iv_url
+        regex( EXPORTING iv_url  = iv_url
                IMPORTING ev_name = rv_name
                          ev_path = lv_path ).
 

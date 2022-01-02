@@ -426,8 +426,8 @@ CLASS /mbtools/cl_registry_ui IMPLEMENTATION.
         error_dp_create   = 4
         OTHERS            = 5.
     IF sy-subrc <> 0.
-      MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
-                 WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+      MESSAGE ID sy-msgid TYPE 'E' NUMBER sy-msgno DISPLAY LIKE 'S'
+        WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
     ENDIF.
 
     " Add fields to catalog
@@ -454,7 +454,7 @@ CLASS /mbtools/cl_registry_ui IMPLEMENTATION.
         too_many_lines                = 3
         OTHERS                        = 4 ).
     IF sy-subrc <> 0.
-      MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+      MESSAGE ID sy-msgid TYPE 'E' NUMBER sy-msgno DISPLAY LIKE 'S'
         WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
     ENDIF.
 

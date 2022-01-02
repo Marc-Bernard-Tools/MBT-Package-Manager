@@ -90,14 +90,14 @@ CLASS ltcl_html_processor_test IMPLEMENTATION.
     DATA lo_asset_man TYPE REF TO /mbtools/cl_gui_asset_manager.
 
     CREATE OBJECT lo_asset_man.
-    lo_asset_man->register_asset( iv_url = 'css/style1.css'
-                                  iv_type = 'text/css'
+    lo_asset_man->register_asset( iv_url    = 'css/style1.css'
+                                  iv_type   = 'text/css'
                                   iv_inline = 'dummy1' ).
-    lo_asset_man->register_asset( iv_url = 'css/style2.css'
-                                  iv_type = 'text/css'
+    lo_asset_man->register_asset( iv_url    = 'css/style2.css'
+                                  iv_type   = 'text/css'
                                   iv_inline = 'dummy2' ).
-    lo_asset_man->register_asset( iv_url = 'css/style3.css'
-                                  iv_type = 'text/css'
+    lo_asset_man->register_asset( iv_url    = 'css/style3.css'
+                                  iv_type   = 'text/css'
                                   iv_inline = 'dummy3' ).
 
     CREATE OBJECT mo_cut
@@ -125,7 +125,7 @@ CLASS ltcl_html_processor_test IMPLEMENTATION.
     DATA lv_act TYPE string.
 
     lv_act = mo_cut->/mbtools/if_gui_html_processor~process(
-      iv_html = mv_source
+      iv_html         = mv_source
       ii_gui_services = mo_gui_mock ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -164,7 +164,7 @@ CLASS ltcl_html_processor_test IMPLEMENTATION.
 
     mo_cut->preserve_css( 'css/style2.css' ).
     lv_act = mo_cut->/mbtools/if_gui_html_processor~process(
-      iv_html = mv_source
+      iv_html         = mv_source
       ii_gui_services = mo_gui_mock ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -191,7 +191,7 @@ CLASS ltcl_html_processor_test IMPLEMENTATION.
     DATA lv_act TYPE string.
 
     lv_act = mo_cut->/mbtools/if_gui_html_processor~process(
-      iv_html = '<html><head></head></html>'
+      iv_html         = '<html><head></head></html>'
       ii_gui_services = mo_gui_mock ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -205,7 +205,7 @@ CLASS ltcl_html_processor_test IMPLEMENTATION.
     TRY.
         " BTW this is valid HTML, maybe refactor the code ...
         mo_cut->/mbtools/if_gui_html_processor~process(
-          iv_html = '<html><body></body></html>'
+          iv_html         = '<html><body></body></html>'
           ii_gui_services = mo_gui_mock ).
         cl_abap_unit_assert=>fail( ).
       CATCH /mbtools/cx_exception ##NO_HANDLER.

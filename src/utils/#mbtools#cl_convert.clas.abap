@@ -152,7 +152,7 @@ CLASS /mbtools/cl_convert IMPLEMENTATION.
     TRY.
         lo_obj = cl_abap_conv_out_ce=>create( encoding = 'UTF-8' ).
 
-        lo_obj->convert( EXPORTING data = iv_string
+        lo_obj->convert( EXPORTING data   = iv_string
                          IMPORTING buffer = rv_xstring ).
 
       CATCH cx_parameter_invalid_range

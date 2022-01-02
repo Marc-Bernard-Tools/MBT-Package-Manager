@@ -108,7 +108,7 @@ CLASS ltcl_single_file IMPLEMENTATION.
       `  background: var(--my-bg-color);\n` &&
       `  color: #ffffff;\n` &&
       `}\n`.
-    add_file( iv_url = 'simple.css'
+    add_file( iv_url     = 'simple.css'
               iv_content = lv_content ).
 
     lv_expected =

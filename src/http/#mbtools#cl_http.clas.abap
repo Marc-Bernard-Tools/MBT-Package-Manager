@@ -101,7 +101,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
 
     IF lv_user <> lv_default_user.
       TRY.
-          go_settings->set_value( iv_key = c_login-user
+          go_settings->set_value( iv_key   = c_login-user
                                   iv_value = lv_user ).
           go_settings->save( ).
         CATCH cx_root ##NO_HANDLER.

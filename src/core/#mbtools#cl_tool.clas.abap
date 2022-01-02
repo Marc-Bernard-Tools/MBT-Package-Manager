@@ -1377,9 +1377,9 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
         GET TIME STAMP FIELD lv_timestamp.
         IF iv_exists = abap_true.
           IF iv_update = abap_true.
-            lo_reg_entry->set_value( iv_key = c_reg-key_update_time
+            lo_reg_entry->set_value( iv_key   = c_reg-key_update_time
                                      iv_value = lv_timestamp ).
-            lo_reg_entry->set_value( iv_key = c_reg-key_update_user
+            lo_reg_entry->set_value( iv_key   = c_reg-key_update_user
                                      iv_value = sy-uname ).
           ENDIF.
         ELSE.

@@ -583,8 +583,8 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
           ri_html->add_a(
             iv_act = |{ /mbtools/if_actions=>tool_launch }?name={ io_tool->get_name( ) }|
             iv_txt = ri_html->icon(
-              iv_name  = 'rocket/black'
-              iv_hint  = 'Launch tool' ) ).
+              iv_name = 'rocket/black'
+              iv_hint = 'Launch tool' ) ).
         ENDIF.
 
         IF io_tool->is_bundle( ) = abap_false.
@@ -592,14 +592,14 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
             iv_act = |toggleDisplay('details-{ io_tool->get_name( ) }')|
             iv_typ = /mbtools/if_html=>c_action_type-onclick
             iv_txt = ri_html->icon(
-              iv_name  = 'info/black'
-              iv_hint  = 'View tool infos' ) ).
+              iv_name = 'info/black'
+              iv_hint = 'View tool infos' ) ).
 
           ri_html->add_a(
             iv_act = |{ /mbtools/if_actions=>tool_docs }?name={ io_tool->get_name( ) }|
             iv_txt = ri_html->icon(
-              iv_name  = 'question/black'
-              iv_hint  = 'Display tool documentation' ) ).
+              iv_name = 'question/black'
+              iv_hint = 'Display tool documentation' ) ).
         ENDIF.
 
       WHEN c_mode-admin.
@@ -609,26 +609,26 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
             ri_html->add_a(
               iv_act = |{ /mbtools/if_actions=>tool_activate }?name={ io_tool->get_name( ) }|
               iv_txt = ri_html->icon(
-                iv_name  = 'fire-alt/black'
-                iv_hint  = 'Activate tool' ) ).
+                iv_name = 'fire-alt/black'
+                iv_hint = 'Activate tool' ) ).
             ri_html->add_a(
               iv_act = |{ /mbtools/if_actions=>tool_uninstall }?name={ io_tool->get_name( ) }|
               iv_txt = ri_html->icon(
-                iv_name  = 'trash-alt/black'
-                iv_hint  = 'Uninstall tool' ) ).
+                iv_name = 'trash-alt/black'
+                iv_hint = 'Uninstall tool' ) ).
           ELSE.
             ri_html->add_a(
               iv_act = |{ /mbtools/if_actions=>tool_deactivate }?name={ io_tool->get_name( ) }|
               iv_txt = ri_html->icon(
-                iv_name  = 'snowflake/black'
-                iv_hint  = 'Deactivate tool' ) ).
+                iv_name = 'snowflake/black'
+                iv_hint = 'Deactivate tool' ) ).
           ENDIF.
 
           ri_html->add_a(
             iv_act = |{ /mbtools/if_actions=>tool_info }?name={ io_tool->get_name( ) }|
             iv_txt = ri_html->icon(
-              iv_name  = 'globe/black'
-              iv_hint  = 'Show more information about tool' ) ).
+              iv_name = 'globe/black'
+              iv_hint = 'Show more information about tool' ) ).
         ENDIF.
 
       WHEN c_mode-license.
@@ -662,15 +662,15 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
             iv_cmd_type = /mbtools/cl_html_form=>c_cmd_type-button
             iv_action   = /mbtools/if_actions=>license_add
             iv_label    = ri_html->icon(
-              iv_name  = 'save/black'
-              iv_hint  = 'Save and activate license key' ) ).
+              iv_name = 'save/black'
+              iv_hint = 'Save and activate license key' ) ).
 
           lo_form->command(
             iv_cmd_type = /mbtools/cl_html_form=>c_cmd_type-button
             iv_action   = /mbtools/if_actions=>license_remove
             iv_label    = ri_html->icon(
-              iv_name  = 'trash-alt/black'
-              iv_hint  = 'Deactivate and remove license key' ) ).
+              iv_name = 'trash-alt/black'
+              iv_hint = 'Deactivate and remove license key' ) ).
 
           ri_html->add( lo_form->render(
             iv_form_class = 'tool-license'
