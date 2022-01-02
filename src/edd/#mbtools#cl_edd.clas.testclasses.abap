@@ -25,14 +25,14 @@ CLASS ltcl_edd IMPLEMENTATION.
     " MBT Icon Browser
     /mbtools/cl_edd=>get_version(
       EXPORTING
-        iv_id             = '4413'
-        iv_license        = ''
+        iv_id            = '4413'
+        iv_license       = ''
       IMPORTING
-        ev_version        = lv_version
-        ev_description    = lv_description
-        ev_changelog_url  = lv_changelog_url
-        ev_changelog      = lv_changelog
-        ev_download_url   = lv_download_url ).
+        ev_version       = lv_version
+        ev_description   = lv_description
+        ev_changelog_url = lv_changelog_url
+        ev_changelog     = lv_changelog
+        ev_download_url  = lv_download_url ).
 
     lv_act = lv_version(2).
     cl_abap_unit_assert=>assert_equals(

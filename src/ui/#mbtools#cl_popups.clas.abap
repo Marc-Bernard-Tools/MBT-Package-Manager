@@ -13,19 +13,6 @@ CLASS /mbtools/cl_popups DEFINITION
   PUBLIC SECTION.
 
     INTERFACES /mbtools/if_popups.
-
-    ALIASES popup_search_help
-      FOR /mbtools/if_popups~popup_search_help.
-    ALIASES popup_to_confirm
-      FOR /mbtools/if_popups~popup_to_confirm.
-    ALIASES popup_to_inform
-      FOR /mbtools/if_popups~popup_to_inform.
-    ALIASES popup_to_select_from_list
-      FOR /mbtools/if_popups~popup_to_select_from_list.
-    ALIASES popup_to_select_transports
-      FOR /mbtools/if_popups~popup_to_select_transports.
-    ALIASES popup_transport_request
-      FOR /mbtools/if_popups~popup_transport_request.
   PROTECTED SECTION.
   PRIVATE SECTION.
 

@@ -4,11 +4,8 @@ CLASS ltcl_normalize_program_name DEFINITION FINAL FOR TESTING
   RISK LEVEL HARMLESS.
 
   PRIVATE SECTION.
-    DATA:
-      mo_chunk_lib TYPE REF TO /mbtools/cl_html_lib.
 
     METHODS:
-      setup,
       class FOR TESTING RAISING cx_static_check,
       program FOR TESTING RAISING cx_static_check.
 
@@ -18,17 +15,10 @@ CLASS /mbtools/cl_html_lib DEFINITION LOCAL FRIENDS ltcl_normalize_program_name.
 
 CLASS ltcl_normalize_program_name IMPLEMENTATION.
 
-  METHOD setup.
-
-    CREATE OBJECT mo_chunk_lib.
-
-  ENDMETHOD.
-
-
   METHOD class.
 
     cl_abap_unit_assert=>assert_equals(
-      act = mo_chunk_lib->normalize_program_name( '/MBTOOLS/CL_FRONTEND_SERVICES=CP' )
+      act = /mbtools/cl_html_lib=>normalize_program_name( '/MBTOOLS/CL_FRONTEND_SERVICES=CP' )
       exp = `/MBTOOLS/CL_FRONTEND_SERVICES` ).
 
   ENDMETHOD.
@@ -37,11 +27,11 @@ CLASS ltcl_normalize_program_name IMPLEMENTATION.
   METHOD program.
 
     cl_abap_unit_assert=>assert_equals(
-      act = mo_chunk_lib->normalize_program_name( 'ZABAPGIT_FULL' )
+      act = /mbtools/cl_html_lib=>normalize_program_name( 'ZABAPGIT_FULL' )
       exp = `ZABAPGIT_FULL` ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = mo_chunk_lib->normalize_program_name( 'ZSOME_PROG_ENDING_WITH_CP' )
+      act = /mbtools/cl_html_lib=>normalize_program_name( 'ZSOME_PROG_ENDING_WITH_CP' )
       exp = `ZSOME_PROG_ENDING_WITH_CP` ).
 
   ENDMETHOD.
