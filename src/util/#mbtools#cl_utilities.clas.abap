@@ -42,6 +42,8 @@ CLASS /mbtools/cl_utilities DEFINITION
         kernel_release   TYPE string VALUE 'KERNEL_RELEASE',
         kernel_patch     TYPE string VALUE 'KERNEL_PATCH',
         kernel_bits      TYPE string VALUE 'KERNEL_BITS',
+        codepage         TYPE string VALUE 'CODEPAGE',
+        endian           TYPE string VALUE 'ENDIAN',
         unicode          TYPE string VALUE 'UNICODE',
       END OF c_property.
     CONSTANTS c_unknown TYPE string VALUE 'UNKNOWN' ##NO_TEXT.
@@ -138,6 +140,11 @@ CLASS /mbtools/cl_utilities DEFINITION
         !iv_property    TYPE string
       RETURNING
         VALUE(rv_value) TYPE string.
+    CLASS-METHODS get_codepage
+      IMPORTING
+        !iv_property    TYPE string
+      RETURNING
+        VALUE(rv_value) TYPE string.
     CLASS-METHODS get_user_parameter
       IMPORTING
         !iv_parameter    TYPE clike
@@ -189,6 +196,33 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.                    "call_browser
+
+
+  METHOD get_codepage.
+
+    CASE iv_property.
+      WHEN c_property-codepage.
+        rv_value = cl_abap_codepage=>sap_codepage( '' ).
+      WHEN c_property-endian.
+        CASE cl_abap_char_utilities=>endian.
+          WHEN 'L'.
+            rv_value = 'LittleEndian'.
+          WHEN 'B'.
+            rv_value = 'BigEndian'.
+          WHEN OTHERS.
+            rv_value = c_unknown.
+        ENDCASE.
+      WHEN c_property-unicode.
+        IF cl_abap_char_utilities=>charsize = 1.
+          rv_value = 'No'.
+        ELSE.
+          rv_value = 'Yes'.
+        ENDIF.
+      WHEN OTHERS.
+        rv_value = c_unknown.
+    ENDCASE.
+
+  ENDMETHOD.
 
 
   METHOD get_database.
@@ -250,7 +284,11 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
 
     CASE iv_property.
       WHEN c_property-hana.
-        rv_value = get_hana_release( )-release.
+        IF sy-dbsys = 'HDB'.
+          rv_value = 'Yes'.
+        ELSE.
+          rv_value = 'No'.
+        ENDIF.
       WHEN c_property-hana_release.
         rv_value = get_hana_release( )-release DIV 100.
       WHEN c_property-hana_sp.
@@ -413,52 +451,36 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
     TRANSLATE lv_property TO UPPER CASE.
 
     ev_value = get_date_time( lv_property ).
-
     IF ev_value = c_unknown.
       ev_value = get_database( lv_property ).
     ENDIF.
-
     IF ev_value = c_unknown.
       ev_value = get_hana( lv_property ).
     ENDIF.
-
     IF ev_value = c_unknown.
       ev_value = get_spam( lv_property ).
     ENDIF.
-
     IF ev_value = c_unknown.
       ev_value = get_kernel( lv_property ).
     ENDIF.
-
-*          WHEN c_property-unicode.
-*            IF cl_abap_char_utilities=>charsize = 1.
-*              ev_value = 0.
-*            ELSE.
-*              ev_value = 1.
-*            ENDIF.
-
+    IF ev_value = c_unknown.
+      ev_value = get_codepage( lv_property ).
+    ENDIF.
     IF ev_value = c_unknown.
       ev_value = get_syst_field( lv_property ).
     ENDIF.
-
     IF ev_value = c_unknown.
       ev_value = get_swcomp_release( lv_property ).
     ENDIF.
-
     IF ev_value = c_unknown.
       ev_value = get_swcomp_support_package( lv_property ).
     ENDIF.
-
     IF ev_value = c_unknown.
       ev_value = get_profile_parameter( lv_property ).
     ENDIF.
 
     IF ev_value = c_unknown OR ev_value = c_not_authorized.
       ev_subrc = 4.
-    ENDIF.
-
-    IF sy-subrc <> 0.
-      ev_subrc = 2.
     ENDIF.
 
     IF ev_subrc = 0.
