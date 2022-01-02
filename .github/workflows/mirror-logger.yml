@@ -18,7 +18,6 @@ jobs:
       with:
         node-version: '14'
     - name: Mirror Repository
-      # might add "bash scripts/fixit.sh Mirror-LOGGER/src"
       run: |
         git clone "https://github.com/Marc-Bernard-Tools/Mirror-LOGGER.git"
         ls -l
