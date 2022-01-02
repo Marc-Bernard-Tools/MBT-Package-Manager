@@ -584,7 +584,7 @@
       "exclude": [],
       "ignoreTestClasses": true,
       "severity": "Warning",
-      "statements": 120
+      "statements": 80
     },
     "method_overwrites_builtin": {
       "exclude": [],
