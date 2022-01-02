@@ -13,9 +13,10 @@
     ],
     "files": "/src/**/*.*",
     "noIssues": [
-      "#mbtools#cl_ajson.*",
-      "#mbtools#cl_logger.*",
-      "#mbtools#cl_string_map.*"
+      "#mbtools#[cl|cx|if]_ajson.*",
+      "#mbtools#[cl|cx|if]_loggable.*",
+      "#mbtools#[cl|cx|if]_logger.*",
+      "#mbtools#[cl|cx|if]_string_map.*"
     ],
     "skipGeneratedFunctionGroups": true,
     "skipGeneratedGatewayClasses": true,
