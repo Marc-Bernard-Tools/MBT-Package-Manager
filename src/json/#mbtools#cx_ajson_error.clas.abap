@@ -52,8 +52,18 @@ CLASS /mbtools/cx_ajson_error DEFINITION
       !iv_location TYPE string OPTIONAL
       RAISING
       /mbtools/cx_ajson_error .
+    METHODS set_location
+      IMPORTING
+      iv_location TYPE string.
   PROTECTED SECTION.
   PRIVATE SECTION.
+    TYPES:
+      BEGIN OF ty_message_parts,
+      a1 LIKE a1,
+      a2 LIKE a1,
+      a3 LIKE a1,
+      a4 LIKE a1,
+      END OF ty_message_parts.
 ENDCLASS.
 
 
@@ -84,21 +94,15 @@ CLASS /mbtools/cx_ajson_error IMPLEMENTATION.
 
   METHOD raise.
 
-    DATA:
-      BEGIN OF ls_msg,
-      a1 LIKE a1,
-      a2 LIKE a1,
-      a3 LIKE a1,
-      a4 LIKE a1,
-      END OF ls_msg.
+    DATA ls_msg TYPE ty_message_parts.
+    DATA lv_tmp TYPE string.
 
     IF iv_location IS INITIAL.
-      ls_msg = iv_msg.
+      lv_tmp = iv_msg.
     ELSE.
-      DATA lv_tmp TYPE string.
       lv_tmp = iv_msg && | @{ iv_location }|.
-      ls_msg = lv_tmp.
     ENDIF.
+    ls_msg = lv_tmp.
 
     RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
       EXPORTING
@@ -111,4 +115,25 @@ CLASS /mbtools/cx_ajson_error IMPLEMENTATION.
       a4       = ls_msg-a4.
 
   ENDMETHOD.
+
+  METHOD set_location.
+
+    DATA ls_msg TYPE ty_message_parts.
+    DATA lv_tmp TYPE string.
+
+    IF iv_location IS INITIAL.
+      lv_tmp = message.
+    ELSE.
+      lv_tmp = message && | @{ iv_location }|.
+    ENDIF.
+    ls_msg = lv_tmp.
+
+    location = iv_location.
+    a1       = ls_msg-a1.
+    a2       = ls_msg-a2.
+    a3       = ls_msg-a3.
+    a4       = ls_msg-a4.
+
+  ENDMETHOD.
+
 ENDCLASS.
