@@ -672,7 +672,9 @@
       "severity": "Error"
     },
     "no_chained_assignment": {
-      "exclude": [],
+      "exclude": [
+        "#mbtools#.._logger.*",
+      ],
       "severity": "Error"
     },
     "no_public_attributes": {
