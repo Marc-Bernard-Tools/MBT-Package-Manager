@@ -12,9 +12,9 @@ CLASS /mbtools/cl_string_map DEFINITION
 
   PUBLIC SECTION.
 
-    CONSTANTS c_version TYPE string VALUE 'v1.0.3'.
-    CONSTANTS c_origin TYPE string VALUE 'https://github.com/sbcgua/abap-string-map'.
-    CONSTANTS c_license TYPE string VALUE 'MIT'.
+    CONSTANTS version TYPE string VALUE 'v1.0.3'.
+    CONSTANTS origin TYPE string VALUE 'https://github.com/sbcgua/abap-string-map'.
+    CONSTANTS license TYPE string VALUE 'MIT'.
 
     TYPES:
       BEGIN OF ty_entry,
@@ -22,11 +22,11 @@ CLASS /mbtools/cl_string_map DEFINITION
         v TYPE string,
       END OF ty_entry.
     TYPES:
-      ty_entries TYPE STANDARD TABLE OF ty_entry WITH KEY k.
+      tty_entries TYPE STANDARD TABLE OF ty_entry WITH KEY k.
     TYPES:
-      ty_entries_ts TYPE SORTED TABLE OF ty_entry WITH UNIQUE KEY k.
+      tts_entries TYPE SORTED TABLE OF ty_entry WITH UNIQUE KEY k.
 
-    DATA mt_entries TYPE ty_entries_ts READ-ONLY.
+    DATA mt_entries TYPE tts_entries READ-ONLY.
 
     CLASS-METHODS create
       IMPORTING
@@ -142,7 +142,7 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
 
       CASE lo_type->type_kind.
         WHEN cl_abap_typedescr=>typekind_struct1 OR cl_abap_typedescr=>typekind_struct2.
-          from_struc( iv_from ).
+          me->from_struc( iv_from ).
 
         WHEN cl_abap_typedescr=>typekind_oref.
 
@@ -153,16 +153,16 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
           ENDTRY.
 
           IF mt_entries IS INITIAL AND mv_case_insensitive = abap_false.
-            mt_entries = lo_from->mt_entries. " shortcut, maybe remove for safety
+            me->mt_entries = lo_from->mt_entries. " shortcut, maybe remove for safety
           ELSE.
-            from_map( lo_from ).
+            me->from_map( lo_from ).
           ENDIF.
 
         WHEN cl_abap_typedescr=>typekind_table.
-          from_entries( iv_from ).
+          me->from_entries( iv_from ).
 
         WHEN cl_abap_typedescr=>typekind_string OR cl_abap_typedescr=>typekind_char.
-          from_string( iv_from ).
+          me->from_string( iv_from ).
 
         WHEN OTHERS.
           lcx_error=>raise( |Incorrect input for string_map=>create, typekind { lo_type->type_kind }| ).

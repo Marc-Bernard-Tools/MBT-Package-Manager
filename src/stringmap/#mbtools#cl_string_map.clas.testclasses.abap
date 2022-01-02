@@ -118,11 +118,11 @@ CLASS ltcl_string_map IMPLEMENTATION.
 
   METHOD freeze.
 
-    DATA lt_entries TYPE /mbtools/cl_string_map=>ty_entries.
+    DATA lt_entries TYPE /mbtools/cl_string_map=>tty_entries.
     DATA ls_dummy TYPE syst.
     DATA lx_e TYPE REF TO cx_root.
     DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
-    FIELD-SYMBOLS <lv_entry> LIKE LINE OF lt_entries.
+    FIELD-SYMBOLS <l> LIKE LINE OF lt_entries.
 
     lo_cut = /mbtools/cl_string_map=>create( ).
 
@@ -172,8 +172,8 @@ CLASS ltcl_string_map IMPLEMENTATION.
 
     TRY.
 
-        APPEND INITIAL LINE TO lt_entries ASSIGNING <lv_entry>.
-        <lv_entry>-k = 'a'.
+        APPEND INITIAL LINE TO lt_entries ASSIGNING <l>.
+        <l>-k = 'a'.
         lo_cut->from_entries( lt_entries ).
         cl_abap_unit_assert=>fail( ).
       CATCH cx_root INTO lx_e.
