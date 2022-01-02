@@ -218,6 +218,7 @@ AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_title.
 
   p_title = /mbtools/cl_tool_manager=>f4(
     iv_pattern        = p_title
+    iv_get_passes     = abap_true
     iv_get_bundles    = abap_true
     iv_get_tools      = abap_true
     iv_get_extensions = abap_true

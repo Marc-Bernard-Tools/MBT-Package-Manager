@@ -260,7 +260,8 @@ INITIALIZATION.
 
   DATA lo_tool TYPE REF TO /mbtools/cl_tool.
 
-  " Register all installed bundles and tools
+  " Register all installed passes, bundles, and tools
+  /mbtools/cl_tool_manager=>action_passes( /mbtools/if_actions=>tool_register ).
   /mbtools/cl_tool_manager=>action_bundles( /mbtools/if_actions=>tool_register ).
   /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>tool_register ).
 

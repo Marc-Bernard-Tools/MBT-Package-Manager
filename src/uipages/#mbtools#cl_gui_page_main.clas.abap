@@ -323,10 +323,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
           iv_act = /mbtools/if_actions=>tools_check
         )->add(
           iv_txt = 'Update All Tools'
-          iv_act = /mbtools/if_actions=>tools_update
-        )->add(
-          iv_txt = 'Edit License Keys'
-          iv_act = /mbtools/if_actions=>go_license ).
+          iv_act = /mbtools/if_actions=>tools_update ).
 
         ro_menu->add(
           iv_txt = 'Tools'
@@ -335,6 +332,9 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
         lo_bar_menu->add(
           iv_txt = 'Exit Admin'
           iv_act = /mbtools/if_actions=>go_home
+        )->add(
+          iv_txt = 'License Keys'
+          iv_act = /mbtools/if_actions=>go_license
         )->add(
           iv_txt = 'Registry'
           iv_act = /mbtools/if_actions=>run_transaction && '?transaction=/MBTOOLS/REG' ).
@@ -465,6 +465,10 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
       rv_text = |<span class="has-mbt-red-color">expired</span>|.
       rv_text = |Your license key has { rv_text }. Please enter a valid key.|.
+
+    ELSEIF io_tool->is_pass( ) = abap_true.
+
+      rv_text = 'Enter the license key for your pass. It will be valid for all tools.'.
 
     ELSE.
 
@@ -737,6 +741,16 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
     ENDCASE.
     ri_html->add( '</div>' ).
 
+    IF mv_mode = c_mode-license.
+      ri_html->add( '<div class="bundles">' ).
+      ri_html->add( '<ul>' ).
+      ri_html->add( '<li>' ).
+      ri_html->add( render_tool( /mbtools/cl_access_pass=>c_tool-title ) ).
+      ri_html->add( '</li>' ).
+      ri_html->add( '</ul>' ).
+      ri_html->add( '</div>' ).
+    ENDIF.
+
     ri_html->add( '<div class="bundles">' ).
     ri_html->add( '<ul>' ).
 
@@ -764,7 +778,9 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
     lo_tool = /mbtools/cl_tool_manager=>factory( iv_title ).
 
     lv_class = 'tool-row'.
-    IF lo_tool->is_bundle( ) = abap_false AND lo_tool->is_active( ) = abap_false.
+    IF lo_tool->is_pass( ) = abap_false AND
+       lo_tool->is_bundle( ) = abap_false AND
+       lo_tool->is_active( ) = abap_false.
       lv_class = lv_class && | inactive|.
     ELSE.
       lv_class = lv_class && | active|.
@@ -804,6 +820,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
     IF lv_description IS NOT INITIAL.
       ri_html->add( |<br><span class="description">{ lv_description }</span>| ).
     ENDIF.
+
     IF lv_update IS NOT INITIAL.
       lv_class = 'update'.
       IF lv_update NS 'href'.
@@ -811,6 +828,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
       ENDIF.
       ri_html->add( |<br><br><span class="{ lv_class }">{ lv_update }</span>| ).
     ENDIF.
+
     ri_html->add( '</td>' ).
 
     ri_html->add( '<td class="tool-actions">' ).

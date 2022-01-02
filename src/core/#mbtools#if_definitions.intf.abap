@@ -22,9 +22,9 @@ INTERFACE /mbtools/if_definitions
   TYPES:
     ty_tadir_keys TYPE STANDARD TABLE OF ty_tadir_key WITH DEFAULT KEY.
   TYPES:
-     ty_pgmid TYPE ty_tadir_key-pgmid.
+    ty_pgmid TYPE ty_tadir_key-pgmid.
   TYPES:
-   ty_object TYPE ty_tadir_key-object.
+    ty_object TYPE ty_tadir_key-object.
   TYPES:
     ty_objects TYPE STANDARD TABLE OF ty_object WITH DEFAULT KEY.
   TYPES:
@@ -108,7 +108,7 @@ INTERFACE /mbtools/if_definitions
     END OF ty_license.
 
   CONSTANTS c_mbt TYPE string VALUE 'Marc Bernard Tools' ##NO_TEXT.
-  CONSTANTS c_namespace TYPE devclass VALUE '/MBTOOLS/' ##NO_TEXT.
+  CONSTANTS c_namespace TYPE namespace VALUE '/MBTOOLS/' ##NO_TEXT.
   CONSTANTS c_interface TYPE seoclsname VALUE '/MBTOOLS/IF_TOOL' ##NO_TEXT.
   CONSTANTS c_rfcdest TYPE rfcdest VALUE 'MBTOOLS' ##NO_TEXT.
   CONSTANTS c_github TYPE string VALUE 'github.com/Marc-Bernard-Tools' ##NO_TEXT.

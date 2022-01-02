@@ -1,10 +1,10 @@
-CLASS /mbtools/cl_bundle_prem_bw DEFINITION
+CLASS /mbtools/cl_bundle_basis_tools DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC.
 
 ************************************************************************
-* MBT BW Bundle
+* MBT Basis Bundle
 *
 * Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
 * SPDX-License-Identifier: GPL-3.0-or-later
@@ -16,21 +16,20 @@ CLASS /mbtools/cl_bundle_prem_bw DEFINITION
     CONSTANTS:
       BEGIN OF c_tool,
         version     TYPE string VALUE '1.0.0' ##NO_TEXT,
-        title       TYPE string VALUE 'BW Tools' ##NO_TEXT,
+        title       TYPE string VALUE 'Basis Tools' ##NO_TEXT,
         is_bundle   TYPE c VALUE abap_true,
-        bundle_id   TYPE i VALUE 2,
-        download_id TYPE i VALUE 5653,
-        description TYPE string VALUE
-        'World-class tools and enhancements for SAP BW and SAP BW/4HANA' ##NO_TEXT,
+        bundle_id   TYPE i VALUE 1,
+        download_id TYPE i VALUE 5651,
+        description TYPE string
+        VALUE 'Improved user experience and productivity with enhancements for SAP Basis' ##NO_TEXT,
       END OF c_tool.
-
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS /mbtools/cl_bundle_prem_bw IMPLEMENTATION.
+CLASS /mbtools/cl_bundle_basis_tools IMPLEMENTATION.
 
 
   METHOD /mbtools/if_tool~install.

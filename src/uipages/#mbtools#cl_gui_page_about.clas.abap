@@ -2,7 +2,7 @@ CLASS /mbtools/cl_gui_page_about DEFINITION
   PUBLIC
   INHERITING FROM /mbtools/cl_gui_component
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * Marc Bernard Tools - GUI Page About
@@ -12,29 +12,29 @@ CLASS /mbtools/cl_gui_page_about DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    INTERFACES /mbtools/if_gui_event_handler .
-    INTERFACES /mbtools/if_gui_renderable .
-    INTERFACES /mbtools/if_gui_hotkeys .
+    INTERFACES /mbtools/if_gui_event_handler.
+    INTERFACES /mbtools/if_gui_renderable.
+    INTERFACES /mbtools/if_gui_hotkeys.
 
     METHODS constructor
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     CLASS-METHODS create
       RETURNING
         VALUE(ri_page) TYPE REF TO /mbtools/if_gui_renderable
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
     CLASS-METHODS build_menu
       RETURNING
-        VALUE(ro_menu) TYPE REF TO /mbtools/cl_html_toolbar .
+        VALUE(ro_menu) TYPE REF TO /mbtools/cl_html_toolbar.
     METHODS render_about
       RETURNING
         VALUE(ri_html) TYPE REF TO /mbtools/if_html
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
 ENDCLASS.
 
 
@@ -151,7 +151,7 @@ CLASS /mbtools/cl_gui_page_about IMPLEMENTATION.
     ri_html->add( |<p>Version: { /mbtools/cl_tool_bc=>c_tool-version }</p>| ).
 
     lv_copy = 'Copyright &copy;'.
-    lv_copy = lv_copy && | 2020-{ sy-datum(4) } Marc Bernard Tools.|.
+    lv_copy = lv_copy && | { sy-datum(4) } Marc Bernard Tools|.
 
     ri_html->add( |<p>{ lv_copy }. All rights reserved.</p>| ).
 

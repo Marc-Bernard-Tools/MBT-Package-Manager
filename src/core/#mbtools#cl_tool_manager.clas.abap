@@ -32,6 +32,7 @@ CLASS /mbtools/cl_tool_manager DEFINITION
       IMPORTING
         VALUE(iv_pattern)        TYPE csequence OPTIONAL
         VALUE(iv_bundle_id)      TYPE i DEFAULT -1
+        VALUE(iv_get_passes)     TYPE abap_bool DEFAULT abap_false
         VALUE(iv_get_bundles)    TYPE abap_bool DEFAULT abap_false
         VALUE(iv_get_tools)      TYPE abap_bool DEFAULT abap_true
         VALUE(iv_get_extensions) TYPE abap_bool DEFAULT abap_false
@@ -42,6 +43,7 @@ CLASS /mbtools/cl_tool_manager DEFINITION
       IMPORTING
         VALUE(iv_pattern)        TYPE csequence OPTIONAL
         VALUE(iv_bundle_id)      TYPE i DEFAULT -1
+        VALUE(iv_get_passes)     TYPE abap_bool DEFAULT abap_false
         VALUE(iv_get_bundles)    TYPE abap_bool DEFAULT abap_false
         VALUE(iv_get_tools)      TYPE abap_bool DEFAULT abap_true
         VALUE(iv_get_extensions) TYPE abap_bool DEFAULT abap_false
@@ -52,6 +54,7 @@ CLASS /mbtools/cl_tool_manager DEFINITION
       IMPORTING
         VALUE(iv_pattern)        TYPE csequence OPTIONAL
         VALUE(iv_bundle_id)      TYPE i DEFAULT -1
+        VALUE(iv_get_passes)     TYPE abap_bool DEFAULT abap_false
         VALUE(iv_get_bundles)    TYPE abap_bool DEFAULT abap_false
         VALUE(iv_get_tools)      TYPE abap_bool DEFAULT abap_true
         VALUE(iv_get_extensions) TYPE abap_bool DEFAULT abap_false
@@ -64,6 +67,12 @@ CLASS /mbtools/cl_tool_manager DEFINITION
       RETURNING
         VALUE(rv_result) TYPE abap_bool.
     CLASS-METHODS action_bundles
+      IMPORTING
+        !iv_action       TYPE string
+        !iv_passes       TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool.
+    CLASS-METHODS action_passes
       IMPORTING
         !iv_action       TYPE string
       RETURNING
@@ -179,11 +188,20 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
       li_progress  TYPE REF TO /mbtools/if_progress,
       lv_result    TYPE abap_bool.
 
-    " Just bundles
-    lt_manifests = select(
-      iv_get_bundles = abap_true
-      iv_get_tools   = abap_false
-      iv_admin       = abap_true ).
+    " Passes or Bundles
+    IF iv_passes IS INITIAL.
+      lt_manifests = select(
+        iv_get_passes  = abap_false
+        iv_get_bundles = abap_true
+        iv_get_tools   = abap_false
+        iv_admin       = abap_true ).
+    ELSE.
+      lt_manifests = select(
+        iv_get_passes  = abap_true
+        iv_get_bundles = abap_false
+        iv_get_tools   = abap_false
+        iv_admin       = abap_true ).
+    ENDIF.
 
     rv_result = abap_true.
 
@@ -216,6 +234,15 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
     ENDLOOP.
 
     li_progress->hide( ).
+
+  ENDMETHOD.
+
+
+  METHOD action_passes.
+
+    action_bundles(
+      iv_action = iv_action
+      iv_passes = abap_true ).
 
   ENDMETHOD.
 
@@ -391,6 +418,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
     lt_tools = list(
       iv_pattern        = iv_pattern
       iv_bundle_id      = iv_bundle_id
+      iv_get_passes     = iv_get_passes
       iv_get_bundles    = iv_get_bundles
       iv_get_tools      = iv_get_tools
       iv_get_extensions = iv_get_extensions
@@ -529,6 +557,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
     lt_manifests = select(
       iv_pattern        = iv_pattern
       iv_bundle_id      = iv_bundle_id
+      iv_get_passes     = iv_get_passes
       iv_get_bundles    = iv_get_bundles
       iv_get_tools      = iv_get_tools
       iv_get_extensions = iv_get_extensions
@@ -579,8 +608,12 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      " Filter by bundle/tool/extension type
-      IF lo_tool->is_bundle( ) = abap_true.
+      " Filter by pass/bundle/tool/extension type
+      IF lo_tool->is_pass( ) = abap_true.
+        IF iv_get_passes = abap_false.
+          CONTINUE.
+        ENDIF.
+      ELSEIF lo_tool->is_bundle( ) = abap_true.
         IF iv_get_bundles = abap_false.
           CONTINUE.
         ENDIF.
