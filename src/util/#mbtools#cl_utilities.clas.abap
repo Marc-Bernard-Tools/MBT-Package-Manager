@@ -113,6 +113,31 @@ CLASS /mbtools/cl_utilities DEFINITION
         VALUE(iv_parameter) TYPE clike
       RETURNING
         VALUE(rv_result)    TYPE string.
+    CLASS-METHODS get_date_time
+      IMPORTING
+        !iv_property    TYPE string
+      RETURNING
+        VALUE(rv_value) TYPE string.
+    CLASS-METHODS get_database
+      IMPORTING
+        !iv_property    TYPE string
+      RETURNING
+        VALUE(rv_value) TYPE string.
+    CLASS-METHODS get_hana
+      IMPORTING
+        !iv_property    TYPE string
+      RETURNING
+        VALUE(rv_value) TYPE string.
+    CLASS-METHODS get_spam
+      IMPORTING
+        !iv_property    TYPE string
+      RETURNING
+        VALUE(rv_value) TYPE string.
+    CLASS-METHODS get_kernel
+      IMPORTING
+        !iv_property    TYPE string
+      RETURNING
+        VALUE(rv_value) TYPE string.
     CLASS-METHODS get_user_parameter
       IMPORTING
         !iv_parameter    TYPE clike
@@ -124,8 +149,8 @@ CLASS /mbtools/cl_utilities DEFINITION
         !iv_value     TYPE clike.
   PROTECTED SECTION.
   PRIVATE SECTION.
-    CONSTANTS c_original_name TYPE string VALUE 'ORIG:' ##NO_TEXT.
 
+    CONSTANTS c_original_name TYPE string VALUE 'ORIG:' ##NO_TEXT.
     CLASS-DATA:
       gt_cvers TYPE SORTED TABLE OF cvers WITH UNIQUE KEY component.
 
@@ -166,6 +191,52 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
   ENDMETHOD.                    "call_browser
 
 
+  METHOD get_database.
+
+    DATA lv_property TYPE string.
+
+    CASE iv_property.
+      WHEN c_property-database.
+        rv_value = get_db_release( )-srvrel.
+      WHEN c_property-database_release.
+        FIND FIRST OCCURRENCE OF REGEX '(\d+)\.\d+\.*' IN get_db_release( )-srvrel
+          SUBMATCHES rv_value ##SUBRC_OK.
+      WHEN c_property-database_patch.
+        FIND FIRST OCCURRENCE OF REGEX '\d+\.(\d+)\.*' IN get_db_release( )-srvrel
+          SUBMATCHES rv_value ##SUBRC_OK.
+      WHEN c_property-dbsl_release.
+        SPLIT get_db_release( )-dbsl_vers AT '.' INTO rv_value lv_property.
+      WHEN c_property-dbsl_patch.
+        SPLIT get_db_release( )-dbsl_vers AT '.' INTO lv_property rv_value.
+      WHEN OTHERS.
+        rv_value = c_unknown.
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD get_date_time.
+
+    CASE iv_property.
+      WHEN c_property-year.
+        rv_value = sy-datum+0(4).
+      WHEN c_property-month.
+        rv_value = sy-datum+4(2).
+      WHEN c_property-day.
+        rv_value = sy-datum+6(2).
+      WHEN c_property-hour.
+        rv_value = sy-uzeit+0(2).
+      WHEN c_property-minute.
+        rv_value = sy-uzeit+2(2).
+      WHEN c_property-second.
+        rv_value = sy-uzeit+4(2).
+      WHEN OTHERS.
+        rv_value = c_unknown.
+    ENDCASE.
+
+  ENDMETHOD.
+
+
   METHOD get_db_release.
 
     CALL FUNCTION 'DB_DBRELINFO'
@@ -173,6 +244,26 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
         dbinfo = rs_dbinfo.
 
   ENDMETHOD.                    "get_db_release
+
+
+  METHOD get_hana.
+
+    CASE iv_property.
+      WHEN c_property-hana.
+        rv_value = get_hana_release( )-release.
+      WHEN c_property-hana_release.
+        rv_value = get_hana_release( )-release DIV 100.
+      WHEN c_property-hana_sp.
+        rv_value = get_hana_release( )-release MOD 100.
+      WHEN c_property-hana_revision.
+        rv_value = get_hana_release( )-version.
+      WHEN c_property-hana_patch.
+        rv_value = get_hana_release( )-patch.
+      WHEN OTHERS.
+        rv_value = c_unknown.
+    ENDCASE.
+
+  ENDMETHOD.
 
 
   METHOD get_hana_release.
@@ -227,6 +318,24 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.                    "get_db_release
+
+
+  METHOD get_kernel.
+
+    CASE iv_property.
+      WHEN c_property-kernel.
+        rv_value = get_kernel_release( ).
+      WHEN c_property-kernel_release.
+        rv_value = get_kernel_release( )-release.
+      WHEN c_property-kernel_patch.
+        rv_value = get_kernel_release( )-patch.
+      WHEN c_property-kernel_bits.
+        rv_value = get_kernel_release( )-version.
+      WHEN OTHERS.
+        rv_value = c_unknown.
+    ENDCASE.
+
+  ENDMETHOD.
 
 
   METHOD get_kernel_release.
@@ -303,82 +412,50 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
     lv_property = iv_property.
     TRANSLATE lv_property TO UPPER CASE.
 
-    TRY.
-        CASE lv_property.
-          WHEN c_property-year.
-            ev_value = sy-datum+0(4).
-          WHEN c_property-month.
-            ev_value = sy-datum+4(2).
-          WHEN c_property-day.
-            ev_value = sy-datum+6(2).
-          WHEN c_property-hour.
-            ev_value = sy-uzeit+0(2).
-          WHEN c_property-minute.
-            ev_value = sy-uzeit+2(2).
-          WHEN c_property-second.
-            ev_value = sy-uzeit+4(2).
-          WHEN c_property-database.
-            ev_value = get_db_release( )-srvrel.
-          WHEN c_property-database_release.
-            FIND FIRST OCCURRENCE OF REGEX '(\d+)\.\d+\.*' IN get_db_release( )-srvrel
-              SUBMATCHES ev_value ##SUBRC_OK.
-          WHEN c_property-database_patch.
-            FIND FIRST OCCURRENCE OF REGEX '\d+\.(\d+)\.*' IN get_db_release( )-srvrel
-              SUBMATCHES ev_value ##SUBRC_OK.
-          WHEN c_property-dbsl_release.
-            SPLIT get_db_release( )-dbsl_vers AT '.' INTO ev_value lv_property.
-          WHEN c_property-dbsl_patch.
-            SPLIT get_db_release( )-dbsl_vers AT '.' INTO lv_property ev_value.
-          WHEN c_property-hana.
-            ev_value = get_hana_release( )-release.
-          WHEN c_property-hana_release.
-            ev_value = get_hana_release( )-release DIV 100.
-          WHEN c_property-hana_sp.
-            ev_value = get_hana_release( )-release MOD 100.
-          WHEN c_property-hana_revision.
-            ev_value = get_hana_release( )-version.
-          WHEN c_property-hana_patch.
-            ev_value = get_hana_release( )-patch.
-          WHEN c_property-spam_release.
-            ev_value = get_spam_release( )-release.
-          WHEN c_property-spam_version.
-            ev_value = get_spam_release( )-version.
-          WHEN c_property-kernel.
-            ev_value = get_kernel_release( ).
-          WHEN c_property-kernel_release.
-            ev_value = get_kernel_release( )-release.
-          WHEN c_property-kernel_patch.
-            ev_value = get_kernel_release( )-patch.
-          WHEN c_property-kernel_bits.
-            ev_value = get_kernel_release( )-version.
-          WHEN c_property-unicode.
-            IF cl_abap_char_utilities=>charsize = 1.
-              ev_value = 0.
-            ELSE.
-              ev_value = 1.
-            ENDIF.
-          WHEN OTHERS.
-            ev_value = get_syst_field( lv_property ).
+    ev_value = get_date_time( lv_property ).
 
-            IF ev_value = c_unknown.
-              ev_value = get_swcomp_release( lv_property ).
-            ENDIF.
+    IF ev_value = c_unknown.
+      ev_value = get_database( lv_property ).
+    ENDIF.
 
-            IF ev_value = c_unknown.
-              ev_value = get_swcomp_support_package( lv_property ).
-            ENDIF.
+    IF ev_value = c_unknown.
+      ev_value = get_hana( lv_property ).
+    ENDIF.
 
-            IF ev_value = c_unknown.
-              ev_value = get_profile_parameter( lv_property ).
-            ENDIF.
+    IF ev_value = c_unknown.
+      ev_value = get_spam( lv_property ).
+    ENDIF.
 
-            IF ev_value = c_unknown OR ev_value = c_not_authorized.
-              ev_subrc = 4.
-            ENDIF.
-        ENDCASE.
-      CATCH cx_root.
-        ev_subrc = 8.
-    ENDTRY.
+    IF ev_value = c_unknown.
+      ev_value = get_kernel( lv_property ).
+    ENDIF.
+
+*          WHEN c_property-unicode.
+*            IF cl_abap_char_utilities=>charsize = 1.
+*              ev_value = 0.
+*            ELSE.
+*              ev_value = 1.
+*            ENDIF.
+
+    IF ev_value = c_unknown.
+      ev_value = get_syst_field( lv_property ).
+    ENDIF.
+
+    IF ev_value = c_unknown.
+      ev_value = get_swcomp_release( lv_property ).
+    ENDIF.
+
+    IF ev_value = c_unknown.
+      ev_value = get_swcomp_support_package( lv_property ).
+    ENDIF.
+
+    IF ev_value = c_unknown.
+      ev_value = get_profile_parameter( lv_property ).
+    ENDIF.
+
+    IF ev_value = c_unknown OR ev_value = c_not_authorized.
+      ev_subrc = 4.
+    ENDIF.
 
     IF sy-subrc <> 0.
       ev_subrc = 2.
@@ -394,6 +471,20 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
           ev_subrc = 0.
       ENDTRY.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD get_spam.
+
+    CASE iv_property.
+      WHEN c_property-spam_release.
+        rv_value = get_spam_release( )-release.
+      WHEN c_property-spam_version.
+        rv_value = get_spam_release( )-version.
+      WHEN OTHERS.
+        rv_value = c_unknown.
+    ENDCASE.
 
   ENDMETHOD.
 
