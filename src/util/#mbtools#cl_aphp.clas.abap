@@ -48,6 +48,23 @@ CLASS /mbtools/cl_aphp DEFINITION
         !io_ajson TYPE REF TO /mbtools/cl_ajson
       RAISING
         /mbtools/cx_ajson_error ##NEEDED.
+    CLASS-METHODS unserialize_int
+      IMPORTING
+        !iv_type  TYPE c
+        !iv_path  TYPE string
+        !iv_val   TYPE string
+        !io_ajson TYPE REF TO /mbtools/cl_ajson
+      RAISING
+        /mbtools/cx_ajson_error.
+    CLASS-METHODS unserialize_string
+      IMPORTING
+        !iv_type  TYPE c
+        !iv_path  TYPE string
+        !iv_key   TYPE string
+        !iv_val   TYPE string
+        !io_ajson TYPE REF TO /mbtools/cl_ajson
+      RAISING
+        /mbtools/cx_ajson_error.
     CLASS-METHODS strip
       IMPORTING
         !iv_val       TYPE string
@@ -245,35 +262,13 @@ CLASS /mbtools/cl_aphp IMPLEMENTATION.
 
   METHOD unserialize_array.
 
-    TYPES:
-      BEGIN OF ty_array_string,
-        key TYPE string,
-        val TYPE string,
-      END OF ty_array_string,
-      BEGIN OF ty_array_int,
-        key TYPE string,
-        val TYPE i,
-      END OF ty_array_int,
-      BEGIN OF ty_array_float,
-        key TYPE string,
-        val TYPE f,
-      END OF ty_array_float,
-      BEGIN OF ty_array_bool,
-        key TYPE string,
-        val TYPE abap_bool,
-      END OF ty_array_bool.
-
     DATA:
-      lv_data         TYPE string,
-      lv_key_type     TYPE c,
-      lv_val_type     TYPE c,
-      lv_len          TYPE i,
-      lv_key          TYPE string,
-      lv_val          TYPE string,
-      ls_array_string TYPE ty_array_string,
-      ls_array_int    TYPE ty_array_int,
-      ls_array_float  TYPE ty_array_float,
-      ls_array_bool   TYPE ty_array_bool.
+      lv_data     TYPE string,
+      lv_key_type TYPE c LENGTH 1,
+      lv_val_type TYPE c LENGTH 1,
+      lv_len      TYPE i,
+      lv_key      TYPE string,
+      lv_val      TYPE string.
 
     " a:<len>:{<key>;<value>;...}
     SPLIT iv_data AT ':' INTO lv_key lv_data.
@@ -311,62 +306,49 @@ CLASS /mbtools/cl_aphp IMPLEMENTATION.
 
       CASE lv_key_type.
         WHEN 'i'. "integer
-          CASE lv_val_type.
-            WHEN 's'. "string
-              io_ajson->push( iv_path = iv_path
-                              iv_val  = get_string( lv_val ) ).
-            WHEN 'i'. "integer
-              io_ajson->push( iv_path = iv_path
-                              iv_val  = get_integer( lv_val ) ).
-            WHEN 'd'. "float
-              io_ajson->push( iv_path = iv_path
-                              iv_val  = get_float( lv_val ) ).
-            WHEN 'b'. "boolean
-              io_ajson->push( iv_path = iv_path
-                              iv_val  = get_boolean( lv_val ) ).
-            WHEN 'a'. "array
-              unserialize_array( iv_path  = iv_path && '/a'
-                                 iv_data  = lv_val
-                                 io_ajson = io_ajson ).
-            WHEN OTHERS.
-              /mbtools/cx_ajson_error=>raise( |Not implemented type "{ lv_val_type }"| ).
-          ENDCASE.
+          unserialize_int(
+            iv_type  = lv_val_type
+            iv_path  = iv_path
+            iv_val   = lv_val
+            io_ajson = io_ajson ).
         WHEN 's'. "string
-          CASE lv_val_type.
-            WHEN 's'. "string
-              ls_array_string-key = get_string( lv_key ).
-              ls_array_string-val = get_string( lv_val ).
-              io_ajson->push( iv_path = iv_path
-                              iv_val  = ls_array_string ).
-            WHEN 'i'. "integer
-              ls_array_int-key = get_string( lv_key ).
-              ls_array_int-val = get_integer( lv_val ).
-              io_ajson->push( iv_path = iv_path
-                              iv_val  = ls_array_int ).
-            WHEN 'd'. "float
-              ls_array_float-key = get_string( lv_key ).
-              ls_array_float-val = get_float( lv_val ).
-              io_ajson->push( iv_path = iv_path
-                              iv_val  = ls_array_float ).
-            WHEN 'b'. "boolean
-              ls_array_bool-key = get_string( lv_key ).
-              ls_array_bool-val = get_boolean( lv_val ).
-              io_ajson->push( iv_path = iv_path
-                              iv_val  = ls_array_bool ).
-            WHEN 'a'. "array
-              unserialize_array( iv_path  = iv_path && '/a'
-                                 iv_data  = lv_val
-                                 io_ajson = io_ajson ).
-            WHEN OTHERS.
-              /mbtools/cx_ajson_error=>raise( |Not implemented type "{ lv_val_type }"| ).
-          ENDCASE.
+          unserialize_string(
+            iv_type  = lv_val_type
+            iv_path  = iv_path
+            iv_key   = lv_key
+            iv_val   = lv_val
+            io_ajson = io_ajson ).
         WHEN OTHERS.
           /mbtools/cx_ajson_error=>raise( |Data error type "a"; expected "i" or "s"| ).
       ENDCASE.
-
-      CLEAR: ls_array_string, ls_array_int, ls_array_float, ls_array_bool.
     ENDDO.
 
+
+  ENDMETHOD.
+
+
+  METHOD unserialize_int.
+
+    CASE iv_type.
+      WHEN 's'. "string
+        io_ajson->push( iv_path = iv_path
+                        iv_val  = get_string( iv_val ) ).
+      WHEN 'i'. "integer
+        io_ajson->push( iv_path = iv_path
+                        iv_val  = get_integer( iv_val ) ).
+      WHEN 'd'. "float
+        io_ajson->push( iv_path = iv_path
+                        iv_val  = get_float( iv_val ) ).
+      WHEN 'b'. "boolean
+        io_ajson->push( iv_path = iv_path
+                        iv_val  = get_boolean( iv_val ) ).
+      WHEN 'a'. "array
+        unserialize_array( iv_path  = iv_path && '/a'
+                           iv_data  = iv_val
+                           io_ajson = io_ajson ).
+      WHEN OTHERS.
+        /mbtools/cx_ajson_error=>raise( |Not implemented type "{ iv_type }"| ).
+    ENDCASE.
 
   ENDMETHOD.
 
@@ -384,6 +366,64 @@ CLASS /mbtools/cl_aphp IMPLEMENTATION.
 
     " R:...
     /mbtools/cx_ajson_error=>raise( |Not implemented type "R"| ) ##TODO.
+
+  ENDMETHOD.
+
+
+  METHOD unserialize_string.
+
+    TYPES:
+      BEGIN OF ty_array_string,
+        key TYPE string,
+        val TYPE string,
+      END OF ty_array_string,
+      BEGIN OF ty_array_int,
+        key TYPE string,
+        val TYPE i,
+      END OF ty_array_int,
+      BEGIN OF ty_array_float,
+        key TYPE string,
+        val TYPE f,
+      END OF ty_array_float,
+      BEGIN OF ty_array_bool,
+        key TYPE string,
+        val TYPE abap_bool,
+      END OF ty_array_bool.
+
+    DATA:
+      ls_array_string TYPE ty_array_string,
+      ls_array_int    TYPE ty_array_int,
+      ls_array_float  TYPE ty_array_float,
+      ls_array_bool   TYPE ty_array_bool.
+
+    CASE iv_type.
+      WHEN 's'. "string
+        ls_array_string-key = get_string( iv_key ).
+        ls_array_string-val = get_string( iv_val ).
+        io_ajson->push( iv_path = iv_path
+                        iv_val  = ls_array_string ).
+      WHEN 'i'. "integer
+        ls_array_int-key = get_string( iv_key ).
+        ls_array_int-val = get_integer( iv_val ).
+        io_ajson->push( iv_path = iv_path
+                        iv_val  = ls_array_int ).
+      WHEN 'd'. "float
+        ls_array_float-key = get_string( iv_key ).
+        ls_array_float-val = get_float( iv_val ).
+        io_ajson->push( iv_path = iv_path
+                        iv_val  = ls_array_float ).
+      WHEN 'b'. "boolean
+        ls_array_bool-key = get_string( iv_key ).
+        ls_array_bool-val = get_boolean( iv_val ).
+        io_ajson->push( iv_path = iv_path
+                        iv_val  = ls_array_bool ).
+      WHEN 'a'. "array
+        unserialize_array( iv_path  = iv_path && '/a'
+                           iv_data  = iv_val
+                           io_ajson = io_ajson ).
+      WHEN OTHERS.
+        /mbtools/cx_ajson_error=>raise( |Not implemented type "{ iv_type }"| ).
+    ENDCASE.
 
   ENDMETHOD.
 ENDCLASS.
