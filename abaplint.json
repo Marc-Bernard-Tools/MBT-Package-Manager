@@ -665,7 +665,10 @@
       "severity": "Error"
     },
     "no_aliases": {
-      "exclude": [],
+      "exclude": [
+        "#mbtools#.._ajson.*",
+        "#mbtools#cl_gui_asset_manager.*"
+      ],
       "severity": "Error"
     },
     "no_chained_assignment": {
