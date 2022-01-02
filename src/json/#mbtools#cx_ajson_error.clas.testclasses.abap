@@ -8,6 +8,7 @@ CLASS ltcl_error DEFINITION
 
     METHODS raise FOR TESTING.
     METHODS raise_w_location FOR TESTING.
+    METHODS set_location FOR TESTING.
 
 ENDCLASS.
 
@@ -44,6 +45,45 @@ CLASS ltcl_error IMPLEMENTATION.
       CATCH /mbtools/cx_ajson_error INTO lx.
         cl_abap_unit_assert=>assert_equals(
           exp = 'a @b'
+          act = lx->get_text( ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD set_location.
+
+    DATA lx TYPE REF TO /mbtools/cx_ajson_error.
+
+    TRY.
+        /mbtools/cx_ajson_error=>raise( iv_msg = 'a'
+                                        iv_location = 'b' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+          exp = lx->location
+          act = 'b' ).
+        lx->set_location( 'c' ).
+        cl_abap_unit_assert=>assert_equals(
+          exp = lx->location
+          act = 'c' ).
+        cl_abap_unit_assert=>assert_equals(
+          exp = 'a @c'
+          act = lx->get_text( ) ).
+    ENDTRY.
+
+    TRY.
+        /mbtools/cx_ajson_error=>raise( iv_msg = 'a' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+          exp = lx->location
+          act = '' ).
+        lx->set_location( 'c' ).
+        cl_abap_unit_assert=>assert_equals(
+          exp = lx->location
+          act = 'c' ).
+        cl_abap_unit_assert=>assert_equals(
+          exp = 'a @c'
           act = lx->get_text( ) ).
     ENDTRY.
 

@@ -17,6 +17,7 @@ CLASS /mbtools/cl_ajson_utilities DEFINITION
         !iv_json_b TYPE string OPTIONAL
         !io_json_a TYPE REF TO /mbtools/if_ajson OPTIONAL
         !io_json_b TYPE REF TO /mbtools/if_ajson OPTIONAL
+        !iv_keep_empty_arrays TYPE abap_bool DEFAULT abap_false
       EXPORTING
         !eo_insert TYPE REF TO /mbtools/if_ajson
         !eo_delete TYPE REF TO /mbtools/if_ajson
@@ -54,6 +55,7 @@ CLASS /mbtools/cl_ajson_utilities DEFINITION
     METHODS delete_empty_nodes
       IMPORTING
         !io_json TYPE REF TO /mbtools/if_ajson
+        !iv_keep_empty_arrays TYPE abap_bool
       RAISING
         /mbtools/cx_ajson_error .
 ENDCLASS.
@@ -66,16 +68,22 @@ CLASS /mbtools/cl_ajson_utilities IMPLEMENTATION.
   METHOD delete_empty_nodes.
 
     DATA ls_json_tree LIKE LINE OF io_json->mt_json_tree.
-    DATA lv_subrc TYPE sy-subrc.
+    DATA lv_done TYPE abap_bool.
 
     DO.
-      LOOP AT io_json->mt_json_tree INTO ls_json_tree
-        WHERE type = 'array' AND children = 0.
+      lv_done = abap_true.
 
-        io_json->delete( ls_json_tree-path && ls_json_tree-name ).
+      IF iv_keep_empty_arrays = abap_false.
+        LOOP AT io_json->mt_json_tree INTO ls_json_tree
+          WHERE type = 'array' AND children = 0.
 
-      ENDLOOP.
-      lv_subrc = sy-subrc.
+          io_json->delete( ls_json_tree-path && ls_json_tree-name ).
+
+        ENDLOOP.
+        IF sy-subrc = 0.
+          lv_done = abap_false.
+        ENDIF.
+      ENDIF.
 
       LOOP AT io_json->mt_json_tree INTO ls_json_tree
         WHERE type = 'object' AND children = 0.
@@ -83,7 +91,11 @@ CLASS /mbtools/cl_ajson_utilities IMPLEMENTATION.
         io_json->delete( ls_json_tree-path && ls_json_tree-name ).
 
       ENDLOOP.
-      IF lv_subrc = 4 AND sy-subrc = 4.
+      IF sy-subrc = 0.
+        lv_done = abap_false.
+      ENDIF.
+
+      IF lv_done = abap_true.
         EXIT. " nothing else to delete
       ENDIF.
     ENDDO.
@@ -110,7 +122,7 @@ CLASS /mbtools/cl_ajson_utilities IMPLEMENTATION.
 
     IF iv_json_b IS SUPPLIED.
       mo_json_b = /mbtools/cl_ajson=>parse( iv_json_b ).
-    ELSEIF io_json_a IS BOUND.
+    ELSEIF io_json_b IS BOUND.
       mo_json_b = io_json_b.
     ELSE.
       /mbtools/cx_ajson_error=>raise( 'Supply either JSON string or instance' ).
@@ -127,9 +139,15 @@ CLASS /mbtools/cl_ajson_utilities IMPLEMENTATION.
     eo_delete ?= mo_delete.
     eo_change ?= mo_change.
 
-    delete_empty_nodes( eo_insert ).
-    delete_empty_nodes( eo_delete ).
-    delete_empty_nodes( eo_change ).
+    delete_empty_nodes(
+      io_json              = eo_insert
+      iv_keep_empty_arrays = iv_keep_empty_arrays ).
+    delete_empty_nodes(
+      io_json              = eo_delete
+      iv_keep_empty_arrays = iv_keep_empty_arrays ).
+    delete_empty_nodes(
+      io_json              = eo_change
+      iv_keep_empty_arrays = iv_keep_empty_arrays ).
 
   ENDMETHOD.
 
