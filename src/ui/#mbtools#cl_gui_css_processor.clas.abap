@@ -105,7 +105,7 @@ CLASS /mbtools/cl_gui_css_processor IMPLEMENTATION.
     " 1. Determine all variables and their values. Later definitions overwrite previous ones.
     LOOP AT mt_files ASSIGNING <lv_url>.
       lv_content = mi_asset_manager->get_text_asset(
-        iv_url = <lv_url>
+        iv_url            = <lv_url>
         iv_assert_subtype = 'css' ).
 
       lt_css_vars_in_file = get_css_vars_in_string( lv_content ).
@@ -136,7 +136,7 @@ CLASS /mbtools/cl_gui_css_processor IMPLEMENTATION.
     ENDLOOP.
 
     rv_result = concat_lines_of( table = lt_contents
-                                 sep = cl_abap_char_utilities=>newline ).
+                                 sep   = cl_abap_char_utilities=>newline ).
   ENDMETHOD.
 
 

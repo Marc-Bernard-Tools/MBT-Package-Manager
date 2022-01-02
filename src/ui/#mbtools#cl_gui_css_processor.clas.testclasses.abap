@@ -27,8 +27,8 @@ CLASS ltcl_test_base IMPLEMENTATION.
 
   METHOD add_file.
     mo_asset_manager->register_asset(
-      iv_url = iv_url
-      iv_type = 'text/css'
+      iv_url    = iv_url
+      iv_type   = 'text/css'
       iv_inline = iv_content ).
   ENDMETHOD.
 ENDCLASS.
@@ -49,7 +49,7 @@ ENDCLASS.
 
 CLASS ltcl_single_file IMPLEMENTATION.
   METHOD test_file_exists.
-    add_file( iv_url = 'does/exist.css'
+    add_file( iv_url     = 'does/exist.css'
               iv_content = |body \{\}\n| ).
     mo_cut->add_file( 'does/exist.css' ).
     TRY.
@@ -87,7 +87,7 @@ CLASS ltcl_single_file IMPLEMENTATION.
       `  background: #000000;\n` &&
       `  color: #ffffff;\n` &&
       `}\n`.
-    add_file( iv_url = 'novars.css'
+    add_file( iv_url     = 'novars.css'
               iv_content = lv_content ).
 
     mo_cut->add_file( 'novars.css' ).
@@ -142,7 +142,7 @@ CLASS ltcl_single_file IMPLEMENTATION.
       `  background: var(--my-bg-color);\n` &&
       `  color: #ffffff;\n` &&
       `}\n`.
-    add_file( iv_url = 'complex.css'
+    add_file( iv_url     = 'complex.css'
               iv_content = lv_content ).
 
     lv_expected =
@@ -177,7 +177,7 @@ CLASS ltcl_single_file IMPLEMENTATION.
       `body {\n` &&
       `  width: var(--var1);\n` &&
       `}\n`.
-    add_file( iv_url = 'overwrite.css'
+    add_file( iv_url     = 'overwrite.css'
               iv_content = lv_content ).
 
     lv_expected =
@@ -222,7 +222,7 @@ CLASS ltcl_multiple_files IMPLEMENTATION.
       `  width: var(--var1);\n` &&
       `}\n`.
     REPLACE ALL OCCURRENCES OF '\n' IN lv_file1 WITH cl_abap_char_utilities=>newline.
-    add_file( iv_url = 'file1.css'
+    add_file( iv_url     = 'file1.css'
               iv_content = lv_file1 ).
     mo_cut->add_file( 'file1.css' ).
 
@@ -231,7 +231,7 @@ CLASS ltcl_multiple_files IMPLEMENTATION.
       `  --var3: 19;\n` &&
       `}\n`.
     REPLACE ALL OCCURRENCES OF '\n' IN lv_file2 WITH cl_abap_char_utilities=>newline.
-    add_file( iv_url = 'file2.css'
+    add_file( iv_url     = 'file2.css'
               iv_content = lv_file2 ).
     mo_cut->add_file( 'file2.css' ).
 

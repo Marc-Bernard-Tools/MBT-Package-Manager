@@ -22,9 +22,9 @@ CLASS ltcl_gui_asset_manager IMPLEMENTATION.
     CREATE OBJECT lo_assetman.
 
     lo_assetman->register_asset(
-      iv_url       = 'css/common.css'
-      iv_type      = 'text/css'
-      iv_inline    = 'ABC' ).
+      iv_url    = 'css/common.css'
+      iv_type   = 'text/css'
+      iv_inline = 'ABC' ).
 
     ls_asset = lo_assetman->/mbtools/if_gui_asset_manager~get_asset( 'css/common.css' ).
 
@@ -44,9 +44,9 @@ CLASS ltcl_gui_asset_manager IMPLEMENTATION.
     CREATE OBJECT lo_assetman.
 
     lo_assetman->register_asset(
-      iv_url       = 'css/common.css'
-      iv_type      = 'text/css'
-      iv_inline    = 'ABC' ).
+      iv_url    = 'css/common.css'
+      iv_type   = 'text/css'
+      iv_inline = 'ABC' ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_assetman->/mbtools/if_gui_asset_manager~get_text_asset( 'css/common.css' )
@@ -54,13 +54,13 @@ CLASS ltcl_gui_asset_manager IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_assetman->/mbtools/if_gui_asset_manager~get_text_asset(
-        iv_url = 'css/common.css'
+        iv_url            = 'css/common.css'
         iv_assert_subtype = 'css' )
       exp = 'ABC' ).
 
     TRY.
         lo_assetman->/mbtools/if_gui_asset_manager~get_text_asset(
-          iv_url = 'css/common.css'
+          iv_url            = 'css/common.css'
           iv_assert_subtype = 'xyz' ).
         cl_abap_unit_assert=>fail( ).
       CATCH /mbtools/cx_exception.
@@ -68,9 +68,9 @@ CLASS ltcl_gui_asset_manager IMPLEMENTATION.
     ENDTRY.
 
     lo_assetman->register_asset(
-      iv_url       = 'css/common.xyz'
-      iv_type      = 'nottext/bin'
-      iv_inline    = 'XYZ' ).
+      iv_url    = 'css/common.xyz'
+      iv_type   = 'nottext/bin'
+      iv_inline = 'XYZ' ).
 
     TRY.
         lo_assetman->/mbtools/if_gui_asset_manager~get_text_asset( 'css/common.xyz' ).

@@ -69,9 +69,9 @@ CLASS /mbtools/cl_gui_html_processor IMPLEMENTATION.
 
     patch_html(
       EXPORTING
-        iv_html = iv_html
+        iv_html     = iv_html
       IMPORTING
-        ev_html = rv_html
+        ev_html     = rv_html
         et_css_urls = lt_css_urls ).
 
     IF lines( lt_css_urls ) > 0.
@@ -102,13 +102,13 @@ CLASS /mbtools/cl_gui_html_processor IMPLEMENTATION.
 
   METHOD find_head_offset.
 
-    rv_head_end = find( val = iv_html
+    rv_head_end = find( val   = iv_html
                         regex = |{ cl_abap_char_utilities=>newline }?\\s*</head>|
-                        case = abap_false ).
+                        case  = abap_false ).
     IF rv_head_end <= 0.
-      rv_head_end = find( val = iv_html
+      rv_head_end = find( val   = iv_html
                           regex = |</head>|
-                          case = abap_false ).
+                          case  = abap_false ).
       IF rv_head_end <= 0.
         /mbtools/cx_exception=>raise( 'HTML preprocessor: </head> not found' ).
       ENDIF.

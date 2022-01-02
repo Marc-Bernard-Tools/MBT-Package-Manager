@@ -353,7 +353,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
       iv_license = iv_license ).
 
     lv_data = _get_data(
-      iv_path   = lv_endpoint
+      iv_path  = lv_endpoint
       iv_check = '"new_version"' ).
 
     lo_json = _get_json( lv_data ).
@@ -414,7 +414,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
       it_products = ct_products ).
 
     lv_data = _get_data(
-      iv_path   = lv_endpoint
+      iv_path  = lv_endpoint
       iv_check = '"new_version"' ).
 
     lo_json_all = _get_json( lv_data ).
