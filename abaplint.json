@@ -890,7 +890,9 @@
       "severity": "Error"
     },
     "unnecessary_chaining": {
-      "exclude": [],
+      "exclude": [
+        ".*"
+      ],
       "severity": "Error"
     },
     "unreachable_code": {
