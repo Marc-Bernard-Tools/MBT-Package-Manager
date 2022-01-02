@@ -208,6 +208,7 @@ CLASS /mbtools/cl_registry_ui IMPLEMENTATION.
         titlebar              = 'Confirm deletion'(009)
         text_question         = 'Are you sure you want to delete the selected entry?'(010)
         display_cancel_button = abap_false
+        default_button        = '2'
       IMPORTING
         answer                = lv_rc
       EXCEPTIONS
