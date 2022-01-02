@@ -240,7 +240,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
 
   METHOD action_passes.
 
-    action_bundles(
+    rv_result = action_bundles(
       iv_action = iv_action
       iv_passes = abap_true ).
 
