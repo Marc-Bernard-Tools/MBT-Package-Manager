@@ -393,8 +393,8 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
     LOG-POINT ID /mbtools/bc SUBKEY /mbtools/cl_tool_bc=>c_tool-title FIELDS sy-datum sy-uzeit sy-uname.
 
     gi_log = /mbtools/cl_logger_factory=>create_log(
-               iv_object    = '/MBTOOLS/'
-               iv_subobject = 'LOG' ).
+               object    = '/MBTOOLS/'
+               subobject = 'LOG' ).
 
     TRY.
         " Initialize tool instances
