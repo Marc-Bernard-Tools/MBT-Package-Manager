@@ -39,9 +39,7 @@
       "severity": "Error"
     },
     "align_parameters": {
-      "exclude": [
-        ".*"
-      ],
+      "exclude": [],
       "severity": "Error"
     },
     "allowed_object_naming": {
