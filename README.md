@@ -1,5 +1,5 @@
-![abap package version](https://img.shields.io/endpoint?url=https://shield.abap.space/version-shield-json/github/Marc-Bernard-Tools/Marc-Bernard-Tools-Versions/.apack-manifest.xml/dependencies/github.com/Marc-Bernard-Tools/MBT-Base&label=version&color=darkgray)
-![abaplint](https://github.com/sbcgua/ajson/workflows/abaplint/badge.svg)
+![abap package version](https://img.shields.io/endpoint?url=https://shield.abap.space/version-shield-json/github/Marc-Bernard-Tools/Marc-Bernard-Tools-Versions/.apack-manifest.xml/dependencies/github.com/Marc-Bernard-Tools/MBT-Base&label=version&color=blue)
+![abaplint](https://github.com/Marc-Bernard-Tools/MBT-Base/workflows/abaplint/badge.svg)
 
 [![license](https://img.shields.io/github/license/Marc-Bernard-Tools/MBT-Base?color=green)](LICENSE)
 [![REUSE Status](https://api.reuse.software/badge/github.com/Marc-Bernard-Tools/MBT-Base)](https://api.reuse.software/info/github.com/Marc-Bernard-Tools/MBT-Base)
