@@ -218,7 +218,8 @@
         "#mbtools#if_gui.*"
       ],
       "severity": "Error",
-      "skip": []
+      "skip": [],
+      "skipSharedMemory": true
     },
     "cyclomatic_complexity": {
       "exclude": [],
@@ -289,6 +290,7 @@
       "select": true,
       "severity": "Error",
       "try": true,
+      "when": true,
       "while": true
     },
     "exit_or_check": {
@@ -647,6 +649,7 @@
         "#mbtools#cl_registry_ui.clas.abap",
         "#mbtools#cl_tree_level.clas.abap"
       ],
+      "ignoreTestClasses": false,
       "severity": "Error"
     },
     "no_yoda_conditions": {
@@ -709,6 +712,10 @@
       "withHeaderLine": true
     },
     "omit_parameter_name": {
+      "exclude": [],
+      "severity": "Error"
+    },
+    "omit_preceding_zeros": {
       "exclude": [],
       "severity": "Error"
     },
