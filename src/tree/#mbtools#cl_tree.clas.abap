@@ -432,7 +432,8 @@ CLASS /mbtools/cl_tree IMPLEMENTATION.
         CHECK sy-subrc = 0.
 
       WHEN OTHERS.
-
+        " Not implemented yet
+        RETURN.
     ENDCASE.
 
   ENDMETHOD.

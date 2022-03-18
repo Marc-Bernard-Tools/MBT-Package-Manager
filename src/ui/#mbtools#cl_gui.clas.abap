@@ -409,6 +409,7 @@ CLASS /mbtools/cl_gui IMPLEMENTATION.
             back( abap_true ).
           WHEN c_event_state-no_more_act.
             " Do nothing, handling completed
+            RETURN.
           WHEN OTHERS.
             /mbtools/cx_exception=>raise( |Unknown action: { iv_action }| ).
         ENDCASE.

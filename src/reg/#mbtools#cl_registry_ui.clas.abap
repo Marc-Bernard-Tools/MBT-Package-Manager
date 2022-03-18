@@ -148,7 +148,7 @@ CLASS /mbtools/cl_registry_ui IMPLEMENTATION.
     DATA:
       lv_new_key  TYPE string,
       lv_node_key TYPE lvc_nkey,
-      lv_rc       TYPE char1,
+      lv_rc       TYPE c LENGTH 1,
       lx_exc      TYPE REF TO /mbtools/cx_exception,
       lr_parent   TYPE REF TO /mbtools/cl_registry,
       lv_msg      TYPE string.
@@ -193,7 +193,7 @@ CLASS /mbtools/cl_registry_ui IMPLEMENTATION.
     DATA:
       lr_reg_entry TYPE REF TO /mbtools/cl_registry,
       lv_node_key  TYPE lvc_nkey,
-      lv_rc        TYPE char1,
+      lv_rc        TYPE c LENGTH 1,
       lx_exc       TYPE REF TO /mbtools/cx_exception,
       lv_msg       TYPE string.
 
@@ -380,7 +380,7 @@ CLASS /mbtools/cl_registry_ui IMPLEMENTATION.
 
     DATA:
       lv_new_key TYPE string,
-      lv_rc      TYPE char1,
+      lv_rc      TYPE c LENGTH 1,
       lx_exc     TYPE REF TO /mbtools/cx_exception,
       lv_msg     TYPE string.
 
