@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/endpoint?url=https://dev.shield.abap.space/version-shield-json/github/Marc-Bernard-Tools/MBT-Base/src/tools/%23mbtools%23cl_tool_bc.clas.abap&label=Version&color=blue)
+![Version](https://img.shields.io/endpoint?url=https%3A%2F%2Fdev.shield.abap.space%2Fversion-shield-json%2Fgithub%2FMarc-Bernard-Tools%2FMBT-Base%2Fsrc%2Ftools%2F%2523mbtools%2523cl_tool_bc.clas.abap&label=Version&color=blue)
 ![Checks](https://img.shields.io/github/checks-status/Marc-Bernard-Tools/MBT-Base/main?label=Checks)
 
 [![License](https://img.shields.io/github/license/Marc-Bernard-Tools/MBT-Base?label=License&color=green)](LICENSE)
