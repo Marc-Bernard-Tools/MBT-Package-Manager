@@ -30,14 +30,16 @@ CLASS /mbtools/cl_http DEFINITION
         /mbtools/cx_exception.
     CLASS-METHODS create_by_destination
       IMPORTING
-        !iv_destination  TYPE rfcdest
-        !iv_path         TYPE string
-        !iv_request      TYPE string DEFAULT if_http_request=>co_request_method_get
-        !iv_content      TYPE string OPTIONAL
-        !iv_accept       TYPE string OPTIONAL
-        !it_multipart    TYPE /mbtools/cl_http_client=>ty_multiparts OPTIONAL
+        !iv_destination   TYPE rfcdest
+        !iv_path          TYPE string
+        !iv_cdata         TYPE string OPTIONAL
+        !iv_request       TYPE string DEFAULT if_http_request=>co_request_method_get
+        !iv_content       TYPE string OPTIONAL
+        !iv_accept        TYPE string OPTIONAL
+        !iv_authorization TYPE string OPTIONAL
+        !it_multipart     TYPE /mbtools/cl_http_client=>ty_multiparts OPTIONAL
       RETURNING
-        VALUE(ro_client) TYPE REF TO /mbtools/cl_http_client
+        VALUE(ro_client)  TYPE REF TO /mbtools/cl_http_client
       RAISING
         /mbtools/cx_exception.
   PROTECTED SECTION.
@@ -191,7 +193,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
         ii_client = li_client.
 
     li_client->request->set_compression( ).
-    li_client->request->set_cdata( '' ).
+    li_client->request->set_cdata( iv_cdata ).
     li_client->request->set_header_field(
       name  = '~request_method'
       value = iv_request ) ##NO_TEXT.
@@ -201,6 +203,11 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
     li_client->request->set_header_field(
       name  = '~request_uri'
       value = iv_path ) ##NO_TEXT.
+    IF iv_authorization IS NOT INITIAL.
+      li_client->request->set_header_field(
+        name  = 'Authorization'
+        value = iv_authorization ) ##NO_TEXT.
+    ENDIF.
     IF iv_accept IS NOT INITIAL.
       li_client->request->set_header_field(
         name  = 'Accept'
@@ -212,11 +219,11 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
     ENDIF.
     IF iv_content IS NOT INITIAL.
       li_client->request->set_header_field(
-        name  = 'Content-type'
+        name  = 'Content-Type'
         value = iv_content ) ##NO_TEXT.
     ELSEIF it_multipart IS NOT INITIAL.
       li_client->request->set_header_field(
-        name  = 'Content-type'
+        name  = 'Content-Type'
         value = 'multipart/mixed' ) ##NO_TEXT.
     ENDIF.
 
@@ -230,7 +237,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
 *        name  = '~request_method'
 *        value = 'GET' )
       li_part->set_header_field(
-        name  = 'Content-type'
+        name  = 'Content-Type'
         value = 'application/http' ) ##NO_TEXT.
       li_part->set_header_field(
         name  = 'Accept'
@@ -337,7 +344,7 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
 
   METHOD get_agent.
 
-    rv_agent = |MBT { /mbtools/cl_tool_bc=>c_tool-version })|.
+    rv_agent = |MBT { /mbtools/cl_tool_bc=>c_tool-version }|.
 
   ENDMETHOD.
 

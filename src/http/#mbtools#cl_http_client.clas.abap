@@ -1,6 +1,6 @@
 CLASS /mbtools/cl_http_client DEFINITION
   PUBLIC
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * Marc Bernard Tools - HTTP Client
@@ -20,44 +20,44 @@ CLASS /mbtools/cl_http_client DEFINITION
 
     METHODS constructor
       IMPORTING
-        !ii_client TYPE REF TO if_http_client .
-    METHODS close .
+        !ii_client TYPE REF TO if_http_client.
+    METHODS close.
     METHODS set_digest
       IMPORTING
-        !io_digest TYPE REF TO /mbtools/cl_http_digest .
+        !io_digest TYPE REF TO /mbtools/cl_http_digest.
     METHODS send_receive_close
       IMPORTING
         !iv_data       TYPE xstring
       RETURNING
         VALUE(rv_data) TYPE xstring
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS get_data
       RETURNING
-        VALUE(rv_value) TYPE xstring .
+        VALUE(rv_value) TYPE xstring.
     METHODS get_cdata
       RETURNING
-        VALUE(rv_value) TYPE string .
+        VALUE(rv_value) TYPE string.
     METHODS check_http_200
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS check_smart_response
       IMPORTING
-        !iv_expected_content_type TYPE string
-        !iv_content_regex         TYPE string
+        !iv_expected_content_type TYPE string OPTIONAL
+        !iv_content_regex         TYPE string OPTIONAL
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS send_receive
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS set_headers
       IMPORTING
         !iv_url TYPE string
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     METHODS get_multipart
       RETURNING
-        VALUE(rt_multipart) TYPE ty_multiparts .
+        VALUE(rt_multipart) TYPE ty_multiparts.
   PROTECTED SECTION.
   PRIVATE SECTION.
     DATA: mi_client TYPE REF TO if_http_client,
@@ -78,7 +78,7 @@ CLASS /mbtools/cl_http_client IMPLEMENTATION.
     mi_client->response->get_status( IMPORTING code = lv_code ).
 
     CASE lv_code.
-      WHEN 200.
+      WHEN 200 OR 201.
         RETURN. " Success, OK
       WHEN 302.
         /mbtools/cx_exception=>raise( 'Resource access temporarily redirected. Check the URL (HTTP 302)' ) ##NO_TEXT.
@@ -94,6 +94,8 @@ CLASS /mbtools/cl_http_client IMPLEMENTATION.
         /mbtools/cx_exception=>raise( 'Request timeout (HTTP 408)' ) ##NO_TEXT.
       WHEN 415.
         /mbtools/cx_exception=>raise( 'Unsupported media type (HTTP 415)' ) ##NO_TEXT.
+      WHEN 426.
+        /mbtools/cx_exception=>raise( 'Upgrade required. Check HTTP protocol version (HTTP 426)' ) ##NO_TEXT.
       WHEN OTHERS.
         lv_text = mi_client->response->get_cdata( ).
         /mbtools/cx_exception=>raise( |HTTP error code: { lv_code }, { lv_text }| ).
