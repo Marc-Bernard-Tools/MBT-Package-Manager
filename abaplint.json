@@ -139,10 +139,6 @@
       "exclude": [],
       "severity": "Error"
     },
-    "check_no_handler_pragma": {
-      "exclude": [],
-      "severity": "Error"
-    },
     "check_subrc": {
       "assign": true,
       "authorityCheck": true,
@@ -735,9 +731,10 @@
       "exclude": [],
       "severity": "Error"
     },
-    "pragma_placement": {
+    "pragma_style": {
       "exclude": [],
-      "severity": "Error"
+      "severity": "Error",
+      "style": "upper"
     },
     "prefer_corresponding": {
       "exclude": [],
@@ -840,6 +837,12 @@
       "exclude": [],
       "severity": "Error"
     },
+    "slow_parameter_passing": {
+      "exclude": [
+        ".*"
+      ],
+      "severity": "Error"
+    },
     "space_before_colon": {
       "exclude": [],
       "severity": "Error"
@@ -901,6 +904,10 @@
       "exclude": [
         ".*"
       ],
+      "severity": "Error"
+    },
+    "unnecessary_pragma": {
+      "exclude": [],
       "severity": "Error"
     },
     "unreachable_code": {
