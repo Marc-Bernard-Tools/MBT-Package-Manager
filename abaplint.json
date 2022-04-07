@@ -907,7 +907,9 @@
       "severity": "Error"
     },
     "unnecessary_pragma": {
-      "exclude": [],
+      "exclude": [
+        ".*"
+      ],
       "severity": "Error"
     },
     "unreachable_code": {
