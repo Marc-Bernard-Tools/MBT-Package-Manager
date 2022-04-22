@@ -44,6 +44,7 @@ CLASS /mbtools/cl_ajson DEFINITION
     ALIASES:
       mt_json_tree FOR /mbtools/if_ajson~mt_json_tree,
       keep_item_order FOR /mbtools/if_ajson~keep_item_order,
+      format_datetime FOR /mbtools/if_ajson~format_datetime,
       freeze FOR /mbtools/if_ajson~freeze.
 
     CLASS-METHODS parse
@@ -82,6 +83,7 @@ CLASS /mbtools/cl_ajson DEFINITION
     DATA mv_read_only TYPE abap_bool.
     DATA mi_custom_mapping TYPE REF TO /mbtools/if_ajson_mapping.
     DATA mv_keep_item_order TYPE abap_bool.
+    DATA mv_format_datetime TYPE abap_bool.
 
     METHODS get_item
       IMPORTING
@@ -337,6 +339,11 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD /mbtools/if_ajson~format_datetime.
+    mv_format_datetime = abap_true.
+    ri_json = me.
+  ENDMETHOD.
+
 
   METHOD /mbtools/if_ajson~freeze.
     mv_read_only = abap_true.
@@ -544,6 +551,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
     IF ls_split_path IS INITIAL. " Assign root, exceptional processing
       IF iv_node_type IS NOT INITIAL.
         mt_json_tree = lcl_abap_to_json=>insert_with_type(
+          iv_format_datetime = mv_format_datetime
           iv_keep_item_order = mv_keep_item_order
           iv_data            = iv_val
           iv_type            = iv_node_type
@@ -551,6 +559,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
           ii_custom_mapping  = mi_custom_mapping ).
       ELSE.
         mt_json_tree = lcl_abap_to_json=>convert(
+          iv_format_datetime = mv_format_datetime
           iv_keep_item_order = mv_keep_item_order
           iv_data            = iv_val
           is_prefix          = ls_split_path
@@ -581,6 +590,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
     IF iv_node_type IS NOT INITIAL.
       lt_new_nodes = lcl_abap_to_json=>insert_with_type(
+        iv_format_datetime = mv_format_datetime
         iv_keep_item_order = mv_keep_item_order
         iv_data            = iv_val
         iv_type            = iv_node_type
@@ -589,6 +599,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
         ii_custom_mapping  = mi_custom_mapping ).
     ELSE.
       lt_new_nodes = lcl_abap_to_json=>convert(
+        iv_format_datetime = mv_format_datetime
         iv_keep_item_order = mv_keep_item_order
         iv_data            = iv_val
         iv_array_index     = lv_array_index
@@ -624,9 +635,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
     ri_json = me.
 
     DATA lv_val TYPE string.
-    IF iv_val IS NOT INITIAL.
-      lv_val = iv_val+0(4) && '-' && iv_val+4(2) && '-' && iv_val+6(2).
-    ENDIF.
+    lv_val = lcl_abap_to_json=>format_date( iv_val ).
 
     /mbtools/if_ajson~set(
       iv_ignore_empty = abap_false
@@ -677,30 +686,10 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
   METHOD /mbtools/if_ajson~set_timestamp.
 
-    CONSTANTS lc_utc TYPE c LENGTH 6 VALUE 'UTC'.
-
-    DATA:
-      lv_date          TYPE d,
-      lv_time          TYPE t,
-      lv_timestamp_iso TYPE string.
-
     ri_json = me.
 
-    IF iv_val IS INITIAL.
-      " The zero value is January 1, year 1, 00:00:00.000000000 UTC.
-      lv_date = '00010101'.
-    ELSE.
-
-      CONVERT TIME STAMP iv_val TIME ZONE lc_utc
-        INTO DATE lv_date TIME lv_time.
-
-    ENDIF.
-
-    lv_timestamp_iso =
-        lv_date+0(4) && '-' && lv_date+4(2) && '-' && lv_date+6(2) &&
-        'T' &&
-        lv_time+0(2) && '-' && lv_time+2(2) && '-' && lv_time+4(2) &&
-        'Z'.
+    DATA lv_timestamp_iso TYPE string.
+    lv_timestamp_iso = lcl_abap_to_json=>format_timestamp( iv_val ).
 
     /mbtools/if_ajson~set(
       iv_ignore_empty = abap_false
