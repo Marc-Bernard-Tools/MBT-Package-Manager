@@ -677,9 +677,9 @@ CLASS /mbtools/cl_tree IMPLEMENTATION.
         IMPORTING
           result                = ls_node_layout-n_image
         EXCEPTIONS
-          icon_not_found        = 0
-          outputfield_too_short = 0
-          OTHERS                = 0.
+          icon_not_found        = 1
+          outputfield_too_short = 2
+          OTHERS                = 3 ##FM_SUBRC_OK.
     ELSE.
       CALL FUNCTION 'ICON_CREATE'
         EXPORTING
@@ -688,9 +688,9 @@ CLASS /mbtools/cl_tree IMPLEMENTATION.
         IMPORTING
           result                = ls_node_layout-n_image
         EXCEPTIONS
-          icon_not_found        = 0
-          outputfield_too_short = 0
-          OTHERS                = 0.
+          icon_not_found        = 1
+          outputfield_too_short = 2
+          OTHERS                = 3 ##FM_SUBRC_OK.
     ENDIF.
 
     ls_node_layout-exp_image = ls_node_layout-n_image.
