@@ -192,13 +192,13 @@ AT SELECTION-SCREEN.
         EXCEPTIONS
           text_not_found        = 1
           OTHERS                = 2.
-      IF sy-subrc <> 0 OR gv_answer <> '1'.
-        RETURN.
+      IF sy-subrc = 0 AND gv_answer = '1'.
+        /mbtools/cl_setup=>install( abap_true ).
       ENDIF.
 
-      /mbtools/cl_setup=>install( abap_true ).
-
   ENDCASE.
+
+  CLEAR sscrfields-ucomm.
 
 *-----------------------------------------------------------------------
 
