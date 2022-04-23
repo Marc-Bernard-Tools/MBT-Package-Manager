@@ -182,6 +182,10 @@
       "severity": "Error",
       "statics": "^G._.+$"
     },
+    "classic_exceptions_overlap": {
+      "exclude": [],
+      "severity": "Error"
+    },
     "cloud_types": {
       "exclude": [],
       "severity": "Error"
@@ -536,7 +540,7 @@
       "severity": "Error",
       "test": "^LTCL_.+$"
     },
-    "local_testclass_location": {
+    "local_testclass_consistency": {
       "exclude": [],
       "severity": "Error"
     },
@@ -639,6 +643,10 @@
       "exclude": [],
       "severity": "Error"
     },
+    "no_inline_in_optional_branches": {
+      "exclude": [],
+      "severity": "Error"
+    },
     "no_public_attributes": {
       "allowReadOnly": true,
       "exclude": [
@@ -651,6 +659,10 @@
     "no_yoda_conditions": {
       "exclude": [],
       "onlyConstants": true,
+      "severity": "Error"
+    },
+    "nrob_consistency": {
+      "exclude": [],
       "severity": "Error"
     },
     "object_naming": {
