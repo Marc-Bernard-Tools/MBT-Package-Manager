@@ -33,9 +33,7 @@
     },
     "abapdoc": {
       "checkLocal": false,
-      "exclude": [
-        ".*"
-      ],
+      "exclude": [".*"],
       "severity": "Error"
     },
     "align_parameters": {
@@ -51,10 +49,10 @@
         "ACID",
         "AVAR",
         "CLAS",
-        "DSYS",
-        "DTEL",
         "DEVC",
         "DOMA",
+        "DSYS",
+        "DTEL",
         "ENHC",
         "ENHO",
         "ENHS",
@@ -65,6 +63,7 @@
         "NSPC",
         "PARA",
         "PROG",
+        "SHLP",
         "SOTS",
         "TABL",
         "TRAN",
@@ -345,9 +344,7 @@
       "severity": "Error"
     },
     "function_module_recommendations": {
-      "exclude": [
-        ".*"
-      ],
+      "exclude": [".*"],
       "recommendations": [
         {
           "name": "SUBST_GET_FILE_LIST",
@@ -467,9 +464,7 @@
     },
     "in_statement_indentation": {
       "blockStatements": 2,
-      "exclude": [
-        ".*"
-      ],
+      "exclude": [".*"],
       "ignoreExceptions": true,
       "severity": "Error"
     },
@@ -799,9 +794,7 @@
       "severity": "Error"
     },
     "remove_descriptions": {
-      "exclude": [
-        ".*"
-      ],
+      "exclude": [".*"],
       "ignoreExceptions": false,
       "ignoreWorkflow": true,
       "severity": "Error"
@@ -850,9 +843,7 @@
       "severity": "Error"
     },
     "slow_parameter_passing": {
-      "exclude": [
-        ".*"
-      ],
+      "exclude": [".*"],
       "severity": "Error"
     },
     "space_before_colon": {
@@ -913,15 +904,11 @@
       "severity": "Error"
     },
     "unnecessary_chaining": {
-      "exclude": [
-        ".*"
-      ],
+      "exclude": [".*"],
       "severity": "Error"
     },
     "unnecessary_pragma": {
-      "exclude": [
-        ".*"
-      ],
+      "exclude": [".*"],
       "severity": "Error"
     },
     "unreachable_code": {
