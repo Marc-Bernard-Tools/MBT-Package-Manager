@@ -145,8 +145,6 @@ INITIALIZATION.
 
 *-----------------------------------------------------------------------
 
-  scr_tab-prog = sy-cprog. " abaplint #1291
-
   scr_tab2 = go_screen->header(
     iv_icon = icon_tools
     iv_text = 'Tools'(003) ).
