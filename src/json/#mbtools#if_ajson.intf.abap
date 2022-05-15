@@ -8,7 +8,7 @@ INTERFACE /mbtools/if_ajson
 * SPDX-License-Identifier: MIT
 ************************************************************************
 
-  CONSTANTS version TYPE string VALUE 'v1.1.3'. "#EC NOTEXT
+  CONSTANTS version TYPE string VALUE 'v1.1.4'. "#EC NOTEXT
   CONSTANTS origin TYPE string VALUE 'https://github.com/sbcgua/ajson'. "#EC NOTEXT
   CONSTANTS license TYPE string VALUE 'MIT'. "#EC NOTEXT
 
@@ -56,6 +56,8 @@ INTERFACE /mbtools/if_ajson
     RETURNING
       VALUE(ri_json) TYPE REF TO /mbtools/if_ajson.
   METHODS format_datetime
+    IMPORTING
+      iv_use_iso TYPE abap_bool DEFAULT abap_true
     RETURNING
       VALUE(ri_json) TYPE REF TO /mbtools/if_ajson.
 
