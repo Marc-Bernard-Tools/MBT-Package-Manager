@@ -73,6 +73,8 @@ CLASS /mbtools/cl_ajson DEFINITION
       RAISING
         /mbtools/cx_ajson_error .
 
+    METHODS constructor.
+
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -108,6 +110,11 @@ ENDCLASS.
 
 
 CLASS /mbtools/cl_ajson IMPLEMENTATION.
+
+
+  METHOD constructor.
+    format_datetime( abap_true ).
+  ENDMETHOD.
 
 
   METHOD create_empty.
@@ -339,8 +346,9 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD /mbtools/if_ajson~format_datetime.
-    mv_format_datetime = abap_true.
+    mv_format_datetime = iv_use_iso.
     ri_json = me.
   ENDMETHOD.
 
