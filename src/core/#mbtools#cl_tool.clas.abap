@@ -133,6 +133,23 @@ CLASS /mbtools/cl_tool DEFINITION
         VALUE(rv_result) TYPE abap_bool
       RAISING
         /mbtools/cx_exception.
+    " abapGit
+    METHODS repo_add_online
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool
+      RAISING
+        /mbtools/cx_exception.
+    METHODS repo_add_offline
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool
+      RAISING
+        /mbtools/cx_exception.
+    METHODS repo_remove
+      RETURNING
+        VALUE(rv_result) TYPE abap_bool
+      RAISING
+        /mbtools/cx_exception.
+    " Version check and update
     METHODS check_version
       IMPORTING
         !iv_force        TYPE abap_bool DEFAULT abap_false
@@ -152,10 +169,10 @@ CLASS /mbtools/cl_tool DEFINITION
         VALUE(rv_result)  TYPE abap_bool
       RAISING
         /mbtools/cx_exception.
+    " Tool Get
     METHODS get_manifest
       RETURNING
         VALUE(rs_manifest) TYPE /mbtools/manifest.
-    " Tool Get
     METHODS get_id
       RETURNING
         VALUE(rv_id) TYPE string.
@@ -1059,6 +1076,74 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
       CATCH cx_root.
         rv_result = abap_false.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD repo_add_offline.
+
+    DATA:
+      li_repo  TYPE REF TO zif_abapgit_repo,
+      lx_error TYPE REF TO zcx_abapgit_exception.
+
+    TRY.
+        li_repo = zcl_abapgit_repo_srv=>get_instance( )->new_offline(
+          iv_url          = get_title( )
+          iv_package      = get_package( )
+          iv_folder_logic = 'PREFIX' ).
+
+        IF li_repo IS BOUND.
+          rv_result = abap_true.
+        ENDIF.
+      CATCH zcx_abapgit_exception INTO lx_error.
+        /mbtools/cx_exception=>raise( lx_error->get_text( ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD repo_add_online.
+
+    DATA:
+      li_repo  TYPE REF TO zif_abapgit_repo,
+      lx_error TYPE REF TO zcx_abapgit_exception.
+
+    TRY.
+        li_repo = zcl_abapgit_repo_srv=>get_instance( )->new_online(
+          iv_url          = get_url_repo( )
+          iv_package      = get_package( )
+          iv_folder_logic = 'PREFIX'
+          iv_display_name = get_title( ) ).
+
+        IF li_repo IS BOUND.
+          rv_result = abap_true.
+        ENDIF.
+      CATCH zcx_abapgit_exception INTO lx_error.
+        /mbtools/cx_exception=>raise( lx_error->get_text( ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD repo_remove.
+
+    DATA:
+      li_repo  TYPE REF TO zif_abapgit_repo,
+      lx_error TYPE REF TO zcx_abapgit_exception.
+
+    TRY.
+        zcl_abapgit_repo_srv=>get_instance( )->get_repo_from_package(
+          EXPORTING
+            iv_package = get_package( )
+          IMPORTING
+            ei_repo    = li_repo ).
+
+        zcl_abapgit_repo_srv=>get_instance( )->delete( li_repo ).
+
+        rv_result = abap_true.
+      CATCH zcx_abapgit_exception INTO lx_error.
+        /mbtools/cx_exception=>raise( lx_error->get_text( ) ).
     ENDTRY.
 
   ENDMETHOD.

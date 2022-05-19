@@ -48,6 +48,8 @@ CLASS /mbtools/cl_support IMPLEMENTATION.
         lv_show = abap_false.
       ELSEIF mv_all_bundles = abap_true AND
         ( screen-name = 'P_ACT' OR screen-name = 'P_DEACT' OR
+          screen-name = 'P_ADDONL' OR screen-name = 'P_ADDOFF' OR
+          screen-name = 'P_REMOVE' OR
           screen-name = 'P_CHECK' OR screen-name = 'P_UPDATE' OR
           screen-name = 'P_UNINST' ).
         lv_show = abap_false.

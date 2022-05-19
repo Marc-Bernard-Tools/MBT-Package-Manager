@@ -133,6 +133,18 @@
      <LENGTH>18</LENGTH>
     </item>
     <item>
+     <ID>I</ID>
+     <KEY>021</KEY>
+     <ENTRY>removed from abapGit</ENTRY>
+     <LENGTH>40</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>022</KEY>
+     <ENTRY>added to abapGit</ENTRY>
+     <LENGTH>26</LENGTH>
+    </item>
+    <item>
      <ID>R</ID>
      <ENTRY>MBT Support</ENTRY>
      <LENGTH>11</LENGTH>
@@ -142,6 +154,18 @@
      <KEY>P_ACT</KEY>
      <ENTRY>Activate</ENTRY>
      <LENGTH>21</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_ADDOFF</KEY>
+     <ENTRY>Add Offline Repo</ENTRY>
+     <LENGTH>24</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_ADDONL</KEY>
+     <ENTRY>Add Online Repo</ENTRY>
+     <LENGTH>23</LENGTH>
     </item>
     <item>
      <ID>S</ID>
@@ -172,6 +196,12 @@
      <KEY>P_REG</KEY>
      <ENTRY>Register</ENTRY>
      <LENGTH>21</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_REMOVE</KEY>
+     <ENTRY>Remove Repo</ENTRY>
+     <LENGTH>19</LENGTH>
     </item>
     <item>
      <ID>S</ID>

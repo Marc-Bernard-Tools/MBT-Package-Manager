@@ -54,6 +54,9 @@ PARAMETERS:
   p_act    RADIOBUTTON GROUP g1,
   p_deact  RADIOBUTTON GROUP g1,
   p_check  RADIOBUTTON GROUP g1,
+  p_addonl RADIOBUTTON GROUP g1,
+  p_addoff RADIOBUTTON GROUP g1,
+  p_remove RADIOBUTTON GROUP g1,
   p_update RADIOBUTTON GROUP g1,
   p_uninst RADIOBUTTON GROUP g1.
 SELECTION-SCREEN:
@@ -92,7 +95,7 @@ SELECTION-SCREEN:
     COMMENT /3(77) scr_t001 FOR FIELD p_title,
     SKIP,
   END OF BLOCK scr_header,
-  BEGIN OF TABBED BLOCK scr_tab FOR 22 LINES,
+  BEGIN OF TABBED BLOCK scr_tab FOR 23 LINES,
     TAB (40) scr_tab2 USER-COMMAND scr_push2 DEFAULT SCREEN 200,
     TAB (40) scr_tab9 USER-COMMAND scr_push9 DEFAULT SCREEN 900,
   END OF BLOCK scr_tab.
@@ -116,7 +119,7 @@ INITIALIZATION.
 
   gv_flag = /mbtools/cl_utilities=>get_user_parameter( '/MBTOOLS/SUPPORT' ).
   IF gv_flag IS INITIAL.
-    MESSAGE 'This program shall only be used by MBT Support' TYPE 'E' ##NO_TEXT.
+    MESSAGE 'This program should only be used by MBT Support' TYPE 'E' ##NO_TEXT.
     RETURN.
   ENDIF.
 
@@ -193,10 +196,9 @@ AT SELECTION-SCREEN.
       IF sy-subrc = 0 AND gv_answer = '1'.
         /mbtools/cl_setup=>install( abap_true ).
       ENDIF.
+      CLEAR sscrfields-ucomm.
 
   ENDCASE.
-
-  CLEAR sscrfields-ucomm.
 
 *-----------------------------------------------------------------------
 
@@ -283,6 +285,21 @@ START-OF-SELECTION.
           gv_flag   = /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>tool_deactivate ).
           gv_action = 'deactivated'(016).
 
+        WHEN p_addonl.
+
+          gv_flag   = /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>repo_add_online ).
+          gv_action = 'added to abapGit'(022).
+
+        WHEN p_addoff.
+
+          gv_flag   = /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>repo_add_offline ).
+          gv_action = 'added to abapGit'(022).
+
+        WHEN p_remove.
+
+          gv_flag   = /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>repo_remove ).
+          gv_action = 'removed from abapGit'(023).
+
         WHEN p_check.
 
           gv_flag   = /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>tool_check ).
@@ -326,6 +343,21 @@ START-OF-SELECTION.
 
               gv_flag   = go_tool->deactivate( ).
               gv_action = 'deactivated'(016).
+
+            WHEN p_addonl.
+
+              gv_flag   = go_tool->repo_add_online( ).
+              gv_action = 'added to abapGit'(022).
+
+            WHEN p_addoff.
+
+              gv_flag   = go_tool->repo_add_offline( ).
+              gv_action = 'added to abapGit'(022).
+
+            WHEN p_remove.
+
+              gv_flag   = go_tool->repo_remove( ).
+              gv_action = 'removed from abapGit'(023).
 
             WHEN p_check.
 

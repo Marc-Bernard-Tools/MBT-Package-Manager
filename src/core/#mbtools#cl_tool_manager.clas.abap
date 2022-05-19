@@ -292,6 +292,12 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
               lv_result = ls_manifest-manager->activate( ).
             WHEN /mbtools/if_actions=>tool_deactivate.
               lv_result = ls_manifest-manager->deactivate( ).
+            WHEN /mbtools/if_actions=>repo_add_online.
+              lv_result = ls_manifest-manager->repo_add_online( ).
+            WHEN /mbtools/if_actions=>repo_add_offline.
+              lv_result = ls_manifest-manager->repo_add_offline( ).
+            WHEN /mbtools/if_actions=>repo_remove.
+              lv_result = ls_manifest-manager->repo_remove( ).
             WHEN /mbtools/if_actions=>tool_check.
               lv_result = ls_manifest-manager->check_version( abap_true ).
             WHEN /mbtools/if_actions=>tool_install.

@@ -48,4 +48,7 @@ INTERFACE /mbtools/if_actions
   CONSTANTS tool_sync TYPE string VALUE 'tool_sync' ##NO_TEXT.
   CONSTANTS license_add TYPE string VALUE 'license_add' ##NO_TEXT.
   CONSTANTS license_remove TYPE string VALUE 'license_remove' ##NO_TEXT.
+  CONSTANTS repo_add_online TYPE string VALUE 'repo_add_online' ##NO_TEXT.
+  CONSTANTS repo_add_offline TYPE string VALUE 'repo_add_offline' ##NO_TEXT.
+  CONSTANTS repo_remove TYPE string VALUE 'repo_remove' ##NO_TEXT.
 ENDINTERFACE.
