@@ -4,7 +4,12 @@
       "files": "/src/**/*.*",
       "folder": "/deps",
       "url": "https://github.com/abaplint/deps"
-    }
+    },
+    {
+      "files": "/src/**/*.*",
+      "folder": "/deps2",
+      "url": "https://github.com/abapGit/abapGit"
+    }    
   ],
   "global": {
     "exclude": [
