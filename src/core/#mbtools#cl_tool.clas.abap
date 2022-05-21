@@ -1084,19 +1084,27 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
   METHOD repo_add_offline.
 
     DATA:
-      li_repo  TYPE REF TO zif_abapgit_repo,
-      lx_error TYPE REF TO zcx_abapgit_exception.
+      li_repo_srv TYPE REF TO object, "zif_abapgit_repo_srv,
+      li_repo     TYPE REF TO object, "zif_abapgit_repo,
+      lx_error    TYPE REF TO cx_root. "zcx_abapgit_exception.
 
     TRY.
-        li_repo = zcl_abapgit_repo_srv=>get_instance( )->new_offline(
-          iv_url          = get_title( )
-          iv_package      = get_package( )
-          iv_folder_logic = 'PREFIX' ).
+        CALL METHOD ('ZCL_ABAPGIT_REPO_SRV')=>('GET_INSTANCE')
+          RECEIVING
+            ri_srv = li_repo_srv.
+
+        CALL METHOD li_repo_srv->('NEW_OFFLINE')
+          EXPORTING
+            iv_url          = get_title( )
+            iv_package      = get_package( )
+            iv_folder_logic = 'PREFIX'
+          RECEIVING
+            ri_repo         = li_repo.
 
         IF li_repo IS BOUND.
           rv_result = abap_true.
         ENDIF.
-      CATCH zcx_abapgit_exception INTO lx_error.
+      CATCH cx_root INTO lx_error.
         /mbtools/cx_exception=>raise( lx_error->get_text( ) ).
     ENDTRY.
 
@@ -1106,20 +1114,28 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
   METHOD repo_add_online.
 
     DATA:
-      li_repo  TYPE REF TO zif_abapgit_repo,
-      lx_error TYPE REF TO zcx_abapgit_exception.
+      li_repo_srv TYPE REF TO object, "zif_abapgit_repo_srv,
+      li_repo     TYPE REF TO object, "zif_abapgit_repo,
+      lx_error    TYPE REF TO cx_root. "zcx_abapgit_exception.
 
     TRY.
-        li_repo = zcl_abapgit_repo_srv=>get_instance( )->new_online(
-          iv_url          = get_url_repo( )
-          iv_package      = get_package( )
-          iv_folder_logic = 'PREFIX'
-          iv_display_name = get_title( ) ).
+        CALL METHOD ('ZCL_ABAPGIT_REPO_SRV')=>('GET_INSTANCE')
+          RECEIVING
+            ri_srv = li_repo_srv.
+
+        CALL METHOD li_repo_srv->('NEW_ONLINE')
+          EXPORTING
+            iv_url          = get_url_repo( )
+            iv_package      = get_package( )
+            iv_folder_logic = 'PREFIX'
+            iv_display_name = get_title( )
+          RECEIVING
+            ri_repo         = li_repo.
 
         IF li_repo IS BOUND.
           rv_result = abap_true.
         ENDIF.
-      CATCH zcx_abapgit_exception INTO lx_error.
+      CATCH cx_root INTO lx_error.
         /mbtools/cx_exception=>raise( lx_error->get_text( ) ).
     ENDTRY.
 
@@ -1129,20 +1145,27 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
   METHOD repo_remove.
 
     DATA:
-      li_repo  TYPE REF TO zif_abapgit_repo,
-      lx_error TYPE REF TO zcx_abapgit_exception.
+      li_repo_srv TYPE REF TO object, "zif_abapgit_repo_srv,
+      li_repo     TYPE REF TO object, "zif_abapgit_repo,
+      lx_error    TYPE REF TO cx_root. "zcx_abapgit_exception.
 
     TRY.
-        zcl_abapgit_repo_srv=>get_instance( )->get_repo_from_package(
+        CALL METHOD ('ZCL_ABAPGIT_REPO_SRV')=>('GET_INSTANCE')
+          RECEIVING
+            ri_srv = li_repo_srv.
+
+        CALL METHOD li_repo_srv->('GET_REPO_FROM_PACKAGE')
           EXPORTING
             iv_package = get_package( )
           IMPORTING
-            ei_repo    = li_repo ).
+            ei_repo    = li_repo.
 
-        zcl_abapgit_repo_srv=>get_instance( )->delete( li_repo ).
+        CALL METHOD li_repo_srv->('DELETE')
+          EXPORTING
+            ii_repo = li_repo.
 
         rv_result = abap_true.
-      CATCH zcx_abapgit_exception INTO lx_error.
+      CATCH cx_root INTO lx_error.
         /mbtools/cx_exception=>raise( lx_error->get_text( ) ).
     ENDTRY.
 

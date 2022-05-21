@@ -298,7 +298,7 @@ START-OF-SELECTION.
         WHEN p_remove.
 
           gv_flag   = /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>repo_remove ).
-          gv_action = 'removed from abapGit'(023).
+          gv_action = 'removed from abapGit'(021).
 
         WHEN p_check.
 
@@ -357,7 +357,7 @@ START-OF-SELECTION.
             WHEN p_remove.
 
               gv_flag   = go_tool->repo_remove( ).
-              gv_action = 'removed from abapGit'(023).
+              gv_action = 'removed from abapGit'(021).
 
             WHEN p_check.
 
