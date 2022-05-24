@@ -277,6 +277,11 @@ CLASS /mbtools/cl_tool DEFINITION
         !iv_exists   TYPE abap_bool
       RAISING
         /mbtools/cx_exception.
+    METHODS _get_reg
+      RETURNING
+        VALUE(ro_result) TYPE REF TO /mbtools/cl_registry
+      RAISING
+        /mbtools/cx_exception.
     CLASS-METHODS _get_reg_bundle
       IMPORTING
         !iv_bundle_id    TYPE i
@@ -316,7 +321,8 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
     ASSERT is_tool( ) = abap_true.
 
     " Is tool already registered?
-    lo_reg_tool = _get_reg_tool( ms_manifest-name ).
+    lo_reg_tool = _get_reg( ).
+
     IF lo_reg_tool IS NOT BOUND.
       rv_result = abap_false.
       RETURN.
@@ -324,6 +330,7 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
     " Switches
     lo_reg_entry = lo_reg_tool->get_subentry( c_reg-switches ).
+
     IF lo_reg_entry IS BOUND.
       lo_reg_entry->set_value( iv_key   = c_reg-key_active
                                iv_value = abap_true ).
@@ -351,11 +358,7 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
       lv_download_url  TYPE string.
 
     " Is tool or bundle registered?
-    IF is_bundle( ) IS INITIAL.
-      lo_reg_tool = _get_reg_tool( ms_manifest-name ).
-    ELSE.
-      lo_reg_tool = go_reg_root->get_subentry( ms_manifest-name ).
-    ENDIF.
+    lo_reg_tool = _get_reg( ).
     CHECK lo_reg_tool IS BOUND.
 
     " Get license
@@ -363,6 +366,7 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
     CHECK lo_reg_entry IS BOUND.
 
     lv_id = lo_reg_entry->get_value( c_reg-key_lic_id ).
+    CHECK lv_id IS NOT INITIAL.
 
     lv_license = lo_reg_entry->get_value( c_reg-key_lic_key ).
 
@@ -431,7 +435,8 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
     ASSERT is_tool( ) = abap_true.
 
     " Is tool already registered?
-    lo_reg_tool = _get_reg_tool( ms_manifest-name ).
+    lo_reg_tool = _get_reg( ).
+
     IF lo_reg_tool IS NOT BOUND.
       rv_result = abap_false.
       RETURN.
@@ -439,6 +444,7 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
     " Switches
     lo_reg_entry = lo_reg_tool->get_subentry( c_reg-switches ).
+
     IF lo_reg_entry IS BOUND.
       lo_reg_entry->set_value( iv_key   = c_reg-key_active
                                iv_value = abap_false ).
@@ -490,7 +496,7 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = _get_reg_tool( ms_manifest-name ).
+        lo_reg_tool = _get_reg( ).
         CHECK lo_reg_tool IS BOUND.
 
         " Update
@@ -514,7 +520,7 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = _get_reg_tool( ms_manifest-name ).
+        lo_reg_tool = _get_reg( ).
         CHECK lo_reg_tool IS BOUND.
 
         " Update
@@ -542,7 +548,7 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
   METHOD get_install_time.
 
-    CHECK ms_manifest-is_bundle IS INITIAL.
+    CHECK is_tool( ) = abap_true.
 
     rv_result = _get_time(
       iv_name     = ms_manifest-name
@@ -554,7 +560,7 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
   METHOD get_last_update.
 
-    CHECK ms_manifest-is_bundle IS INITIAL.
+    CHECK is_tool( ) = abap_true.
 
     rv_result = _get_time(
       iv_name     = ms_manifest-name
@@ -572,17 +578,14 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
     TRY.
         " Is tool already registered?
-        IF is_bundle( ) IS INITIAL.
-          lo_reg_tool = _get_reg_tool( ms_manifest-name ).
-        ELSE.
-          lo_reg_tool = go_reg_root->get_subentry( ms_manifest-name ).
-        ENDIF.
+        lo_reg_tool = _get_reg( ).
         CHECK lo_reg_tool IS BOUND.
 
         " License
         lo_reg_entry = lo_reg_tool->get_subentry( c_reg-license ).
         CHECK lo_reg_entry IS BOUND.
 
+        rs_result-id     = lo_reg_entry->get_value( c_reg-key_lic_id ).
         rs_result-key    = lo_reg_entry->get_value( c_reg-key_lic_key ).
         rs_result-valid  = lo_reg_entry->get_value( c_reg-key_lic_valid ).
         rs_result-expire = lo_reg_entry->get_value( c_reg-key_lic_expire ).
@@ -617,11 +620,11 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
       lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
       lo_reg_entry TYPE REF TO /mbtools/cl_registry.
 
-    CHECK ms_manifest-is_bundle IS INITIAL.
+    CHECK is_tool( ) = abap_true.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = _get_reg_tool( ms_manifest-name ).
+        lo_reg_tool = _get_reg( ).
         CHECK lo_reg_tool IS BOUND.
 
         " Update
@@ -658,11 +661,11 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
     DATA lo_reg_tool TYPE REF TO /mbtools/cl_registry.
 
-    CHECK ms_manifest-is_bundle IS INITIAL.
+    CHECK is_tool( ) = abap_true.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = _get_reg_tool( ms_manifest-name ).
+        lo_reg_tool = _get_reg( ).
         CHECK lo_reg_tool IS BOUND.
 
         " Settings
@@ -699,7 +702,22 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
 
   METHOD get_title.
+
     rv_title = ms_manifest-title.
+
+    IF is_pass( ) = abap_true.
+
+      CASE get_license( )-id.
+        WHEN /mbtools/cl_access_pass=>c_pass-starter.
+          rv_title = /mbtools/cl_access_pass=>c_pass_description-starter.
+        WHEN /mbtools/cl_access_pass=>c_pass-professional.
+          rv_title = /mbtools/cl_access_pass=>c_pass_description-professional.
+        WHEN /mbtools/cl_access_pass=>c_pass-business.
+          rv_title = /mbtools/cl_access_pass=>c_pass_description-business.
+      ENDCASE.
+
+    ENDIF.
+
   ENDMETHOD.
 
 
@@ -709,11 +727,11 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
       lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
       lo_reg_entry TYPE REF TO /mbtools/cl_registry.
 
-    CHECK ms_manifest-is_bundle IS INITIAL.
+    CHECK is_tool( ) = abap_true.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = _get_reg_tool( ms_manifest-name ).
+        lo_reg_tool = _get_reg( ).
         CHECK lo_reg_tool IS BOUND.
 
         " Update
@@ -744,11 +762,11 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
       lo_reg_tool  TYPE REF TO /mbtools/cl_registry,
       lo_reg_entry TYPE REF TO /mbtools/cl_registry.
 
-    CHECK ms_manifest-is_bundle IS INITIAL.
+    CHECK is_tool( ) = abap_true.
 
     TRY.
         " Is tool installed?
-        lo_reg_tool = _get_reg_tool( ms_manifest-name ).
+        lo_reg_tool = _get_reg( ).
         CHECK lo_reg_tool IS BOUND.
 
         " Update
@@ -801,7 +819,7 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
   METHOD is_base.
 
     " Is this MBT Base?
-    IF ms_manifest-title = /mbtools/cl_tool_bc=>c_tool-title.
+    IF get_title( ) = /mbtools/cl_tool_bc=>c_tool-title.
       rv_result = abap_true.
     ENDIF.
 
@@ -849,11 +867,7 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
     TRY.
         " Is tool already registered?
-        IF is_bundle( ) IS INITIAL.
-          lo_reg_tool = _get_reg_tool( ms_manifest-name ).
-        ELSE.
-          lo_reg_tool = go_reg_root->get_subentry( ms_manifest-name ).
-        ENDIF.
+        lo_reg_tool = _get_reg( ).
         CHECK lo_reg_tool IS BOUND.
 
         " Properties
@@ -928,18 +942,14 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
       lv_expire    TYPE d.
 
     " Is tool or bundle registered?
-    IF is_bundle( ) IS INITIAL.
-      lo_reg_tool = _get_reg_tool( ms_manifest-name ).
-    ELSE.
-      lo_reg_tool = go_reg_root->get_subentry( ms_manifest-name ).
-    ENDIF.
+    lo_reg_tool = _get_reg( ).
     CHECK lo_reg_tool IS BOUND.
 
     " License
     lo_reg_entry = lo_reg_tool->get_subentry( c_reg-license ).
     CHECK lo_reg_entry IS BOUND.
 
-    IF ms_manifest-is_extension = abap_true.
+    IF is_extension( ) = abap_true.
       lv_id = lo_reg_entry->get_value( c_reg-key_lic_extension ).
     ELSE.
       lv_id = lo_reg_entry->get_value( c_reg-key_lic_id ).
@@ -949,13 +959,40 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
                          format = cl_abap_format=>e_url_full ).
 
     " Activate license via call to EDD API on MBT
-    /mbtools/cl_edd=>activate_license(
-      EXPORTING
-        iv_id      = lv_id
-        iv_license = lv_license
-      IMPORTING
-        ev_valid   = lv_valid
-        ev_expire  = lv_expire ).
+    IF is_tool( ) = abap_true.
+
+      /mbtools/cl_edd=>activate_license(
+        EXPORTING
+          iv_id      = lv_id
+          iv_license = lv_license
+        IMPORTING
+          ev_valid   = lv_valid
+          ev_expire  = lv_expire ).
+
+    ELSEIF is_pass( ) = abap_true.
+
+      /mbtools/cl_edd=>activate_pass(
+        EXPORTING
+          iv_license = lv_license
+        IMPORTING
+          ev_valid   = lv_valid
+          ev_expire  = lv_expire
+          ev_id      = lv_id ).
+
+      " Update ID to reflect correct type of pass
+      ms_manifest-download_id = lv_id.
+
+      lo_reg_entry->set_value( iv_key   = c_reg-key_lic_id
+                               iv_value = lv_id ).
+
+      " Activate license for all tools
+      IF lv_valid = abap_true.
+        /mbtools/cl_tool_manager=>action_passes(
+          iv_action  = /mbtools/if_actions=>license_add
+          iv_license = lv_license ).
+      ENDIF.
+
+    ENDIF.
 
     lo_reg_entry->set_value( iv_key   = c_reg-key_lic_key
                              iv_value = lv_license ).
@@ -982,11 +1019,7 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
       lv_id        TYPE string.
 
     " Is tool or bundle registered?
-    IF is_bundle( ) IS INITIAL.
-      lo_reg_tool = _get_reg_tool( ms_manifest-name ).
-    ELSE.
-      lo_reg_tool = go_reg_root->get_subentry( ms_manifest-name ).
-    ENDIF.
+    lo_reg_tool = _get_reg( ).
     CHECK lo_reg_tool IS BOUND.
 
     " Get license
@@ -1021,11 +1054,8 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
     TRY.
         " Is tool already registered?
-        IF is_bundle( ) IS INITIAL.
-          lo_reg_tool = _get_reg_tool( ms_manifest-name ).
-        ELSE.
-          lo_reg_tool = go_reg_root->get_subentry( ms_manifest-name ).
-        ENDIF.
+        lo_reg_tool = _get_reg( ).
+
         IF lo_reg_tool IS BOUND.
           rv_result = abap_true.
           IF iv_update = abap_false.
@@ -1033,8 +1063,9 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
           ENDIF.
         ELSE.
           " Create registry entries
-          IF is_pass( ) IS INITIAL AND is_bundle( ) IS INITIAL.
+          IF is_tool( ) = abap_true.
             lo_reg_bundle = _get_reg_bundle( ms_manifest-bundle_id ).
+
             IF lo_reg_bundle IS BOUND.
               lo_reg_tool = lo_reg_bundle->add_subentry( ms_manifest-name ).
             ELSE.
@@ -1088,6 +1119,8 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
       li_repo     TYPE REF TO object, "zif_abapgit_repo,
       lx_error    TYPE REF TO cx_root. "zcx_abapgit_exception.
 
+    ASSERT is_tool( ) = abap_true.
+
     TRY.
         CALL METHOD ('ZCL_ABAPGIT_REPO_SRV')=>('GET_INSTANCE')
           RECEIVING
@@ -1117,6 +1150,8 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
       li_repo_srv TYPE REF TO object, "zif_abapgit_repo_srv,
       li_repo     TYPE REF TO object, "zif_abapgit_repo,
       lx_error    TYPE REF TO cx_root. "zcx_abapgit_exception.
+
+    ASSERT is_tool( ) = abap_true.
 
     TRY.
         CALL METHOD ('ZCL_ABAPGIT_REPO_SRV')=>('GET_INSTANCE')
@@ -1148,6 +1183,8 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
       li_repo_srv TYPE REF TO object, "zif_abapgit_repo_srv,
       li_repo     TYPE REF TO object, "zif_abapgit_repo,
       lx_error    TYPE REF TO cx_root. "zcx_abapgit_exception.
+
+    ASSERT is_tool( ) = abap_true.
 
     TRY.
         CALL METHOD ('ZCL_ABAPGIT_REPO_SRV')=>('GET_INSTANCE')
@@ -1181,20 +1218,21 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
     TRY.
         " Is tool still registered?
-        IF is_bundle( ) IS INITIAL.
-          lo_reg_tool = _get_reg_tool( ms_manifest-name ).
-        ELSE.
-          lo_reg_tool = go_reg_root->get_subentry( ms_manifest-name ).
-        ENDIF.
+        lo_reg_tool = _get_reg( ).
+
         IF lo_reg_tool IS NOT BOUND.
           rv_result = abap_true.
           RETURN.
         ENDIF.
 
         " Get bundle
-        lo_reg_bundle = _get_reg_bundle( ms_manifest-bundle_id ).
-        IF lo_reg_bundle IS NOT BOUND.
-          RETURN. ">>>
+        IF is_tool( ) = abap_true.
+          lo_reg_bundle = _get_reg_bundle( ms_manifest-bundle_id ).
+          IF lo_reg_bundle IS NOT BOUND.
+            RETURN. ">>>
+          ENDIF.
+        ELSE.
+          lo_reg_bundle = go_reg_root.
         ENDIF.
 
         " Remove registry branch
@@ -1237,11 +1275,7 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
       lo_reg_entry TYPE REF TO /mbtools/cl_registry.
 
     " Is tool or bundle registered?
-    IF is_bundle( ) IS INITIAL.
-      lo_reg_tool = _get_reg_tool( ms_manifest-name ).
-    ELSE.
-      lo_reg_tool = go_reg_root->get_subentry( ms_manifest-name ).
-    ENDIF.
+    lo_reg_tool = _get_reg( ).
     CHECK lo_reg_tool IS BOUND.
 
     " Get update
@@ -1292,6 +1326,17 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
     SELECT SINGLE devclass FROM tadir INTO rv_package
       WHERE pgmid = 'R3TR' AND object = 'CLAS' AND obj_name = lv_class.
     ASSERT sy-subrc = 0.
+
+  ENDMETHOD.
+
+
+  METHOD _get_reg.
+
+    IF is_tool( ) = abap_true.
+      ro_result = _get_reg_tool( ms_manifest-name ).
+    ELSE.
+      ro_result = go_reg_root->get_subentry( ms_manifest-name ).
+    ENDIF.
 
   ENDMETHOD.
 

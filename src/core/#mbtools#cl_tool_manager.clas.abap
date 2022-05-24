@@ -64,6 +64,7 @@ CLASS /mbtools/cl_tool_manager DEFINITION
     CLASS-METHODS action_tools
       IMPORTING
         !iv_action       TYPE string
+        !iv_license      TYPE string OPTIONAL
       RETURNING
         VALUE(rv_result) TYPE abap_bool.
     CLASS-METHODS action_bundles
@@ -75,6 +76,7 @@ CLASS /mbtools/cl_tool_manager DEFINITION
     CLASS-METHODS action_passes
       IMPORTING
         !iv_action       TYPE string
+        !iv_license      TYPE string OPTIONAL
       RETURNING
         VALUE(rv_result) TYPE abap_bool.
     CLASS-METHODS install
@@ -240,9 +242,15 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
 
   METHOD action_passes.
 
-    rv_result = action_bundles(
-      iv_action = iv_action
-      iv_passes = abap_true ).
+    IF iv_action = /mbtools/if_actions=>license_add OR iv_action = /mbtools/if_actions=>license_remove.
+      rv_result = action_tools(
+        iv_action  = iv_action
+        iv_license = iv_license ).
+    ELSE.
+      rv_result = action_bundles(
+        iv_action  = iv_action
+        iv_passes  = abap_true ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -292,6 +300,10 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
               lv_result = ls_manifest-manager->activate( ).
             WHEN /mbtools/if_actions=>tool_deactivate.
               lv_result = ls_manifest-manager->deactivate( ).
+            WHEN /mbtools/if_actions=>license_add.
+              lv_result = ls_manifest-manager->license_add( iv_license ).
+            WHEN /mbtools/if_actions=>license_remove.
+              lv_result = ls_manifest-manager->license_remove( ).
             WHEN /mbtools/if_actions=>repo_add_online.
               lv_result = ls_manifest-manager->repo_add_online( ).
             WHEN /mbtools/if_actions=>repo_add_offline.

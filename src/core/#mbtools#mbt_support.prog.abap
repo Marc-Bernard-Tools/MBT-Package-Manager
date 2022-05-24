@@ -40,7 +40,8 @@ SELECTION-SCREEN:
   END OF BLOCK b200,
   BEGIN OF BLOCK b210 WITH FRAME.
 PARAMETERS:
-  p_bund  RADIOBUTTON GROUP g0 DEFAULT 'X' USER-COMMAND all,
+  p_pass  RADIOBUTTON GROUP g0 DEFAULT 'X' USER-COMMAND all,
+  p_bund  RADIOBUTTON GROUP g0,
   p_all   RADIOBUTTON GROUP g0,
   p_sel   RADIOBUTTON GROUP g0,
   p_title TYPE string MEMORY ID /mbtools/tool LOWER CASE.
@@ -95,7 +96,7 @@ SELECTION-SCREEN:
     COMMENT /3(77) scr_t001 FOR FIELD p_title,
     SKIP,
   END OF BLOCK scr_header,
-  BEGIN OF TABBED BLOCK scr_tab FOR 23 LINES,
+  BEGIN OF TABBED BLOCK scr_tab FOR 24 LINES,
     TAB (40) scr_tab2 USER-COMMAND scr_push2 DEFAULT SCREEN 200,
     TAB (40) scr_tab9 USER-COMMAND scr_push9 DEFAULT SCREEN 900,
   END OF BLOCK scr_tab.
@@ -159,7 +160,7 @@ INITIALIZATION.
 
 AT SELECTION-SCREEN.
 
-  IF p_bund = abap_true.
+  IF p_pass = abap_true OR p_bund = abap_true.
     IF p_act = abap_true.
       p_act  = abap_false.
     ENDIF.
@@ -205,7 +206,8 @@ AT SELECTION-SCREEN.
 AT SELECTION-SCREEN OUTPUT.
 
   go_app->initialize( iv_all_bundles = p_bund
-                      iv_all_tools   = p_all ).
+                      iv_all_tools   = p_all
+                      iv_all_passes  = p_pass ).
 
   go_screen->banner( iv_top  = 4
                      iv_left = 20 ).
@@ -242,6 +244,23 @@ START-OF-SELECTION.
       gv_action = 'synchronized'(010).
 
       gv_flag = /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>tool_sync ).
+
+    WHEN p_pass.
+
+      gv_tool = 'Passes were'(023).
+
+      CASE abap_true.
+        WHEN p_reg.
+
+          gv_flag   = /mbtools/cl_tool_manager=>action_passes( /mbtools/if_actions=>tool_register ).
+          gv_action = 'registered'(012).
+
+        WHEN p_unreg.
+
+          gv_flag   = /mbtools/cl_tool_manager=>action_passes( /mbtools/if_actions=>tool_unregister ).
+          gv_action = 'unregistered'(013).
+
+      ENDCASE.
 
     WHEN p_bund.
 
@@ -390,5 +409,5 @@ START-OF-SELECTION.
     MESSAGE gv_msg TYPE 'S'.
   ELSE.
     gv_msg = |Error: { gv_tool } not { gv_action } properly. { gv_msg }|.
-    MESSAGE gv_msg TYPE 'E' DISPLAY LIKE 'I'.
+    MESSAGE gv_msg TYPE 'S' DISPLAY LIKE 'E'.
   ENDIF.

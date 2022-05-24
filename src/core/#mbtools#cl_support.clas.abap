@@ -1,7 +1,7 @@
 CLASS /mbtools/cl_support DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * Marc Bernard Tools - Support
@@ -14,13 +14,16 @@ CLASS /mbtools/cl_support DEFINITION
     METHODS initialize
       IMPORTING
         !iv_all_tools   TYPE abap_bool
-        !iv_all_bundles TYPE abap_bool .
-    METHODS screen .
+        !iv_all_bundles TYPE abap_bool
+        !iv_all_passes  TYPE abap_bool.
+    METHODS screen.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    DATA mv_all_tools TYPE abap_bool .
-    DATA mv_all_bundles TYPE abap_bool .
+    DATA mv_all_tools TYPE abap_bool.
+    DATA mv_all_bundles TYPE abap_bool.
+    DATA mv_all_passes TYPE abap_bool.
 ENDCLASS.
 
 
@@ -32,6 +35,7 @@ CLASS /mbtools/cl_support IMPLEMENTATION.
 
     mv_all_tools = iv_all_tools.
     mv_all_bundles = iv_all_bundles.
+    mv_all_passes = iv_all_passes.
 
   ENDMETHOD.
 
@@ -44,9 +48,9 @@ CLASS /mbtools/cl_support IMPLEMENTATION.
       lv_show = abap_true.
 
       IF screen-name = 'P_TITLE' AND
-        ( mv_all_tools = abap_true OR mv_all_bundles = abap_true ).
+        ( mv_all_tools = abap_true OR mv_all_bundles = abap_true OR mv_all_passes = abap_true ).
         lv_show = abap_false.
-      ELSEIF mv_all_bundles = abap_true AND
+      ELSEIF ( mv_all_bundles = abap_true OR mv_all_passes = abap_true ) AND
         ( screen-name = 'P_ACT' OR screen-name = 'P_DEACT' OR
           screen-name = 'P_ADDONL' OR screen-name = 'P_ADDOFF' OR
           screen-name = 'P_REMOVE' OR
