@@ -230,7 +230,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     DO 3 TIMES.
       TRY.
-          /mbtools/cl_edd=>activate_license(
+          activate_license(
             EXPORTING
               iv_id      = ev_id
               iv_license = iv_license

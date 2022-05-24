@@ -248,8 +248,8 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
         iv_license = iv_license ).
     ELSE.
       rv_result = action_bundles(
-        iv_action  = iv_action
-        iv_passes  = abap_true ).
+        iv_action = iv_action
+        iv_passes = abap_true ).
     ENDIF.
 
   ENDMETHOD.

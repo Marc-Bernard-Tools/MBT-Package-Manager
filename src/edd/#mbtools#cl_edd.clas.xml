@@ -120,6 +120,12 @@
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
+     <CMPNAME>ACTIVATE_PASS</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>Used to remotely activate a license for access pass</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
      <CMPNAME>CHECK_LICENSE</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Used to remotely check if a license key is activated, valid,</DESCRIPT>
