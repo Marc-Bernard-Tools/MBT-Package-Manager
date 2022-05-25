@@ -37,7 +37,7 @@ CLASS /mbtools/cl_setup DEFINITION
     CONSTANTS c_anonym TYPE ssfappl VALUE 'ANONYM' ##NO_TEXT.
     CONSTANTS c_id TYPE ssfid VALUE 'CN=%SID SSL client SSL Client (Standard), OU=%ORG, O=MBT, C=CA' ##NO_TEXT.
     CONSTANTS c_org TYPE string VALUE /mbtools/if_definitions=>c_mbt ##NO_TEXT.
-    CONSTANTS c_subject TYPE string VALUE 'CN=marcbernardtools.com' ##NO_TEXT.
+    CONSTANTS c_subject TYPE string VALUE 'CN=*.marcbernardtools.com' ##NO_TEXT.
     CLASS-DATA go_settings TYPE REF TO /mbtools/cl_registry.
     CLASS-DATA gv_force TYPE abap_bool.
     CLASS-DATA gv_drop TYPE abap_bool.
