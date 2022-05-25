@@ -102,6 +102,7 @@ INTERFACE /mbtools/if_definitions
     ty_files_tt TYPE STANDARD TABLE OF ty_file WITH DEFAULT KEY.
   TYPES:
     BEGIN OF ty_license,
+      id     TYPE string,
       key    TYPE string,
       valid  TYPE abap_bool,
       expire TYPE d,

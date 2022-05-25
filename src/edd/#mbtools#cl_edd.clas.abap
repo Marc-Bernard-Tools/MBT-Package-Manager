@@ -88,6 +88,15 @@ CLASS /mbtools/cl_edd DEFINITION
         !ct_products TYPE ty_products
       RAISING
         /mbtools/cx_exception.
+    CLASS-METHODS activate_pass
+      IMPORTING
+        !iv_license TYPE string
+      EXPORTING
+        !ev_valid   TYPE abap_bool
+        !ev_expire  TYPE d
+        !ev_id      TYPE string
+      RAISING
+        /mbtools/cx_exception.
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -209,6 +218,42 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
     lv_data = lo_json->get_string( '/expires' ) ##NO_TEXT.
 
     ev_expire = lv_data(4) && lv_data+5(2) && lv_data+8(2).
+
+  ENDMETHOD.
+
+
+  METHOD activate_pass.
+
+    " Try activation of different passes to find if one matches
+    " Start with 'highest' and work the way down to 'lowest'
+    ev_id = /mbtools/cl_access_pass=>c_pass-business.
+
+    DO 3 TIMES.
+      TRY.
+          activate_license(
+            EXPORTING
+              iv_id      = ev_id
+              iv_license = iv_license
+            IMPORTING
+              ev_valid   = ev_valid
+              ev_expire  = ev_expire ).
+
+          IF ev_valid = abap_true.
+            EXIT.
+          ENDIF.
+        CATCH /mbtools/cx_exception ##NO_HANDLER.
+      ENDTRY.
+
+      IF ev_id = /mbtools/cl_access_pass=>c_pass-business.
+        ev_id = /mbtools/cl_access_pass=>c_pass-professional.
+      ELSEIF ev_id = /mbtools/cl_access_pass=>c_pass-professional.
+        ev_id = /mbtools/cl_access_pass=>c_pass-starter.
+      ENDIF.
+    ENDDO.
+
+    IF ev_valid = abap_false.
+      ev_id = 0.
+    ENDIF.
 
   ENDMETHOD.
 

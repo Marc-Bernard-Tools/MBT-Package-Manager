@@ -777,7 +777,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     lo_tool = /mbtools/cl_tool_manager=>factory( iv_title ).
 
-    lv_class = 'tool-row'.
+    lv_class = |tool-row { lo_tool->get_slug( ) }|.
     IF lo_tool->is_pass( ) = abap_false AND
        lo_tool->is_bundle( ) = abap_false AND
        lo_tool->is_active( ) = abap_false.
