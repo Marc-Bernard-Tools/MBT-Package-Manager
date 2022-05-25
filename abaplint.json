@@ -86,7 +86,8 @@
         "#mbtools#cl_utilities.clas.abap"
       ],
       "severity": "Error",
-      "statics": true
+      "statics": true,
+      "testSeams": true
     },
     "begin_end_names": {
       "exclude": [],
@@ -240,7 +241,7 @@
       "generateDynpro": true,
       "generateReport": true,
       "generateSubroutine": true,
-      "importDynpro": true,
+      "exportDynpro": true,
       "insertReport": true,
       "kernelCall": true,
       "severity": "Error",
