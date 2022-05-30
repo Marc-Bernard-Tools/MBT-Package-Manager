@@ -8,12 +8,32 @@ and [ISO Date Format](https://www.iso.org/iso-8601-date-and-time-format.html).
 
 ## [Unreleased]
 
-### Added 
+## Version [1.3.0] - 2022-05-30
+
+### Added
+
+- Added support for Access Passes. You can now enter a single Access Pass license which will be valid for all tools.
+- Added Contributor Covenant Code of Conduct
+- Added option to set Authorization header for HTTP requests
+- Added current codepage and endian settings to utility class (used by MBT Command Field)
 
 ### Changed
 
+- Updated REUSE license infos and compliance check
+- Enhanced Readme 
+- Updated linting rules
+- Adjusted support tool for Access Passes
+- Enhanced support tool to create online or offline repositories for installed tools in abapGit
+- Improved check for HTTP return codes 201 and 426
+- Move license key maintenance from Tools to Admin menu
+- Refactor APHP deserializer
+- Bump AJSON to 1.1.4
+- Bump ABAP Logger 
+
 ### Fixed
 
+- Fixed detection of license expiration date
+- Fixed deletion of marcbernardtools.com certificate
 
 ## Version [1.2.0] - 2021-12-08
 
@@ -28,7 +48,8 @@ Launch Release
 Initial Release. For details, see [Features](https://marcbernardtools.com/docs/marc-bernard-tools/features).
 
 
-[Unreleased]: https://github.com/Marc-Bernard-Tools/MBT-Base/compare/1.2.0...main
+[Unreleased]: https://github.com/Marc-Bernard-Tools/MBT-Base/compare/1.3.0...main
+[1.3.0]: https://github.com/Marc-Bernard-Tools/MBT-Base/compare/1.2.0...1.3.0
 [1.2.0]: https://github.com/Marc-Bernard-Tools/MBT-Base/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/Marc-Bernard-Tools/MBT-Base/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/Marc-Bernard-Tools/MBT-Base/releases/tag/1.0.0
