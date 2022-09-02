@@ -1,6 +1,6 @@
 CLASS /mbtools/cl_screen DEFINITION
   PUBLIC
-  CREATE PUBLIC.
+  CREATE PRIVATE.
 
 ************************************************************************
 * Marc Bernard Tools - Screen
@@ -23,14 +23,17 @@ CLASS /mbtools/cl_screen DEFINITION
     CLASS-DATA gv_version TYPE string READ-ONLY.
 
     CLASS-METHODS class_constructor.
+
     METHODS constructor
       IMPORTING
         !iv_title TYPE csequence.
+
     CLASS-METHODS factory
       IMPORTING
         !iv_title        TYPE csequence DEFAULT /mbtools/cl_tool_bc=>c_tool-title
       RETURNING
         VALUE(ro_screen) TYPE REF TO /mbtools/cl_screen.
+
     METHODS init
       EXPORTING
         !ev_text      TYPE ty_screen_field
@@ -42,12 +45,14 @@ CLASS /mbtools/cl_screen DEFINITION
         !ev_tool      TYPE ty_screen_field
         !ev_home      TYPE ty_screen_field
         !ev_lice      TYPE ty_screen_field.
+
     METHODS header
       IMPORTING
         VALUE(iv_icon)   TYPE icon_d
         VALUE(iv_text)   TYPE csequence OPTIONAL
       RETURNING
         VALUE(rv_result) TYPE ty_screen_field.
+
     METHODS icon
       IMPORTING
         VALUE(iv_icon)   TYPE icon_d
@@ -55,28 +60,34 @@ CLASS /mbtools/cl_screen DEFINITION
         VALUE(iv_quick)  TYPE csequence OPTIONAL
       RETURNING
         VALUE(rv_result) TYPE ty_screen_field.
+
     METHODS logo
       IMPORTING
         VALUE(iv_show) TYPE abap_bool DEFAULT abap_true
         VALUE(iv_top)  TYPE i OPTIONAL
         VALUE(iv_left) TYPE i OPTIONAL.
+
     METHODS copyright
       RETURNING
         VALUE(rv_result) TYPE string.
+
     METHODS banner
       IMPORTING
         VALUE(iv_show) TYPE abap_bool DEFAULT abap_true
         VALUE(iv_top)  TYPE i DEFAULT 4
         VALUE(iv_left) TYPE i DEFAULT 20
           PREFERRED PARAMETER iv_show.
+
     METHODS ucomm
       IMPORTING
         VALUE(iv_ok_code) TYPE sy-ucomm.
+
     METHODS toolbar
       IMPORTING
         !iv_dynnr TYPE sy-dynnr
         !iv_cprog TYPE sy-cprog DEFAULT sy-cprog
         !iv_show  TYPE abap_bool DEFAULT abap_false.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -88,6 +99,7 @@ CLASS /mbtools/cl_screen DEFINITION
     CLASS-DATA gv_banner_url TYPE /mbtools/value.
 
     DATA mo_tool TYPE REF TO /mbtools/cl_tool.
+
 ENDCLASS.
 
 
@@ -202,8 +214,7 @@ CLASS /mbtools/cl_screen IMPLEMENTATION.
 
   METHOD icon.
 
-    DATA:
-      lv_info TYPE string.
+    DATA lv_info TYPE string.
 
     IF iv_quick IS INITIAL.
       lv_info = iv_text.
