@@ -1871,7 +1871,9 @@ CLASS ltcl_writer_test DEFINITION FINAL
     METHODS arrays FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS arrays_negative FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS root_assignment FOR TESTING RAISING /mbtools/cx_ajson_error.
-    METHODS set_bool FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS set_bool_abap_bool FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS set_bool_int FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS set_bool_tab FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS set_str FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS set_int FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS set_date FOR TESTING RAISING /mbtools/cx_ajson_error.
@@ -1879,6 +1881,8 @@ CLASS ltcl_writer_test DEFINITION FINAL
     METHODS read_only FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS set_array_obj FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS set_with_type FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS overwrite_w_keep_order_touch FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS overwrite_w_keep_order_set FOR TESTING RAISING /mbtools/cx_ajson_error.
 
     METHODS set_with_type_slice
       IMPORTING
@@ -2569,12 +2573,11 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD set_bool.
+  METHOD set_bool_abap_bool.
 
     DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
     DATA li_writer TYPE REF TO /mbtools/if_ajson.
-    DATA lt_tab TYPE string_table.
 
     " abap_bool
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
@@ -2595,6 +2598,14 @@ CLASS ltcl_writer_test IMPLEMENTATION.
       act = lo_cut->mt_json_tree
       exp = lo_nodes_exp->sorted( ) ).
 
+  ENDMETHOD.
+
+  METHOD set_bool_int.
+
+    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
+    DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
+    DATA li_writer TYPE REF TO /mbtools/if_ajson.
+
     " int
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
@@ -2613,6 +2624,15 @@ CLASS ltcl_writer_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->mt_json_tree
       exp = lo_nodes_exp->sorted( ) ).
+
+  ENDMETHOD.
+
+  METHOD set_bool_tab.
+
+    DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
+    DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
+    DATA li_writer TYPE REF TO /mbtools/if_ajson.
+    DATA lt_tab TYPE string_table.
 
     " tab
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
@@ -2890,6 +2910,86 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD overwrite_w_keep_order_set.
+
+    DATA li_cut TYPE REF TO /mbtools/if_ajson.
+    DATA:
+      BEGIN OF ls_dummy,
+        b TYPE i,
+        a TYPE i,
+      END OF ls_dummy.
+
+    li_cut = /mbtools/cl_ajson=>create_empty(
+      )->set(
+      iv_ignore_empty = abap_false
+      iv_path = '/'
+      iv_val  = ls_dummy ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"a":0,"b":0}' ). " ordered by path, name
+
+    li_cut = /mbtools/cl_ajson=>create_empty(
+      )->keep_item_order(
+      )->set(
+      iv_ignore_empty = abap_false
+      iv_path = '/'
+      iv_val  = ls_dummy ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"b":0,"a":0}' ). " ordered by structure order
+
+    li_cut->set(
+      iv_path  = '/a'
+      iv_val   = 1 ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"b":0,"a":1}' ). " still ordered after overwrite
+
+  ENDMETHOD.
+
+  METHOD overwrite_w_keep_order_touch.
+
+    DATA li_cut TYPE REF TO /mbtools/if_ajson.
+    DATA:
+      BEGIN OF ls_dummy,
+        b TYPE i,
+        a TYPE string_table,
+      END OF ls_dummy.
+
+    li_cut = /mbtools/cl_ajson=>create_empty(
+      )->set(
+      iv_ignore_empty = abap_false
+      iv_path = '/'
+      iv_val  = ls_dummy ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"a":[],"b":0}' ). " ordered by path, name
+
+    li_cut = /mbtools/cl_ajson=>create_empty(
+      )->keep_item_order(
+      )->set(
+      iv_ignore_empty = abap_false
+      iv_path = '/'
+      iv_val  = ls_dummy ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"b":0,"a":[]}' ). " ordered by structure order
+
+    li_cut->touch_array(
+      iv_path  = '/a'
+      iv_clear = abap_true ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"b":0,"a":[]}' ). " still ordered after touch with clear
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 
@@ -2935,6 +3035,7 @@ CLASS ltcl_integrated DEFINITION
     METHODS item_order_integrated FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS chaining FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS push_json FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS is_empty FOR TESTING RAISING /mbtools/cx_ajson_error.
 
 ENDCLASS.
 
@@ -3237,6 +3338,22 @@ CLASS ltcl_integrated IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = lv_act
       exp = lv_exp ).
+
+  ENDMETHOD.
+
+  METHOD is_empty.
+
+    DATA li_cut TYPE REF TO /mbtools/if_ajson.
+
+    li_cut = /mbtools/cl_ajson=>create_empty( ).
+
+    cl_abap_unit_assert=>assert_true( li_cut->is_empty( ) ).
+
+    li_cut->set(
+      iv_path = '/x'
+      iv_val  = '123' ).
+
+    cl_abap_unit_assert=>assert_false( li_cut->is_empty( ) ).
 
   ENDMETHOD.
 
