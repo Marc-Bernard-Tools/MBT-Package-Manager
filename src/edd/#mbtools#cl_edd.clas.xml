@@ -113,73 +113,61 @@
    </TPOOL>
    <DESCRIPTIONS>
     <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
      <CMPNAME>ACTIVATE_LICENSE</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Used to remotely activate a license key</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
      <CMPNAME>ACTIVATE_PASS</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Used to remotely activate a license for access pass</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
      <CMPNAME>CHECK_LICENSE</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Used to remotely check if a license key is activated, valid,</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
      <CMPNAME>CLASS_CONSTRUCTOR</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Initialize EDD API</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
      <CMPNAME>DEACTIVATE_LICENSE</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Used to remotely deactivate a license key</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
      <CMPNAME>GET_VERSION</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Used to remotely retrieve the latest version information</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
      <CMPNAME>GET_VERSIONS</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Used to remotely retrieve the latest version information</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
      <CMPNAME>_ADJUST_HTML</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Adjust HTML</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
      <CMPNAME>_GET_DATA</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Get response from API endpoint</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
      <CMPNAME>_GET_ENDPOINT</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Get API endpoint</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
      <CMPNAME>_GET_ENDPOINT_PRODUCTS</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Get API endpoint for multiple products</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
-     <CLSNAME>/MBTOOLS/CL_EDD</CLSNAME>
      <CMPNAME>_GET_JSON</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Get JSON from response</DESCRIPT>
