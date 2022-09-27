@@ -3,7 +3,7 @@ REPORT /mbtools/mbt.
 ************************************************************************
 * Marc Bernard Tools
 *
-* Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+* Copyright: 2021 Marc Bernard <https://marcbernardtools.com/>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
