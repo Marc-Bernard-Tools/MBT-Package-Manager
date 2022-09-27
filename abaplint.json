@@ -33,7 +33,9 @@
     },
     "abapdoc": {
       "checkLocal": false,
+      "classDefinition": false,
       "exclude": [".*"],
+      "interfaceDefinition": false,
       "severity": "Error"
     },
     "align_parameters": {
@@ -689,12 +691,15 @@
     "obsolete_statement": {
       "add": true,
       "callTransformation": true,
+      "clientSpecified": true,
       "communication": true,
       "compute": true,
       "divide": true,
       "exclude": [],
       "exitFromSQL": true,
       "fieldSymbolStructure": true,
+      "formDefinition": false,
+      "formImplementation": false,
       "freeMemory": true,
       "load": true,
       "move": true,
@@ -825,6 +830,7 @@
       "ignorePatterns": [],
       "parameter": "^P_.+$",
       "patternKind": "required",
+      "screenElement": "^SCR_.+$",
       "selectOption": "^S_.+$",
       "severity": "Error"
     },
