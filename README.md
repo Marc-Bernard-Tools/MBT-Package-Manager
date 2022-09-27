@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/github/license/Marc-Bernard-Tools/MBT-Base?label=License&color=green)](LICENSE)
 [![REUSE Status](https://api.reuse.software/badge/github.com/Marc-Bernard-Tools/MBT-Base)](https://api.reuse.software/info/github.com/Marc-Bernard-Tools/MBT-Base)
-[![ClearlyDefined Score](https://img.shields.io/clearlydefined/score/git/github/marc-bernard-tools/MBT-Base/33dfe96cdf4917c6a2dd9d3c1785d6f9cdb60409?label=ClearlyDefined%20Score)](https://clearlydefined.io/definitions/git/github/marc-bernard-tools/MBT-Base/33dfe96cdf4917c6a2dd9d3c1785d6f9cdb60409)
+[![ClearlyDefined Score](https://img.shields.io/clearlydefined/score/git/github/marc-bernard-tools/MBT-Base/c4e7aa775198ea0c43e1e1c5f47ea6481972a474?label=ClearlyDefined%20Score)](https://clearlydefined.io/definitions/git/github/marc-bernard-tools/MBT-Base/c4e7aa775198ea0c43e1e1c5f47ea6481972a474)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg?color=green)](CODE_OF_CONDUCT.md)
 
 # MBT Base
