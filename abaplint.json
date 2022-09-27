@@ -792,7 +792,9 @@
       "severity": "Error"
     },
     "reduce_string_templates": {
-      "exclude": [],
+      "exclude": [
+        "#mbtools#cl_gui_page_about.*"
+      ],
       "severity": "Error"
     },
     "release_idoc": {
@@ -830,7 +832,7 @@
       "ignorePatterns": [],
       "parameter": "^P_.+$",
       "patternKind": "required",
-      "screenElement": "^SCR_.+$",
+      "screenElement": "^SC_.+$",
       "selectOption": "^S_.+$",
       "severity": "Error"
     },
