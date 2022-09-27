@@ -24,9 +24,9 @@ REPORT /mbtools/mbt_switch_all.
 * Main
 SELECTION-SCREEN:
   BEGIN OF BLOCK b100 WITH FRAME,
-    COMMENT /1(77) scr_t100,
+    COMMENT /1(77) sc_t100,
     SKIP,
-    COMMENT /1(77) scr_t101,
+    COMMENT /1(77) sc_t101,
   END OF BLOCK b100.
 SELECTION-SCREEN BEGIN OF BLOCK b200 WITH FRAME.
 PARAMETERS:
@@ -47,8 +47,8 @@ FIELD-SYMBOLS:
 
 INITIALIZATION.
 
-  scr_t100 = 'Marc Bernard Tools'.
-  scr_t101 = 'This program will switch all MBT enhancement implementations on or off.'.
+  sc_t100 = 'Marc Bernard Tools'.
+  sc_t101 = 'This program will switch all MBT enhancement implementations on or off.'.
 
 START-OF-SELECTION.
 
