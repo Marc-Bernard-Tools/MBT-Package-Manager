@@ -1,0 +1,5 @@
+{
+    "[abap]": {
+        "editor.formatOnSave": false
+    }
+}

@@ -3,7 +3,7 @@ REPORT /mbtools/mbt_installer.
 ************************************************************************
 * Marc Bernard Tools - Installer
 *
-* Copyright (c) 2014 abapGit Contributors
+* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -37149,7 +37149,7 @@ INITIALIZATION.
 
   scr_t900 = |{ c_title }|.
   scr_t901 = |Version { c_version }|.
-  scr_t902 = |Copyright (c) { sy-datum(4) } Marc Bernard Tools|.
+  scr_t902 = |Copy| && |right 2021 Marc Bernard <https://marcbernardtools.com/>|.
 
   b_docu = zcl_abapinst_screen=>icon( iv_name = icon_system_extended_help
                                       iv_text = 'Documentation'
