@@ -20,19 +20,19 @@ Copyright: 2020 The Open Sans Project Authors <https://github.com/googlefonts/op
 License: OFL-1.1
 
 Files: src/http/*
-Copyright: 2014 abapGit Contributors <https://github.com/abapGit/abapGit>
+Copyright: 2014 abapGit Contributors <https://abapgit.org>
 License: MIT
 
 Files: src/inst/*
-Copyright: 2014 abapGit Contributors <https://github.com/abapGit/abapGit>
+Copyright: 2014 abapGit Contributors <https://abapgit.org>
 License: MIT
 
 Files: src/ui/*
-Copyright: 2014 abapGit Contributors <https://github.com/abapGit/abapGit>
+Copyright: 2014 abapGit Contributors <https://abapgit.org>
 License: MIT
 
 Files: src/utils/*
-Copyright: 2014 abapGit Contributors <https://github.com/abapGit/abapGit>
+Copyright: 2014 abapGit Contributors <https://abapgit.org>
 License: MIT
 
 Files: src/json/* scripts/*ajson*
@@ -52,5 +52,5 @@ Copyright: 2015 Martin Ceronio <https://ceronio.net/>
 License: MIT
 
 Files: installer/*
-Copyright: 2014 abapGit Contributors <https://github.com/abapGit/abapGit>
+Copyright: 2014 abapGit Contributors <https://abapgit.org/>
 License: MIT
