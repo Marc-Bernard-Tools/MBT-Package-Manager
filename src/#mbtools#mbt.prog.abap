@@ -36,17 +36,17 @@ SELECTION-SCREEN END OF SCREEN 1001.
 *-----------------------------------------------------------------------
 * Password Screen
 *-----------------------------------------------------------------------
-SELECTION-SCREEN BEGIN OF SCREEN 1002 TITLE s_title.
+SELECTION-SCREEN BEGIN OF SCREEN 1002 TITLE sc_title.
 SELECTION-SCREEN BEGIN OF LINE.
-SELECTION-SCREEN COMMENT 1(10) s_url FOR FIELD p_url.
+SELECTION-SCREEN COMMENT 1(10) sc_url FOR FIELD p_url.
 PARAMETERS: p_url TYPE char255 LOWER CASE VISIBLE LENGTH 70 ##SEL_WRONG.
 SELECTION-SCREEN END OF LINE.
 SELECTION-SCREEN BEGIN OF LINE.
-SELECTION-SCREEN COMMENT 1(10) s_user FOR FIELD p_user.
+SELECTION-SCREEN COMMENT 1(10) sc_user FOR FIELD p_user.
 PARAMETERS: p_user TYPE char255 LOWER CASE VISIBLE LENGTH 70 ##SEL_WRONG.
 SELECTION-SCREEN END OF LINE.
 SELECTION-SCREEN BEGIN OF LINE.
-SELECTION-SCREEN COMMENT 1(10) s_pass FOR FIELD p_pass.
+SELECTION-SCREEN COMMENT 1(10) sc_pass FOR FIELD p_pass.
 PARAMETERS: p_pass TYPE char255 LOWER CASE VISIBLE LENGTH 70 ##SEL_WRONG.
 SELECTION-SCREEN END OF LINE.
 SELECTION-SCREEN END OF SCREEN 1002.
@@ -154,7 +154,7 @@ CLASS lcl_main IMPLEMENTATION.
     p_user     = cv_user.
     gv_confirm = abap_false.
 
-    CONCATENATE s_title iv_url INTO s_title SEPARATED BY space.
+    CONCATENATE sc_title iv_url INTO sc_title SEPARATED BY space.
 
     CALL SELECTION-SCREEN c_dynnr-password STARTING AT 5 5 ENDING AT 60 8.
 
@@ -171,10 +171,10 @@ CLASS lcl_main IMPLEMENTATION.
 
   METHOD password_screen_init.
 
-    s_title = 'Login'(001).
-    s_url   = 'URL'(002).
-    s_user  = 'User'(003).
-    s_pass  = 'Password'(004).
+    sc_title = 'Login'(001).
+    sc_url   = 'URL'(002).
+    sc_user  = 'User'(003).
+    sc_pass  = 'Password'(004).
 
   ENDMETHOD.
 
