@@ -6,7 +6,7 @@ CLASS /mbtools/cl_login_manager DEFINITION
 ************************************************************************
 * Marc Bernard Tools - Login Manager
 *
-* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* Copyright 2014 abapGit Contributors <http://abapgit.org>
 * SPDX-License-Identifier: MIT
 ************************************************************************
   PUBLIC SECTION.

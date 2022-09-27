@@ -4,7 +4,7 @@ INTERFACE /mbtools/if_gui_services
 ************************************************************************
 * Marc Bernard Tools - GUI Services
 *
-* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* Copyright 2014 abapGit Contributors <http://abapgit.org>
 * SPDX-License-Identifier: MIT
 ************************************************************************
   METHODS cache_asset

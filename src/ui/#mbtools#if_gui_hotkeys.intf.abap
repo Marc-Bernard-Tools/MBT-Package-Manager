@@ -4,7 +4,7 @@ INTERFACE /mbtools/if_gui_hotkeys
 ************************************************************************
 * Marc Bernard Tools - GUI Hotkey Definitions
 *
-* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* Copyright 2014 abapGit Contributors <http://abapgit.org>
 * SPDX-License-Identifier: MIT
 ************************************************************************
   TYPES:

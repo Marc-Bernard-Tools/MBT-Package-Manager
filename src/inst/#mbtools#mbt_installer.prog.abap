@@ -3,7 +3,7 @@ REPORT /mbtools/mbt_installer.
 ************************************************************************
 * Marc Bernard Tools - Installer
 *
-* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* Copyright 2014 abapGit Contributors <http://abapgit.org>
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal

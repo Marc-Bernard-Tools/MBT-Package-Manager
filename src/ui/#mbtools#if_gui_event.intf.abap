@@ -4,7 +4,7 @@ INTERFACE /mbtools/if_gui_event
 ************************************************************************
 * Marc Bernard Tools - GUI Event
 *
-* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* Copyright 2014 abapGit Contributors <http://abapgit.org>
 * SPDX-License-Identifier: MIT
 ************************************************************************
   DATA mv_action TYPE string READ-ONLY.

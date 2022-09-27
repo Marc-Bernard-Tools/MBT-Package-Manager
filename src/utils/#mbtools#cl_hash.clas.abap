@@ -5,7 +5,7 @@ CLASS /mbtools/cl_hash DEFINITION
 ************************************************************************
 * Marc Bernard Tools - Hash Functions
 *
-* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* Copyright 2014 abapGit Contributors <http://abapgit.org>
 * SPDX-License-Identifier: MIT
 ************************************************************************
   PUBLIC SECTION.

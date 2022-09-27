@@ -6,7 +6,7 @@ CLASS /mbtools/cl_gui_component DEFINITION
 ************************************************************************
 * Marc Bernard Tools - GUI Component
 *
-* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* Copyright 2014 abapGit Contributors <http://abapgit.org>
 * SPDX-License-Identifier: MIT
 ************************************************************************
   PUBLIC SECTION.

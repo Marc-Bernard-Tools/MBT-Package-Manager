@@ -5,7 +5,7 @@ CLASS /mbtools/cl_exception_viewer DEFINITION
 ************************************************************************
 * Marc Bernard Tools - Exception Viewer
 *
-* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* Copyright 2014 abapGit Contributors <http://abapgit.org>
 * SPDX-License-Identifier: MIT
 ************************************************************************
   PUBLIC SECTION.

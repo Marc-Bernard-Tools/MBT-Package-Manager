@@ -6,7 +6,7 @@ CLASS /mbtools/cl_gui_asset_manager DEFINITION
 ************************************************************************
 * Marc Bernard Tools - GUI Asset Manager
 *
-* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* Copyright 2014 abapGit Contributors <http://abapgit.org>
 * SPDX-License-Identifier: MIT
 ************************************************************************
   PUBLIC SECTION.

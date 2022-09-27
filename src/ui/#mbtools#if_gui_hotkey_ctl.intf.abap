@@ -4,7 +4,7 @@ INTERFACE /mbtools/if_gui_hotkey_ctl
 ************************************************************************
 * Marc Bernard Tools - GUI Hotkey Controller
 *
-* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* Copyright 2014 abapGit Contributors <http://abapgit.org>
 * SPDX-License-Identifier: MIT
 ************************************************************************
   METHODS register_hotkeys

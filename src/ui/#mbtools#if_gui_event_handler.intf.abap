@@ -4,7 +4,7 @@ INTERFACE /mbtools/if_gui_event_handler
 ************************************************************************
 * Marc Bernard Tools - GUI Error Handler
 *
-* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* Copyright 2014 abapGit Contributors <http://abapgit.org>
 * SPDX-License-Identifier: MIT
 ************************************************************************
   TYPES:

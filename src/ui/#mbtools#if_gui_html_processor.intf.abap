@@ -4,7 +4,7 @@ INTERFACE /mbtools/if_gui_html_processor
 ************************************************************************
 * Marc Bernard Tools - GUI HTML Processor
 *
-* Copyright 2014 abapGit Contributors <http://www.abapgit.org>
+* Copyright 2014 abapGit Contributors <http://abapgit.org>
 * SPDX-License-Identifier: MIT
 ************************************************************************
   METHODS process
