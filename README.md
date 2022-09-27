@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/github/license/Marc-Bernard-Tools/MBT-Base?label=License&color=green)](LICENSE)
 [![REUSE Status](https://api.reuse.software/badge/github.com/Marc-Bernard-Tools/MBT-Base)](https://api.reuse.software/info/github.com/Marc-Bernard-Tools/MBT-Base)
-[![ClearlyDefined Score](https://img.shields.io/clearlydefined/score/git/github/marc-bernard-tools/MBT-Base/c4e7aa775198ea0c43e1e1c5f47ea6481972a474?label=ClearlyDefined%20Score)](https://clearlydefined.io/definitions/git/github/marc-bernard-tools/MBT-Base/c4e7aa775198ea0c43e1e1c5f47ea6481972a474)
+[![ClearlyDefined Score](https://img.shields.io/clearlydefined/score/git/github/marc-bernard-tools/MBT-Base/2e3180c62c308ce3434079e771302b324c1c2513?label=ClearlyDefined%20Score)](https://clearlydefined.io/definitions/git/github/marc-bernard-tools/MBT-Base/2e3180c62c308ce3434079e771302b324c1c2513)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg?color=green)](CODE_OF_CONDUCT.md)
 
 # MBT Base
@@ -26,7 +26,10 @@ All contributions are welcome! Just fork this repo and create a pull request.
 
 ## About
 
-<p>Made with :heart: in Canada</p>
-<p>Copyright 2021 Marc Bernard <https://marcbernardtools.com/></p>
-<p>Follow <a href="https://twitter.com/marcfbe">@marcfbe</a> on Twitter</p>
+Made with :heart: in Canada
+
+Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+
+Follow [@marcfbe](https://twitter.com/marcfbe) on Twitter
+
 <p><a href="https://marcbernardtools.com/"><img width="160" height="65" src="https://marcbernardtools.com/info/MBT_Logo_640x250_on_Gray.png" alt="MBT Logo"></a></p>
