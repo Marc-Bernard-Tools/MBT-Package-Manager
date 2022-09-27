@@ -36073,8 +36073,7 @@ CLASS zcl_abapinst_screen IMPLEMENTATION.
 
   METHOD copyright.
     " Avoid scan by ClearlyDefined
-    rv_copyright = 'Copyright (c)'.
-    rv_copyright = rv_copyright && | { sy-datum(4) } Marc Bernard Tools|.
+    rv_copyright = |Copy| && |right 2021 Marc Bernard <https://marcbernardtools.com/>|.
   ENDMETHOD.
 
 
