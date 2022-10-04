@@ -90,7 +90,7 @@ CLASS lcl_main IMPLEMENTATION.
 
   METHOD main_screen_init.
 
-    CREATE OBJECT go_screen EXPORTING iv_title = /mbtools/cl_tool_bc=>c_tool-title.
+    /mbtools/cl_screen=>factory( ).
 
     go_screen->toolbar( c_dynnr-main ).
 
