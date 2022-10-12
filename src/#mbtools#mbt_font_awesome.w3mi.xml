@@ -6,20 +6,14 @@
    <TEXT>MBT Font Awesome</TEXT>
    <PARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_FONT_AWESOME</OBJID>
      <NAME>fileextension</NAME>
      <VALUE>.woff2</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_FONT_AWESOME</OBJID>
      <NAME>filename</NAME>
      <VALUE>fa-solid-900.woff2</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_FONT_AWESOME</OBJID>
      <NAME>mimetype</NAME>
      <VALUE>application/x-font-woff</VALUE>
     </WWWPARAMS>

@@ -6,20 +6,14 @@
    <TEXT>MBT Installer</TEXT>
    <PARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_INSTALLER</OBJID>
      <NAME>fileextension</NAME>
      <VALUE>.png</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_INSTALLER</OBJID>
      <NAME>filename</NAME>
      <VALUE>MBT_Installer.png</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_INSTALLER</OBJID>
      <NAME>mimetype</NAME>
      <VALUE>image/png</VALUE>
     </WWWPARAMS>

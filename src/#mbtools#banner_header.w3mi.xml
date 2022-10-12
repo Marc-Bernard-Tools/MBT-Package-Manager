@@ -6,20 +6,14 @@
    <TEXT>MBT Banner (Header)</TEXT>
    <PARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/BANNER_HEADER</OBJID>
      <NAME>fileextension</NAME>
      <VALUE>.png</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/BANNER_HEADER</OBJID>
      <NAME>filename</NAME>
      <VALUE>MBT_Banner_Top.png</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/BANNER_HEADER</OBJID>
      <NAME>mimetype</NAME>
      <VALUE>image/png</VALUE>
     </WWWPARAMS>

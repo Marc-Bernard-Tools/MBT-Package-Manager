@@ -6,20 +6,14 @@
    <TEXT>MBT Font Open Sans</TEXT>
    <PARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_FONT_OPEN_SANS</OBJID>
      <NAME>fileextension</NAME>
      <VALUE>.woff2</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_FONT_OPEN_SANS</OBJID>
      <NAME>filename</NAME>
      <VALUE>opensans.woff2</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_FONT_OPEN_SANS</OBJID>
      <NAME>mimetype</NAME>
      <VALUE>application/x-font-woff</VALUE>
     </WWWPARAMS>

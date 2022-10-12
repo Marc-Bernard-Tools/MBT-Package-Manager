@@ -6,20 +6,14 @@
    <TEXT>MBT Background</TEXT>
    <PARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/BACKGROUND</OBJID>
      <NAME>fileextension</NAME>
      <VALUE>.jpg</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/BACKGROUND</OBJID>
      <NAME>filename</NAME>
      <VALUE>MBT_Background.jpg</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/BACKGROUND</OBJID>
      <NAME>mimetype</NAME>
      <VALUE>image/jpeg</VALUE>
     </WWWPARAMS>

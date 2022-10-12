@@ -6,20 +6,14 @@
    <TEXT>MBT Tool Manager</TEXT>
    <PARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_TOOL_MANAGER</OBJID>
      <NAME>fileextension</NAME>
      <VALUE>.png</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_TOOL_MANAGER</OBJID>
      <NAME>filename</NAME>
      <VALUE>MBT_Tool_Manager.png</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_TOOL_MANAGER</OBJID>
      <NAME>mimetype</NAME>
      <VALUE>image/png</VALUE>
     </WWWPARAMS>

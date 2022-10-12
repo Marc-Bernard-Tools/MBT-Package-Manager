@@ -6,20 +6,14 @@
    <TEXT>MBT Font Righteous</TEXT>
    <PARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_FONT_RIGHTEOUS</OBJID>
      <NAME>fileextension</NAME>
      <VALUE>.woff2</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_FONT_RIGHTEOUS</OBJID>
      <NAME>filename</NAME>
      <VALUE>righteous.woff2</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_FONT_RIGHTEOUS</OBJID>
      <NAME>mimetype</NAME>
      <VALUE>application/x-font-woff</VALUE>
     </WWWPARAMS>

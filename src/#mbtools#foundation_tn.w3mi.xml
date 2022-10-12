@@ -6,20 +6,14 @@
    <TEXT>MBT Foundation (Thumbnail)</TEXT>
    <PARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/FOUNDATION_TN</OBJID>
      <NAME>fileextension</NAME>
      <VALUE>.jpg</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/FOUNDATION_TN</OBJID>
      <NAME>filename</NAME>
      <VALUE>MBT_Free_Version_TN.jpg</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/FOUNDATION_TN</OBJID>
      <NAME>mimetype</NAME>
      <VALUE>image/jpeg</VALUE>
     </WWWPARAMS>

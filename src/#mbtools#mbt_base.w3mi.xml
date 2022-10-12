@@ -6,20 +6,14 @@
    <TEXT>MBT Base</TEXT>
    <PARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_BASE</OBJID>
      <NAME>fileextension</NAME>
      <VALUE>.png</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_BASE</OBJID>
      <NAME>filename</NAME>
      <VALUE>MBT_Marc_Bernard_Tools.png</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_BASE</OBJID>
      <NAME>mimetype</NAME>
      <VALUE>image/png</VALUE>
     </WWWPARAMS>

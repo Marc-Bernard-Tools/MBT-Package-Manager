@@ -6,20 +6,14 @@
    <TEXT>MBT Access Pass (Thumbnail)</TEXT>
    <PARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/ACCESS_PASS_TN</OBJID>
      <NAME>fileextension</NAME>
      <VALUE>.jpg</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/ACCESS_PASS_TN</OBJID>
      <NAME>filename</NAME>
      <VALUE>MBT_Access_Pass_TN.jpg</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/ACCESS_PASS_TN</OBJID>
      <NAME>mimetype</NAME>
      <VALUE>image/jpeg</VALUE>
     </WWWPARAMS>

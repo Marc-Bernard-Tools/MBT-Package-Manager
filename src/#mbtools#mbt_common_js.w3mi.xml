@@ -6,20 +6,14 @@
    <TEXT>MBT Common JS</TEXT>
    <PARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_COMMON_JS</OBJID>
      <NAME>fileextension</NAME>
      <VALUE>.js</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_COMMON_JS</OBJID>
      <NAME>filename</NAME>
      <VALUE>~wwwtmp.js</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_COMMON_JS</OBJID>
      <NAME>mimetype</NAME>
      <VALUE>text/javascript</VALUE>
     </WWWPARAMS>

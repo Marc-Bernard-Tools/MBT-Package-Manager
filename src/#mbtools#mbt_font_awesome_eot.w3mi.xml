@@ -6,20 +6,14 @@
    <TEXT>MBT Font Awesome</TEXT>
    <PARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_FONT_AWESOME_EOT</OBJID>
      <NAME>fileextension</NAME>
      <VALUE>.eot</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_FONT_AWESOME_EOT</OBJID>
      <NAME>filename</NAME>
      <VALUE>fa-solid-900.eot</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
-     <RELID>MI</RELID>
-     <OBJID>/MBTOOLS/MBT_FONT_AWESOME_EOT</OBJID>
      <NAME>mimetype</NAME>
      <VALUE>application/vnd.ms-fontobject</VALUE>
     </WWWPARAMS>
