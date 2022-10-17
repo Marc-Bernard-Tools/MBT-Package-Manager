@@ -90,7 +90,7 @@ CLASS lcl_main IMPLEMENTATION.
 
   METHOD main_screen_init.
 
-    /mbtools/cl_screen=>factory( ).
+    go_screen = /mbtools/cl_screen=>factory( ).
 
     go_screen->toolbar( c_dynnr-main ).
 
