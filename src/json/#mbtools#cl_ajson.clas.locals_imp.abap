@@ -608,6 +608,7 @@ CLASS lcl_json_to_abap DEFINITION FINAL.
 
     METHODS constructor
       IMPORTING
+        !iv_corresponding  TYPE abap_bool DEFAULT abap_false
         !ii_custom_mapping TYPE REF TO /mbtools/if_ajson_mapping OPTIONAL.
 
     METHODS to_abap
@@ -648,6 +649,7 @@ CLASS lcl_json_to_abap DEFINITION FINAL.
 
     DATA mr_nodes TYPE REF TO /mbtools/if_ajson=>ty_nodes_ts.
     DATA mi_custom_mapping TYPE REF TO /mbtools/if_ajson_mapping.
+    DATA mv_corresponding TYPE abap_bool.
 
     METHODS any_to_abap
       IMPORTING
@@ -682,6 +684,7 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
 
   METHOD constructor.
     mi_custom_mapping = ii_custom_mapping.
+    mv_corresponding  = iv_corresponding.
   ENDMETHOD.
 
   METHOD to_abap.
@@ -748,7 +751,12 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
             EXCEPTIONS
               component_not_found = 4 ).
           IF sy-subrc <> 0.
-            /mbtools/cx_ajson_error=>raise( |Path not found| ).
+            IF mv_corresponding = abap_false.
+              /mbtools/cx_ajson_error=>raise( |Path not found| ).
+            ELSE.
+              CLEAR rs_node_type.
+              RETURN.
+            ENDIF.
           ENDIF.
 
         WHEN ''. " Root node
@@ -814,9 +822,15 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
         " Get or create type cache record
           IF is_parent_type-type_kind <> lif_kind=>table OR ls_node_type-type_kind IS INITIAL.
           " table records are the same, no need to refetch twice
+
             ls_node_type = get_node_type(
               is_node        = <n>
               is_parent_type = is_parent_type ).
+
+            IF mv_corresponding = abap_true AND ls_node_type IS INITIAL.
+              CONTINUE.
+            ENDIF.
+
           ENDIF.
 
         " Validate node type
@@ -1034,11 +1048,13 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
         /mbtools/cx_ajson_error=>raise( 'Unexpected error calculating timestamp' ).
     ENDTRY.
 
-    cl_abap_tstmp=>move(
-      EXPORTING
-        tstmp_src = lv_timestamp
-      IMPORTING
-        tstmp_tgt = rv_result ).
+    IF lv_timestamp IS NOT INITIAL.
+      cl_abap_tstmp=>move(
+        EXPORTING
+          tstmp_src = lv_timestamp
+        IMPORTING
+          tstmp_tgt = rv_result ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -1335,20 +1351,13 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
     DATA lv_date TYPE d.
     DATA lv_time TYPE t.
 
-    IF iv_ts IS INITIAL.
-      " The zero value is January 1, year 1, 00:00:00.000000000 UTC.
-      lv_date = '00010101'.
-    ELSE.
-
-      CONVERT TIME STAMP iv_ts TIME ZONE lc_utc
-        INTO DATE lv_date TIME lv_time.
-
-    ENDIF.
+    CONVERT TIME STAMP iv_ts TIME ZONE lc_utc
+      INTO DATE lv_date TIME lv_time.
 
     rv_str =
       lv_date+0(4) && '-' && lv_date+4(2) && '-' && lv_date+6(2) &&
       'T' &&
-      lv_time+0(2) && '-' && lv_time+2(2) && '-' && lv_time+4(2) &&
+      lv_time+0(2) && ':' && lv_time+2(2) && ':' && lv_time+4(2) &&
       'Z'.
 
   ENDMETHOD.

@@ -21,6 +21,7 @@ CLASS /mbtools/cl_ajson_filter_lib DEFINITION
       IMPORTING
         !it_skip_paths TYPE string_table OPTIONAL
         !iv_skip_paths TYPE string OPTIONAL
+        !iv_pattern_search TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(ri_filter) TYPE REF TO /mbtools/if_ajson_filter
       RAISING
@@ -57,6 +58,7 @@ CLASS /mbtools/cl_ajson_filter_lib IMPLEMENTATION.
   METHOD create_path_filter.
     CREATE OBJECT ri_filter TYPE lcl_paths_filter
       EXPORTING
+        iv_pattern_search = iv_pattern_search
         it_skip_paths = it_skip_paths
         iv_skip_paths = iv_skip_paths.
   ENDMETHOD.

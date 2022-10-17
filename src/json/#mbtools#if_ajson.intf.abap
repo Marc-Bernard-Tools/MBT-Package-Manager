@@ -44,6 +44,12 @@ INTERFACE /mbtools/if_ajson
       path TYPE string,
       name TYPE string,
     END OF ty_path_name.
+  TYPES:
+    BEGIN OF ty_opts,
+      read_only TYPE abap_bool,
+      keep_item_order TYPE abap_bool,
+      format_datetime TYPE abap_bool,
+    END OF ty_opts.
 
   " DATA
 
@@ -60,6 +66,9 @@ INTERFACE /mbtools/if_ajson
       iv_use_iso TYPE abap_bool DEFAULT abap_true
     RETURNING
       VALUE(ri_json) TYPE REF TO /mbtools/if_ajson.
+  METHODS opts
+    RETURNING
+      VALUE(rs_opts) TYPE ty_opts.
 
   " METHODS ex.reader
 
