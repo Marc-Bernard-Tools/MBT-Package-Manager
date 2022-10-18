@@ -1,4 +1,6 @@
-## General advice
+# Contribution Guidelines
+
+## General Advice
 
 * If you're new and want to help out, see if there are "good first issues" listed [here](https://github.com/Marc-Bernard-Tools/MBT-Base/issues). They should not be complicated to implement but require you to get the project up and running. Or pick something that annoys you. Fix a typo. Improve an error message. Or try something unusual just to see if it works and if it doesn't, open an issue.
 
