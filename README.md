@@ -22,7 +22,7 @@ Use the [MBT Installer](https://marcbernardtools.com/downloads/mbt-installer/) t
 
 ## Contributions
 
-All contributions are welcome! Just fork this repo and create a pull request. 
+All contributions are welcome! Read our [Contribution Guidelines](CONTRIBUTING.md), fork this repo, and create a pull request.
 
 ## About
 
