@@ -8,7 +8,7 @@ CLASS /mbtools/cl_gui_page_about DEFINITION
 * Marc Bernard Tools - GUI Page About
 *
 * Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
-* SPDX-License-Identifier: GPL-3.0-or-later
+* SPDX-License-Identifier: GPL-3.0-only
 ************************************************************************
   PUBLIC SECTION.
 

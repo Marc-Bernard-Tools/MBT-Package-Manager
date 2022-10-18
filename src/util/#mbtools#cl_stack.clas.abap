@@ -10,7 +10,7 @@ CLASS /mbtools/cl_stack DEFINITION
 * by Jacques Nomssi Nzali
 *
 * Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
-* SPDX-License-Identifier: GPL-3.0-or-later
+* SPDX-License-Identifier: GPL-3.0-only
 ************************************************************************
   PUBLIC SECTION.
     METHODS push

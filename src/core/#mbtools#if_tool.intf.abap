@@ -6,7 +6,7 @@ INTERFACE /mbtools/if_tool
 * Marc Bernard Tools - Tool Interface
 *
 * Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
-* SPDX-License-Identifier: GPL-3.0-or-later
+* SPDX-License-Identifier: GPL-3.0-only
 ************************************************************************
   TYPES ty_tool TYPE /mbtools/tool.
 

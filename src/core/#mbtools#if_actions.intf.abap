@@ -6,7 +6,7 @@ INTERFACE /mbtools/if_actions
 * Marc Bernard Tools - Actions
 *
 * Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
-* SPDX-License-Identifier: GPL-3.0-or-later
+* SPDX-License-Identifier: GPL-3.0-only
 ************************************************************************
   CONSTANTS quit TYPE string VALUE 'quit' ##NO_TEXT.
   CONSTANTS go_home TYPE string VALUE 'go_home' ##NO_TEXT.

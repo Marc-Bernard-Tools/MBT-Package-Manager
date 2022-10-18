@@ -5,7 +5,7 @@ INTERFACE /mbtools/if_definitions
 * Marc Bernard Tools - Definitions
 *
 * Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
-* SPDX-License-Identifier: GPL-3.0-or-later
+* SPDX-License-Identifier: GPL-3.0-only
 ************************************************************************
   TYPES:
     ty_icon TYPE c LENGTH 4. " icon_d

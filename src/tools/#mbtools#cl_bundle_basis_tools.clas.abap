@@ -7,7 +7,7 @@ CLASS /mbtools/cl_bundle_basis_tools DEFINITION
 * MBT Basis Bundle
 *
 * Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
-* SPDX-License-Identifier: GPL-3.0-or-later
+* SPDX-License-Identifier: GPL-3.0-only
 ************************************************************************
   PUBLIC SECTION.
 

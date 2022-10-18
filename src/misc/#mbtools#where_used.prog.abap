@@ -4,7 +4,7 @@ REPORT /mbtools/where_used.
 * Marc Bernard Tools - Where Used
 *
 * Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
-* SPDX-License-Identifier: GPL-3.0-or-later
+* SPDX-License-Identifier: GPL-3.0-only
 ************************************************************************
 
 " Just a place to collect references to otherwise unused types and variables
