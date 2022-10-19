@@ -565,7 +565,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     DATA: lv_system_no TYPE slic_sysid.
 
-    " https://marcbernardtools.com/?edd_action={request type}&item_id={id}&license={key}
+    " https://marcbernardtools.com/?edd_action={request_type}&item_id={id}&license={key}
     " &url=SystemID_{system_id}_SystemNumber_{system_number}
     rv_endpoint = '/?edd_action=' && c_edd_param-action && '&item_id=' && c_edd_param-id.
     rv_endpoint = rv_endpoint && '&license=' && c_edd_param-key.
