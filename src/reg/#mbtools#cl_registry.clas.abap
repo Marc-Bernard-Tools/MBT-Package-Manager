@@ -13,7 +13,7 @@ CLASS /mbtools/cl_registry DEFINITION
 *
 * Ported to namespace and enhanced by Marc Bernard Tools
 *
-* Copyright 2015 Martin Ceronio <http://ceronio.net>
+* Copyright 2015 Martin Ceronio <https://ceronio.net>
 * SPDX-License-Identifier: MIT
 ************************************************************************
   PUBLIC SECTION.
