@@ -11,11 +11,11 @@ CLASS /mbtools/cl_tree DEFINITION
   PUBLIC SECTION.
 
     METHODS handle_node_double_click
-        FOR EVENT node_double_click OF cl_gui_alv_tree
+      FOR EVENT node_double_click OF cl_gui_alv_tree
       IMPORTING
         !node_key .
     METHODS handle_item_double_click
-        FOR EVENT item_double_click OF cl_gui_alv_tree
+      FOR EVENT item_double_click OF cl_gui_alv_tree
       IMPORTING
         !node_key
         !fieldname .

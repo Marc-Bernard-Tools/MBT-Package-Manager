@@ -37,7 +37,7 @@ CLASS /mbtools/cl_gui DEFINITION
       RAISING
         /mbtools/cx_exception.
     METHODS on_event
-        FOR EVENT sapevent OF /mbtools/if_html_viewer
+      FOR EVENT sapevent OF /mbtools/if_html_viewer
       IMPORTING
         !action
         !frame

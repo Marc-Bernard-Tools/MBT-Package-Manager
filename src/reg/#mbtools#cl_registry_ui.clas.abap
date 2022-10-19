@@ -60,24 +60,24 @@ CLASS /mbtools/cl_registry_ui DEFINITION
     CLASS-METHODS command_export.
     CLASS-METHODS command_insert.
     CLASS-METHODS handle_node_expand
-        FOR EVENT expand_nc OF cl_gui_alv_tree
+      FOR EVENT expand_nc OF cl_gui_alv_tree
       IMPORTING
         !node_key.
     CLASS-METHODS handle_table_toolbar
-        FOR EVENT toolbar OF cl_gui_alv_grid
+      FOR EVENT toolbar OF cl_gui_alv_grid
       IMPORTING
         !e_object
         !e_interactive  ##NEEDED.
     CLASS-METHODS handle_table_command
-        FOR EVENT user_command OF cl_gui_alv_grid
+      FOR EVENT user_command OF cl_gui_alv_grid
       IMPORTING
         !e_ucomm.
     CLASS-METHODS handle_node_selected
-        FOR EVENT selection_changed OF cl_gui_alv_tree
+      FOR EVENT selection_changed OF cl_gui_alv_tree
       IMPORTING
         !node_key.
     CLASS-METHODS handle_tree_command
-        FOR EVENT function_selected OF cl_gui_toolbar
+      FOR EVENT function_selected OF cl_gui_toolbar
       IMPORTING
         !fcode.
     CLASS-METHODS create_table
