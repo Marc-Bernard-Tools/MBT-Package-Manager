@@ -71,10 +71,10 @@ CLASS /mbtools/cl_logger DEFINITION
 
     CONSTANTS:
       BEGIN OF c_struct_kind,
-        syst  TYPE i VALUE 1,
-        bapi  TYPE i VALUE 2,
-        bdc   TYPE i VALUE 3,
-        sprot TYPE i VALUE 4,
+                 syst  TYPE i VALUE 1,
+                 bapi  TYPE i VALUE 2,
+                 bdc   TYPE i VALUE 3,
+                 sprot TYPE i VALUE 4,
       END OF c_struct_kind .
 
 *"* private components of class ZCL_LOGGER
@@ -92,12 +92,12 @@ CLASS /mbtools/cl_logger DEFINITION
           importance                     TYPE balprobcl OPTIONAL
         RETURNING
           VALUE(rt_exception_data_table) TYPE tty_exception_data,
-      get_message_handles
+get_message_handles
         IMPORTING
           msgtype                   TYPE symsgty OPTIONAL
         RETURNING
           VALUE(rt_message_handles) TYPE bal_t_msgh ,
-      add_structure
+add_structure
         IMPORTING
           obj_to_log    TYPE any OPTIONAL
           context       TYPE simple OPTIONAL
@@ -364,16 +364,16 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
 
   METHOD /mbtools/if_logger~add.
 
-    DATA: detailed_msg             TYPE bal_s_msg,
-          exception_data_table     TYPE tty_exception_data,
-          free_text_msg            TYPE char200,
-          ctx_type                 TYPE REF TO cl_abap_typedescr,
-          ctx_ddic_header          TYPE x030l,
-          msg_type                 TYPE REF TO cl_abap_typedescr,
-          struct_kind              TYPE i,
-          formatted_context        TYPE bal_s_cont,
-          formatted_params         TYPE bal_s_parm,
-          message_type             TYPE symsgty,
+    DATA: detailed_msg         TYPE bal_s_msg,
+          exception_data_table TYPE tty_exception_data,
+          free_text_msg        TYPE char200,
+          ctx_type             TYPE REF TO cl_abap_typedescr,
+          ctx_ddic_header      TYPE x030l,
+          msg_type             TYPE REF TO cl_abap_typedescr,
+          struct_kind          TYPE i,
+          formatted_context    TYPE bal_s_cont,
+          formatted_params     TYPE bal_s_parm,
+          message_type         TYPE symsgty,
           "these objects could be moved into their own method
           "see adt://***/sap/bc/adt/oo/classes/zcl_logger/source/main#start=391,10;end=415,61
           symsg                    TYPE symsg,
@@ -618,8 +618,8 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
   METHOD /mbtools/if_logger~fullscreen.
 
     DATA:
-      profile        TYPE bal_s_prof,
-      lt_log_handles TYPE bal_t_logh.
+          profile        TYPE bal_s_prof,
+          lt_log_handles TYPE bal_t_logh.
 
     APPEND me->handle TO lt_log_handles.
 
