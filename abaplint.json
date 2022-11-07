@@ -91,6 +91,7 @@
         "#mbtools#cl_utilities.clas.abap"
       ],
       "severity": "Error",
+      "skipQuickFix": false,
       "statics": true,
       "testSeams": true
     },
