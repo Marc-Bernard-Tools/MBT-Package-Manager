@@ -184,16 +184,18 @@ CLASS /mbtools/cl_aphp IMPLEMENTATION.
 
     rv_val = shift_left( val = iv_val
                          sub = iv_char ).
-    IF iv_char = '{'.
-      rv_val = shift_right( val = rv_val
-                            sub = '}' ).
-    ELSEIF iv_char = '['.
-      rv_val = shift_right( val = rv_val
-                            sub = ']' ).
-    ELSE.
-      rv_val = shift_right( val = rv_val
-                            sub = iv_char ).
-    ENDIF.
+
+    CASE iv_char.
+      WHEN '{'.
+        rv_val = shift_right( val = rv_val
+                              sub = '}' ).
+      WHEN '['.
+        rv_val = shift_right( val = rv_val
+                              sub = ']' ).
+      WHEN OTHERS.
+        rv_val = shift_right( val = rv_val
+                              sub = iv_char ).
+    ENDCASE.
 
   ENDMETHOD.
 

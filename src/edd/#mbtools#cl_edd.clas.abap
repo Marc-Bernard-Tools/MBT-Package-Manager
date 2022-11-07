@@ -244,11 +244,12 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
         CATCH /mbtools/cx_exception ##NO_HANDLER.
       ENDTRY.
 
-      IF ev_id = /mbtools/cl_access_pass=>c_pass-business.
-        ev_id = /mbtools/cl_access_pass=>c_pass-professional.
-      ELSEIF ev_id = /mbtools/cl_access_pass=>c_pass-professional.
-        ev_id = /mbtools/cl_access_pass=>c_pass-starter.
-      ENDIF.
+      CASE ev_id.
+        WHEN /mbtools/cl_access_pass=>c_pass-business.
+          ev_id = /mbtools/cl_access_pass=>c_pass-professional.
+        WHEN /mbtools/cl_access_pass=>c_pass-professional.
+          ev_id = /mbtools/cl_access_pass=>c_pass-starter.
+      ENDCASE.
     ENDDO.
 
     IF ev_valid = abap_false.

@@ -9,16 +9,16 @@ REPORT /mbtools/mbt_switch_all.
 
 * Main
 SELECTION-SCREEN:
-  BEGIN OF BLOCK b100 WITH FRAME,
-    COMMENT /1(77) sc_t100,
-    SKIP,
-    COMMENT /1(77) sc_t101,
-  END OF BLOCK b100.
+BEGIN OF BLOCK b100 WITH FRAME,
+COMMENT /1(77) sc_t100,
+SKIP,
+COMMENT /1(77) sc_t101,
+END OF BLOCK b100.
 SELECTION-SCREEN BEGIN OF BLOCK b200 WITH FRAME.
-PARAMETERS:
-  p_show RADIOBUTTON GROUP g0 DEFAULT 'X',
-  p_on   RADIOBUTTON GROUP g0,
-  p_off  RADIOBUTTON GROUP g0.
+  PARAMETERS:
+    p_show RADIOBUTTON GROUP g0 DEFAULT 'X',
+    p_on   RADIOBUTTON GROUP g0,
+    p_off  RADIOBUTTON GROUP g0.
 SELECTION-SCREEN END OF BLOCK b200.
 
 DATA:
@@ -97,21 +97,22 @@ START-OF-SELECTION.
     ULINE.
   ENDLOOP.
 
-  IF p_on = abap_true.
-    UPDATE badiimpl_enh SET active = abap_true WHERE enhname LIKE '/MBTOOLS/%' OR badi_impl = '/MBTOOLS/%'.
-    IF sy-subrc = 0.
-      WRITE: / 'MBT enhancement BAdI implementations actived successfully' COLOR COL_POSITIVE.
-    ELSE.
-      WRITE: / 'Error activating MBT enhancement BAdI implementations' COLOR COL_NEGATIVE.
-    ENDIF.
-  ELSEIF p_off = abap_true.
-    UPDATE badiimpl_enh SET active = abap_false WHERE enhname LIKE '/MBTOOLS/%' OR badi_impl = '/MBTOOLS/%'.
-    IF sy-subrc = 0.
-      WRITE: / 'MBT enhancement BAdI implementations deactived successfully' COLOR COL_POSITIVE.
-    ELSE.
-      WRITE: / 'Error deactivating MBT enhancement BAdI implementations' COLOR COL_NEGATIVE.
-    ENDIF.
-  ENDIF.
+  CASE abap_true.
+    WHEN p_on.
+      UPDATE badiimpl_enh SET active = abap_true WHERE enhname LIKE '/MBTOOLS/%' OR badi_impl = '/MBTOOLS/%'.
+      IF sy-subrc = 0.
+        WRITE: / 'MBT enhancement BAdI implementations actived successfully' COLOR COL_POSITIVE.
+      ELSE.
+        WRITE: / 'Error activating MBT enhancement BAdI implementations' COLOR COL_NEGATIVE.
+      ENDIF.
+    WHEN p_off.
+      UPDATE badiimpl_enh SET active = abap_false WHERE enhname LIKE '/MBTOOLS/%' OR badi_impl = '/MBTOOLS/%'.
+      IF sy-subrc = 0.
+        WRITE: / 'MBT enhancement BAdI implementations deactived successfully' COLOR COL_POSITIVE.
+      ELSE.
+        WRITE: / 'Error deactivating MBT enhancement BAdI implementations' COLOR COL_NEGATIVE.
+      ENDIF.
+  ENDCASE.
 
 FORM code_on CHANGING cv_line TYPE string.
   " Keep open and close statements
