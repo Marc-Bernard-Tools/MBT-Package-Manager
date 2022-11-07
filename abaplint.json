@@ -18,9 +18,12 @@
       "#mbtools#.._logger.*",
       "#mbtools#.._string_map.*"
     ],
-    "skipGeneratedFunctionGroups": true,
-    "skipGeneratedGatewayClasses": true,
-    "skipGeneratedPersistentClasses": true,
+    "skipGeneratedBOPFInterfaces": false,
+    "skipGeneratedFunctionGroups": false,
+    "skipGeneratedGatewayClasses": false,
+    "skipGeneratedPersistentClasses": false,
+    "skipGeneratedProxyClasses": false,
+    "skipGeneratedProxyInterfaces": false,
     "skipIncludesWithoutMain": false,
     "useApackDependencies": false
   },
@@ -105,6 +108,14 @@
       ],
       "severity": "Error"
     },
+    "cds_comment_style": {
+      "exclude": [],
+      "severity": "Error"
+    },
+    "cds_legacy_view": {
+      "exclude": [],
+      "severity": "Error"
+    },
     "cds_parser_error": {
       "exclude": [],
       "severity": "Error"
@@ -123,6 +134,11 @@
       "sort": true,
       "unassign": true,
       "write": true
+    },
+    "change_if_to_case": {
+      "exclude": [],
+      "severity": "Error",
+      "skipNames": []
     },
     "check_abstract": {
       "exclude": [],
@@ -641,6 +657,10 @@
       "exclude": [],
       "severity": "Error"
     },
+    "no_external_form_calls": {
+      "exclude": [],
+      "severity": "Error"
+    },
     "no_inline_in_optional_branches": {
       "exclude": [],
       "severity": "Error"
@@ -878,6 +898,10 @@
       "severity": "Error"
     },
     "superclass_final": {
+      "exclude": [],
+      "severity": "Error"
+    },
+    "superfluous_value": {
       "exclude": [],
       "severity": "Error"
     },
