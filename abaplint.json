@@ -658,7 +658,11 @@
       "severity": "Error"
     },
     "no_external_form_calls": {
-      "exclude": [],
+      "exclude": [
+        "#mbtools#cl_password_dialog.clas.abap",
+        "#mbtools#mbt.prog.abap",
+        "#mbtools#registry.prog.abap"
+      ],
       "severity": "Error"
     },
     "no_inline_in_optional_branches": {
