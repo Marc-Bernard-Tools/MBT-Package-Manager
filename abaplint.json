@@ -136,7 +136,12 @@
       "write": true
     },
     "change_if_to_case": {
-      "exclude": [],
+      "exclude": [
+        "#mbtools#cl_gui_page.clas.abap",
+        "#mbtools#cl_html_form.clas.abap",
+        "#mbtools#cl_html_toolbar.clas.abap",
+        "#mbtools#cl_progress.clas.abap"
+      ],
       "severity": "Error",
       "skipNames": []
     },
@@ -494,7 +499,7 @@
       "ignoreExceptions": false,
       "ignoreGlobalClassDefinition": false,
       "ignoreGlobalInterface": false,
-      "selectionScreenBlockIndentation": false,
+      "selectionScreenBlockIndentation": true,
       "severity": "Error"
     },
     "inline_data_old_versions": {
