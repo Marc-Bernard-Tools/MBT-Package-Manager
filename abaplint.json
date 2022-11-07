@@ -499,7 +499,7 @@
       "ignoreExceptions": false,
       "ignoreGlobalClassDefinition": false,
       "ignoreGlobalInterface": false,
-      "selectionScreenBlockIndentation": true,
+      "selectionScreenBlockIndentation": false,
       "severity": "Error"
     },
     "inline_data_old_versions": {
