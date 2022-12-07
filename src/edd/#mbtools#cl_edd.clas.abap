@@ -444,6 +444,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
       lv_endpoint TYPE string,
       lv_data     TYPE string,
       lv_sections TYPE string,
+      lv_msg      TYPE string,
       lo_json_all TYPE REF TO /mbtools/if_ajson,
       lo_json     TYPE REF TO /mbtools/if_ajson,
       lx_error    TYPE REF TO /mbtools/cx_ajson_error.
@@ -468,6 +469,11 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
     LOOP AT ct_products ASSIGNING <ls_product>.
 
       lo_json = lo_json_all->slice( condense( |/{ <ls_product>-id }| ) ).
+
+      lv_msg = lo_json->get_string( '/msg' ).
+      IF lv_msg IS NOT INITIAL.
+        /mbtools/cx_exception=>raise( lv_msg ).
+      ENDIF.
 
       <ls_product>-version = lo_json->get_string( '/new_version' ).
       <ls_product>-changelog_url = lo_json->get_string( '/url' ).

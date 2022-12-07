@@ -590,6 +590,11 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
         rs_result-valid  = lo_reg_entry->get_value( c_reg-key_lic_valid ).
         rs_result-expire = lo_reg_entry->get_value( c_reg-key_lic_expire ).
 
+        " Check if license has expired
+        IF rs_result-expire < sy-datum.
+          rs_result-valid = abap_false.
+        ENDIF.
+
       CATCH cx_root.
         CLEAR rs_result.
     ENDTRY.
