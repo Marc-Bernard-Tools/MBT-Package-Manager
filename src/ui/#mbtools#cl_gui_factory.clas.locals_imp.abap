@@ -1,6 +1,7 @@
 CLASS lcl_string_buffer DEFINITION FINAL.
   PUBLIC SECTION.
     DATA mt_buffer TYPE string_table READ-ONLY.
+    
     METHODS add
       IMPORTING
         iv_str TYPE string.
