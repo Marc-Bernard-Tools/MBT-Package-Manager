@@ -19,7 +19,7 @@ CLASS lcl_string_buffer IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD join_and_flush.
-    rv_str = concat_lines_of( table = mt_buffer ).
+    rv_str = concat_lines_of( mt_buffer ).
     CLEAR mt_buffer.
   ENDMETHOD.
 
