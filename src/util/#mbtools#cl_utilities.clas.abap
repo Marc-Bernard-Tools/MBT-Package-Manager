@@ -29,6 +29,11 @@ CLASS /mbtools/cl_utilities DEFINITION
         database         TYPE string VALUE 'DB',
         database_release TYPE string VALUE 'DB_RELEASE',
         database_patch   TYPE string VALUE 'DB_PATCH',
+        database_schema  TYPE string VALUE 'DB_SCHEMA',
+        database_host    TYPE string VALUE 'DB_HOST',
+        database_name    TYPE string VALUE 'DB_NAME',
+        database_charset TYPE string VALUE 'DB_CHARSET',
+        dbsl             TYPE string VALUE 'DBSL',
         dbsl_release     TYPE string VALUE 'DBSL_RELEASE',
         dbsl_patch       TYPE string VALUE 'DBSL_PATCH',
         hana             TYPE string VALUE 'HANA',
@@ -232,12 +237,22 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
     CASE iv_property.
       WHEN c_property-database.
         rv_value = get_db_release( )-srvrel.
+      WHEN c_property-database_schema.
+        rv_value = get_db_release( )-dbschema.
+      WHEN c_property-database_host.
+        rv_value = get_db_release( )-dbhost.
+      WHEN c_property-database_name.
+        rv_value = get_db_release( )-dbname.
+      WHEN c_property-database_charset.
+        rv_value = get_db_release( )-charset.
       WHEN c_property-database_release.
         FIND FIRST OCCURRENCE OF REGEX '(\d+)\.\d+\.*' IN get_db_release( )-srvrel
           SUBMATCHES rv_value ##SUBRC_OK.
       WHEN c_property-database_patch.
         FIND FIRST OCCURRENCE OF REGEX '\d+\.(\d+)\.*' IN get_db_release( )-srvrel
           SUBMATCHES rv_value ##SUBRC_OK.
+      WHEN c_property-dbsl.
+        rv_value = get_db_release( )-dbsl_vers.
       WHEN c_property-dbsl_release.
         SPLIT get_db_release( )-dbsl_vers AT '.' INTO rv_value lv_property.
       WHEN c_property-dbsl_patch.
