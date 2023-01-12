@@ -26,6 +26,7 @@ CLASS /mbtools/cl_utilities DEFINITION
         hour             TYPE string VALUE 'HOUR',
         minute           TYPE string VALUE 'MINUTE',
         second           TYPE string VALUE 'SECOND',
+        weekday          TYPE string VALUE 'WEEKDAY',
         database         TYPE string VALUE 'DB',
         database_release TYPE string VALUE 'DB_RELEASE',
         database_patch   TYPE string VALUE 'DB_PATCH',
@@ -36,7 +37,7 @@ CLASS /mbtools/cl_utilities DEFINITION
         dbsl             TYPE string VALUE 'DBSL',
         dbsl_release     TYPE string VALUE 'DBSL_RELEASE',
         dbsl_patch       TYPE string VALUE 'DBSL_PATCH',
-        hana             TYPE string VALUE 'HANA',
+        is_hana          TYPE string VALUE 'IS_HANA',
         hana_release     TYPE string VALUE 'HANA_RELEASE',
         hana_sp          TYPE string VALUE 'HANA_SP',
         hana_revision    TYPE string VALUE 'HANA_REVISION',
@@ -49,32 +50,46 @@ CLASS /mbtools/cl_utilities DEFINITION
         kernel_bits      TYPE string VALUE 'KERNEL_BITS',
         codepage         TYPE string VALUE 'CODEPAGE',
         endian           TYPE string VALUE 'ENDIAN',
-        unicode          TYPE string VALUE 'UNICODE',
+        is_unicode       TYPE string VALUE 'IS_UNICODE',
       END OF c_property.
-    CONSTANTS c_unknown TYPE string VALUE 'UNKNOWN' ##NO_TEXT.
+
+    CONSTANTS:
+      BEGIN OF c_value,
+        unknown TYPE string VALUE 'UNKNOWN',
+        yes     TYPE string VALUE 'YES',
+        no      TYPE string VALUE 'NO',
+      END OF c_value.
+
     CONSTANTS c_not_authorized TYPE string VALUE 'NOT_AUTHORIZED' ##NO_TEXT.
 
     CLASS-METHODS call_browser
       IMPORTING
         !iv_url TYPE csequence.
+
     CLASS-METHODS is_batch
       RETURNING
         VALUE(rv_batch) TYPE abap_bool.
+
     CLASS-METHODS is_system_modifiable
       RETURNING
         VALUE(rv_modifiable) TYPE abap_bool.
+
     CLASS-METHODS is_system_test_or_prod
       RETURNING
         VALUE(rv_test_prod) TYPE abap_bool.
+
     CLASS-METHODS is_snote_allowed
       RETURNING
         VALUE(rv_snote_allowed) TYPE abap_bool.
+
     CLASS-METHODS is_upgrage_running
       RETURNING
         VALUE(rv_upgrade_running) TYPE abap_bool.
+
     CLASS-METHODS is_spam_locked
       RETURNING
         VALUE(rv_spam_locked) TYPE abap_bool.
+
     CLASS-METHODS get_property
       IMPORTING
         VALUE(iv_property) TYPE clike
@@ -83,86 +98,105 @@ CLASS /mbtools/cl_utilities DEFINITION
         !ev_value_float    TYPE f
         !ev_value_integer  TYPE i
         !ev_subrc          TYPE sy-subrc.
+
     CLASS-METHODS get_syst_field
       IMPORTING
         VALUE(iv_field) TYPE clike
       RETURNING
         VALUE(rv_value) TYPE string.
+
     CLASS-METHODS get_db_release
       RETURNING
         VALUE(rs_dbinfo) TYPE dbrelinfo.
+
     CLASS-METHODS get_hana_release
       RETURNING
         VALUE(rs_hana_release) TYPE ty_strv_release_patch.
+
     CLASS-METHODS get_spam_release
       RETURNING
         VALUE(rs_details) TYPE ty_strv_release_patch.
+
     CLASS-METHODS get_kernel_release
       RETURNING
         VALUE(rs_details) TYPE ty_strv_release_patch.
+
     CLASS-METHODS get_swcomp_release
       IMPORTING
         VALUE(iv_component) TYPE clike
       RETURNING
         VALUE(rv_release)   TYPE string.
+
     CLASS-METHODS get_swcomp_support_package
       IMPORTING
         VALUE(iv_component)       TYPE clike
       RETURNING
         VALUE(rv_support_package) TYPE string.
+
     CLASS-METHODS get_profile_parameter
       IMPORTING
         VALUE(iv_parameter) TYPE clike
       RETURNING
         VALUE(rv_value)     TYPE string.
+
     CLASS-METHODS get_profile_parameter_name
       IMPORTING
         VALUE(iv_parameter) TYPE clike
       RETURNING
         VALUE(rv_result)    TYPE string.
+
     CLASS-METHODS get_date_time
       IMPORTING
         !iv_property    TYPE string
       RETURNING
         VALUE(rv_value) TYPE string.
+
     CLASS-METHODS get_database
       IMPORTING
         !iv_property    TYPE string
       RETURNING
         VALUE(rv_value) TYPE string.
+
     CLASS-METHODS get_hana
       IMPORTING
         !iv_property    TYPE string
       RETURNING
         VALUE(rv_value) TYPE string.
+
     CLASS-METHODS get_spam
       IMPORTING
         !iv_property    TYPE string
       RETURNING
         VALUE(rv_value) TYPE string.
+
     CLASS-METHODS get_kernel
       IMPORTING
         !iv_property    TYPE string
       RETURNING
         VALUE(rv_value) TYPE string.
+
     CLASS-METHODS get_codepage
       IMPORTING
         !iv_property    TYPE string
       RETURNING
         VALUE(rv_value) TYPE string.
+
     CLASS-METHODS get_user_parameter
       IMPORTING
         !iv_parameter    TYPE clike
       RETURNING
         VALUE(rv_result) TYPE string.
+
     CLASS-METHODS set_user_parameter
       IMPORTING
         !iv_parameter TYPE clike
         !iv_value     TYPE clike.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
     CONSTANTS c_original_name TYPE string VALUE 'ORIG:' ##NO_TEXT.
+
     CLASS-DATA:
       gt_cvers TYPE SORTED TABLE OF cvers WITH UNIQUE KEY component.
 
@@ -171,6 +205,7 @@ CLASS /mbtools/cl_utilities DEFINITION
         VALUE(ro_parameters) TYPE REF TO /mbtools/cl_string_map
       RAISING
         /mbtools/cx_exception.
+
 ENDCLASS.
 
 
@@ -200,7 +235,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
         DISPLAY LIKE sy-msgty.
     ENDIF.
 
-  ENDMETHOD.                    "call_browser
+  ENDMETHOD.
 
 
   METHOD get_codepage.
@@ -215,16 +250,16 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
           WHEN 'B'.
             rv_value = 'BigEndian'.
           WHEN OTHERS.
-            rv_value = c_unknown.
+            rv_value = c_value-unknown.
         ENDCASE.
-      WHEN c_property-unicode.
+      WHEN c_property-is_unicode.
         IF cl_abap_char_utilities=>charsize = 1.
-          rv_value = 'No'.
+          rv_value = c_value-no.
         ELSE.
-          rv_value = 'Yes'.
+          rv_value = c_value-yes.
         ENDIF.
       WHEN OTHERS.
-        rv_value = c_unknown.
+        rv_value = c_value-unknown.
     ENDCASE.
 
   ENDMETHOD.
@@ -258,13 +293,15 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       WHEN c_property-dbsl_patch.
         SPLIT get_db_release( )-dbsl_vers AT '.' INTO lv_property rv_value.
       WHEN OTHERS.
-        rv_value = c_unknown.
+        rv_value = c_value-unknown.
     ENDCASE.
 
   ENDMETHOD.
 
 
   METHOD get_date_time.
+
+    GET TIME.
 
     CASE iv_property.
       WHEN c_property-year.
@@ -279,8 +316,10 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
         rv_value = sy-uzeit+2(2).
       WHEN c_property-second.
         rv_value = sy-uzeit+4(2).
+      WHEN c_property-weekday.
+        rv_value = ( 5 + sy-datum MOD 7 ) MOD 7 + 1. " 1 = Monday
       WHEN OTHERS.
-        rv_value = c_unknown.
+        rv_value = c_value-unknown.
     ENDCASE.
 
   ENDMETHOD.
@@ -292,17 +331,17 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       IMPORTING
         dbinfo = rs_dbinfo.
 
-  ENDMETHOD.                    "get_db_release
+  ENDMETHOD.
 
 
   METHOD get_hana.
 
     CASE iv_property.
-      WHEN c_property-hana.
+      WHEN c_property-is_hana.
         IF sy-dbsys = 'HDB'.
-          rv_value = 'Yes'.
+          rv_value = c_value-yes.
         ELSE.
-          rv_value = 'No'.
+          rv_value = c_value-no.
         ENDIF.
       WHEN c_property-hana_release.
         rv_value = get_hana_release( )-release DIV 100.
@@ -313,7 +352,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       WHEN c_property-hana_patch.
         rv_value = get_hana_release( )-patch.
       WHEN OTHERS.
-        rv_value = c_unknown.
+        rv_value = c_value-unknown.
     ENDCASE.
 
   ENDMETHOD.
@@ -370,7 +409,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-  ENDMETHOD.                    "get_db_release
+  ENDMETHOD.
 
 
   METHOD get_kernel.
@@ -385,7 +424,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       WHEN c_property-kernel_bits.
         rv_value = get_kernel_release( )-version.
       WHEN OTHERS.
-        rv_value = c_unknown.
+        rv_value = c_value-unknown.
     ENDCASE.
 
   ENDMETHOD.
@@ -405,8 +444,9 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       lo_kernel_info TYPE REF TO            ty_kernel_info.
 
 *   Kernel Release Information
-    CALL 'SAPCORE' ID 'ID' FIELD 'VERSION'
-                   ID 'TABLE' FIELD lt_kernel_info.       "#EC CI_CCALL
+    CALL 'SAPCORE'
+      ID 'ID'    FIELD 'VERSION'
+      ID 'TABLE' FIELD lt_kernel_info.                    "#EC CI_CCALL
 
     READ TABLE lt_kernel_info REFERENCE INTO lo_kernel_info INDEX 12.
     IF sy-subrc = 0.
@@ -426,7 +466,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       rs_details-version = 32.
     ENDIF.
 
-  ENDMETHOD.                    "get_kernel_release
+  ENDMETHOD.
 
 
   METHOD get_profile_parameter.
@@ -443,7 +483,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
     rv_value = lo_parameters->get( iv_parameter ).
 
     IF rv_value IS INITIAL.
-      rv_value = c_unknown.
+      rv_value = c_value-unknown.
     ENDIF.
 
   ENDMETHOD.
@@ -466,35 +506,35 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
     TRANSLATE lv_property TO UPPER CASE.
 
     ev_value = get_date_time( lv_property ).
-    IF ev_value = c_unknown.
+    IF ev_value = c_value-unknown.
       ev_value = get_database( lv_property ).
     ENDIF.
-    IF ev_value = c_unknown.
+    IF ev_value = c_value-unknown.
       ev_value = get_hana( lv_property ).
     ENDIF.
-    IF ev_value = c_unknown.
+    IF ev_value = c_value-unknown.
       ev_value = get_spam( lv_property ).
     ENDIF.
-    IF ev_value = c_unknown.
+    IF ev_value = c_value-unknown.
       ev_value = get_kernel( lv_property ).
     ENDIF.
-    IF ev_value = c_unknown.
+    IF ev_value = c_value-unknown.
       ev_value = get_codepage( lv_property ).
     ENDIF.
-    IF ev_value = c_unknown.
+    IF ev_value = c_value-unknown.
       ev_value = get_syst_field( lv_property ).
     ENDIF.
-    IF ev_value = c_unknown.
+    IF ev_value = c_value-unknown.
       ev_value = get_swcomp_release( lv_property ).
     ENDIF.
-    IF ev_value = c_unknown.
+    IF ev_value = c_value-unknown.
       ev_value = get_swcomp_support_package( lv_property ).
     ENDIF.
-    IF ev_value = c_unknown.
+    IF ev_value = c_value-unknown.
       ev_value = get_profile_parameter( lv_property ).
     ENDIF.
 
-    IF ev_value = c_unknown OR ev_value = c_not_authorized.
+    IF ev_value = c_value-unknown OR ev_value = c_not_authorized.
       ev_subrc = 4.
     ENDIF.
 
@@ -520,7 +560,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       WHEN c_property-spam_version.
         rv_value = get_spam_release( )-version.
       WHEN OTHERS.
-        rv_value = c_unknown.
+        rv_value = c_value-unknown.
     ENDCASE.
 
   ENDMETHOD.
@@ -545,7 +585,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
         RETURN.
     ENDTRY.
 
-  ENDMETHOD.                    "get_spam_release
+  ENDMETHOD.
 
 
   METHOD get_swcomp_release.
@@ -563,7 +603,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
     IF sy-subrc = 0.
       rv_release = ls_cvers-release.
     ELSE.
-      rv_release = c_unknown.
+      rv_release = c_value-unknown.
     ENDIF.
 
   ENDMETHOD.
@@ -587,7 +627,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
     IF sy-subrc = 0.
       rv_support_package = ls_cvers-extrelease.
     ELSE.
-      rv_support_package = c_unknown.
+      rv_support_package = c_value-unknown.
     ENDIF.
 
   ENDMETHOD.
@@ -615,13 +655,13 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
         TRY.
             rv_value = <lv_value>.
           CATCH cx_root.
-            rv_value = c_unknown.
+            rv_value = c_value-unknown.
         ENDTRY.
       ELSE.
-        rv_value = c_unknown.
+        rv_value = c_value-unknown.
       ENDIF.
     ELSE.
-      rv_value = c_unknown.
+      rv_value = c_value-unknown.
     ENDIF.
 
   ENDMETHOD.
@@ -649,7 +689,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       IMPORTING
         ev_snote_allowed = rv_snote_allowed.
 
-  ENDMETHOD.                    "is_spam_in_progress
+  ENDMETHOD.
 
 
   METHOD is_spam_locked.
@@ -671,7 +711,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
         OTHERS         = 3.
     CHECK sy-subrc = 0. "ignore errors
 
-  ENDMETHOD.                    "is_spam_in_progress
+  ENDMETHOD.
 
 
   METHOD is_system_modifiable.
@@ -688,7 +728,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
         OTHERS        = 3.
     rv_modifiable = boolc( sy-subrc <> 0 OR lv_systemedit = 'N' ). "not modifiable
 
-  ENDMETHOD.                    "is_system_modifiable
+  ENDMETHOD.
 
 
   METHOD is_system_test_or_prod.
@@ -705,7 +745,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
         OTHERS             = 3.
     rv_test_prod = boolc( sy-subrc <> 0 OR lv_client_role CA 'PTS' ). "prod/test/sap reference
 
-  ENDMETHOD.                    "is_system_test_or_prod
+  ENDMETHOD.
 
 
   METHOD is_upgrage_running.
@@ -714,7 +754,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       IMPORTING
         ev_upg_running = rv_upgrade_running.
 
-  ENDMETHOD.                    "is_spam_in_progress
+  ENDMETHOD.
 
 
   METHOD set_user_parameter.
