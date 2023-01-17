@@ -1,7 +1,7 @@
 CLASS /mbtools/cx_exception DEFINITION
   PUBLIC
   INHERITING FROM cx_static_check
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * Marc Bernard Tools - Exception
@@ -11,7 +11,7 @@ CLASS /mbtools/cx_exception DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    INTERFACES if_t100_message .
+    INTERFACES if_t100_message.
 
     CONSTANTS:
       BEGIN OF gc_section_text,
@@ -19,41 +19,29 @@ CLASS /mbtools/cx_exception DEFINITION
         system_response TYPE string VALUE `System response` ##NO_TEXT,
         what_to_do      TYPE string VALUE `Procedure` ##NO_TEXT,
         sys_admin       TYPE string VALUE `System administration` ##NO_TEXT,
-      END OF gc_section_text .
+      END OF gc_section_text.
+
     CONSTANTS:
       BEGIN OF gc_section_token,
         cause           TYPE string VALUE `&CAUSE&`,
         system_response TYPE string VALUE `&SYSTEM_RESPONSE&`,
         what_to_do      TYPE string VALUE `&WHAT_TO_DO&`,
         sys_admin       TYPE string VALUE `&SYS_ADMIN&`,
-      END OF gc_section_token .
-    DATA msgv1 TYPE symsgv READ-ONLY .
-    DATA msgv2 TYPE symsgv READ-ONLY .
-    DATA msgv3 TYPE symsgv READ-ONLY .
-    DATA msgv4 TYPE symsgv READ-ONLY .
-    DATA mt_callstack TYPE abap_callstack READ-ONLY .
+      END OF gc_section_token.
 
-    "! Raise exception with text
-    "! @parameter iv_text | Text
-    "! @parameter ix_previous | Previous exception
-    "! @raising /mbtools/cx_exception | Exception
+    DATA msgv1 TYPE symsgv READ-ONLY.
+    DATA msgv2 TYPE symsgv READ-ONLY.
+    DATA msgv3 TYPE symsgv READ-ONLY.
+    DATA msgv4 TYPE symsgv READ-ONLY.
+    DATA mt_callstack TYPE abap_callstack READ-ONLY.
+
     CLASS-METHODS raise
       IMPORTING
         !iv_text     TYPE clike
         !ix_previous TYPE REF TO cx_root OPTIONAL
       RAISING
-        /mbtools/cx_exception .
-    "! Raise exception with T100 message
-    "! <p>
-    "! Will default to sy-msg* variables. These need to be set right before calling this method.
-    "! </p>
-    "! @parameter iv_msgid | Message ID
-    "! @parameter iv_msgno | Message number
-    "! @parameter iv_msgv1 | Message variable 1
-    "! @parameter iv_msgv2 | Message variable 2
-    "! @parameter iv_msgv3 | Message variable 3
-    "! @parameter iv_msgv4 | Message variable 4
-    "! @raising /mbtools/cx_exception | Exception
+        /mbtools/cx_exception.
+
     CLASS-METHODS raise_t100
       IMPORTING
         VALUE(iv_msgid) TYPE symsgid DEFAULT sy-msgid
@@ -64,12 +52,14 @@ CLASS /mbtools/cx_exception DEFINITION
         VALUE(iv_msgv4) TYPE symsgv DEFAULT sy-msgv4
         !ix_previous    TYPE REF TO cx_root OPTIONAL
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
+
     CLASS-METHODS raise_with_text
       IMPORTING
         !ix_previous TYPE REF TO cx_root
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
+
     METHODS constructor
       IMPORTING
         !textid   LIKE if_t100_message=>t100key OPTIONAL
@@ -77,14 +67,15 @@ CLASS /mbtools/cx_exception DEFINITION
         !msgv1    TYPE symsgv OPTIONAL
         !msgv2    TYPE symsgv OPTIONAL
         !msgv3    TYPE symsgv OPTIONAL
-        !msgv4    TYPE symsgv OPTIONAL .
+        !msgv4    TYPE symsgv OPTIONAL.
 
     METHODS get_source_position
-        REDEFINITION .
+        REDEFINITION.
     METHODS if_message~get_longtext
-        REDEFINITION .
+        REDEFINITION.
     METHODS if_message~get_text
-        REDEFINITION .
+        REDEFINITION.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -93,23 +84,28 @@ CLASS /mbtools/cx_exception DEFINITION
     CLASS-METHODS split_text_to_symsg
       IMPORTING
         !iv_text TYPE string.
+
     METHODS itf_to_string
       IMPORTING
         !it_itf          TYPE tline_tab
       RETURNING
         VALUE(rv_result) TYPE string.
+
     METHODS get_t100_longtext_itf
       RETURNING
         VALUE(rt_itf) TYPE tline_tab.
+
     METHODS remove_empty_section
       IMPORTING
         !iv_tabix_from TYPE i
         !iv_tabix_to   TYPE i
       CHANGING
         !ct_itf        TYPE tline_tab.
+
     METHODS replace_section_head_with_text
       CHANGING
         !cs_itf TYPE tline.
+
 ENDCLASS.
 
 
@@ -140,8 +136,7 @@ CLASS /mbtools/cx_exception IMPLEMENTATION.
 
     FIELD-SYMBOLS: <ls_callstack> TYPE abap_callstack_line.
 
-    READ TABLE mt_callstack ASSIGNING <ls_callstack>
-                            INDEX 1.
+    READ TABLE mt_callstack ASSIGNING <ls_callstack> INDEX 1.
     IF sy-subrc = 0.
       program_name = <ls_callstack>-mainprogram.
       include_name = <ls_callstack>-include.
@@ -236,8 +231,7 @@ CLASS /mbtools/cx_exception IMPLEMENTATION.
 
     " You should remember that we replace the U1 format because
     " that preserves the section header of longtexts.
-    LOOP AT lt_itf ASSIGNING <ls_itf_section>
-                   WHERE tdformat = lc_format_section.
+    LOOP AT lt_itf ASSIGNING <ls_itf_section> WHERE tdformat = lc_format_section.
 
       CLEAR:
         lv_has_content,
@@ -245,8 +239,7 @@ CLASS /mbtools/cx_exception IMPLEMENTATION.
 
       lv_tabix_from = sy-tabix.
 
-      LOOP AT lt_itf ASSIGNING <ls_itf_section_item>
-                     FROM sy-tabix + 1.
+      LOOP AT lt_itf ASSIGNING <ls_itf_section_item> FROM sy-tabix + 1.
 
         IF <ls_itf_section_item>-tdformat = lc_format_section.
           lv_tabix_to = sy-tabix.
@@ -281,6 +274,7 @@ CLASS /mbtools/cx_exception IMPLEMENTATION.
         text_stream  = lt_stream.
 
     LOOP AT lt_string INTO lv_string.
+
       IF sy-tabix = 1.
         rv_result = lv_string.
       ELSE.
@@ -312,7 +306,8 @@ CLASS /mbtools/cx_exception IMPLEMENTATION.
 
 
   METHOD raise_t100.
-    DATA: ls_t100_key TYPE scx_t100key.
+
+    DATA ls_t100_key TYPE scx_t100key.
 
     ls_t100_key-msgid = iv_msgid.
     ls_t100_key-msgno = iv_msgno.
@@ -333,6 +328,7 @@ CLASS /mbtools/cx_exception IMPLEMENTATION.
         msgv3    = iv_msgv3
         msgv4    = iv_msgv4
         previous = ix_previous.
+
   ENDMETHOD.
 
 
