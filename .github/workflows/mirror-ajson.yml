@@ -16,7 +16,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '14'
+        node-version: '18'
     - name: Mirror Repository
       run: |
         git clone "https://github.com/Marc-Bernard-Tools/Mirror-AJSON.git"

@@ -255,10 +255,11 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
   METHOD create_by_url.
 
     DATA:
-      lv_scheme       TYPE string,
-      li_client       TYPE REF TO if_http_client,
-      lo_proxy_config TYPE REF TO /mbtools/cl_proxy_config,
-      lv_text         TYPE string.
+      lv_scheme        TYPE string,
+      lv_authorization TYPE string,
+      li_client        TYPE REF TO if_http_client,
+      lo_proxy_config  TYPE REF TO /mbtools/cl_proxy_config,
+      lv_text          TYPE string.
 
     CREATE OBJECT lo_proxy_config.
 
@@ -319,9 +320,13 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
     " Disable internal auth dialog (due to its unclarity)
     li_client->propertytype_logon_popup = if_http_client=>co_disabled.
 
-    /mbtools/cl_login_manager=>load(
-      iv_uri    = iv_url
-      ii_client = li_client ).
+    lv_authorization = /mbtools/cl_login_manager=>load( iv_url ).
+    IF lv_authorization IS NOT INITIAL.
+      li_client->request->set_header_field(
+        name  = 'authorization'
+        value = lv_authorization ).
+      li_client->propertytype_logon_popup = li_client->co_disabled.
+    ENDIF.
 
     ro_client->send_receive( ).
 
@@ -335,8 +340,9 @@ CLASS /mbtools/cl_http IMPLEMENTATION.
     ro_client->check_http_200( ).
 
     IF lv_scheme <> c_scheme-digest.
-      /mbtools/cl_login_manager=>save( iv_uri    = iv_url
-                                       ii_client = li_client ).
+      /mbtools/cl_login_manager=>save(
+        iv_uri           = iv_url
+        iv_authorization = li_client->request->get_header_field( 'authorization' ) ).
     ENDIF.
 
   ENDMETHOD.

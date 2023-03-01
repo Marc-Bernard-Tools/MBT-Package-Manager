@@ -1,7 +1,7 @@
 CLASS /mbtools/cl_login_manager DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * Marc Bernard Tools - Login Manager
@@ -14,18 +14,20 @@ CLASS /mbtools/cl_login_manager DEFINITION
     CLASS-METHODS load
       IMPORTING
         !iv_uri                 TYPE string
-        !ii_client              TYPE REF TO if_http_client OPTIONAL
       RETURNING
         VALUE(rv_authorization) TYPE string
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
+
     CLASS-METHODS save
       IMPORTING
-        !iv_uri    TYPE string
-        !ii_client TYPE REF TO if_http_client
+        !iv_uri           TYPE string
+        !iv_authorization TYPE string
       RAISING
-        /mbtools/cx_exception .
-    CLASS-METHODS clear .
+        /mbtools/cx_exception.
+
+    CLASS-METHODS clear.
+
     CLASS-METHODS set
       IMPORTING
         !iv_uri        TYPE string
@@ -34,7 +36,8 @@ CLASS /mbtools/cl_login_manager DEFINITION
       RETURNING
         VALUE(rv_auth) TYPE string
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -42,17 +45,18 @@ CLASS /mbtools/cl_login_manager DEFINITION
       BEGIN OF ty_auth,
         uri           TYPE string,
         authorization TYPE string,
-      END OF ty_auth .
+      END OF ty_auth.
 
     CLASS-DATA:
-      gt_auth TYPE TABLE OF ty_auth WITH DEFAULT KEY .
+      gt_auth TYPE TABLE OF ty_auth WITH DEFAULT KEY.
 
     CLASS-METHODS append
       IMPORTING
         !iv_uri  TYPE string
         !iv_auth TYPE string
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
+
 ENDCLASS.
 
 
@@ -72,7 +76,6 @@ CLASS /mbtools/cl_login_manager IMPLEMENTATION.
       <ls_auth>-authorization = iv_auth.
     ENDIF.
 
-
   ENDMETHOD.
 
 
@@ -85,18 +88,11 @@ CLASS /mbtools/cl_login_manager IMPLEMENTATION.
 
   METHOD load.
 
-    DATA: ls_auth LIKE LINE OF gt_auth.
+    DATA ls_auth LIKE LINE OF gt_auth.
 
     READ TABLE gt_auth INTO ls_auth WITH KEY uri = /mbtools/cl_url=>host( iv_uri ).
     IF sy-subrc = 0.
       rv_authorization = ls_auth-authorization.
-
-      IF ii_client IS NOT INITIAL.
-        ii_client->request->set_header_field(
-          name  = 'authorization'
-          value = ls_auth-authorization ).                  "#EC NOTEXT
-        ii_client->propertytype_logon_popup = ii_client->co_disabled.
-      ENDIF.
     ENDIF.
 
   ENDMETHOD.
@@ -104,13 +100,9 @@ CLASS /mbtools/cl_login_manager IMPLEMENTATION.
 
   METHOD save.
 
-    DATA: lv_auth TYPE string.
-
-    lv_auth = ii_client->request->get_header_field( 'authorization' ). "#EC NOTEXT
-
-    IF lv_auth IS NOT INITIAL.
+    IF NOT iv_authorization IS INITIAL.
       append( iv_uri  = iv_uri
-              iv_auth = lv_auth ).
+              iv_auth = iv_authorization ).
     ENDIF.
 
   ENDMETHOD.
