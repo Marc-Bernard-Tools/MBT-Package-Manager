@@ -100,7 +100,7 @@ CLASS /mbtools/cl_login_manager IMPLEMENTATION.
 
   METHOD save.
 
-    IF NOT iv_authorization IS INITIAL.
+    IF iv_authorization IS NOT INITIAL.
       append( iv_uri  = iv_uri
               iv_auth = iv_authorization ).
     ENDIF.
