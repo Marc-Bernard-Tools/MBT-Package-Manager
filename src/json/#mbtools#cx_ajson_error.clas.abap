@@ -50,11 +50,14 @@ CLASS /mbtools/cx_ajson_error DEFINITION
       IMPORTING
       !iv_msg TYPE string
       !iv_location TYPE string OPTIONAL
+      !is_node TYPE any OPTIONAL
       RAISING
       /mbtools/cx_ajson_error .
     METHODS set_location
       IMPORTING
-      iv_location TYPE string.
+      !iv_location TYPE string OPTIONAL
+      !is_node TYPE any OPTIONAL
+      PREFERRED PARAMETER iv_location .
   PROTECTED SECTION.
   PRIVATE SECTION.
     TYPES:
@@ -94,46 +97,48 @@ CLASS /mbtools/cx_ajson_error IMPLEMENTATION.
 
   METHOD raise.
 
-    DATA ls_msg TYPE ty_message_parts.
-    DATA lv_tmp TYPE string.
+    DATA lx TYPE REF TO /mbtools/cx_ajson_error.
 
-    IF iv_location IS INITIAL.
-      lv_tmp = iv_msg.
-    ELSE.
-      lv_tmp = iv_msg && | @{ iv_location }|.
-    ENDIF.
-    ls_msg = lv_tmp.
-
-    RAISE EXCEPTION TYPE /mbtools/cx_ajson_error
-      EXPORTING
-      textid   = zcx_ajson_error
-      message  = iv_msg
-      location = iv_location
-      a1       = ls_msg-a1
-      a2       = ls_msg-a2
-      a3       = ls_msg-a3
-      a4       = ls_msg-a4.
+    CREATE OBJECT lx EXPORTING message = iv_msg.
+    lx->set_location(
+      iv_location = iv_location
+      is_node     = is_node ).
+    RAISE EXCEPTION lx.
 
   ENDMETHOD.
+
 
   METHOD set_location.
 
     DATA ls_msg TYPE ty_message_parts.
+    DATA lv_location TYPE string.
     DATA lv_tmp TYPE string.
+    FIELD-SYMBOLS <path> TYPE string.
+    FIELD-SYMBOLS <name> TYPE string.
 
-    IF iv_location IS INITIAL.
-      lv_tmp = message.
-    ELSE.
-      lv_tmp = message && | @{ iv_location }|.
+    IF iv_location IS NOT INITIAL.
+      lv_location = iv_location.
+    ELSEIF is_node IS NOT INITIAL.
+      ASSIGN COMPONENT 'PATH' OF STRUCTURE is_node TO <path>.
+      ASSIGN COMPONENT 'NAME' OF STRUCTURE is_node TO <name>.
+      IF <path> IS ASSIGNED AND <name> IS ASSIGNED.
+        lv_location = <path> && <name>.
+      ENDIF.
     ENDIF.
+
+    IF lv_location IS NOT INITIAL.
+      lv_tmp = message && | @{ lv_location }|.
+    ELSE.
+      lv_tmp = message.
+    ENDIF.
+
     ls_msg = lv_tmp.
 
-    location = iv_location.
+    location = lv_location.
     a1       = ls_msg-a1.
     a2       = ls_msg-a2.
     a3       = ls_msg-a3.
     a4       = ls_msg-a4.
 
   ENDMETHOD.
-
 ENDCLASS.

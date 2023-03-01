@@ -66,7 +66,7 @@ CLASS lcl_utils DEFINITION FINAL.
       IMPORTING
         iv_path TYPE string
       RETURNING
-        VALUE(rv_path_name) TYPE /mbtools/if_ajson=>ty_path_name.
+        VALUE(rv_path_name) TYPE /mbtools/if_ajson_types=>ty_path_name.
     CLASS-METHODS validate_array_index
       IMPORTING
         iv_path TYPE string
@@ -75,10 +75,43 @@ CLASS lcl_utils DEFINITION FINAL.
         VALUE(rv_index) TYPE i
       RAISING
         /mbtools/cx_ajson_error.
+    CLASS-METHODS string_to_xstring_utf8
+      IMPORTING
+        iv_str TYPE string
+      RETURNING
+        VALUE(rv_xstr) TYPE xstring.
 
 ENDCLASS.
 
 CLASS lcl_utils IMPLEMENTATION.
+
+  METHOD string_to_xstring_utf8.
+
+    DATA lo_conv TYPE REF TO object.
+
+    TRY.
+        CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_out
+          RECEIVING
+          instance = lo_conv.
+        CALL METHOD lo_conv->('IF_ABAP_CONV_OUT~CONVERT')
+          EXPORTING
+          source = iv_str
+          RECEIVING
+          result = rv_xstr.
+      CATCH cx_sy_dyn_call_illegal_class.
+        CALL METHOD ('CL_ABAP_CONV_OUT_CE')=>create
+          EXPORTING
+          encoding = 'UTF-8'
+          RECEIVING
+          conv = lo_conv.
+        CALL METHOD lo_conv->('CONVERT')
+          EXPORTING
+          data = iv_str
+          IMPORTING
+          buffer = rv_xstr.
+    ENDTRY.
+
+  ENDMETHOD.
 
   METHOD validate_array_index.
 
@@ -154,22 +187,17 @@ CLASS lcl_json_parser DEFINITION FINAL.
       IMPORTING
         iv_json TYPE string
       RETURNING
-        VALUE(rt_json_tree) TYPE /mbtools/if_ajson=>ty_nodes_tt
+        VALUE(rt_json_tree) TYPE /mbtools/if_ajson_types=>ty_nodes_tt
       RAISING
         /mbtools/cx_ajson_error.
 
   PRIVATE SECTION.
 
     TYPES:
-      ty_stack_tt TYPE STANDARD TABLE OF REF TO /mbtools/if_ajson=>ty_node.
+      ty_stack_tt TYPE STANDARD TABLE OF REF TO /mbtools/if_ajson_types=>ty_node.
 
     DATA mt_stack TYPE ty_stack_tt.
-
-    CLASS-METHODS join_path
-      IMPORTING
-        it_stack TYPE ty_stack_tt
-      RETURNING
-        VALUE(rv_path) TYPE string.
+    DATA mv_stack_path TYPE string.
 
     METHODS raise
       IMPORTING
@@ -181,7 +209,7 @@ CLASS lcl_json_parser DEFINITION FINAL.
       IMPORTING
         iv_json TYPE string
       RETURNING
-        VALUE(rt_json_tree) TYPE /mbtools/if_ajson=>ty_nodes_tt
+        VALUE(rt_json_tree) TYPE /mbtools/if_ajson_types=>ty_nodes_tt
       RAISING
         /mbtools/cx_ajson_error cx_sxml_error.
 
@@ -264,10 +292,11 @@ CLASS lcl_json_parser IMPLEMENTATION.
     FIELD-SYMBOLS <item> LIKE LINE OF rt_json_tree.
 
     CLEAR mt_stack.
+    CLEAR mv_stack_path.
     IF iv_json IS INITIAL.
       RETURN.
     ENDIF.
-    lo_reader = cl_sxml_string_reader=>create( cl_abap_codepage=>convert_to( iv_json ) ).
+    lo_reader = cl_sxml_string_reader=>create( lcl_utils=>string_to_xstring_utf8( iv_json ) ).
 
     " TODO: self protection, check non-empty, check starting from object ...
 
@@ -287,14 +316,15 @@ CLASS lcl_json_parser IMPLEMENTATION.
 
           APPEND INITIAL LINE TO rt_json_tree ASSIGNING <item>.
 
-          <item>-type = to_lower( lo_open->qname-name ).
+          <item>-type = lo_open->qname-name.
 
           READ TABLE mt_stack INDEX 1 INTO lr_stack_top.
           IF sy-subrc = 0.
-            <item>-path = join_path( mt_stack ).
+            " Using string is faster than rebuilding path from stack
+            <item>-path = mv_stack_path.
             lr_stack_top->children = lr_stack_top->children + 1.
 
-            IF lr_stack_top->type = 'array'.
+            IF lr_stack_top->type = `array`. " This is parser type not ajson type
               <item>-name = |{ lr_stack_top->children }|.
               <item>-index = lr_stack_top->children.
             ELSE.
@@ -312,6 +342,8 @@ CLASS lcl_json_parser IMPLEMENTATION.
 
           GET REFERENCE OF <item> INTO lr_stack_top.
           INSERT lr_stack_top INTO mt_stack INDEX 1.
+          " add path component
+          mv_stack_path = mv_stack_path && <item>-name && '/'.
 
         WHEN if_sxml_node=>co_nt_element_close.
           DATA lo_close TYPE REF TO if_sxml_close_element.
@@ -323,6 +355,9 @@ CLASS lcl_json_parser IMPLEMENTATION.
             raise( 'Unexpected closing node type' ).
           ENDIF.
 
+          " remove last path component
+          mv_stack_path = substring( val = mv_stack_path
+                                     len = find( val = mv_stack_path sub = '/' occ = -2 ) + 1 ).
         WHEN if_sxml_node=>co_nt_value.
           DATA lo_value TYPE REF TO if_sxml_value_node.
           lo_value ?= lo_node.
@@ -340,21 +375,11 @@ CLASS lcl_json_parser IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD join_path.
-
-    FIELD-SYMBOLS <ref> LIKE LINE OF it_stack.
-
-    LOOP AT it_stack ASSIGNING <ref>.
-      rv_path = <ref>->name && '/' && rv_path.
-    ENDLOOP.
-
-  ENDMETHOD.
-
   METHOD raise.
 
     /mbtools/cx_ajson_error=>raise(
-      iv_location = join_path( mt_stack )
-      iv_msg      = |JSON PARSER: { iv_error } @ { join_path( mt_stack ) }| ).
+      iv_location = mv_stack_path
+      iv_msg      = |JSON PARSER: { iv_error } @ { mv_stack_path }| ).
 
   ENDMETHOD.
 
@@ -369,7 +394,7 @@ CLASS lcl_json_serializer DEFINITION FINAL CREATE PRIVATE.
 
     CLASS-METHODS stringify
       IMPORTING
-        it_json_tree TYPE /mbtools/if_ajson=>ty_nodes_ts
+        it_json_tree TYPE /mbtools/if_ajson_types=>ty_nodes_ts
         iv_indent TYPE i DEFAULT 0
         iv_keep_item_order TYPE abap_bool DEFAULT abap_false
       RETURNING
@@ -383,7 +408,7 @@ CLASS lcl_json_serializer DEFINITION FINAL CREATE PRIVATE.
 
     CLASS-DATA gv_comma_with_lf TYPE string.
 
-    DATA mt_json_tree TYPE /mbtools/if_ajson=>ty_nodes_ts.
+    DATA mt_json_tree TYPE /mbtools/if_ajson_types=>ty_nodes_ts.
     DATA mv_keep_item_order TYPE abap_bool.
     DATA mt_buffer TYPE string_table.
     DATA mv_indent_step TYPE i.
@@ -403,7 +428,7 @@ CLASS lcl_json_serializer DEFINITION FINAL CREATE PRIVATE.
 
     METHODS stringify_node
       IMPORTING
-        is_node TYPE /mbtools/if_ajson=>ty_node
+        is_node TYPE /mbtools/if_ajson_types=>ty_node
       RAISING
         /mbtools/cx_ajson_error.
 
@@ -470,15 +495,15 @@ CLASS lcl_json_serializer IMPLEMENTATION.
     ENDIF.
 
     CASE is_node-type.
-      WHEN /mbtools/if_ajson=>node_type-array.
+      WHEN /mbtools/if_ajson_types=>node_type-array.
         lv_item = lv_item && '['.
-      WHEN /mbtools/if_ajson=>node_type-object.
+      WHEN /mbtools/if_ajson_types=>node_type-object.
         lv_item = lv_item && '{'.
-      WHEN /mbtools/if_ajson=>node_type-string.
+      WHEN /mbtools/if_ajson_types=>node_type-string.
         lv_item = lv_item && |"{ escape_string( is_node-value ) }"|.
-      WHEN /mbtools/if_ajson=>node_type-boolean OR /mbtools/if_ajson=>node_type-number.
+      WHEN /mbtools/if_ajson_types=>node_type-boolean OR /mbtools/if_ajson_types=>node_type-number.
         lv_item = lv_item && is_node-value.
-      WHEN /mbtools/if_ajson=>node_type-null.
+      WHEN /mbtools/if_ajson_types=>node_type-null.
         lv_item = lv_item && 'null'.
       WHEN OTHERS.
         /mbtools/cx_ajson_error=>raise(
@@ -487,7 +512,7 @@ CLASS lcl_json_serializer IMPLEMENTATION.
     ENDCASE.
 
     IF mv_indent_step > 0
-      AND ( is_node-type = /mbtools/if_ajson=>node_type-array OR is_node-type = /mbtools/if_ajson=>node_type-object )
+      AND ( is_node-type = /mbtools/if_ajson_types=>node_type-array OR is_node-type = /mbtools/if_ajson_types=>node_type-object )
       AND is_node-children > 0.
       mv_level = mv_level + 1.
       lv_item = lv_item && cl_abap_char_utilities=>newline.
@@ -497,21 +522,21 @@ CLASS lcl_json_serializer IMPLEMENTATION.
 
     " finish complex item
 
-    IF is_node-type = /mbtools/if_ajson=>node_type-array OR is_node-type = /mbtools/if_ajson=>node_type-object.
+    IF is_node-type = /mbtools/if_ajson_types=>node_type-array OR is_node-type = /mbtools/if_ajson_types=>node_type-object.
       DATA lv_children_path TYPE string.
       DATA lv_tail TYPE string.
 
       lv_children_path = is_node-path && is_node-name && '/'. " for root: path = '' and name = '', so result is '/'
 
       CASE is_node-type.
-        WHEN /mbtools/if_ajson=>node_type-array.
+        WHEN /mbtools/if_ajson_types=>node_type-array.
           IF is_node-children > 0.
             stringify_set(
               iv_parent_path = lv_children_path
               iv_array       = abap_true ).
           ENDIF.
           lv_tail = ']'.
-        WHEN /mbtools/if_ajson=>node_type-object.
+        WHEN /mbtools/if_ajson_types=>node_type-object.
           IF is_node-children > 0.
             stringify_set(
               iv_parent_path = lv_children_path
@@ -613,7 +638,7 @@ CLASS lcl_json_to_abap DEFINITION FINAL.
 
     METHODS to_abap
       IMPORTING
-        it_nodes     TYPE /mbtools/if_ajson=>ty_nodes_ts
+        it_nodes     TYPE /mbtools/if_ajson_types=>ty_nodes_ts
       CHANGING
         c_container TYPE any
       RAISING
@@ -621,7 +646,7 @@ CLASS lcl_json_to_abap DEFINITION FINAL.
 
     METHODS to_timestamp
       IMPORTING
-        iv_value         TYPE /mbtools/if_ajson=>ty_node-value
+        iv_value         TYPE /mbtools/if_ajson_types=>ty_node-value
       RETURNING
         VALUE(rv_result) TYPE timestamp
       RAISING
@@ -629,7 +654,7 @@ CLASS lcl_json_to_abap DEFINITION FINAL.
 
     METHODS to_date
       IMPORTING
-        iv_value         TYPE /mbtools/if_ajson=>ty_node-value
+        iv_value         TYPE /mbtools/if_ajson_types=>ty_node-value
       RETURNING
         VALUE(rv_result) TYPE d
       RAISING
@@ -647,7 +672,7 @@ CLASS lcl_json_to_abap DEFINITION FINAL.
       END OF ty_type_cache.
     DATA mt_node_type_cache TYPE HASHED TABLE OF ty_type_cache WITH UNIQUE KEY type_path.
 
-    DATA mr_nodes TYPE REF TO /mbtools/if_ajson=>ty_nodes_ts.
+    DATA mr_nodes TYPE REF TO /mbtools/if_ajson_types=>ty_nodes_ts.
     DATA mi_custom_mapping TYPE REF TO /mbtools/if_ajson_mapping.
     DATA mv_corresponding TYPE abap_bool.
 
@@ -661,7 +686,7 @@ CLASS lcl_json_to_abap DEFINITION FINAL.
 
     METHODS value_to_abap
       IMPORTING
-        is_node      TYPE /mbtools/if_ajson=>ty_node
+        is_node      TYPE /mbtools/if_ajson_types=>ty_node
         is_node_type TYPE ty_type_cache
         i_container_ref TYPE REF TO data
       RAISING
@@ -670,7 +695,7 @@ CLASS lcl_json_to_abap DEFINITION FINAL.
 
     METHODS get_node_type
       IMPORTING
-        is_node            TYPE /mbtools/if_ajson=>ty_node OPTIONAL " Empty for root
+        is_node            TYPE /mbtools/if_ajson_types=>ty_node OPTIONAL " Empty for root
         is_parent_type     TYPE ty_type_cache OPTIONAL
         i_container_ref    TYPE REF TO data OPTIONAL
       RETURNING
@@ -787,7 +812,7 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
     DATA lx_root TYPE REF TO cx_root.
     DATA lr_target_field TYPE REF TO data.
 
-    FIELD-SYMBOLS <n> TYPE /mbtools/if_ajson=>ty_node.
+    FIELD-SYMBOLS <n> TYPE /mbtools/if_ajson_types=>ty_node.
     FIELD-SYMBOLS <parent_stdtab> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <parent_anytab> TYPE ANY TABLE.
     FIELD-SYMBOLS <parent_struc> TYPE any.
@@ -868,7 +893,7 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
 
         " Process value assignment
           CASE <n>-type.
-            WHEN /mbtools/if_ajson=>node_type-object.
+            WHEN /mbtools/if_ajson_types=>node_type-object.
               IF ls_node_type-type_kind <> lif_kind=>struct_flat AND
                 ls_node_type-type_kind <> lif_kind=>struct_deep.
                 /mbtools/cx_ajson_error=>raise( 'Expected structure' ).
@@ -878,7 +903,7 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
                 is_parent_type  = ls_node_type
                 i_container_ref = lr_target_field ).
 
-            WHEN /mbtools/if_ajson=>node_type-array.
+            WHEN /mbtools/if_ajson_types=>node_type-array.
               IF NOT ls_node_type-type_kind = lif_kind=>table.
                 /mbtools/cx_ajson_error=>raise( 'Expected table' ).
               ENDIF.
@@ -936,16 +961,16 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
     ASSERT sy-subrc = 0.
 
     CASE is_node-type.
-      WHEN /mbtools/if_ajson=>node_type-null.
+      WHEN /mbtools/if_ajson_types=>node_type-null.
         " Do nothing
-      WHEN /mbtools/if_ajson=>node_type-boolean.
+      WHEN /mbtools/if_ajson_types=>node_type-boolean.
         " TODO: check type ?
         <container> = boolc( is_node-value = 'true' ).
-      WHEN /mbtools/if_ajson=>node_type-number.
+      WHEN /mbtools/if_ajson_types=>node_type-number.
         " TODO: check type ?
         <container> = is_node-value.
 
-      WHEN /mbtools/if_ajson=>node_type-string.
+      WHEN /mbtools/if_ajson_types=>node_type-string.
         " TODO: check type ?
         IF is_node_type-type_kind = lif_kind=>date AND is_node-value IS NOT INITIAL.
           <container> = to_date( is_node-value ).
@@ -1070,29 +1095,27 @@ CLASS lcl_abap_to_json DEFINITION FINAL.
     CLASS-METHODS convert
       IMPORTING
         iv_data            TYPE any
-        is_prefix          TYPE /mbtools/if_ajson=>ty_path_name OPTIONAL
+        is_prefix          TYPE /mbtools/if_ajson_types=>ty_path_name OPTIONAL
         iv_array_index     TYPE i DEFAULT 0
         ii_custom_mapping  TYPE REF TO /mbtools/if_ajson_mapping OPTIONAL
-        iv_keep_item_order TYPE abap_bool DEFAULT abap_false
-        iv_format_datetime TYPE abap_bool DEFAULT abap_false
+        is_opts            TYPE /mbtools/if_ajson=>ty_opts OPTIONAL
         iv_item_order      TYPE i DEFAULT 0
       RETURNING
-        VALUE(rt_nodes)   TYPE /mbtools/if_ajson=>ty_nodes_tt
+        VALUE(rt_nodes)   TYPE /mbtools/if_ajson_types=>ty_nodes_tt
       RAISING
         /mbtools/cx_ajson_error.
 
     CLASS-METHODS insert_with_type
       IMPORTING
         iv_data            TYPE any
-        iv_type            TYPE string
-        is_prefix          TYPE /mbtools/if_ajson=>ty_path_name OPTIONAL
+        iv_type            TYPE /mbtools/if_ajson_types=>ty_node_type
+        is_prefix          TYPE /mbtools/if_ajson_types=>ty_path_name OPTIONAL
         iv_array_index     TYPE i DEFAULT 0
         ii_custom_mapping  TYPE REF TO /mbtools/if_ajson_mapping OPTIONAL
-        iv_keep_item_order TYPE abap_bool DEFAULT abap_false
-        iv_format_datetime TYPE abap_bool DEFAULT abap_false
+        is_opts            TYPE /mbtools/if_ajson=>ty_opts OPTIONAL
         iv_item_order      TYPE i DEFAULT 0
       RETURNING
-        VALUE(rt_nodes)   TYPE /mbtools/if_ajson=>ty_nodes_tt
+        VALUE(rt_nodes)   TYPE /mbtools/if_ajson_types=>ty_nodes_tt
       RAISING
         /mbtools/cx_ajson_error.
 
@@ -1125,21 +1148,21 @@ CLASS lcl_abap_to_json DEFINITION FINAL.
       IMPORTING
         iv_data TYPE any
         io_type TYPE REF TO cl_abap_typedescr
-        is_prefix TYPE /mbtools/if_ajson=>ty_path_name
+        is_prefix TYPE /mbtools/if_ajson_types=>ty_path_name
         iv_index TYPE i DEFAULT 0
         iv_item_order TYPE i DEFAULT 0
       CHANGING
-        ct_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt
+        ct_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt
       RAISING
         /mbtools/cx_ajson_error.
 
     METHODS convert_ajson
       IMPORTING
         io_json TYPE REF TO /mbtools/if_ajson
-        is_prefix TYPE /mbtools/if_ajson=>ty_path_name
+        is_prefix TYPE /mbtools/if_ajson_types=>ty_path_name
         iv_index TYPE i DEFAULT 0
       CHANGING
-        ct_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt
+        ct_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt
       RAISING
         /mbtools/cx_ajson_error.
 
@@ -1147,22 +1170,22 @@ CLASS lcl_abap_to_json DEFINITION FINAL.
       IMPORTING
         iv_data TYPE any
         io_type TYPE REF TO cl_abap_typedescr
-        is_prefix TYPE /mbtools/if_ajson=>ty_path_name
+        is_prefix TYPE /mbtools/if_ajson_types=>ty_path_name
         iv_index TYPE i DEFAULT 0
         iv_item_order TYPE i DEFAULT 0
       CHANGING
-        ct_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt
+        ct_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt
       RAISING
         /mbtools/cx_ajson_error.
 
     METHODS convert_ref
       IMPORTING
         iv_data TYPE any
-        is_prefix TYPE /mbtools/if_ajson=>ty_path_name
+        is_prefix TYPE /mbtools/if_ajson_types=>ty_path_name
         iv_index TYPE i DEFAULT 0
         iv_item_order TYPE i DEFAULT 0
       CHANGING
-        ct_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt
+        ct_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt
       RAISING
         /mbtools/cx_ajson_error.
 
@@ -1170,12 +1193,12 @@ CLASS lcl_abap_to_json DEFINITION FINAL.
       IMPORTING
         iv_data TYPE any
         io_type TYPE REF TO cl_abap_typedescr
-        is_prefix TYPE /mbtools/if_ajson=>ty_path_name
+        is_prefix TYPE /mbtools/if_ajson_types=>ty_path_name
         iv_index TYPE i DEFAULT 0
         iv_item_order TYPE i DEFAULT 0
       CHANGING
-        ct_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt
-        cs_root  TYPE /mbtools/if_ajson=>ty_node OPTIONAL
+        ct_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt
+        cs_root  TYPE /mbtools/if_ajson_types=>ty_node OPTIONAL
       RAISING
         /mbtools/cx_ajson_error.
 
@@ -1183,24 +1206,24 @@ CLASS lcl_abap_to_json DEFINITION FINAL.
       IMPORTING
         iv_data TYPE any
         io_type TYPE REF TO cl_abap_typedescr
-        is_prefix TYPE /mbtools/if_ajson=>ty_path_name
+        is_prefix TYPE /mbtools/if_ajson_types=>ty_path_name
         iv_index TYPE i DEFAULT 0
         iv_item_order TYPE i DEFAULT 0
       CHANGING
-        ct_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt
+        ct_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt
       RAISING
         /mbtools/cx_ajson_error.
 
     METHODS insert_value_with_type
       IMPORTING
         iv_data TYPE any
-        iv_type TYPE string
+        iv_type TYPE /mbtools/if_ajson_types=>ty_node_type
         io_type TYPE REF TO cl_abap_typedescr
-        is_prefix TYPE /mbtools/if_ajson=>ty_path_name
+        is_prefix TYPE /mbtools/if_ajson_types=>ty_path_name
         iv_index TYPE i DEFAULT 0
         iv_item_order TYPE i DEFAULT 0
       CHANGING
-        ct_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt
+        ct_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt
       RAISING
         /mbtools/cx_ajson_error.
 
@@ -1226,8 +1249,8 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 
     CREATE OBJECT lo_converter.
     lo_converter->mi_custom_mapping  = ii_custom_mapping.
-    lo_converter->mv_keep_item_order = iv_keep_item_order.
-    lo_converter->mv_format_datetime = iv_format_datetime.
+    lo_converter->mv_keep_item_order = is_opts-keep_item_order.
+    lo_converter->mv_format_datetime = is_opts-format_datetime.
 
     lo_converter->convert_any(
       EXPORTING
@@ -1380,7 +1403,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
         OR io_type->absolute_name = '\TYPE=XSDBOOLEAN'
         OR io_type->absolute_name = '\TYPE=FLAG'
         OR io_type->absolute_name = '\TYPE=XFELD'.
-      ls_node-type = /mbtools/if_ajson=>node_type-boolean.
+      ls_node-type = /mbtools/if_ajson_types=>node_type-boolean.
       IF iv_data IS NOT INITIAL.
         ls_node-value = 'true'.
       ELSE.
@@ -1388,33 +1411,33 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
       ENDIF.
     ELSEIF io_type->absolute_name = '\TYPE=TIMESTAMP'.
       IF mv_format_datetime = abap_true.
-        ls_node-type  = /mbtools/if_ajson=>node_type-string.
+        ls_node-type  = /mbtools/if_ajson_types=>node_type-string.
         ls_node-value = format_timestamp( iv_data ).
       ELSE.
-        ls_node-type  = /mbtools/if_ajson=>node_type-number.
+        ls_node-type  = /mbtools/if_ajson_types=>node_type-number.
         ls_node-value = |{ iv_data }|.
       ENDIF.
     ELSEIF io_type->type_kind CO lif_kind=>texts OR
            io_type->type_kind CO lif_kind=>binary OR
            io_type->type_kind CO lif_kind=>enum.
-      ls_node-type = /mbtools/if_ajson=>node_type-string.
+      ls_node-type = /mbtools/if_ajson_types=>node_type-string.
       ls_node-value = |{ iv_data }|.
     ELSEIF io_type->type_kind = lif_kind=>date.
-      ls_node-type = /mbtools/if_ajson=>node_type-string.
+      ls_node-type = /mbtools/if_ajson_types=>node_type-string.
       IF mv_format_datetime = abap_true.
         ls_node-value = format_date( iv_data ).
       ELSE.
         ls_node-value = |{ iv_data }|.
       ENDIF.
     ELSEIF io_type->type_kind = lif_kind=>time.
-      ls_node-type = /mbtools/if_ajson=>node_type-string.
+      ls_node-type = /mbtools/if_ajson_types=>node_type-string.
       IF mv_format_datetime = abap_true.
         ls_node-value = format_time( iv_data ).
       ELSE.
         ls_node-value = |{ iv_data }|.
       ENDIF.
     ELSEIF io_type->type_kind CO lif_kind=>numeric.
-      ls_node-type = /mbtools/if_ajson=>node_type-number.
+      ls_node-type = /mbtools/if_ajson_types=>node_type-number.
       ls_node-value = |{ iv_data }|.
     ELSE.
       /mbtools/cx_ajson_error=>raise( |Unexpected elementary type [{
@@ -1445,7 +1468,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
     ENDIF.
 
     IF iv_data IS INITIAL.
-      ls_node-type  = /mbtools/if_ajson=>node_type-null.
+      ls_node-type  = /mbtools/if_ajson_types=>node_type-null.
       ls_node-value = 'null'.
     ELSE.
       " TODO support data references
@@ -1476,7 +1499,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
     ELSE. " First call
       ls_root-path  = is_prefix-path.
       ls_root-name  = is_prefix-name.
-      ls_root-type  = /mbtools/if_ajson=>node_type-object.
+      ls_root-type  = /mbtools/if_ajson_types=>node_type-object.
       ls_root-index = iv_index.
 
       IF mi_custom_mapping IS BOUND.
@@ -1571,7 +1594,7 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 
     ls_root-path  = is_prefix-path.
     ls_root-name  = is_prefix-name.
-    ls_root-type  = /mbtools/if_ajson=>node_type-array.
+    ls_root-type  = /mbtools/if_ajson_types=>node_type-array.
     ls_root-index = iv_index.
     ls_root-order = iv_item_order.
 
@@ -1623,8 +1646,8 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 
     CREATE OBJECT lo_converter.
     lo_converter->mi_custom_mapping  = ii_custom_mapping.
-    lo_converter->mv_keep_item_order = iv_keep_item_order.
-    lo_converter->mv_format_datetime = iv_format_datetime.
+    lo_converter->mv_keep_item_order = is_opts-keep_item_order.
+    lo_converter->mv_format_datetime = is_opts-format_datetime.
 
     lo_converter->insert_value_with_type(
       EXPORTING
@@ -1648,18 +1671,18 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
     IF io_type->type_kind CO lif_kind=>texts OR
        io_type->type_kind CO lif_kind=>date OR
        io_type->type_kind CO lif_kind=>time.
-      IF iv_type = /mbtools/if_ajson=>node_type-boolean AND iv_data <> 'true' AND iv_data <> 'false'.
+      IF iv_type = /mbtools/if_ajson_types=>node_type-boolean AND iv_data <> 'true' AND iv_data <> 'false'.
         /mbtools/cx_ajson_error=>raise( |Unexpected boolean value [{ iv_data }] @{ lv_prefix }| ).
-      ELSEIF iv_type = /mbtools/if_ajson=>node_type-null AND iv_data IS NOT INITIAL.
+      ELSEIF iv_type = /mbtools/if_ajson_types=>node_type-null AND iv_data IS NOT INITIAL.
         /mbtools/cx_ajson_error=>raise( |Unexpected null value [{ iv_data }] @{ lv_prefix }| ).
-      ELSEIF iv_type = /mbtools/if_ajson=>node_type-number AND iv_data CN '0123456789. E+-'.
+      ELSEIF iv_type = /mbtools/if_ajson_types=>node_type-number AND iv_data CN '0123456789. E+-'.
         /mbtools/cx_ajson_error=>raise( |Unexpected numeric value [{ iv_data }] @{ lv_prefix }| ).
-      ELSEIF iv_type <> /mbtools/if_ajson=>node_type-string AND iv_type <> /mbtools/if_ajson=>node_type-boolean
-        AND iv_type <> /mbtools/if_ajson=>node_type-null AND iv_type <> /mbtools/if_ajson=>node_type-number.
+      ELSEIF iv_type <> /mbtools/if_ajson_types=>node_type-string AND iv_type <> /mbtools/if_ajson_types=>node_type-boolean
+        AND iv_type <> /mbtools/if_ajson_types=>node_type-null AND iv_type <> /mbtools/if_ajson_types=>node_type-number.
         /mbtools/cx_ajson_error=>raise( |Unexpected type for value [{ iv_type },{ iv_data }] @{ lv_prefix }| ).
       ENDIF.
     ELSEIF io_type->type_kind CO lif_kind=>numeric.
-      IF iv_type <> /mbtools/if_ajson=>node_type-number.
+      IF iv_type <> /mbtools/if_ajson_types=>node_type-number.
         /mbtools/cx_ajson_error=>raise( |Unexpected value for numeric [{ iv_data }] @{ lv_prefix }| ).
       ENDIF.
     ELSE.
@@ -1690,30 +1713,45 @@ CLASS lcl_abap_to_json IMPLEMENTATION.
 ENDCLASS.
 
 **********************************************************************
+* MUTATOR INTERFACE
+**********************************************************************
+
+INTERFACE lif_mutator_runner.
+  METHODS run
+    IMPORTING
+      it_source_tree TYPE /mbtools/if_ajson_types=>ty_nodes_ts
+    EXPORTING
+      et_dest_tree TYPE /mbtools/if_ajson_types=>ty_nodes_ts
+    RAISING
+      /mbtools/cx_ajson_error.
+ENDINTERFACE.
+
+**********************************************************************
 * FILTER RUNNER
 **********************************************************************
 
 CLASS lcl_filter_runner DEFINITION FINAL.
   PUBLIC SECTION.
-    METHODS run
+    INTERFACES lif_mutator_runner.
+    CLASS-METHODS new
       IMPORTING
         ii_filter TYPE REF TO /mbtools/if_ajson_filter
-        it_source_tree TYPE /mbtools/if_ajson=>ty_nodes_ts
-      CHANGING
-        ct_dest_tree TYPE /mbtools/if_ajson=>ty_nodes_ts
-      RAISING
-        /mbtools/cx_ajson_error.
+      RETURNING
+        VALUE(ro_instance) TYPE REF TO lcl_filter_runner.
+    METHODS constructor
+      IMPORTING
+        ii_filter TYPE REF TO /mbtools/if_ajson_filter.
 
   PRIVATE SECTION.
     DATA mi_filter TYPE REF TO /mbtools/if_ajson_filter.
-    DATA mr_source_tree TYPE REF TO /mbtools/if_ajson=>ty_nodes_ts.
-    DATA mr_dest_tree TYPE REF TO /mbtools/if_ajson=>ty_nodes_ts.
+    DATA mr_source_tree TYPE REF TO /mbtools/if_ajson_types=>ty_nodes_ts.
+    DATA mr_dest_tree TYPE REF TO /mbtools/if_ajson_types=>ty_nodes_ts.
 
     METHODS walk
       IMPORTING
         iv_path TYPE string
       CHANGING
-        cs_parent TYPE /mbtools/if_ajson=>ty_node OPTIONAL
+        cs_parent TYPE /mbtools/if_ajson_types=>ty_node OPTIONAL
       RAISING
         /mbtools/cx_ajson_error.
 
@@ -1721,14 +1759,20 @@ ENDCLASS.
 
 CLASS lcl_filter_runner IMPLEMENTATION.
 
-  METHOD run.
+  METHOD new.
+    CREATE OBJECT ro_instance EXPORTING ii_filter = ii_filter.
+  ENDMETHOD.
 
+  METHOD constructor.
     ASSERT ii_filter IS BOUND.
     mi_filter = ii_filter.
-    CLEAR ct_dest_tree.
+  ENDMETHOD.
 
+  METHOD lif_mutator_runner~run.
+
+    CLEAR et_dest_tree.
     GET REFERENCE OF it_source_tree INTO mr_source_tree.
-    GET REFERENCE OF ct_dest_tree INTO mr_dest_tree.
+    GET REFERENCE OF et_dest_tree INTO mr_dest_tree.
 
     walk( iv_path = '' ).
 
@@ -1736,18 +1780,18 @@ CLASS lcl_filter_runner IMPLEMENTATION.
 
   METHOD walk.
 
-    DATA ls_node TYPE /mbtools/if_ajson=>ty_node.
+    DATA ls_node TYPE /mbtools/if_ajson_types=>ty_node.
 
     LOOP AT mr_source_tree->* INTO ls_node WHERE path = iv_path.
       CASE ls_node-type.
-        WHEN /mbtools/if_ajson=>node_type-boolean OR /mbtools/if_ajson=>node_type-null
-          OR /mbtools/if_ajson=>node_type-number OR /mbtools/if_ajson=>node_type-string.
+        WHEN /mbtools/if_ajson_types=>node_type-boolean OR /mbtools/if_ajson_types=>node_type-null
+          OR /mbtools/if_ajson_types=>node_type-number OR /mbtools/if_ajson_types=>node_type-string.
 
           IF mi_filter->keep_node( ls_node ) = abap_false.
             CONTINUE.
           ENDIF.
 
-        WHEN /mbtools/if_ajson=>node_type-array OR /mbtools/if_ajson=>node_type-object.
+        WHEN /mbtools/if_ajson_types=>node_type-array OR /mbtools/if_ajson_types=>node_type-object.
 
           IF mi_filter->keep_node(
               is_node  = ls_node
@@ -1776,13 +1820,198 @@ CLASS lcl_filter_runner IMPLEMENTATION.
 
       IF cs_parent IS SUPPLIED.
         cs_parent-children = cs_parent-children + 1.
-        IF cs_parent-type = /mbtools/if_ajson=>node_type-array.
+        IF cs_parent-type = /mbtools/if_ajson_types=>node_type-array.
           ls_node-name  = |{ cs_parent-children }|.
           ls_node-index = cs_parent-children.
         ENDIF.
       ENDIF.
       INSERT ls_node INTO TABLE mr_dest_tree->*.
 
+    ENDLOOP.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+**********************************************************************
+* MAPPER RUNNER
+**********************************************************************
+
+CLASS lcl_mapper_runner DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES lif_mutator_runner.
+    CLASS-METHODS new
+      IMPORTING
+        ii_mapper TYPE REF TO /mbtools/if_ajson_mapping
+      RETURNING
+        VALUE(ro_instance) TYPE REF TO lcl_mapper_runner.
+    METHODS constructor
+      IMPORTING
+        ii_mapper TYPE REF TO /mbtools/if_ajson_mapping.
+
+  PRIVATE SECTION.
+    DATA mi_mapper TYPE REF TO /mbtools/if_ajson_mapping.
+    DATA mr_source_tree TYPE REF TO /mbtools/if_ajson_types=>ty_nodes_ts.
+    DATA mr_dest_tree TYPE REF TO /mbtools/if_ajson_types=>ty_nodes_ts.
+
+    METHODS process_deep_node
+      IMPORTING
+        iv_path         TYPE string
+        iv_renamed_path TYPE string
+        iv_node_type    TYPE /mbtools/if_ajson_types=>ty_node-type
+      RAISING
+        /mbtools/cx_ajson_error.
+
+ENDCLASS.
+
+CLASS lcl_mapper_runner IMPLEMENTATION.
+
+  METHOD new.
+    CREATE OBJECT ro_instance EXPORTING ii_mapper = ii_mapper.
+  ENDMETHOD.
+
+  METHOD constructor.
+    ASSERT ii_mapper IS BOUND.
+    mi_mapper = ii_mapper.
+  ENDMETHOD.
+
+  METHOD lif_mutator_runner~run.
+
+    FIELD-SYMBOLS <root> LIKE LINE OF it_source_tree.
+
+    READ TABLE it_source_tree WITH KEY path = `` name = `` ASSIGNING <root>.
+    IF sy-subrc <> 0
+      OR NOT ( <root>-type = /mbtools/if_ajson_types=>node_type-array OR <root>-type = /mbtools/if_ajson_types=>node_type-object ).
+      " empty or one-value-only tree
+      et_dest_tree = it_source_tree.
+      RETURN.
+    ENDIF.
+
+    CLEAR et_dest_tree.
+    GET REFERENCE OF it_source_tree INTO mr_source_tree.
+    GET REFERENCE OF et_dest_tree INTO mr_dest_tree.
+    INSERT <root> INTO TABLE et_dest_tree.
+
+    process_deep_node(
+      iv_path         = `/`
+      iv_renamed_path = `/`
+      iv_node_type    = <root>-type ).
+
+  ENDMETHOD.
+
+  METHOD process_deep_node.
+
+
+    FIELD-SYMBOLS <item> LIKE LINE OF mr_source_tree->*.
+    DATA ls_renamed_node LIKE <item>.
+
+    LOOP AT mr_source_tree->* ASSIGNING <item> WHERE path = iv_path.
+      ls_renamed_node = <item>.
+      IF iv_node_type <> /mbtools/if_ajson_types=>node_type-array.
+        " don't rename array item names -> they are numeric index
+        mi_mapper->rename_node(
+          EXPORTING
+            is_node = <item>
+          CHANGING
+            cv_name = ls_renamed_node-name ).
+        IF ls_renamed_node-name IS INITIAL.
+          /mbtools/cx_ajson_error=>raise(
+            iv_msg  = 'Renamed node name cannot be empty'
+            is_node = <item> ).
+        ENDIF.
+      ENDIF.
+      ls_renamed_node-path = iv_renamed_path.
+
+      INSERT ls_renamed_node INTO TABLE mr_dest_tree->*.
+      IF sy-subrc <> 0. " = 4 ?
+        /mbtools/cx_ajson_error=>raise(
+          iv_msg  = 'Renamed node has a duplicate'
+          is_node = ls_renamed_node ).
+      ENDIF.
+
+      " maybe also catch CX_SY_ITAB_DUPLICATE_KEY but secondary keys are not changed here, so not for now
+
+      IF <item>-type = /mbtools/if_ajson_types=>node_type-array OR <item>-type = /mbtools/if_ajson_types=>node_type-object.
+        process_deep_node(
+          iv_path         = iv_path && <item>-name && `/`
+          iv_renamed_path = iv_renamed_path && ls_renamed_node-name && `/`
+          iv_node_type    = <item>-type ).
+      ENDIF.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+**********************************************************************
+* MUTATOR QUEUE
+**********************************************************************
+
+CLASS lcl_mutator_queue DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES lif_mutator_runner.
+    CLASS-METHODS new
+      RETURNING
+        VALUE(ro_instance) TYPE REF TO lcl_mutator_queue.
+    METHODS add
+      IMPORTING
+        ii_mutator TYPE REF TO lif_mutator_runner
+      RETURNING
+        VALUE(ro_self) TYPE REF TO lcl_mutator_queue.
+
+  PRIVATE SECTION.
+    DATA mt_queue TYPE STANDARD TABLE OF REF TO lif_mutator_runner.
+
+ENDCLASS.
+
+CLASS lcl_mutator_queue IMPLEMENTATION.
+
+  METHOD add.
+    IF ii_mutator IS BOUND.
+      APPEND ii_mutator TO mt_queue.
+    ENDIF.
+    ro_self = me.
+  ENDMETHOD.
+
+  METHOD new.
+    CREATE OBJECT ro_instance.
+  ENDMETHOD.
+
+  METHOD lif_mutator_runner~run.
+
+    DATA li_mutator TYPE REF TO lif_mutator_runner.
+    DATA lv_qsize TYPE i.
+    FIELD-SYMBOLS <from> LIKE it_source_tree.
+    FIELD-SYMBOLS <to> LIKE it_source_tree.
+    DATA lr_buf TYPE REF TO /mbtools/if_ajson_types=>ty_nodes_ts.
+
+    lv_qsize = lines( mt_queue ).
+
+    IF lv_qsize = 0.
+      et_dest_tree = it_source_tree.
+      RETURN.
+    ENDIF.
+
+    LOOP AT mt_queue INTO li_mutator.
+      IF sy-tabix = 1.
+        ASSIGN it_source_tree TO <from>.
+      ELSE.
+        ASSIGN lr_buf->* TO <from>.
+      ENDIF.
+
+      IF sy-tabix = lv_qsize.
+        ASSIGN et_dest_tree TO <to>.
+      ELSE.
+        CREATE DATA lr_buf.
+        ASSIGN lr_buf->* TO <to>.
+      ENDIF.
+
+      li_mutator->run(
+        EXPORTING
+          it_source_tree = <from>
+        IMPORTING
+          et_dest_tree = <to> ).
     ENDLOOP.
 
   ENDMETHOD.
