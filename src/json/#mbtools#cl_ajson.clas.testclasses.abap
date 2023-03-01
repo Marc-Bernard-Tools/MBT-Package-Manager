@@ -4,14 +4,14 @@
 CLASS lcl_nodes_helper DEFINITION FINAL.
   PUBLIC SECTION.
 
-    DATA mt_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA mt_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
     METHODS add
       IMPORTING
         iv_str TYPE string.
     METHODS clear.
     METHODS sorted
       RETURNING
-        VALUE(rt_nodes) TYPE /mbtools/if_ajson=>ty_nodes_ts.
+        VALUE(rt_nodes) TYPE /mbtools/if_ajson_types=>ty_nodes_ts.
 
 ENDCLASS.
 
@@ -98,7 +98,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
 
   METHOD parse_bare_values.
 
-    DATA lt_act TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_act TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
 
     mo_nodes->add( ' | |str |abc | |0' ).
     lt_act = mo_cut->parse( '"abc"' ).
@@ -138,7 +138,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
 
   METHOD parse_error.
 
-    DATA lt_act TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_act TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
     DATA lx_err TYPE REF TO /mbtools/cx_ajson_error.
     TRY.
         lt_act = mo_cut->parse( 'abc' ).
@@ -173,7 +173,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
 
-    DATA lt_act TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_act TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"string": "abc"}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -184,7 +184,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |number   |num    |123                     |  |0' ).
 
-    DATA lt_act TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_act TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"number": 123}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -195,7 +195,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |float    |num    |123.45                  |  |0' ).
 
-    DATA lt_act TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_act TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
     CREATE OBJECT mo_cut.
     lt_act = mo_cut->parse( '{"float": 123.45}' ).
     cl_abap_unit_assert=>assert_equals(
@@ -207,7 +207,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
 
-    DATA lt_act TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_act TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"boolean": true}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -218,7 +218,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |false    |bool   |false                   |  |0' ).
 
-    DATA lt_act TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_act TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"false": false}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -229,7 +229,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |null     |null   |                        |  |0' ).
 
-    DATA lt_act TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_act TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"null": null}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -240,7 +240,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
 
-    DATA lt_act TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_act TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
     lt_act = mo_cut->parse( '{"date": "2020-03-15"}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -295,7 +295,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
   METHOD parse.
 
     DATA lo_cut TYPE REF TO lcl_json_parser.
-    DATA lt_act TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_act TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
     CREATE OBJECT lo_nodes.
@@ -395,7 +395,7 @@ CLASS ltcl_serializer_test DEFINITION FINAL
         VALUE(rv_json) TYPE string.
     CLASS-METHODS sample_nodes
       RETURNING
-        VALUE(rt_nodes) TYPE /mbtools/if_ajson=>ty_nodes_ts.
+        VALUE(rt_nodes) TYPE /mbtools/if_ajson_types=>ty_nodes_ts.
 
   PRIVATE SECTION.
 
@@ -737,12 +737,21 @@ CLASS ltcl_utils_test DEFINITION FINAL
     METHODS normalize_path FOR TESTING.
     METHODS split_path FOR TESTING.
     METHODS validate_array_index FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS string_to_xstring_utf8 FOR TESTING.
 
 ENDCLASS.
 
 CLASS /mbtools/cl_ajson DEFINITION LOCAL FRIENDS ltcl_utils_test.
 
 CLASS ltcl_utils_test IMPLEMENTATION.
+
+  METHOD string_to_xstring_utf8.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lcl_utils=>string_to_xstring_utf8( '123' )
+      exp = '313233' ).
+
+  ENDMETHOD.
 
   METHOD validate_array_index.
 
@@ -791,7 +800,7 @@ CLASS ltcl_utils_test IMPLEMENTATION.
 
   METHOD split_path.
 
-    DATA ls_exp TYPE /mbtools/if_ajson=>ty_path_name.
+    DATA ls_exp TYPE /mbtools/if_ajson_types=>ty_path_name.
     DATA lv_path TYPE string.
 
     lv_path     = ''. " alias to root
@@ -1003,31 +1012,31 @@ CLASS ltcl_reader_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/' )
-      exp = 'object' ).
+      exp = /mbtools/if_ajson_types=>node_type-object ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/string' )
-      exp = 'str' ).
+      exp = /mbtools/if_ajson_types=>node_type-string ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/number' )
-      exp = 'num' ).
+      exp = /mbtools/if_ajson_types=>node_type-number ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/float' )
-      exp = 'num' ).
+      exp = /mbtools/if_ajson_types=>node_type-number ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/boolean' )
-      exp = 'bool' ).
+      exp = /mbtools/if_ajson_types=>node_type-boolean ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/false' )
-      exp = 'bool' ).
+      exp = /mbtools/if_ajson_types=>node_type-boolean ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/null' )
-      exp = 'null' ).
+      exp = /mbtools/if_ajson_types=>node_type-null ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/date' )
-      exp = 'str' ).
+      exp = /mbtools/if_ajson_types=>node_type-string ).
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->get_node_type( '/issues' )
-      exp = 'array' ).
+      exp = /mbtools/if_ajson_types=>node_type-array ).
 
   ENDMETHOD.
 
@@ -1320,7 +1329,7 @@ CLASS ltcl_json_to_abap DEFINITION
         a TYPE string,
         b TYPE i,
       END OF ty_struc,
-      tty_struc TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
+      tty_struc TYPE STANDARD TABLE OF ty_struc WITH KEY a,
       tty_struc_sorted TYPE SORTED TABLE OF ty_struc WITH UNIQUE KEY a,
       tty_struc_hashed TYPE HASHED TABLE OF ty_struc WITH UNIQUE KEY a,
       BEGIN OF ty_complex,
@@ -1976,6 +1985,9 @@ CLASS ltcl_writer_test DEFINITION FINAL
     METHODS set_with_type FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS overwrite_w_keep_order_touch FOR TESTING RAISING /mbtools/cx_ajson_error.
     METHODS overwrite_w_keep_order_set FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS setx FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS setx_float FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS setx_complex FOR TESTING RAISING /mbtools/cx_ajson_error.
 
     METHODS set_with_type_slice
       IMPORTING
@@ -2340,7 +2352,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
     DATA lo_cut TYPE REF TO /mbtools/cl_ajson.
     DATA li_writer TYPE REF TO /mbtools/if_ajson.
-    DATA lt_tab TYPE HASHED TABLE OF string WITH UNIQUE DEFAULT KEY.
+    DATA lt_tab TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
 
     lo_cut = /mbtools/cl_ajson=>create_empty( ).
     li_writer = lo_cut.
@@ -2375,7 +2387,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
         INCLUDE TYPE ty_include.
     TYPES: dat TYPE xstring,
       END OF ty_struct,
-      ty_tab TYPE STANDARD TABLE OF ty_struct WITH DEFAULT KEY.
+      ty_tab TYPE STANDARD TABLE OF ty_struct WITH KEY str.
 
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
     DATA li_cut TYPE REF TO /mbtools/if_ajson.
@@ -2979,17 +2991,17 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     DATA lv_path TYPE string.
 
-    FIELD-SYMBOLS <node> TYPE /mbtools/if_ajson=>ty_node.
+    FIELD-SYMBOLS <node> LIKE LINE OF io_json_in->mt_json_tree.
 
     LOOP AT io_json_in->mt_json_tree ASSIGNING <node> WHERE path = iv_path.
       lv_path = <node>-path && <node>-name && '/'.
       CASE <node>-type.
-        WHEN 'array'.
+        WHEN /mbtools/if_ajson_types=>node_type-array.
           io_json_out->touch_array( lv_path ).
           set_with_type_slice( io_json_in  = io_json_in
                                io_json_out = io_json_out
                                iv_path     = lv_path ).
-        WHEN 'object'.
+        WHEN /mbtools/if_ajson_types=>node_type-object.
           set_with_type_slice( io_json_in  = io_json_in
                                io_json_out = io_json_out
                                iv_path     = lv_path ).
@@ -3083,6 +3095,122 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD setx.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a:1' )->stringify( )
+      exp = '{"a":1}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a : 1' )->stringify( )
+      exp = '{"a":1}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a:"1"' )->stringify( )
+      exp = '{"a":"1"}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a:abc' )->stringify( )
+      exp = '{"a":"abc"}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a:null' )->stringify( )
+      exp = '{"a":null}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a:true' )->stringify( )
+      exp = '{"a":true}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a:"true"' )->stringify( )
+      exp = '{"a":"true"}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a:false' )->stringify( )
+      exp = '{"a":false}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a/b:1' )->stringify( )
+      exp = '{"a":{"b":1}}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/:1' )->stringify( )
+      exp = '1' ). " Because set( path = '/' ) would write root node
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( ':1' )->stringify( )
+      exp = '1' ). " Because set( path = '' ) would write root node
+
+*    cl_abap_unit_assert=>assert_equals(
+*      act = zcl_ajson=>new( )->setx( '' )->stringify( )
+*      exp = '{}' ). " problem is that root node not set so it is not an object
+
+*    cl_abap_unit_assert=>assert_equals(
+*      act = zcl_ajson=>new( )->setx( '/a:' )->stringify( )
+*      exp = '{}' ). " should setx ignore empty values or set an empty string ? Or null ?
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a:""' )->stringify( )
+      exp = '{"a":""}' ).
+
+  ENDMETHOD.
+
+  METHOD setx_float.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a:1.123' )->stringify( )
+      exp = '{"a":1.123}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a:00.123' )->stringify( )
+      exp = '{"a":"00.123"}' ). " not a number
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a:.123' )->stringify( )
+      exp = '{"a":".123"}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a:123.' )->stringify( )
+      exp = '{"a":"123."}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a:1..123' )->stringify( )
+      exp = '{"a":"1..123"}' ).
+
+  ENDMETHOD.
+
+  METHOD setx_complex.
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a:{"b" : 1}' )->stringify( )
+      exp = '{"a":{"b":1}}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a:{}' )->stringify( )
+      exp = '{"a":{}}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a:[1, 2]' )->stringify( )
+      exp = '{"a":[1,2]}' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = /mbtools/cl_ajson=>new( )->setx( '/a:[]' )->stringify( )
+      exp = '{"a":[]}' ).
+
+    TRY.
+        /mbtools/cl_ajson=>new( )->setx( '/a:{"b" : 1' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error.
+    ENDTRY.
+
+    TRY.
+        /mbtools/cl_ajson=>new( )->setx( '/a:[1, 2' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error.
+    ENDTRY.
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 
@@ -3109,7 +3237,7 @@ CLASS ltcl_integrated DEFINITION
         start TYPE ty_loc,
         end TYPE ty_loc,
       END OF ty_issue,
-      tt_issues TYPE STANDARD TABLE OF ty_issue WITH DEFAULT KEY,
+      tt_issues TYPE STANDARD TABLE OF ty_issue WITH KEY message key,
       BEGIN OF ty_target,
         string TYPE string,
         number TYPE i,
@@ -3474,7 +3602,7 @@ CLASS ltcl_abap_to_json DEFINITION
         c TYPE abap_bool,
         d TYPE xsdboolean,
       END OF ty_struc,
-      tt_struc TYPE STANDARD TABLE OF ty_struc WITH DEFAULT KEY,
+      tt_struc TYPE STANDARD TABLE OF ty_struc WITH KEY a,
       BEGIN OF ty_struc_complex.
         INCLUDE TYPE ty_struc.
     TYPES:
@@ -3517,7 +3645,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     lo_nodes->add( '/a/b/   |c     |object |     ||0' ).
     lo_src->mt_json_tree = lo_nodes->mt_nodes.
 
-    DATA lt_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
     lt_nodes = lcl_abap_to_json=>convert( iv_data = lo_src ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -3529,7 +3657,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
   METHOD set_value_number.
 
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA lt_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
 
     " number
     CREATE OBJECT lo_nodes_exp.
@@ -3546,7 +3674,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
   METHOD set_value_string.
 
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA lt_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
 
     " string
     CREATE OBJECT lo_nodes_exp.
@@ -3563,7 +3691,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
   METHOD set_value_true.
 
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA lt_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
 
     " true
     CREATE OBJECT lo_nodes_exp.
@@ -3580,7 +3708,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
   METHOD set_value_false.
 
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA lt_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
 
     " false
     CREATE OBJECT lo_nodes_exp.
@@ -3597,7 +3725,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
   METHOD set_value_xsdboolean.
 
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA lt_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
 
     DATA lv_xsdboolean TYPE xsdboolean.
     CREATE OBJECT lo_nodes_exp.
@@ -3615,7 +3743,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
   METHOD set_null.
 
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA lt_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
     DATA lv_null_ref TYPE REF TO data.
 
     " null
@@ -3633,7 +3761,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
   METHOD set_value_timestamp.
 
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA lt_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
     DATA lv_timezone TYPE timezone VALUE ''.
 
     DATA lv_timestamp TYPE timestamp.
@@ -3653,7 +3781,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
   METHOD set_value_timestamp_initial.
 
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA lt_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
 
     DATA lv_timestamp TYPE timestamp.
     CREATE OBJECT lo_nodes_exp.
@@ -3671,8 +3799,8 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
   METHOD prefix.
 
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA lt_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt.
-    DATA ls_prefix TYPE /mbtools/if_ajson=>ty_path_name.
+    DATA lt_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
+    DATA ls_prefix TYPE /mbtools/if_ajson_types=>ty_path_name.
 
     ls_prefix-path = '/a/'.
     ls_prefix-name = 'b'.
@@ -3693,7 +3821,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
 
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
     DATA ls_struc TYPE ty_struc.
-    DATA lt_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
 
     ls_struc-a = 'abc'.
     ls_struc-b = 10.
@@ -3719,7 +3847,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
 
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
     DATA ls_struc TYPE ty_struc_complex.
-    DATA lt_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
     FIELD-SYMBOLS <i> LIKE LINE OF ls_struc-tab.
 
     ls_struc-a = 'abc'.
@@ -3779,7 +3907,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
   METHOD set_array.
 
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
-    DATA lt_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
 
     DATA lt_tab TYPE TABLE OF ty_struc.
     FIELD-SYMBOLS <s> LIKE LINE OF lt_tab.
@@ -3995,6 +4123,403 @@ CLASS ltcl_filter_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = mt_visit_history
       exp = lt_visits_exp ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+**********************************************************************
+* MAPPER TEST
+**********************************************************************
+
+CLASS ltcl_mapper_test DEFINITION FINAL
+  FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PUBLIC SECTION.
+    INTERFACES /mbtools/if_ajson_mapping.
+
+  PRIVATE SECTION.
+
+    METHODS simple_test FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS array_test FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS duplication_test FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS empty_name_test FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS trivial FOR TESTING RAISING /mbtools/cx_ajson_error.
+
+ENDCLASS.
+
+CLASS ltcl_mapper_test IMPLEMENTATION.
+
+  METHOD /mbtools/if_ajson_mapping~rename_node.
+    IF cv_name+0(1) = 'a'.
+      cv_name = to_upper( cv_name ).
+    ENDIF.
+    IF cv_name = 'set_this_empty'.
+      CLEAR cv_name.
+    ENDIF.
+    " watch dog for array
+    IF is_node-index <> 0.
+      cl_abap_unit_assert=>fail( 'rename must not be called for direct array items' ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD /mbtools/if_ajson_mapping~to_abap.
+  ENDMETHOD.
+
+  METHOD /mbtools/if_ajson_mapping~to_json.
+  ENDMETHOD.
+
+  METHOD simple_test.
+
+    DATA lo_json TYPE REF TO /mbtools/cl_ajson.
+    DATA lo_json_filtered TYPE REF TO /mbtools/cl_ajson.
+    DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
+
+    lo_json = /mbtools/cl_ajson=>create_empty( ).
+    lo_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+    lo_json->set(
+      iv_path = '/bc'
+      iv_val  = 2 ).
+    lo_json->set(
+      iv_path = '/c/ax'
+      iv_val  = 3 ).
+    lo_json->set(
+      iv_path = '/c/by'
+      iv_val  = 4 ).
+    lo_json->set(
+      iv_path = '/a/ax'
+      iv_val  = 5 ).
+    lo_json->set(
+      iv_path = '/a/by'
+      iv_val  = 6 ).
+
+    lo_json_filtered = /mbtools/cl_ajson=>create_from(
+      ii_source_json = lo_json
+      ii_mapper      = me ).
+
+    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |object |     | |4' ).
+    lo_nodes_exp->add( '/      |AB    |num    |1    | |0' ).
+    lo_nodes_exp->add( '/      |bc    |num    |2    | |0' ).
+    lo_nodes_exp->add( '/      |c     |object |     | |2' ).
+    lo_nodes_exp->add( '/c/    |AX    |num    |3    | |0' ).
+    lo_nodes_exp->add( '/c/    |by    |num    |4    | |0' ).
+    lo_nodes_exp->add( '/      |A     |object |     | |2' ).
+    lo_nodes_exp->add( '/A/    |AX    |num    |5    | |0' ).
+    lo_nodes_exp->add( '/A/    |by    |num    |6    | |0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_json_filtered->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+  ENDMETHOD.
+
+  METHOD array_test.
+
+    DATA lo_json TYPE REF TO /mbtools/cl_ajson.
+    DATA lo_json_filtered TYPE REF TO /mbtools/cl_ajson.
+    DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
+
+    lo_json = /mbtools/cl_ajson=>create_empty( ).
+    lo_json->touch_array( iv_path = '/' ).
+    lo_json->set(
+      iv_path = '/1/ab'
+      iv_val  = 1 ).
+    lo_json->set(
+      iv_path = '/1/bc'
+      iv_val  = 2 ).
+    lo_json->set(
+      iv_path = '/2/ax'
+      iv_val  = 3 ).
+    lo_json->set(
+      iv_path = '/2/by'
+      iv_val  = 4 ).
+
+    lo_json_filtered = /mbtools/cl_ajson=>create_from(
+      ii_source_json = lo_json
+      ii_mapper      = me ).
+
+    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |array  |     | |2' ).
+    lo_nodes_exp->add( '/      |1     |object |     |1|2' ).
+    lo_nodes_exp->add( '/      |2     |object |     |2|2' ).
+    lo_nodes_exp->add( '/1/    |AB    |num    |1    | |0' ).
+    lo_nodes_exp->add( '/1/    |bc    |num    |2    | |0' ).
+    lo_nodes_exp->add( '/2/    |AX    |num    |3    | |0' ).
+    lo_nodes_exp->add( '/2/    |by    |num    |4    | |0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_json_filtered->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+  ENDMETHOD.
+
+  METHOD duplication_test.
+
+    DATA lo_json TYPE REF TO /mbtools/cl_ajson.
+    DATA lx_err TYPE REF TO /mbtools/cx_ajson_error.
+
+    lo_json = /mbtools/cl_ajson=>create_empty( ).
+    lo_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+    lo_json->set(
+      iv_path = '/AB'
+      iv_val  = 2 ).
+
+    TRY.
+        /mbtools/cl_ajson=>create_from(
+          ii_source_json = lo_json
+          ii_mapper      = me ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error INTO lx_err.
+        cl_abap_unit_assert=>assert_char_cp(
+          act = lx_err->get_text( )
+          exp = 'Renamed node has a duplicate @/AB' ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD trivial.
+
+    DATA lo_json TYPE REF TO /mbtools/cl_ajson.
+    DATA lo_json_filtered TYPE REF TO /mbtools/cl_ajson.
+    DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
+
+    lo_json = /mbtools/cl_ajson=>create_empty( ).
+    lo_json_filtered = /mbtools/cl_ajson=>create_from(
+      ii_source_json = lo_json
+      ii_mapper      = me ).
+    cl_abap_unit_assert=>assert_initial( lo_json_filtered->mt_json_tree ).
+
+    lo_json->set(
+      iv_path = '/'
+      iv_val  = 1 ).
+    lo_json_filtered = /mbtools/cl_ajson=>create_from(
+      ii_source_json = lo_json
+      ii_mapper      = me ).
+
+    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |num    |1    | |0' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_json_filtered->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+  ENDMETHOD.
+
+  METHOD empty_name_test.
+
+    DATA lo_json TYPE REF TO /mbtools/cl_ajson.
+    DATA lx_err TYPE REF TO /mbtools/cx_ajson_error.
+
+    lo_json = /mbtools/cl_ajson=>create_empty( ).
+    lo_json->set(
+      iv_path = '/set_this_empty'
+      iv_val  = 1 ).
+
+    TRY.
+        /mbtools/cl_ajson=>create_from(
+          ii_source_json = lo_json
+          ii_mapper      = me ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error INTO lx_err.
+        cl_abap_unit_assert=>assert_char_cp(
+          act = lx_err->get_text( )
+          exp = 'Renamed node name cannot be empty @/set_this_empty' ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+**********************************************************************
+* CLONING TEST
+**********************************************************************
+
+CLASS ltcl_cloning_test DEFINITION FINAL
+  FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PUBLIC SECTION.
+    INTERFACES /mbtools/if_ajson_mapping.
+    INTERFACES /mbtools/if_ajson_filter.
+
+  PRIVATE SECTION.
+
+    METHODS clone_test FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS filter_test FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS mapper_test FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS mapper_and_filter FOR TESTING RAISING /mbtools/cx_ajson_error.
+    METHODS opts_copying FOR TESTING RAISING /mbtools/cx_ajson_error.
+
+ENDCLASS.
+
+CLASS ltcl_cloning_test IMPLEMENTATION.
+
+  METHOD clone_test.
+
+    DATA li_json TYPE REF TO /mbtools/if_ajson.
+    DATA li_json_new TYPE REF TO /mbtools/if_ajson.
+    DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
+
+    li_json = /mbtools/cl_ajson=>create_empty( ).
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+    li_json->set(
+      iv_path = '/xy'
+      iv_val  = 2 ).
+
+    li_json_new = li_json->clone( ).
+
+    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |object |     | |2' ).
+    lo_nodes_exp->add( '/      |ab    |num    |1    | |0' ).
+    lo_nodes_exp->add( '/      |xy    |num    |2    | |0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+    " ensure disconnection
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 5 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json->get_integer( '/ab' )
+      exp = 5 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->get_integer( '/ab' )
+      exp = 1 ).
+
+  ENDMETHOD.
+
+  METHOD filter_test.
+
+    DATA li_json TYPE REF TO /mbtools/if_ajson.
+    DATA li_json_new TYPE REF TO /mbtools/if_ajson.
+    DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
+
+    li_json = /mbtools/cl_ajson=>create_empty( ).
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+    li_json->set(
+      iv_path = '/xy'
+      iv_val  = 2 ).
+
+    li_json_new = li_json->filter( me ).
+
+    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |object |     | |1' ).
+    lo_nodes_exp->add( '/      |ab    |num    |1    | |0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+  ENDMETHOD.
+
+  METHOD mapper_test.
+
+    DATA li_json TYPE REF TO /mbtools/if_ajson.
+    DATA li_json_new TYPE REF TO /mbtools/if_ajson.
+    DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
+
+    li_json = /mbtools/cl_ajson=>create_empty( ).
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+    li_json->set(
+      iv_path = '/xy'
+      iv_val  = 2 ).
+
+    li_json_new = li_json->map( me ).
+
+    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |object |     | |2' ).
+    lo_nodes_exp->add( '/      |AB    |num    |1    | |0' ).
+    lo_nodes_exp->add( '/      |xy    |num    |2    | |0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+  ENDMETHOD.
+
+  METHOD /mbtools/if_ajson_mapping~rename_node.
+    IF cv_name+0(1) = 'a'.
+      cv_name = to_upper( cv_name ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD /mbtools/if_ajson_mapping~to_abap.
+
+  ENDMETHOD.
+
+  METHOD /mbtools/if_ajson_mapping~to_json.
+
+  ENDMETHOD.
+
+  METHOD /mbtools/if_ajson_filter~keep_node.
+    rv_keep = boolc( is_node-name IS INITIAL OR is_node-name+0(1) <> 'x' ).
+  ENDMETHOD.
+
+  METHOD mapper_and_filter.
+
+    DATA li_json TYPE REF TO /mbtools/if_ajson.
+    DATA li_json_new TYPE REF TO /mbtools/if_ajson.
+    DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
+
+    li_json = /mbtools/cl_ajson=>new( ).
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+    li_json->set(
+      iv_path = '/bc'
+      iv_val  = 2 ).
+    li_json->set(
+      iv_path = '/xy'
+      iv_val  = 3 ).
+
+    li_json_new = /mbtools/cl_ajson=>create_from(
+      ii_source_json = li_json
+      ii_filter = me
+      ii_mapper = me ).
+
+    CREATE OBJECT lo_nodes_exp.
+    lo_nodes_exp->add( '       |      |object |     | |2' ).
+    lo_nodes_exp->add( '/      |AB    |num    |1    | |0' ).
+    lo_nodes_exp->add( '/      |bc    |num    |2    | |0' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->mt_json_tree
+      exp = lo_nodes_exp->sorted( ) ).
+
+  ENDMETHOD.
+
+  METHOD opts_copying.
+
+    DATA li_json TYPE REF TO /mbtools/if_ajson.
+    DATA li_json_new TYPE REF TO /mbtools/if_ajson.
+
+    li_json = /mbtools/cl_ajson=>new( )->keep_item_order( ).
+    li_json->set(
+      iv_path = '/ab'
+      iv_val  = 1 ).
+
+    li_json_new = li_json->clone( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_json_new->opts( )-keep_item_order
+      exp = abap_true ).
 
   ENDMETHOD.
 

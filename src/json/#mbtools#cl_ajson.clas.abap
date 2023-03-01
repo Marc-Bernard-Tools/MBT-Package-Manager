@@ -1,6 +1,6 @@
 CLASS /mbtools/cl_ajson DEFINITION
   PUBLIC
-  CREATE PRIVATE .
+  CREATE PUBLIC .
 
 ************************************************************************
 * abap json (AJSON)
@@ -31,6 +31,7 @@ CLASS /mbtools/cl_ajson DEFINITION
     ALIASES:
       clear FOR /mbtools/if_ajson~clear,
       set FOR /mbtools/if_ajson~set,
+      setx FOR /mbtools/if_ajson~setx,
       set_boolean FOR /mbtools/if_ajson~set_boolean,
       set_string FOR /mbtools/if_ajson~set_string,
       set_integer FOR /mbtools/if_ajson~set_integer,
@@ -41,6 +42,11 @@ CLASS /mbtools/cl_ajson DEFINITION
       touch_array FOR /mbtools/if_ajson~touch_array,
       push FOR /mbtools/if_ajson~push,
       stringify FOR /mbtools/if_ajson~stringify.
+
+    ALIASES:
+      clone FOR /mbtools/if_ajson~clone,
+      filter FOR /mbtools/if_ajson~filter,
+      map FOR /mbtools/if_ajson~map.
 
     ALIASES:
       mt_json_tree FOR /mbtools/if_ajson~mt_json_tree,
@@ -58,53 +64,64 @@ CLASS /mbtools/cl_ajson DEFINITION
       RAISING
         /mbtools/cx_ajson_error .
 
-    CLASS-METHODS create_empty
+    CLASS-METHODS create_empty " Might be deprecated, prefer using new( ) or create object
       IMPORTING
         !ii_custom_mapping TYPE REF TO /mbtools/if_ajson_mapping OPTIONAL
+        iv_keep_item_order TYPE abap_bool DEFAULT abap_false
+        iv_format_datetime TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(ro_instance) TYPE REF TO /mbtools/cl_ajson.
 
     " Experimental ! May change
-    CLASS-METHODS create_from
+    CLASS-METHODS create_from " TODO, rename to 'from' ?
       IMPORTING
         !ii_source_json TYPE REF TO /mbtools/if_ajson
-        !ii_filter TYPE REF TO /mbtools/if_ajson_filter OPTIONAL
+        !ii_filter TYPE REF TO /mbtools/if_ajson_filter OPTIONAL " Might be deprecated, use filter() instead
+        !ii_mapper TYPE REF TO /mbtools/if_ajson_mapping OPTIONAL " Might be deprecated, use map() instead
       RETURNING
         VALUE(ro_instance) TYPE REF TO /mbtools/cl_ajson
       RAISING
         /mbtools/cx_ajson_error .
 
-    METHODS constructor.
+    METHODS constructor
+      IMPORTING
+        iv_keep_item_order TYPE abap_bool DEFAULT abap_false
+        iv_format_datetime TYPE abap_bool DEFAULT abap_true.
+    CLASS-METHODS new
+      IMPORTING
+        iv_keep_item_order TYPE abap_bool DEFAULT abap_false
+        iv_format_datetime TYPE abap_bool DEFAULT abap_true
+      RETURNING
+        VALUE(ro_instance) TYPE REF TO /mbtools/cl_ajson.
 
   PROTECTED SECTION.
 
   PRIVATE SECTION.
 
-    DATA mv_read_only TYPE abap_bool.
-    DATA mi_custom_mapping TYPE REF TO /mbtools/if_ajson_mapping.
-    DATA mv_keep_item_order TYPE abap_bool.
-    DATA mv_format_datetime TYPE abap_bool.
-    " TODO restructure into zif_ajson=>ty_opts
+    CLASS-DATA go_float_regex TYPE REF TO cl_abap_regex.
+
+    DATA ms_opts TYPE /mbtools/if_ajson=>ty_opts.
+    DATA mi_custom_mapping TYPE REF TO /mbtools/if_ajson_mapping. " DEPRECATED, will be removed
 
     METHODS get_item
       IMPORTING
         iv_path        TYPE string
       RETURNING
-        VALUE(rv_item) TYPE REF TO /mbtools/if_ajson=>ty_node.
+        VALUE(rv_item) TYPE REF TO /mbtools/if_ajson_types=>ty_node.
     METHODS prove_path_exists
       IMPORTING
         iv_path              TYPE string
       RETURNING
-        VALUE(rr_end_node) TYPE REF TO /mbtools/if_ajson=>ty_node
+        VALUE(rr_end_node) TYPE REF TO /mbtools/if_ajson_types=>ty_node
       RAISING
         /mbtools/cx_ajson_error.
     METHODS delete_subtree
       IMPORTING
         iv_path           TYPE string
         iv_name           TYPE string
-        ir_parent         TYPE REF TO /mbtools/if_ajson=>ty_node OPTIONAL
+        ir_parent         TYPE REF TO /mbtools/if_ajson_types=>ty_node OPTIONAL
       RETURNING
-        VALUE(rs_top_node) TYPE /mbtools/if_ajson=>ty_node.
+        VALUE(rs_top_node) TYPE /mbtools/if_ajson_types=>ty_node.
     METHODS read_only_watchdog
       RAISING
         /mbtools/cx_ajson_error.
@@ -114,44 +131,51 @@ ENDCLASS.
 
 CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
-  METHOD /mbtools/if_ajson~opts.
-    rs_opts-read_only       = mv_read_only.
-    rs_opts-format_datetime = mv_format_datetime.
-    rs_opts-keep_item_order = mv_keep_item_order.
-  ENDMETHOD.
 
   METHOD constructor.
-    format_datetime( abap_true ).
+    ms_opts-keep_item_order = iv_keep_item_order.
+    format_datetime( iv_format_datetime ).
   ENDMETHOD.
 
 
   METHOD create_empty.
-    CREATE OBJECT ro_instance.
+    CREATE OBJECT ro_instance
+      EXPORTING
+        iv_format_datetime = iv_format_datetime
+        iv_keep_item_order = iv_keep_item_order.
     ro_instance->mi_custom_mapping = ii_custom_mapping.
   ENDMETHOD.
 
 
   METHOD create_from.
 
-    DATA lo_filter_runner TYPE REF TO lcl_filter_runner.
+    DATA lo_mutator_queue TYPE REF TO lcl_mutator_queue.
 
     IF ii_source_json IS NOT BOUND.
       /mbtools/cx_ajson_error=>raise( 'Source not bound' ).
     ENDIF.
 
-    CREATE OBJECT ro_instance.
+    CREATE OBJECT ro_instance
+      EXPORTING
+        iv_format_datetime = ii_source_json->opts( )-format_datetime
+        iv_keep_item_order = ii_source_json->opts( )-keep_item_order.
 
-    IF ii_filter IS BOUND.
-      CREATE OBJECT lo_filter_runner.
-      lo_filter_runner->run(
-        EXPORTING
-          ii_filter = ii_filter
-          it_source_tree = ii_source_json->mt_json_tree
-        CHANGING
-          ct_dest_tree = ro_instance->mt_json_tree ).
-    ELSE.
+    IF ii_filter IS NOT BOUND AND ii_mapper IS NOT BOUND.
       ro_instance->mt_json_tree = ii_source_json->mt_json_tree.
-      " Copy keep order and custom mapping ???
+    ELSE.
+      CREATE OBJECT lo_mutator_queue.
+      IF ii_mapper IS BOUND.
+        " Mapping goes first. But maybe it should be a freely definable queue of processors ?
+        lo_mutator_queue->add( lcl_mapper_runner=>new( ii_mapper ) ).
+      ENDIF.
+      IF ii_filter IS BOUND.
+        lo_mutator_queue->add( lcl_filter_runner=>new( ii_filter ) ).
+      ENDIF.
+      lo_mutator_queue->lif_mutator_runner~run(
+        EXPORTING
+          it_source_tree = ii_source_json->mt_json_tree
+        IMPORTING
+          et_dest_tree = ro_instance->mt_json_tree ).
     ENDIF.
 
   ENDMETHOD.
@@ -193,7 +217,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
   METHOD get_item.
 
     FIELD-SYMBOLS <item> LIKE LINE OF mt_json_tree.
-    DATA ls_path_name TYPE /mbtools/if_ajson=>ty_path_name.
+    DATA ls_path_name TYPE /mbtools/if_ajson_types=>ty_path_name.
     ls_path_name = lcl_utils=>split_path( iv_path ).
 
     READ TABLE mt_json_tree
@@ -205,6 +229,14 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
       GET REFERENCE OF <item> INTO rv_item.
     ENDIF.
 
+  ENDMETHOD.
+
+
+  METHOD new.
+    CREATE OBJECT ro_instance
+      EXPORTING
+        iv_format_datetime = iv_format_datetime
+        iv_keep_item_order = iv_keep_item_order.
   ENDMETHOD.
 
 
@@ -245,7 +277,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
         CLEAR ls_new_node.
         IF lr_node_parent IS NOT INITIAL. " if has parent
           lr_node_parent->children = lr_node_parent->children + 1.
-          IF lr_node_parent->type = /mbtools/if_ajson=>node_type-array.
+          IF lr_node_parent->type = /mbtools/if_ajson_types=>node_type-array.
             ls_new_node-index = lcl_utils=>validate_array_index(
               iv_path  = lv_cur_path
               iv_index = lv_cur_name ).
@@ -253,7 +285,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
         ENDIF.
         ls_new_node-path = lv_cur_path.
         ls_new_node-name = lv_cur_name.
-        ls_new_node-type = /mbtools/if_ajson=>node_type-object.
+        ls_new_node-type = /mbtools/if_ajson_types=>node_type-object.
         INSERT ls_new_node INTO TABLE mt_json_tree REFERENCE INTO rr_end_node.
       ENDIF.
       lv_cur_path = lv_cur_path && lv_cur_name && '/'.
@@ -267,7 +299,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
 
   METHOD read_only_watchdog.
-    IF mv_read_only = abap_true.
+    IF ms_opts-read_only = abap_true.
       /mbtools/cx_ajson_error=>raise( 'This json instance is read only' ).
     ENDIF.
   ENDMETHOD.
@@ -276,7 +308,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
   METHOD /mbtools/if_ajson~array_to_string_table.
 
     DATA lv_normalized_path TYPE string.
-    DATA lr_node TYPE REF TO /mbtools/if_ajson=>ty_node.
+    DATA lr_node TYPE REF TO /mbtools/if_ajson_types=>ty_node.
     FIELD-SYMBOLS <item> LIKE LINE OF mt_json_tree.
 
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
@@ -285,17 +317,17 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
     IF lr_node IS INITIAL.
       /mbtools/cx_ajson_error=>raise( |Path not found: { iv_path }| ).
     ENDIF.
-    IF lr_node->type <> /mbtools/if_ajson=>node_type-array.
+    IF lr_node->type <> /mbtools/if_ajson_types=>node_type-array.
       /mbtools/cx_ajson_error=>raise( |Array expected at: { iv_path }| ).
     ENDIF.
 
     LOOP AT mt_json_tree ASSIGNING <item> WHERE path = lv_normalized_path.
       CASE <item>-type.
-        WHEN /mbtools/if_ajson=>node_type-number OR /mbtools/if_ajson=>node_type-string.
+        WHEN /mbtools/if_ajson_types=>node_type-number OR /mbtools/if_ajson_types=>node_type-string.
           APPEND <item>-value TO rt_string_table.
-        WHEN /mbtools/if_ajson=>node_type-null.
+        WHEN /mbtools/if_ajson_types=>node_type-null.
           APPEND '' TO rt_string_table.
-        WHEN /mbtools/if_ajson=>node_type-boolean.
+        WHEN /mbtools/if_ajson_types=>node_type-boolean.
           DATA lv_tmp TYPE string.
           IF <item>-value = 'true'.
             lv_tmp = abap_true.
@@ -320,11 +352,16 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD /mbtools/if_ajson~clone.
+    ri_json = create_from( me ).
+  ENDMETHOD.
+
+
   METHOD /mbtools/if_ajson~delete.
 
     read_only_watchdog( ).
 
-    DATA ls_split_path TYPE /mbtools/if_ajson=>ty_path_name.
+    DATA ls_split_path TYPE /mbtools/if_ajson_types=>ty_path_name.
     ls_split_path = lcl_utils=>split_path( iv_path ).
 
     delete_subtree(
@@ -341,20 +378,27 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD /mbtools/if_ajson~filter.
+    ri_json = create_from(
+      ii_source_json = me
+      ii_filter      = ii_filter ).
+  ENDMETHOD.
+
+
   METHOD /mbtools/if_ajson~format_datetime.
-    mv_format_datetime = iv_use_iso.
+    ms_opts-format_datetime = iv_use_iso.
     ri_json = me.
   ENDMETHOD.
 
 
   METHOD /mbtools/if_ajson~freeze.
-    mv_read_only = abap_true.
+    ms_opts-read_only = abap_true.
   ENDMETHOD.
 
 
   METHOD /mbtools/if_ajson~get.
 
-    DATA lr_item TYPE REF TO /mbtools/if_ajson=>ty_node.
+    DATA lr_item TYPE REF TO /mbtools/if_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
     IF lr_item IS NOT INITIAL.
       rv_value = lr_item->value.
@@ -365,11 +409,11 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
   METHOD /mbtools/if_ajson~get_boolean.
 
-    DATA lr_item TYPE REF TO /mbtools/if_ajson=>ty_node.
+    DATA lr_item TYPE REF TO /mbtools/if_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
-    IF lr_item IS INITIAL OR lr_item->type = /mbtools/if_ajson=>node_type-null.
+    IF lr_item IS INITIAL OR lr_item->type = /mbtools/if_ajson_types=>node_type-null.
       RETURN.
-    ELSEIF lr_item->type = /mbtools/if_ajson=>node_type-boolean.
+    ELSEIF lr_item->type = /mbtools/if_ajson_types=>node_type-boolean.
       rv_value = boolc( lr_item->value = 'true' ).
     ELSEIF lr_item->value IS NOT INITIAL.
       rv_value = abap_true.
@@ -380,14 +424,14 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
   METHOD /mbtools/if_ajson~get_date.
 
-    DATA lr_item TYPE REF TO /mbtools/if_ajson=>ty_node.
+    DATA lr_item TYPE REF TO /mbtools/if_ajson_types=>ty_node.
     DATA lv_y TYPE c LENGTH 4.
     DATA lv_m TYPE c LENGTH 2.
     DATA lv_d TYPE c LENGTH 2.
 
     lr_item = get_item( iv_path ).
 
-    IF lr_item IS NOT INITIAL AND lr_item->type = /mbtools/if_ajson=>node_type-string.
+    IF lr_item IS NOT INITIAL AND lr_item->type = /mbtools/if_ajson_types=>node_type-string.
       FIND FIRST OCCURRENCE OF REGEX '^(\d{4})-(\d{2})-(\d{2})(T|$)' "#EC NOTEXT
         IN lr_item->value
         SUBMATCHES lv_y lv_m lv_d.
@@ -399,9 +443,9 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
   METHOD /mbtools/if_ajson~get_integer.
 
-    DATA lr_item TYPE REF TO /mbtools/if_ajson=>ty_node.
+    DATA lr_item TYPE REF TO /mbtools/if_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
-    IF lr_item IS NOT INITIAL AND lr_item->type = /mbtools/if_ajson=>node_type-number.
+    IF lr_item IS NOT INITIAL AND lr_item->type = /mbtools/if_ajson_types=>node_type-number.
       rv_value = lr_item->value.
     ENDIF.
 
@@ -410,7 +454,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
   METHOD /mbtools/if_ajson~get_node_type.
 
-    DATA lr_item TYPE REF TO /mbtools/if_ajson=>ty_node.
+    DATA lr_item TYPE REF TO /mbtools/if_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
     IF lr_item IS NOT INITIAL.
       rv_node_type = lr_item->type.
@@ -421,9 +465,9 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
   METHOD /mbtools/if_ajson~get_number.
 
-    DATA lr_item TYPE REF TO /mbtools/if_ajson=>ty_node.
+    DATA lr_item TYPE REF TO /mbtools/if_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
-    IF lr_item IS NOT INITIAL AND lr_item->type = /mbtools/if_ajson=>node_type-number.
+    IF lr_item IS NOT INITIAL AND lr_item->type = /mbtools/if_ajson_types=>node_type-number.
       rv_value = lr_item->value.
     ENDIF.
 
@@ -432,9 +476,9 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
   METHOD /mbtools/if_ajson~get_string.
 
-    DATA lr_item TYPE REF TO /mbtools/if_ajson=>ty_node.
+    DATA lr_item TYPE REF TO /mbtools/if_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
-    IF lr_item IS NOT INITIAL AND lr_item->type <> /mbtools/if_ajson=>node_type-null.
+    IF lr_item IS NOT INITIAL AND lr_item->type <> /mbtools/if_ajson_types=>node_type-null.
       rv_value = lr_item->value.
     ENDIF.
 
@@ -444,7 +488,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
   METHOD /mbtools/if_ajson~get_timestamp.
 
     DATA lo_to_abap TYPE REF TO lcl_json_to_abap.
-    DATA lr_item TYPE REF TO /mbtools/if_ajson=>ty_node.
+    DATA lr_item TYPE REF TO /mbtools/if_ajson_types=>ty_node.
 
     lr_item = get_item( iv_path ).
 
@@ -469,8 +513,15 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
 
   METHOD /mbtools/if_ajson~keep_item_order.
-    mv_keep_item_order = abap_true.
+    ms_opts-keep_item_order = abap_true.
     ri_json = me.
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_ajson~map.
+    ri_json = create_from(
+      ii_source_json = me
+      ii_mapper      = ii_mapper ).
   ENDMETHOD.
 
 
@@ -488,10 +539,15 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD /mbtools/if_ajson~opts.
+    rs_opts = ms_opts.
+  ENDMETHOD.
+
+
   METHOD /mbtools/if_ajson~push.
 
-    DATA lr_parent TYPE REF TO /mbtools/if_ajson=>ty_node.
-    DATA lr_new_node TYPE REF TO /mbtools/if_ajson=>ty_node.
+    DATA lr_parent TYPE REF TO /mbtools/if_ajson_types=>ty_node.
+    DATA lr_new_node TYPE REF TO /mbtools/if_ajson_types=>ty_node.
 
     read_only_watchdog( ).
 
@@ -501,12 +557,12 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
       /mbtools/cx_ajson_error=>raise( |Path [{ iv_path }] does not exist| ).
     ENDIF.
 
-    IF lr_parent->type <> /mbtools/if_ajson=>node_type-array.
+    IF lr_parent->type <> /mbtools/if_ajson_types=>node_type-array.
       /mbtools/cx_ajson_error=>raise( |Path [{ iv_path }] is not array| ).
     ENDIF.
 
-    DATA lt_new_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt.
-    DATA ls_new_path TYPE /mbtools/if_ajson=>ty_path_name.
+    DATA lt_new_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
+    DATA ls_new_path TYPE /mbtools/if_ajson_types=>ty_path_name.
     DATA lv_new_index TYPE i.
 
     lv_new_index     = lr_parent->children + 1.
@@ -514,7 +570,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
     ls_new_path-name = |{ lv_new_index }|.
 
     lt_new_nodes = lcl_abap_to_json=>convert(
-      iv_keep_item_order = mv_keep_item_order
+      is_opts            = ms_opts
       iv_data   = iv_val
       is_prefix = ls_new_path ).
     READ TABLE lt_new_nodes INDEX 1 REFERENCE INTO lr_new_node. " assume first record is the array item - not ideal !
@@ -532,9 +588,9 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
   METHOD /mbtools/if_ajson~set.
 
-    DATA ls_split_path TYPE /mbtools/if_ajson=>ty_path_name.
-    DATA lr_parent TYPE REF TO /mbtools/if_ajson=>ty_node.
-    DATA ls_deleted_node TYPE /mbtools/if_ajson=>ty_node.
+    DATA ls_split_path TYPE /mbtools/if_ajson_types=>ty_path_name.
+    DATA lr_parent TYPE REF TO /mbtools/if_ajson_types=>ty_node.
+    DATA ls_deleted_node TYPE /mbtools/if_ajson_types=>ty_node.
 
     read_only_watchdog( ).
 
@@ -545,8 +601,8 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
     ENDIF.
 
     IF iv_node_type IS NOT INITIAL
-      AND iv_node_type <> /mbtools/if_ajson=>node_type-boolean AND iv_node_type <> /mbtools/if_ajson=>node_type-null
-      AND iv_node_type <> /mbtools/if_ajson=>node_type-number AND iv_node_type <> /mbtools/if_ajson=>node_type-string.
+      AND iv_node_type <> /mbtools/if_ajson_types=>node_type-boolean AND iv_node_type <> /mbtools/if_ajson_types=>node_type-null
+      AND iv_node_type <> /mbtools/if_ajson_types=>node_type-number AND iv_node_type <> /mbtools/if_ajson_types=>node_type-string.
       /mbtools/cx_ajson_error=>raise( |Unexpected type { iv_node_type }| ).
     ENDIF.
 
@@ -554,16 +610,14 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
     IF ls_split_path IS INITIAL. " Assign root, exceptional processing
       IF iv_node_type IS NOT INITIAL.
         mt_json_tree = lcl_abap_to_json=>insert_with_type(
-          iv_format_datetime = mv_format_datetime
-          iv_keep_item_order = mv_keep_item_order
+          is_opts            = ms_opts
           iv_data            = iv_val
           iv_type            = iv_node_type
           is_prefix          = ls_split_path
           ii_custom_mapping  = mi_custom_mapping ).
       ELSE.
         mt_json_tree = lcl_abap_to_json=>convert(
-          iv_format_datetime = mv_format_datetime
-          iv_keep_item_order = mv_keep_item_order
+          is_opts            = ms_opts
           iv_data            = iv_val
           is_prefix          = ls_split_path
           ii_custom_mapping  = mi_custom_mapping ).
@@ -582,10 +636,10 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
       iv_name   = ls_split_path-name ).
 
     " convert to json
-    DATA lt_new_nodes TYPE /mbtools/if_ajson=>ty_nodes_tt.
+    DATA lt_new_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
     DATA lv_array_index TYPE i.
 
-    IF lr_parent->type = /mbtools/if_ajson=>node_type-array.
+    IF lr_parent->type = /mbtools/if_ajson_types=>node_type-array.
       lv_array_index = lcl_utils=>validate_array_index(
         iv_path  = ls_split_path-path
         iv_index = ls_split_path-name ).
@@ -593,8 +647,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
     IF iv_node_type IS NOT INITIAL.
       lt_new_nodes = lcl_abap_to_json=>insert_with_type(
-        iv_format_datetime = mv_format_datetime
-        iv_keep_item_order = mv_keep_item_order
+        is_opts            = ms_opts
         iv_item_order      = ls_deleted_node-order
         iv_data            = iv_val
         iv_type            = iv_node_type
@@ -603,8 +656,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
         ii_custom_mapping  = mi_custom_mapping ).
     ELSE.
       lt_new_nodes = lcl_abap_to_json=>convert(
-        iv_format_datetime = mv_format_datetime
-        iv_keep_item_order = mv_keep_item_order
+        is_opts            = ms_opts
         iv_item_order      = ls_deleted_node-order
         iv_data            = iv_val
         iv_array_index     = lv_array_index
@@ -617,6 +669,76 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
       lr_parent->children = lr_parent->children + 1.
       INSERT LINES OF lt_new_nodes INTO TABLE mt_json_tree.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_ajson~setx.
+
+    DATA lv_path TYPE string.
+    DATA lv_val TYPE string.
+    DATA lv_int TYPE i.
+    DATA lv_dec TYPE decfloat34.
+    DATA lv_last TYPE i.
+
+    IF iv_param IS INITIAL.
+      ri_json = me.
+      RETURN.
+    ENDIF.
+
+    SPLIT iv_param AT ':' INTO lv_path lv_val.
+    CONDENSE lv_path.
+    CONDENSE lv_val.
+
+    IF lv_val IS INITIAL.
+      ri_json = me.
+      RETURN. " Hmm ? or empty string ? or null ?
+    ENDIF.
+
+    IF go_float_regex IS NOT BOUND.
+      CREATE OBJECT go_float_regex EXPORTING pattern = '^([1-9][0-9]*|0)\.[0-9]+$'.
+      " expects fractional, because ints are detected separately
+    ENDIF.
+
+    IF lv_val = 'null'.
+      /mbtools/if_ajson~set_null( lv_path ).
+    ELSEIF lv_val = 'true'.
+      /mbtools/if_ajson~set_boolean(
+        iv_path = lv_path
+        iv_val  = abap_true ).
+    ELSEIF lv_val = 'false'.
+      /mbtools/if_ajson~set_boolean(
+        iv_path = lv_path
+        iv_val  = abap_false ).
+    ELSEIF lv_val CO '0123456789'.
+      lv_int = lv_val.
+      /mbtools/if_ajson~set_integer(
+        iv_path = lv_path
+        iv_val  = lv_int ).
+    ELSEIF lv_val CO '0123456789.' AND go_float_regex->create_matcher( text = lv_val )->match( ) = abap_true.
+      lv_dec = lv_val.
+      /mbtools/if_ajson~set(
+        iv_path = lv_path
+        iv_val  = lv_dec ).
+    ELSEIF lv_val+0(1) = '{' OR lv_val+0(1) = '['.
+      "Expect object/array, but no further checks, parser will catch errors
+      /mbtools/if_ajson~set(
+        iv_path = lv_path
+        iv_val  = parse( lv_val ) ).
+    ELSE. " string
+      lv_last = strlen( lv_val ) - 1.
+      IF lv_val+0(1) = '"' AND lv_val+lv_last(1) = '"'.
+        lv_val = substring(
+          val = lv_val
+          off = 1
+          len = lv_last - 1 ).
+      ENDIF.
+      /mbtools/if_ajson~set_string(
+        iv_path = lv_path
+        iv_val  = lv_val ).
+    ENDIF.
+
+    ri_json = me.
 
   ENDMETHOD.
 
@@ -709,7 +831,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
     DATA lo_section         TYPE REF TO /mbtools/cl_ajson.
     DATA ls_item            LIKE LINE OF mt_json_tree.
     DATA lv_normalized_path TYPE string.
-    DATA ls_path_parts      TYPE /mbtools/if_ajson=>ty_path_name.
+    DATA ls_path_parts      TYPE /mbtools/if_ajson_types=>ty_path_name.
     DATA lv_path_len        TYPE i.
 
     CREATE OBJECT lo_section.
@@ -740,7 +862,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
     rv_json = lcl_json_serializer=>stringify(
       it_json_tree       = mt_json_tree
-      iv_keep_item_order = mv_keep_item_order
+      iv_keep_item_order = ms_opts-keep_item_order
       iv_indent          = iv_indent ).
 
   ENDMETHOD.
@@ -748,10 +870,10 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
   METHOD /mbtools/if_ajson~touch_array.
 
-    DATA lr_node TYPE REF TO /mbtools/if_ajson=>ty_node.
-    DATA ls_deleted_node TYPE /mbtools/if_ajson=>ty_node.
+    DATA lr_node TYPE REF TO /mbtools/if_ajson_types=>ty_node.
+    DATA ls_deleted_node TYPE /mbtools/if_ajson_types=>ty_node.
     DATA ls_new_node LIKE LINE OF mt_json_tree.
-    DATA ls_split_path TYPE /mbtools/if_ajson=>ty_path_name.
+    DATA ls_split_path TYPE /mbtools/if_ajson_types=>ty_path_name.
 
     read_only_watchdog( ).
 
@@ -759,7 +881,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
     IF ls_split_path IS INITIAL. " Assign root, exceptional processing
       ls_new_node-path = ls_split_path-path.
       ls_new_node-name = ls_split_path-name.
-      ls_new_node-type = 'array'.
+      ls_new_node-type = /mbtools/if_ajson_types=>node_type-array.
       INSERT ls_new_node INTO TABLE mt_json_tree.
       RETURN.
     ENDIF.
@@ -774,7 +896,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
     IF lr_node IS INITIAL. " Or node was cleared
 
-      DATA lr_parent TYPE REF TO /mbtools/if_ajson=>ty_node.
+      DATA lr_parent TYPE REF TO /mbtools/if_ajson_types=>ty_node.
       lr_parent = prove_path_exists( ls_split_path-path ).
       ASSERT lr_parent IS NOT INITIAL.
 
@@ -782,15 +904,15 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
       ls_new_node-path = ls_split_path-path.
       ls_new_node-name = ls_split_path-name.
-      ls_new_node-type = /mbtools/if_ajson=>node_type-array.
+      ls_new_node-type = /mbtools/if_ajson_types=>node_type-array.
 
-      IF mv_keep_item_order = abap_true AND ls_deleted_node IS NOT INITIAL.
+      IF ms_opts-keep_item_order = abap_true AND ls_deleted_node IS NOT INITIAL.
         ls_new_node-order = ls_deleted_node-order.
       ENDIF.
 
       INSERT ls_new_node INTO TABLE mt_json_tree.
 
-    ELSEIF lr_node->type <> /mbtools/if_ajson=>node_type-array.
+    ELSEIF lr_node->type <> /mbtools/if_ajson_types=>node_type-array.
       /mbtools/cx_ajson_error=>raise( |Path [{ iv_path }] already used and is not array| ).
     ENDIF.
 

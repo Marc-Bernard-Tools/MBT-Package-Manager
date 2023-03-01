@@ -8,6 +8,7 @@ CLASS ltcl_error DEFINITION
 
     METHODS raise FOR TESTING.
     METHODS raise_w_location FOR TESTING.
+    METHODS raise_w_node FOR TESTING.
     METHODS set_location FOR TESTING.
 
 ENDCLASS.
@@ -45,6 +46,26 @@ CLASS ltcl_error IMPLEMENTATION.
       CATCH /mbtools/cx_ajson_error INTO lx.
         cl_abap_unit_assert=>assert_equals(
           exp = 'a @b'
+          act = lx->get_text( ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD raise_w_node.
+
+    DATA lx TYPE REF TO /mbtools/cx_ajson_error.
+    DATA ls_node TYPE /mbtools/if_ajson_types=>ty_node.
+
+    ls_node-path = '/x/'.
+    ls_node-name = 'y'.
+
+    TRY.
+        /mbtools/cx_ajson_error=>raise( iv_msg = 'a'
+                                        is_node = ls_node ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH /mbtools/cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+          exp = 'a @/x/y'
           act = lx->get_text( ) ).
     ENDTRY.
 

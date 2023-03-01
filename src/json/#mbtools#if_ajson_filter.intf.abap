@@ -8,7 +8,7 @@ INTERFACE /mbtools/if_ajson_filter
 * SPDX-License-Identifier: MIT
 ************************************************************************
 
-  TYPES ty_filter_tab TYPE STANDARD TABLE OF REF TO /mbtools/if_ajson_filter WITH DEFAULT KEY.
+  TYPES ty_filter_tab TYPE STANDARD TABLE OF REF TO /mbtools/if_ajson_filter WITH KEY table_line.
   TYPES ty_visit_type TYPE i.
 
   CONSTANTS:
@@ -20,7 +20,7 @@ INTERFACE /mbtools/if_ajson_filter
 
   METHODS keep_node
     IMPORTING
-      is_node TYPE /mbtools/if_ajson=>ty_node
+      is_node TYPE /mbtools/if_ajson_types=>ty_node
       iv_visit TYPE ty_visit_type DEFAULT visit_type-value
     RETURNING
       VALUE(rv_keep) TYPE abap_bool
