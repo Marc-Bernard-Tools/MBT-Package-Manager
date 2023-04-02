@@ -683,7 +683,6 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
     CONSTANTS lc_tabname TYPE tabname VALUE 'ZMBTINST'.
 
     DATA:
-      lv_name TYPE string,
       ls_inst TYPE ty_inst,
       ls_cont TYPE ty_content.
 
