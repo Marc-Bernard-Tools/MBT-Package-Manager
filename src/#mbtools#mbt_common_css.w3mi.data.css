@@ -4,8 +4,8 @@
 
 /* FONTS */
 
-/* 
- * Google fonts: 
+/*
+ * Google fonts:
  * https://fonts.google.com/specimen/Righteous
  * https://fonts.google.com/specimen/Open+Sans
  */
@@ -37,11 +37,11 @@
     font-style: normal;
     font-weight: 900;
     font-display: block;
-    src: url("../fonts/fa-solid-900.eot?#iefix") format("embedded-opentype"), url("../fonts/fa-solid-900.woff2") format("woff2"); 
+    src: url("../fonts/fa-solid-900.eot?#iefix") format("embedded-opentype"), url("../fonts/fa-solid-900.woff2") format("woff2");
 }
 .fa, .fas {
     font-family: "Font Awesome 5 Free";
-    font-weight: 900; 
+    font-weight: 900;
 
     /* MBT >>> */
     text-decoration: none;
@@ -229,7 +229,7 @@ img {
     vertical-align: middle;
 }
 pre {
-    display: inline; 
+    display: inline;
     background-image: none;
     background-color: #fff;
     color: #666;
@@ -300,9 +300,9 @@ LAYOUT
     height: 60px;
     border-bottom: 1px solid #999;
 }
-.header .box { 
+.header .box {
 }
-.header .box > div { 
+.header .box > div {
     display: inline-block;
 }
 .header .logo {
@@ -323,7 +323,7 @@ LAYOUT
 .footer table {
     border: 0px;
 }
-.footer .logo { 
+.footer .logo {
     font-size: large;
 }
 .footer .version {
@@ -542,7 +542,7 @@ button[type=submit] i:focus {
 }
 
 input::placeholder,
-input:-ms-input-placeholder { 
+input:-ms-input-placeholder {
     color: #ccc;
 }
 
@@ -571,11 +571,11 @@ div.log {
     border: 1px solid;
     border-radius: 3px;
 }
-div.log > span { 
-    display:block; 
+div.log > span {
+    display:block;
 }
-div.log .icon { 
-    padding-right: 6px; 
+div.log .icon {
+    padding-right: 6px;
 }
 
 /* MISC AND REFACTOR */
@@ -610,8 +610,8 @@ div.log .icon {
     white-space: nowrap;
     text-align: left;
 }
-.nav-container.float-right ul { 
-    float: right; 
+.nav-container.float-right ul {
+    float: right;
 }
 .nav-container ul a {
     display: block;
@@ -623,10 +623,10 @@ div.log .icon {
 }
 
 /* clearfix https://css-tricks.com/snippets/css/clear-fix/ */
-.nav-container:after { 
-    clear: both; 
-    display: block; 
-    content: ""; 
+.nav-container:after {
+    clear: both;
+    display: block;
+    content: "";
 }
 
 /* submenues align to left or right border of the active item
@@ -638,30 +638,30 @@ div.log .icon {
     padding: 0;
     color: #666;
 }
-.nav-container.float-right ul ul { 
-    left: auto; 
-    right: 0; 
+.nav-container.float-right ul ul {
+    left: auto;
+    right: 0;
     font-size: 16px;
 }
-.nav-container ul li.current-menu-item { 
-    font-weight: 700; 
+.nav-container ul li.current-menu-item {
+    font-weight: 700;
 }
-.nav-container ul li.force-nav-hover ul { 
-    display: block; 
+.nav-container ul li.force-nav-hover ul {
+    display: block;
 }
-.nav-container ul li:hover > ul { 
+.nav-container ul li:hover > ul {
     display: block;
     background-color: #fff;
     border: 1px solid #ddd;
 }
-.nav-container ul li:hover { 
+.nav-container ul li:hover {
     background-color: #999;
     color: #04c;
 }
-.nav-container ul li:hover a:hover { 
+.nav-container ul li:hover a:hover {
     color: #04c;
 }
-.nav-container ul li a:hover { 
+.nav-container ul li a:hover {
     color: #04c;
 }
 .nav-container ul :last-child a i {
@@ -731,8 +731,8 @@ div.log .icon {
     bottom: 0px;
     left: 100%;
 }
-.nav-container > ul > li:hover div.minizone { 
-    display: block; 
+.nav-container > ul > li:hover div.minizone {
+    display: block;
 }
 .nav-container.float-right > ul > li > div.minizone {
     left: auto;
@@ -767,8 +767,8 @@ div.log .icon {
     border-bottom: 1px solid;
     border-top: 1px solid;
 }
-.nav-container ul ul li.separator:first-child { 
-    border-top: none; 
+.nav-container ul ul li.separator:first-child {
+    border-top: none;
 }
 
 /* INFO PANEL */
@@ -783,7 +783,7 @@ div.log .icon {
     width: 800px;
     max-width: 100%;
     height: 500px;
-    max-height: 100%;    
+    max-height: 100%;
     background-color: #fff;
     border: 1px solid;
     border-radius: 5px;
@@ -791,7 +791,7 @@ div.log .icon {
 }
 .info-panel-fixed {
     position: fixed;
-    top: 15%; 
+    top: 15%;
 }
 .info-panel .info-hint {
     font-size: small;
@@ -818,7 +818,7 @@ div.log .icon {
     width: 780px;
     max-width: 100%;
     height: 442px;
-    max-height: 100%;    
+    max-height: 100%;
     padding: 10px;
     overflow: auto;
 }
@@ -827,7 +827,7 @@ div.log .icon {
     /* list-style-type: none; */
 }
 .info-panel h1:first-child {
-    margin: auto; 
+    margin: auto;
 }
 .info-panel h1 {
     font-size: inherit;
@@ -843,11 +843,11 @@ div.log .icon {
     padding: 0px 6px;
     border: 1px solid;
 }
-.info-panel .update { 
-    border: 1px solid; 
+.info-panel .update {
+    border: 1px solid;
 }
-.info-panel .info-list td { 
-    padding-right: 1em 
+.info-panel .info-list td {
+    padding-right: 1em
 }
 
 /* MESSAGE PANEL */
@@ -856,7 +856,7 @@ div.log .icon {
     z-index: 99;
     box-shadow: 1px 1px 3px 0px hsla(0, 0%, 0%, .1);
     padding: 12px;
-    margin-left: -48%; 
+    margin-left: -48%;
     position: fixed;
     bottom: 12px;
     width: 94%;
@@ -903,7 +903,7 @@ div.log .icon {
 .link-hint-input {
     margin-left: -30px;
 }
-.link-hint .pending { 
+.link-hint .pending {
     color: hsla(0, 0%, 0%, 0.2);
 }
 
@@ -1106,7 +1106,7 @@ div.corner-hint {
 .dialog fieldset {
     margin-top: 1em;
     border: 1px solid;
-    border-radius: 3px; /* doesn't work in IE ? */
+    border-radius: 3px; /* does not work in IE ? */
     padding-bottom: 1em;
 }
 .dialog fieldset:first-child {
