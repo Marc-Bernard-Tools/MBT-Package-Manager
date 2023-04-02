@@ -19,22 +19,26 @@ CLASS /mbtools/cl_gui_page_about DEFINITION
     METHODS constructor
       RAISING
         /mbtools/cx_exception.
+
     CLASS-METHODS create
       RETURNING
         VALUE(ri_page) TYPE REF TO /mbtools/if_gui_renderable
       RAISING
         /mbtools/cx_exception.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
     CLASS-METHODS build_menu
       RETURNING
         VALUE(ro_menu) TYPE REF TO /mbtools/cl_html_toolbar.
+
     METHODS render_about
       RETURNING
         VALUE(ri_html) TYPE REF TO /mbtools/if_html
       RAISING
         /mbtools/cx_exception.
+
 ENDCLASS.
 
 
@@ -149,7 +153,7 @@ CLASS /mbtools/cl_gui_page_about IMPLEMENTATION.
     ri_html->add( |<p>Version: { /mbtools/cl_tool_bc=>c_tool-version }</p>| ).
 
     " Avoid harvest
-    ri_html->add( |<p>{ 'Copy' && 'right' } 2021 Marc Bernard. All rights reserved.</p>| ).
+    ri_html->add( |<p>Copyright { /mbtools/if_special_chars=>c_copyright } { sy-datum(4) } Marc Bernard Tools</p>| ).
 
     ri_html->add( |<p>{ ri_html->a( iv_typ = /mbtools/if_html=>c_action_type-url
                                     iv_act = /mbtools/if_definitions=>c_www_home
