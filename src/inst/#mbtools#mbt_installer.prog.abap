@@ -37487,6 +37487,24 @@ CLASS zcl_abapinst_popups IMPLEMENTATION.
 
   ENDMETHOD.
 ENDCLASS.
+CLASS lcl_abapgit_data_supporter DEFINITION.
+
+  PUBLIC SECTION.
+
+    INTERFACES zif_abapgit_data_supporter.
+
+ENDCLASS.
+
+CLASS lcl_abapgit_data_supporter IMPLEMENTATION.
+
+  METHOD zif_abapgit_data_supporter~is_object_supported.
+    " Allow all MBT tables for updates
+    IF iv_type = 'TABU' AND iv_name CP '/MBTOOLS/*'.
+      rv_supported = abap_true.
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
 
 
 
@@ -38088,6 +38106,8 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
   METHOD _deserialize_data.
 
     DATA:
+      lo_support   TYPE REF TO lcl_abapgit_data_supporter,
+      lo_inject    TYPE REF TO zcl_abapgit_data_injector,
       li_config    TYPE REF TO zif_abapgit_data_config,
       li_deser     TYPE REF TO zif_abapgit_data_deserializer,
       ls_checks    TYPE zif_abapgit_definitions=>ty_deserialize_checks,
@@ -38095,7 +38115,9 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       ls_result    TYPE LINE OF zif_abapgit_data_deserializer=>ty_results,
       lt_result    TYPE zif_abapgit_data_deserializer=>ty_results.
 
-    " TODO: Inject zcl_abapgit_data_supporter=>set_supporter( ) and allow all /MBTOOLS/ tables
+    CREATE OBJECT lo_support.
+    CREATE OBJECT lo_inject.
+    lo_inject->set_supporter( lo_support ).
 
     li_config = _find_remote_data_config( ).
 
