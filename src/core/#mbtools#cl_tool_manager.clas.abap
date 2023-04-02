@@ -690,6 +690,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
     lv_name = io_tool->get_name( ).
     SELECT SINGLE * FROM (lc_tabname) INTO ls_cont WHERE name = lv_name.
     IF sy-subrc = 0.
+      ls_inst-name            = lv_name.
       ls_inst-pack            = io_tool->get_package( ).
       ls_inst-version         = io_tool->get_version( ).
       ls_inst-sem_version     = /mbtools/cl_version=>convert_string_to_version( ls_inst-version ).
@@ -701,7 +702,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
       ls_inst-installed_langu = 'E'.
       ls_inst-installed_by    = sy-uname.
       ls_inst-installed_at    = io_tool->get_last_update( abap_true ).
-      ls_inst-status          = 'I'.
+      ls_inst-status          = 'S'. "success
       " Update
       ls_cont = _sync_json( ls_inst ).
       UPDATE (lc_tabname) FROM ls_cont.
@@ -709,7 +710,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
         /mbtools/cx_exception=>raise( 'Error updating MBT Installer persistence'(003) ).
       ENDIF.
     ELSE.
-      ls_inst-name            = io_tool->get_name( ).
+      ls_inst-name            = lv_name.
       ls_inst-pack            = io_tool->get_package( ).
       ls_inst-version         = io_tool->get_version( ).
       ls_inst-sem_version     = /mbtools/cl_version=>convert_string_to_version( ls_inst-version ).
@@ -721,7 +722,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
       ls_inst-installed_langu = 'E'.
       ls_inst-installed_by    = sy-uname.
       ls_inst-installed_at    = io_tool->get_last_update( abap_true ).
-      ls_inst-status          = 'I'.
+      ls_inst-status          = 'S'. "success
       " Insert
       ls_cont = _sync_json( ls_inst ).
       INSERT (lc_tabname) FROM ls_cont.
