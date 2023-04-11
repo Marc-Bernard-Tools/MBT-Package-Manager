@@ -7,19 +7,19 @@ Files: *
 Copyright: 2021 Marc Bernard <https://marcbernardtools.com/>
 License: GPL-3.0-only
 
-Files: src/*font_awesome*
+Files: src/fonts/*font_awesome*
 Copyright: 2021 Font Awesome <https://fontawesome.com/>
 License: OFL-1.1-RFN
 
-Files: src/*font_awesome_css*
+Files: src/fonts/*font_awesome_css*
 Copyright: 2021 Font Awesome <https://fontawesome.com/>
 License: CC0-1.0
 
-Files: src/*font_righteous*
+Files: src/fonts/*font_righteous*
 Copyright: 2011 by Brian J. Bonislawsky DBA Astigmatic (AOETI) <astigma@astigmatic.com>
 License: OFL-1.1-RFN
 
-Files: src/*font_open_sans*
+Files: src/fonts/*font_open_sans*
 Copyright: 2020 The Open Sans Project Authors <https://github.com/googlefonts/opensans>
 License: OFL-1.1
 
