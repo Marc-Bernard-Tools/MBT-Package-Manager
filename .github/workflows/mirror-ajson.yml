@@ -25,9 +25,9 @@ jobs:
         bash scripts/credits.sh scripts/credits-ajson.txt Mirror-AJSON/src/libs
         bash scripts/descriptions.sh Mirror-AJSON/src/core
         bash scripts/descriptions.sh Mirror-AJSON/src/libs
-        rm src/json/#mbtools#*
-        rm src/json/core/*
-        rm src/json/libs/*
+        rm -f src/json/#mbtools#*
+        rm -f src/json/core/*
+        rm -f src/json/libs/*
         cp Mirror-AJSON/src/core/* src/json/core/
         cp Mirror-AJSON/src/libs/* src/json/libs/
         rm -rf Mirror-AJSON
