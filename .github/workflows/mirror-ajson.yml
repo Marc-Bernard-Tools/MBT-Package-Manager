@@ -21,9 +21,13 @@ jobs:
       run: |
         git clone "https://github.com/Marc-Bernard-Tools/Mirror-AJSON.git"
         ls -l
-        bash scripts/credits.sh scripts/credits-ajson.txt Mirror-AJSON/src
-        bash scripts/descriptions.sh Mirror-AJSON/src
-        rm -r src/json/#mbtools#*
+        bash scripts/credits.sh scripts/credits-ajson.txt Mirror-AJSON/src/core
+        bash scripts/credits.sh scripts/credits-ajson.txt Mirror-AJSON/src/libs
+        bash scripts/descriptions.sh Mirror-AJSON/src/core
+        bash scripts/descriptions.sh Mirror-AJSON/src/libs
+        rm src/json/#mbtools#*
+        rm src/json/core/*
+        rm src/json/libs/*
         cp Mirror-AJSON/src/core/* src/json/core/
         cp Mirror-AJSON/src/libs/* src/json/libs/
         rm -rf Mirror-AJSON
