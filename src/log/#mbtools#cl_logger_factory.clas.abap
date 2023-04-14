@@ -1,7 +1,7 @@
 CLASS /mbtools/cl_logger_factory DEFINITION
   PUBLIC
   FINAL
-  CREATE PRIVATE .
+  CREATE PRIVATE.
 
 ************************************************************************
 * abap logger
@@ -18,10 +18,10 @@ CLASS /mbtools/cl_logger_factory DEFINITION
         object       TYPE csequence OPTIONAL
         subobject    TYPE csequence OPTIONAL
         desc         TYPE csequence OPTIONAL
-        context      TYPE simple OPTIONAL
+        context      TYPE any OPTIONAL
         settings     TYPE REF TO /mbtools/if_logger_settings OPTIONAL
       RETURNING
-        VALUE(r_log) TYPE REF TO /mbtools/if_logger .
+        VALUE(r_log) TYPE REF TO /mbtools/if_logger.
 
     "! Reopens an already existing log.
     CLASS-METHODS open_log
@@ -32,7 +32,7 @@ CLASS /mbtools/cl_logger_factory DEFINITION
         create_if_does_not_exist TYPE abap_bool DEFAULT abap_false
         settings                 TYPE REF TO /mbtools/if_logger_settings OPTIONAL
       RETURNING
-        VALUE(r_log)             TYPE REF TO /mbtools/if_logger .
+        VALUE(r_log)             TYPE REF TO /mbtools/if_logger.
 
     "! Creates a settings object which can be modified. It can be pass on
     "! the creation of the logger to change its behavior.
@@ -42,21 +42,28 @@ CLASS /mbtools/cl_logger_factory DEFINITION
 
     CLASS-METHODS create_collection
       RETURNING
-        VALUE(r_collection) TYPE REF TO /mbtools/if_logger_collection .
+        VALUE(r_collection) TYPE REF TO /mbtools/if_logger_collection.
+
+    CLASS-METHODS create_display_profile
+      IMPORTING
+        i_detlevel               TYPE clike OPTIONAL
+        i_no_tree                TYPE clike OPTIONAL
+        i_popup                  TYPE clike OPTIONAL
+        i_single_log             TYPE clike OPTIONAL
+        i_standard               TYPE clike DEFAULT abap_true
+      RETURNING
+        VALUE(r_display_profile) TYPE REF TO /mbtools/if_logger_disp_prof.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
-
 CLASS /mbtools/cl_logger_factory IMPLEMENTATION.
 
-
   METHOD create_log.
-
-    DATA: lo_log TYPE REF TO /mbtools/cl_logger.
     FIELD-SYMBOLS <context_val> TYPE c.
 
+    DATA lo_log TYPE REF TO /mbtools/cl_logger.
     CREATE OBJECT lo_log.
     lo_log->header-object    = object.
     lo_log->header-subobject = subobject.
@@ -68,20 +75,19 @@ CLASS /mbtools/cl_logger_factory IMPLEMENTATION.
       CREATE OBJECT lo_log->settings TYPE /mbtools/cl_logger_settings.
     ENDIF.
 
-* Special case: Logger can work without object - but then
-* the data cannot be written to the database.
+    " Special case: Logger can work without object - but then the data cannot be written to the database.
     IF object IS INITIAL.
       lo_log->settings->set_autosave( abap_false ).
     ENDIF.
 
-* Use secondary database connection to write data to database even if
-* main program does a rollback (e. g. during a dump).
+    " Use secondary database connection to write data to database even if
+    " main program does a rollback (e. g. during a dump).
     IF lo_log->settings->get_usage_of_secondary_db_conn( ) = abap_true.
       lo_log->sec_connection     = abap_true.
       lo_log->sec_connect_commit = abap_true.
     ENDIF.
 
-* Set deletion date and set if log can be deleted before deletion date is reached.
+    " Set deletion date and set if log can be deleted before deletion date is reached.
     lo_log->header-aldate_del = lo_log->settings->get_expiry_date( ).
     lo_log->header-del_before = lo_log->settings->get_must_be_kept_until_expiry( ).
 
@@ -98,8 +104,8 @@ CLASS /mbtools/cl_logger_factory IMPLEMENTATION.
       IMPORTING
         e_log_handle = lo_log->handle.
 
-* BAL_LOG_CREATE will fill in some additional header data.
-* This FM updates our instance attribute to reflect that.
+    " BAL_LOG_CREATE will fill in some additional header data.
+    " This FM updates our instance attribute to reflect that.
     CALL FUNCTION 'BAL_LOG_HDR_READ'
       EXPORTING
         i_log_handle = lo_log->handle
@@ -107,26 +113,20 @@ CLASS /mbtools/cl_logger_factory IMPLEMENTATION.
         e_s_log      = lo_log->header.
 
     r_log = lo_log.
-
   ENDMETHOD.
-
 
   METHOD create_settings.
-
     CREATE OBJECT r_settings TYPE /mbtools/cl_logger_settings.
-
   ENDMETHOD.
 
-
   METHOD open_log.
-
     DATA: filter             TYPE bal_s_lfil,
           l_object           TYPE balobj_d,
           l_subobject        TYPE balsubobj,
           extnumber          TYPE balnrext,
           found_headers      TYPE balhdr_t,
           most_recent_header TYPE balhdr.
-    DATA: lo_log             TYPE REF TO /mbtools/cl_logger.
+    DATA lo_log TYPE REF TO /mbtools/cl_logger.
 
     l_object    = object.
     l_subobject = subobject.
@@ -157,12 +157,12 @@ CLASS /mbtools/cl_logger_factory IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-* Delete all but the last row.  Keep the found_headers table this way
-* so we can pass it to BAL_DB_LOAD.
+    " Delete all but the last row.  Keep the found_headers table this way so we can pass it to BAL_DB_LOAD.
     IF lines( found_headers ) > 1.
       DELETE found_headers TO ( lines( found_headers ) - 1 ).
     ENDIF.
     READ TABLE found_headers INDEX 1 INTO most_recent_header.
+
 
     CREATE OBJECT lo_log.
     lo_log->db_number = most_recent_header-lognumber.
@@ -185,11 +185,20 @@ CLASS /mbtools/cl_logger_factory IMPLEMENTATION.
         e_s_log      = lo_log->header.
 
     r_log = lo_log.
-
   ENDMETHOD.
 
   METHOD create_collection.
     CREATE OBJECT r_collection TYPE /mbtools/cl_logger_collection.
+  ENDMETHOD.
+
+  METHOD create_display_profile.
+    CREATE OBJECT r_display_profile TYPE /mbtools/cl_logger_disp_prof.
+    r_display_profile->set(
+      i_detlevel    = i_detlevel
+      i_no_tree     = i_no_tree
+      i_popup       = i_popup
+      i_single_log  = i_single_log
+      i_standard    = i_standard ).
   ENDMETHOD.
 
 ENDCLASS.

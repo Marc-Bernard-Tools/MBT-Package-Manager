@@ -1,4 +1,4 @@
-INTERFACE /mbtools/if_logger_settings PUBLIC .
+INTERFACE /mbtools/if_logger_settings PUBLIC.
 
 ************************************************************************
 * abap logger

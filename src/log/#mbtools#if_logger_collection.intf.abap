@@ -1,5 +1,5 @@
 INTERFACE /mbtools/if_logger_collection
-  PUBLIC .
+  PUBLIC.
 
 ************************************************************************
 * abap logger
