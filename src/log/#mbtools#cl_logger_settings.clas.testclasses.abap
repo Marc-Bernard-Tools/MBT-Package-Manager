@@ -24,107 +24,87 @@ CLASS lcl_logger_settings_should IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD have_correct_defaults.
-    cl_aunit_assert=>assert_equals(
-      exp     = abap_true
-        act     = cut->/mbtools/if_logger_settings~get_autosave( )
-        msg     = |Auto save should be on by default|
-    ).
-    cl_aunit_assert=>assert_equals(
-      exp     = abap_true
-        act     = cut->/mbtools/if_logger_settings~get_usage_of_secondary_db_conn( )
-        msg     = |2nd database connection should be used by default|
-    ).
-    cl_aunit_assert=>assert_equals(
-      exp     = abap_false
-        act     = cut->/mbtools/if_logger_settings~get_must_be_kept_until_expiry( )
-        msg     = |Log should be deletable before expiry date is reached by default|
-    ).
-    cl_aunit_assert=>assert_initial(
+    cl_abap_unit_assert=>assert_true(
+      act     = cut->/mbtools/if_logger_settings~get_autosave( )
+      msg     = |Auto save should be on by default| ).
+    cl_abap_unit_assert=>assert_true(
+      act     = cut->/mbtools/if_logger_settings~get_usage_of_secondary_db_conn( )
+      msg     = |2nd database connection should be used by default| ).
+    cl_abap_unit_assert=>assert_false(
+      act     = cut->/mbtools/if_logger_settings~get_must_be_kept_until_expiry( )
+      msg     = |Log should be deletable before expiry date is reached by default| ).
+    cl_abap_unit_assert=>assert_initial(
       act     = cut->/mbtools/if_logger_settings~get_expiry_date( )
-        msg     = |No expiry date set by default|
-    ).
-    cl_aunit_assert=>assert_equals(
+      msg     = |No expiry date set by default| ).
+    cl_abap_unit_assert=>assert_equals(
       exp     = 10
-        act     = cut->/mbtools/if_logger_settings~get_max_exception_drill_down( )
-        msg     = |Max exception drill down should be 10 by default|
-    ).
+      act     = cut->/mbtools/if_logger_settings~get_max_exception_drill_down( )
+      msg     = |Max exception drill down should be 10 by default| ).
   ENDMETHOD.
 
   METHOD set_autosave.
     cut->/mbtools/if_logger_settings~set_autosave( abap_false ).
-    cl_aunit_assert=>assert_equals(
-      exp     = abap_false
-        act     = cut->/mbtools/if_logger_settings~get_autosave( )
-        msg     = |Auto save was not deactivated correctly|
-    ).
+    cl_abap_unit_assert=>assert_false(
+      act     = cut->/mbtools/if_logger_settings~get_autosave( )
+      msg     = |Auto save was not deactivated correctly| ).
   ENDMETHOD.
 
   METHOD set_expiry_date.
     cut->/mbtools/if_logger_settings~set_expiry_date( '20161030' ).
-    cl_aunit_assert=>assert_equals(
+    cl_abap_unit_assert=>assert_equals(
       exp     = '20161030'
-        act     = cut->/mbtools/if_logger_settings~get_expiry_date( )
-        msg     = |Expiry date was not set correctly|
-    ).
+      act     = cut->/mbtools/if_logger_settings~get_expiry_date( )
+      msg     = |Expiry date was not set correctly| ).
   ENDMETHOD.
 
   METHOD set_expiry_in_days.
     DATA lv_exp TYPE d.
     cut->/mbtools/if_logger_settings~set_expiry_in_days( -1 ).
-    cl_aunit_assert=>assert_initial(
+    cl_abap_unit_assert=>assert_initial(
       act     = cut->/mbtools/if_logger_settings~get_expiry_date( )
-        msg     = |Expiry in days should remain default when setting incorrect values.|
-    ).
+      msg     = |Expiry in days should remain default when setting incorrect values.| ).
 
     cut->/mbtools/if_logger_settings~set_expiry_in_days( 10 ).
 
 
     lv_exp = sy-datum + 10.
 
-    cl_aunit_assert=>assert_equals(
+    cl_abap_unit_assert=>assert_equals(
       exp     = lv_exp
-        act     = cut->/mbtools/if_logger_settings~get_expiry_date( )
-        msg     = |Expiry in days was not set correctly.|
-    ).
+      act     = cut->/mbtools/if_logger_settings~get_expiry_date( )
+      msg     = |Expiry in days was not set correctly.| ).
   ENDMETHOD.
 
   METHOD set_flag_to_keep_until_expiry.
     cut->/mbtools/if_logger_settings~set_must_be_kept_until_expiry( abap_true ).
-    cl_aunit_assert=>assert_equals(
-      exp     = abap_true
-        act     = cut->/mbtools/if_logger_settings~get_must_be_kept_until_expiry( )
-        msg     = |Setter for keeping log until expiry is not working correctly.|
-    ).
+    cl_abap_unit_assert=>assert_true(
+      act     = cut->/mbtools/if_logger_settings~get_must_be_kept_until_expiry( )
+      msg     = |Setter for keeping log until expiry is not working correctly.| ).
   ENDMETHOD.
 
   METHOD set_usage_of_2nd_db_connection.
     cut->/mbtools/if_logger_settings~set_usage_of_secondary_db_conn( abap_false ).
-    cl_aunit_assert=>assert_equals(
-      exp     = abap_false
-        act     = cut->/mbtools/if_logger_settings~get_usage_of_secondary_db_conn( )
-        msg     = |Setter for using 2nd db connection is not working correctly.|
-    ).
+    cl_abap_unit_assert=>assert_false(
+      act     = cut->/mbtools/if_logger_settings~get_usage_of_secondary_db_conn( )
+      msg     = |Setter for using 2nd db connection is not working correctly.| ).
   ENDMETHOD.
 
   METHOD set_max_drilldown_level.
     cut->/mbtools/if_logger_settings~set_max_exception_drill_down( 20 ).
-    cl_aunit_assert=>assert_equals(
+    cl_abap_unit_assert=>assert_equals(
       exp     = 20
-        act     = cut->/mbtools/if_logger_settings~get_max_exception_drill_down( )
-        msg     = |Setter for max drilldown level is not working correctly.|
-    ).
+      act     = cut->/mbtools/if_logger_settings~get_max_exception_drill_down( )
+      msg     = |Setter for max drilldown level is not working correctly.| ).
     cut->/mbtools/if_logger_settings~set_max_exception_drill_down( -1 ).
-    cl_aunit_assert=>assert_equals(
+    cl_abap_unit_assert=>assert_equals(
       exp     = 20
-        act     = cut->/mbtools/if_logger_settings~get_max_exception_drill_down( )
-        msg     = |Max exception drill down level should not change if value is incorrect.|
-    ).
+      act     = cut->/mbtools/if_logger_settings~get_max_exception_drill_down( )
+      msg     = |Max exception drill down level should not change if value is incorrect.| ).
     cut->/mbtools/if_logger_settings~set_max_exception_drill_down( 0 ).
-    cl_aunit_assert=>assert_equals(
+    cl_abap_unit_assert=>assert_equals(
       exp     = 0
-        act     = cut->/mbtools/if_logger_settings~get_max_exception_drill_down( )
-        msg     = |Max exception drill down should be deactivatable.|
-    ).
+      act     = cut->/mbtools/if_logger_settings~get_max_exception_drill_down( )
+      msg     = |Max exception drill down should be deactivatable.| ).
   ENDMETHOD.
 
 ENDCLASS.

@@ -17,7 +17,7 @@ CLASS /mbtools/cl_logger_settings DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
     DATA auto_save                 TYPE abap_bool.
-    DATA expiry_date               TYPE aldate_del .
+    DATA expiry_date               TYPE aldate_del.
     DATA must_be_kept_until_expiry TYPE del_before.
     DATA max_exception_drill_down  TYPE i.
     DATA use_2nd_db_connection     TYPE flag.

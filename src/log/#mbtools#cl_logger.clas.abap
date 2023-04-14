@@ -1,8 +1,3 @@
-*----------------------------------------------------------------------*
-*       CLASS ZCL_LOGGER DEFINITION
-*----------------------------------------------------------------------*
-*
-*----------------------------------------------------------------------*
 CLASS /mbtools/cl_logger DEFINITION
   PUBLIC
   CREATE PRIVATE
@@ -46,11 +41,11 @@ CLASS /mbtools/cl_logger DEFINITION
         !object         TYPE csequence OPTIONAL
         !subobject      TYPE csequence OPTIONAL
         !desc           TYPE csequence OPTIONAL
-        !context        TYPE simple OPTIONAL
+        !context        TYPE any OPTIONAL
         !auto_save      TYPE abap_bool OPTIONAL
         !second_db_conn TYPE abap_bool DEFAULT abap_true
       RETURNING
-        VALUE(r_log)    TYPE REF TO /mbtools/cl_logger .
+        VALUE(r_log)    TYPE REF TO /mbtools/cl_logger.
 
     "! Reopens an already existing log.
     "! For backwards compatibility only! Use ZCL_LOGGER_FACTORY instead.
@@ -62,7 +57,7 @@ CLASS /mbtools/cl_logger DEFINITION
         !create_if_does_not_exist TYPE abap_bool DEFAULT abap_false
         !auto_save                TYPE abap_bool OPTIONAL
       RETURNING
-        VALUE(r_log)              TYPE REF TO /mbtools/cl_logger .
+        VALUE(r_log)              TYPE REF TO /mbtools/cl_logger.
 
   PROTECTED SECTION.
 *"* protected components of class ZCL_LOGGER
@@ -75,12 +70,12 @@ CLASS /mbtools/cl_logger DEFINITION
         bapi  TYPE i VALUE 2,
         bdc   TYPE i VALUE 3,
         sprot TYPE i VALUE 4,
-      END OF c_struct_kind .
+      END OF c_struct_kind.
 
 *"* private components of class ZCL_LOGGER
 *"* do not include other source files here!!!
-    DATA sec_connection     TYPE abap_bool .
-    DATA sec_connect_commit TYPE abap_bool .
+    DATA sec_connection     TYPE abap_bool.
+    DATA sec_connect_commit TYPE abap_bool.
     DATA settings           TYPE REF TO /mbtools/if_logger_settings.
 
     METHODS:
@@ -92,15 +87,15 @@ CLASS /mbtools/cl_logger DEFINITION
           importance                     TYPE balprobcl OPTIONAL
         RETURNING
           VALUE(rt_exception_data_table) TYPE tty_exception_data,
-      get_message_handles
+get_message_handles
         IMPORTING
           msgtype                   TYPE symsgty OPTIONAL
         RETURNING
-          VALUE(rt_message_handles) TYPE bal_t_msgh ,
-      add_structure
+          VALUE(rt_message_handles) TYPE bal_t_msgh,
+add_structure
         IMPORTING
           obj_to_log    TYPE any OPTIONAL
-          context       TYPE simple OPTIONAL
+          context       TYPE any OPTIONAL
           callback_form TYPE csequence OPTIONAL
           callback_prog TYPE csequence OPTIONAL
           callback_fm   TYPE csequence OPTIONAL
@@ -108,40 +103,39 @@ CLASS /mbtools/cl_logger DEFINITION
           importance    TYPE balprobcl OPTIONAL
             PREFERRED PARAMETER obj_to_log
         RETURNING
-          VALUE(self)   TYPE REF TO /mbtools/if_logger .
+          VALUE(self)   TYPE REF TO /mbtools/if_logger.
 
     METHODS save_log.
     METHODS get_struct_kind
       IMPORTING
         !msg_type     TYPE REF TO cl_abap_typedescr
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
     METHODS add_syst_msg
       IMPORTING
         !obj_to_log         TYPE any
       RETURNING
-        VALUE(detailed_msg) TYPE bal_s_msg .
+        VALUE(detailed_msg) TYPE bal_s_msg.
     METHODS add_bapi_msg
       IMPORTING
         !obj_to_log         TYPE any
       RETURNING
-        VALUE(detailed_msg) TYPE bal_s_msg .
+        VALUE(detailed_msg) TYPE bal_s_msg.
     METHODS add_bdc_msg
       IMPORTING
         !obj_to_log         TYPE any
       RETURNING
-        VALUE(detailed_msg) TYPE bal_s_msg .
+        VALUE(detailed_msg) TYPE bal_s_msg.
     METHODS add_sprot_msg
       IMPORTING
         !obj_to_log         TYPE any
       RETURNING
-        VALUE(detailed_msg) TYPE bal_s_msg .
+        VALUE(detailed_msg) TYPE bal_s_msg.
 ENDCLASS.
 
 
 
 CLASS /mbtools/cl_logger IMPLEMENTATION.
-
 
   METHOD add_bapi_msg.
     DATA bapi_message TYPE bapiret1.
@@ -155,32 +149,29 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
     detailed_msg-msgv4 = bapi_message-message_v4.
   ENDMETHOD.
 
-
   METHOD add_bdc_msg.
     DATA bdc_message TYPE bdcmsgcoll.
     MOVE-CORRESPONDING obj_to_log TO bdc_message.
-    detailed_msg-msgty = bdc_message-msgtyp.               "!
+    detailed_msg-msgty = bdc_message-msgtyp.
     detailed_msg-msgid = bdc_message-msgid.
-    detailed_msg-msgno = bdc_message-msgnr.                "!
+    detailed_msg-msgno = bdc_message-msgnr.
     detailed_msg-msgv1 = bdc_message-msgv1.
     detailed_msg-msgv2 = bdc_message-msgv2.
     detailed_msg-msgv3 = bdc_message-msgv3.
     detailed_msg-msgv4 = bdc_message-msgv4.
   ENDMETHOD.
 
-
   METHOD add_sprot_msg.
     DATA sprot_message TYPE sprot_u.
     MOVE-CORRESPONDING obj_to_log TO sprot_message.
     detailed_msg-msgty = sprot_message-severity.
     detailed_msg-msgid = sprot_message-ag.
-    detailed_msg-msgno = sprot_message-msgnr.              "!
+    detailed_msg-msgno = sprot_message-msgnr.
     detailed_msg-msgv1 = sprot_message-var1.
     detailed_msg-msgv2 = sprot_message-var2.
     detailed_msg-msgv3 = sprot_message-var3.
     detailed_msg-msgv4 = sprot_message-var4.
   ENDMETHOD.
-
 
   METHOD add_syst_msg.
     DATA syst_message TYPE symsg.
@@ -216,7 +207,9 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
     ENDWHILE.
 
 
-    SORT exceptions BY level DESCENDING.                   "Display the deepest exception first
+
+    "Display the deepest exception first
+    SORT exceptions BY level DESCENDING.
     LOOP AT exceptions ASSIGNING <ex>.
       APPEND INITIAL LINE TO rt_exception_data_table ASSIGNING <ret>.
       <ret>-exception = <ex>-exception.
@@ -225,9 +218,7 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
     ENDLOOP.
   ENDMETHOD.
 
-
   METHOD get_message_handles.
-
     DATA: log_handle TYPE bal_t_logh,
           filter     TYPE bal_s_mfil.
 
@@ -250,12 +241,9 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
         e_t_msg_handle = rt_message_handles
       EXCEPTIONS
         msg_not_found  = 0.
-
   ENDMETHOD.
 
-
   METHOD get_struct_kind.
-
     DATA: msg_struct_kind TYPE REF TO cl_abap_structdescr,
           components      TYPE abap_compdescr_tab,
           component       LIKE LINE OF components,
@@ -265,7 +253,7 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
           sprot_count     TYPE i.
 
     IF msg_type->type_kind = cl_abap_typedescr=>typekind_struct1
-      OR msg_type->type_kind = cl_abap_typedescr=>typekind_struct2.
+        OR msg_type->type_kind = cl_abap_typedescr=>typekind_struct2.
 
       msg_struct_kind ?= msg_type.
       components = msg_struct_kind->components.
@@ -297,12 +285,9 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
         result = c_struct_kind-sprot.
       ENDIF.
     ENDIF.
-
   ENDMETHOD.
 
-
   METHOD new.
-
     IF auto_save IS SUPPLIED.
       r_log ?= /mbtools/cl_logger_factory=>create_log(
         object = object
@@ -311,8 +296,7 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
         context = context
         settings = /mbtools/cl_logger_factory=>create_settings(
           )->set_usage_of_secondary_db_conn( second_db_conn
-          )->set_autosave( auto_save )
-      ).
+          )->set_autosave( auto_save ) ).
     ELSE.
       r_log ?= /mbtools/cl_logger_factory=>create_log(
         object = object
@@ -320,15 +304,11 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
         desc = desc
         context = context
         settings = /mbtools/cl_logger_factory=>create_settings(
-          )->set_usage_of_secondary_db_conn( second_db_conn )
-      ).
+          )->set_usage_of_secondary_db_conn( second_db_conn ) ).
     ENDIF.
-
   ENDMETHOD.
 
-
   METHOD open.
-
     IF auto_save IS SUPPLIED.
       r_log ?= /mbtools/cl_logger_factory=>open_log(
         object = object
@@ -336,34 +316,29 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
         desc = desc
         create_if_does_not_exist = create_if_does_not_exist
         settings = /mbtools/cl_logger_factory=>create_settings(
-          )->set_autosave( auto_save )
-      ).
+          )->set_autosave( auto_save ) ).
     ELSE.
       r_log ?= /mbtools/cl_logger_factory=>open_log(
         object = object
         subobject = subobject
         desc = desc
-        create_if_does_not_exist = create_if_does_not_exist
-      ).
+        create_if_does_not_exist = create_if_does_not_exist ).
     ENDIF.
-
   ENDMETHOD.
-
 
   METHOD /mbtools/if_logger~a.
     self = add(
-      obj_to_log    = obj_to_log
-      context       = context
-      callback_form = callback_form
-      callback_prog = callback_prog
-      callback_fm   = callback_fm
-      type          = 'A'
-      importance    = importance ).
+      obj_to_log          = obj_to_log
+      context             = context
+      callback_form       = callback_form
+      callback_prog       = callback_prog
+      callback_fm         = callback_fm
+      callback_parameters = callback_parameters
+      type                = 'A'
+      importance          = importance ).
   ENDMETHOD.
 
-
   METHOD /mbtools/if_logger~add.
-
     DATA: detailed_msg             TYPE bal_s_msg,
           exception_data_table     TYPE tty_exception_data,
           free_text_msg            TYPE char200,
@@ -377,6 +352,7 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
           "these objects could be moved into their own method
           "see adt://***/sap/bc/adt/oo/classes/zcl_logger/source/main#start=391,10;end=415,61
           symsg                    TYPE symsg,
+          syst_buffer              TYPE syst,
           loggable                 TYPE REF TO /mbtools/if_loggable_object,
           loggable_object_messages TYPE /mbtools/if_loggable_object=>tty_messages.
 
@@ -386,12 +362,20 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
                    <loggable_object_message> TYPE /mbtools/if_loggable_object=>ty_message.
     FIELD-SYMBOLS <exception_data> LIKE LINE OF exception_data_table.
 
+    " Remember system message since it might get changed inadvertently
+    syst_buffer = syst.
     IF context IS NOT INITIAL.
       ASSIGN context TO <context_val>.
       formatted_context-value = <context_val>.
       ctx_type                = cl_abap_typedescr=>describe_by_data( context ).
 
-      ctx_type->get_ddic_header( RECEIVING p_header = ctx_ddic_header EXCEPTIONS not_found = 1 no_ddic_type = 2 OTHERS = 3 ).
+      ctx_type->get_ddic_header(
+        RECEIVING
+          p_header     = ctx_ddic_header
+        EXCEPTIONS
+          not_found    = 1
+          no_ddic_type = 2
+          OTHERS       = 3 ).
       IF sy-subrc = 0.
         formatted_context-tabname = ctx_ddic_header-tabname.
       ENDIF.
@@ -401,17 +385,19 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
       formatted_params-callback-userexitf = callback_fm.
       formatted_params-callback-userexitp = callback_prog.
       formatted_params-callback-userexitt = 'F'.
+      formatted_params-t_par              = callback_parameters.
     ELSEIF callback_form IS NOT INITIAL.
       formatted_params-callback-userexitf = callback_form.
       formatted_params-callback-userexitp = callback_prog.
       formatted_params-callback-userexitt = ' '.
+      formatted_params-t_par              = callback_parameters.
     ENDIF.
 
     msg_type    = cl_abap_typedescr=>describe_by_data( obj_to_log ).
     struct_kind = get_struct_kind( msg_type ).
 
-    IF obj_to_log IS NOT SUPPLIED.
-      detailed_msg = add_syst_msg( syst ).
+    IF obj_to_log IS INITIAL.
+      detailed_msg = add_syst_msg( syst_buffer ).
     ELSEIF struct_kind = c_struct_kind-syst.
       detailed_msg = add_syst_msg( obj_to_log ).
     ELSEIF struct_kind = c_struct_kind-bapi.
@@ -467,34 +453,40 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
         IF sy-tabix = 1.
           /mbtools/if_logger~add(
               obj_to_log    = <message_line>
-              context       = context ).
+              context       = context
+              importance    = importance
+              type          = type ).
         ELSE.
-          /mbtools/if_logger~add( <message_line> ).
+          /mbtools/if_logger~add(
+              obj_to_log    = <message_line>
+              importance    = importance
+              type          = type ).
         ENDIF.
       ENDLOOP.
     ELSEIF msg_type->type_kind = cl_abap_typedescr=>typekind_struct1     "flat structure
         OR msg_type->type_kind = cl_abap_typedescr=>typekind_struct2.    "deep structure (already when string is used)
-      add_structure(
-        EXPORTING
+      self = add_structure(
           obj_to_log    = obj_to_log
           context       = context
           callback_form = callback_form
           callback_prog = callback_prog
           callback_fm   = callback_fm
           type          = type
-          importance    = importance
-        RECEIVING
-          self          = self
-      ).
+          importance    = importance ).
     ELSE.
       free_text_msg = obj_to_log.
     ENDIF.
 
     IF free_text_msg IS NOT INITIAL.
+      message_type = type.
+      IF message_type IS INITIAL.
+        message_type = if_msg_output=>msgtype_success.
+      ENDIF.
+
       CALL FUNCTION 'BAL_LOG_MSG_ADD_FREE_TEXT'
         EXPORTING
           i_log_handle = me->handle
-          i_msgty      = type
+          i_msgty      = message_type
           i_probclass  = importance
           i_text       = free_text_msg
           i_s_context  = formatted_context
@@ -511,6 +503,10 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
       detailed_msg-context   = formatted_context.
       detailed_msg-params    = formatted_params.
       detailed_msg-probclass = importance.
+      IF type IS NOT INITIAL.
+        detailed_msg-msgty   = type.
+      ENDIF.
+
       CALL FUNCTION 'BAL_LOG_MSG_ADD'
         EXPORTING
           i_log_handle = me->handle
@@ -543,36 +539,31 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
           string_to_log = |{ to_lower( component-name ) } = { <component> }|.
           add( string_to_log ).
         ELSEIF msg_type->kind = cl_abap_typedescr=>kind_struct.
-          add_structure(
-            EXPORTING
+          self = add_structure(
               obj_to_log    = <component>
               context       = context
               callback_form = callback_form
               callback_prog = callback_prog
               callback_fm   = callback_fm
               type          = type
-              importance    = importance
-            RECEIVING
-              self          = self
-          ).
+              importance    = importance ).
         ENDIF.
       ENDIF.
     ENDLOOP.
     add( '--- End of structure ---' ).
   ENDMETHOD.
 
-
   METHOD /mbtools/if_logger~e.
-    self = add(
-      obj_to_log    = obj_to_log
-      context       = context
-      callback_form = callback_form
-      callback_prog = callback_prog
-      callback_fm   = callback_fm
-      type          = 'E'
-      importance    = importance ).
+    self                  = add(
+      obj_to_log          = obj_to_log
+      context             = context
+      callback_form       = callback_form
+      callback_prog       = callback_prog
+      callback_fm         = callback_fm
+      callback_parameters = callback_parameters
+      type                = 'E'
+      importance          = importance ).
   ENDMETHOD.
-
 
   METHOD /mbtools/if_logger~export_to_table.
     DATA: message_handles TYPE bal_t_msgh,
@@ -611,17 +602,14 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
         APPEND bapiret2 TO rt_bapiret.
       ENDIF.
     ENDLOOP.
-
   ENDMETHOD.
 
-
   METHOD /mbtools/if_logger~fullscreen.
-
     DATA:
       profile        TYPE bal_s_prof,
       lt_log_handles TYPE bal_t_logh.
 
-    APPEND me->handle TO lt_log_handles.
+    INSERT me->handle INTO TABLE lt_log_handles.
 
     CALL FUNCTION 'BAL_DSP_PROFILE_SINGLE_LOG_GET'
       IMPORTING
@@ -631,56 +619,42 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
       EXPORTING
         i_s_display_profile = profile
         i_t_log_handle      = lt_log_handles.
-
   ENDMETHOD.
-
 
   METHOD /mbtools/if_logger~has_errors.
-
     rv_yes = boolc( lines( get_message_handles( msgtype = 'E' ) ) > 0 ).
-
   ENDMETHOD.
-
 
   METHOD /mbtools/if_logger~has_warnings.
-
     rv_yes = boolc( lines( get_message_handles( msgtype = 'W' ) ) > 0 ).
-
   ENDMETHOD.
-
 
   METHOD /mbtools/if_logger~i.
     self = add(
-      obj_to_log    = obj_to_log
-      context       = context
-      callback_form = callback_form
-      callback_prog = callback_prog
-      callback_fm   = callback_fm
-      type          = 'I'
-      importance    = importance ).
+      obj_to_log          = obj_to_log
+      context             = context
+      callback_form       = callback_form
+      callback_prog       = callback_prog
+      callback_fm         = callback_fm
+      callback_parameters = callback_parameters
+      type                = 'I'
+      importance          = importance ).
   ENDMETHOD.
-
 
   METHOD /mbtools/if_logger~is_empty.
-
     rv_yes = boolc( length( ) = 0 ).
-
   ENDMETHOD.
-
 
   METHOD /mbtools/if_logger~length.
-
     rv_length = lines( get_message_handles( ) ).
-
   ENDMETHOD.
-
 
   METHOD /mbtools/if_logger~popup.
 * See SBAL_DEMO_04_POPUP for ideas
     DATA relevant_profile TYPE bal_s_prof.
     DATA lt_log_handles   TYPE bal_t_logh.
 
-    APPEND me->handle TO lt_log_handles.
+    INSERT me->handle INTO TABLE lt_log_handles.
 
     IF profile IS SUPPLIED AND profile IS NOT INITIAL.
       relevant_profile = profile.
@@ -696,36 +670,34 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
         i_t_log_handle      = lt_log_handles.
   ENDMETHOD.
 
-
   METHOD /mbtools/if_logger~s.
     self = add(
-      obj_to_log    = obj_to_log
-      context       = context
-      callback_form = callback_form
-      callback_prog = callback_prog
-      callback_fm   = callback_fm
-      type          = 'S'
-      importance    = importance ).
+      obj_to_log          = obj_to_log
+      context             = context
+      callback_form       = callback_form
+      callback_prog       = callback_prog
+      callback_fm         = callback_fm
+      callback_parameters = callback_parameters
+      type                = 'S'
+      importance          = importance ).
   ENDMETHOD.
-
 
   METHOD /mbtools/if_logger~save.
     CHECK settings->get_autosave( ) = abap_false.
     save_log( ).
   ENDMETHOD.
 
-
   METHOD /mbtools/if_logger~w.
     self = add(
-      obj_to_log    = obj_to_log
-      context       = context
-      callback_form = callback_form
-      callback_prog = callback_prog
-      callback_fm   = callback_fm
-      type          = 'W'
-      importance    = importance ).
+      obj_to_log          = obj_to_log
+      context             = context
+      callback_form       = callback_form
+      callback_prog       = callback_prog
+      callback_fm         = callback_fm
+      callback_parameters = callback_parameters
+      type                = 'W'
+      importance          = importance ).
   ENDMETHOD.
-
 
   METHOD save_log.
     DATA log_handles TYPE bal_t_logh.
@@ -745,4 +717,21 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
       me->db_number = log_number-lognumber.
     ENDIF.
   ENDMETHOD.
+
+  METHOD /mbtools/if_logger~set_header.
+    me->header-extnumber = description.
+
+    CALL FUNCTION 'BAL_LOG_HDR_CHANGE'
+      EXPORTING
+        i_log_handle            = me->handle
+        i_s_log                 = header
+      EXCEPTIONS
+        log_not_found           = 1
+        log_header_inconsistent = 2
+        OTHERS                  = 3.
+    ASSERT sy-subrc = 0.
+
+    self = me.
+  ENDMETHOD.
+
 ENDCLASS.
