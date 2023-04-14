@@ -42,7 +42,6 @@ CLASS ltcl_gui_asset_manager IMPLEMENTATION.
   METHOD get_text_asset.
 
     DATA li_assetman TYPE REF TO /mbtools/if_gui_asset_manager.
-    DATA ls_asset TYPE /mbtools/if_gui_asset_manager=>ty_web_asset.
 
     li_assetman = /mbtools/cl_gui_asset_manager=>create( ).
 
@@ -87,7 +86,6 @@ CLASS ltcl_gui_asset_manager IMPLEMENTATION.
   METHOD get_mime_asset.
 
     DATA li_assetman TYPE REF TO /mbtools/if_gui_asset_manager.
-    DATA ls_asset TYPE /mbtools/if_gui_asset_manager=>ty_web_asset.
 
     li_assetman = /mbtools/cl_gui_asset_manager=>create( ).
 
@@ -105,7 +103,6 @@ CLASS ltcl_gui_asset_manager IMPLEMENTATION.
   METHOD get_base64_asset.
 
     DATA li_assetman TYPE REF TO /mbtools/if_gui_asset_manager.
-    DATA ls_asset TYPE /mbtools/if_gui_asset_manager=>ty_web_asset.
 
     li_assetman = /mbtools/cl_gui_asset_manager=>create( ).
 
@@ -123,7 +120,6 @@ CLASS ltcl_gui_asset_manager IMPLEMENTATION.
   METHOD get_all.
 
     DATA li_assetman TYPE REF TO /mbtools/if_gui_asset_manager.
-    DATA ls_asset TYPE /mbtools/if_gui_asset_manager=>ty_web_asset.
 
     li_assetman = /mbtools/cl_gui_asset_manager=>create( ).
 
@@ -143,7 +139,7 @@ CLASS ltcl_gui_asset_manager IMPLEMENTATION.
 
   ENDMETHOD.
 
- METHOD register_and_overwrite.
+  METHOD register_and_overwrite.
 
     DATA li_assetman TYPE REF TO /mbtools/if_gui_asset_manager.
 
