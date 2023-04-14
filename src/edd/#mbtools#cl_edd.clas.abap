@@ -471,7 +471,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
       lo_json = lo_json_all->slice( condense( |/{ <ls_product>-id }| ) ).
 
       lv_msg = lo_json->get_string( '/msg' ).
-      IF lv_msg IS NOT INITIAL.
+      IF lv_msg IS NOT INITIAL AND lv_msg NS 'No license key'.
         /mbtools/cx_exception=>raise( lv_msg ).
       ENDIF.
 
@@ -624,7 +624,9 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     LOOP AT it_products INTO ls_products.
       rv_endpoint = rv_endpoint && '&products[' && c_edd_param-id && '][item_id]=' && c_edd_param-id.
-      rv_endpoint = rv_endpoint && '&products[' && c_edd_param-id && '][license]=' && c_edd_param-key.
+      IF ls_products-license IS NOT INITIAL.
+        rv_endpoint = rv_endpoint && '&products[' && c_edd_param-id && '][license]=' && c_edd_param-key.
+      ENDIF.
       rv_endpoint = rv_endpoint && '&products[' && c_edd_param-id && '][url]=SystemID_' &&
                     c_edd_param-sysid && '_SystemNumber_' && c_edd_param-sysno.
 
