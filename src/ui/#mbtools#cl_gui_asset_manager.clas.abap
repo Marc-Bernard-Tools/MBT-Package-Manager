@@ -11,20 +11,22 @@ CLASS /mbtools/cl_gui_asset_manager DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    INTERFACES /mbtools/if_gui_asset_manager .
+    INTERFACES /mbtools/if_gui_asset_manager.
 
-    ALIASES register_asset
-      FOR /mbtools/if_gui_asset_manager~register_asset .
+    CLASS-METHODS create
+      RETURNING
+        VALUE(ro_asset_manager) TYPE REF TO /mbtools/cl_gui_asset_manager.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 
     TYPES:
       BEGIN OF ty_asset_entry.
         INCLUDE TYPE /mbtools/if_gui_asset_manager~ty_web_asset.
     TYPES: mime_name TYPE wwwdatatab-objid,
-      END OF ty_asset_entry .
+      END OF ty_asset_entry.
     TYPES:
-      ty_asset_register TYPE STANDARD TABLE OF ty_asset_entry WITH KEY url .
-  PROTECTED SECTION.
-  PRIVATE SECTION.
+      ty_asset_register TYPE STANDARD TABLE OF ty_asset_entry WITH KEY url.
 
     DATA mt_asset_register TYPE ty_asset_register.
 
@@ -105,12 +107,6 @@ CLASS /mbtools/cl_gui_asset_manager IMPLEMENTATION.
 
     DATA ls_asset LIKE LINE OF mt_asset_register.
 
-    READ TABLE mt_asset_register TRANSPORTING NO FIELDS
-      WITH TABLE KEY url = iv_url.
-    IF sy-subrc = 0.
-      RETURN.
-    ENDIF.
-
     SPLIT iv_type AT '/' INTO ls_asset-type ls_asset-subtype.
     ls_asset-url          = iv_url.
     ls_asset-mime_name    = iv_mime_name.
@@ -121,8 +117,15 @@ CLASS /mbtools/cl_gui_asset_manager IMPLEMENTATION.
       ls_asset-content = /mbtools/cl_convert=>string_to_xstring( iv_inline ).
     ENDIF.
 
+    DELETE mt_asset_register WHERE url = iv_url.
+    " TODO: Maybe forbid averwriting cachable assets as they were probably already cached ... agrueable
     APPEND ls_asset TO mt_asset_register.
 
+  ENDMETHOD.
+
+
+  METHOD create.
+    CREATE OBJECT ro_asset_manager.
   ENDMETHOD.
 
 

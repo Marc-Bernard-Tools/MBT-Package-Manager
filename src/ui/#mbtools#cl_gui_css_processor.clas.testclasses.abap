@@ -2,10 +2,14 @@ CLASS ltcl_test_base DEFINITION FOR TESTING RISK LEVEL HARMLESS DURATION SHORT A
   PUBLIC SECTION.
   PROTECTED SECTION.
     METHODS:
-      add_file IMPORTING iv_url     TYPE string
-                         iv_content TYPE string OPTIONAL.
+      add_file
+        IMPORTING
+          iv_url     TYPE string
+          iv_content TYPE string OPTIONAL
+        RAISING
+          /mbtools/cx_exception.
     DATA:
-      mo_asset_manager TYPE REF TO /mbtools/cl_gui_asset_manager,
+      mi_asset_manager TYPE REF TO /mbtools/if_gui_asset_manager,
       mo_cut           TYPE REF TO /mbtools/cl_gui_css_processor.
   PRIVATE SECTION.
     METHODS:
@@ -15,18 +19,18 @@ ENDCLASS.
 
 CLASS ltcl_test_base IMPLEMENTATION.
   METHOD setup.
-    CREATE OBJECT mo_asset_manager.
+    mi_asset_manager = /mbtools/cl_gui_asset_manager=>create( ).
     CREATE OBJECT mo_cut
       EXPORTING
-        ii_asset_manager = mo_asset_manager.
+        ii_asset_manager = mi_asset_manager.
   ENDMETHOD.
 
   METHOD teardown.
-    FREE: mo_cut, mo_asset_manager.
+    FREE: mo_cut, mi_asset_manager.
   ENDMETHOD.
 
   METHOD add_file.
-    mo_asset_manager->register_asset(
+    mi_asset_manager->register_asset(
       iv_url    = iv_url
       iv_type   = 'text/css'
       iv_inline = iv_content ).
@@ -36,9 +40,9 @@ ENDCLASS.
 CLASS ltcl_single_file DEFINITION FOR TESTING RISK LEVEL HARMLESS DURATION SHORT INHERITING FROM ltcl_test_base.
   PUBLIC SECTION.
     METHODS:
-      test_file_exists FOR TESTING,
-      test_file_does_not_exist FOR TESTING,
-      test_empty_file FOR TESTING,
+      test_file_exists FOR TESTING RAISING /mbtools/cx_exception,
+      test_file_does_not_exist FOR TESTING RAISING /mbtools/cx_exception,
+      test_empty_file FOR TESTING RAISING /mbtools/cx_exception,
       test_no_variables FOR TESTING RAISING /mbtools/cx_exception,
       test_simple_variables FOR TESTING RAISING /mbtools/cx_exception,
       test_complex_variables FOR TESTING RAISING /mbtools/cx_exception,

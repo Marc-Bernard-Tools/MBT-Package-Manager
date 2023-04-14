@@ -70,7 +70,7 @@ CLASS ltcl_html_processor_test DEFINITION
       RETURNING
         VALUE(rv_html) TYPE string.
 
-    METHODS setup.
+    METHODS setup RAISING /mbtools/cx_exception.
     METHODS process_typical FOR TESTING RAISING /mbtools/cx_exception.
     METHODS process_with_preserve FOR TESTING RAISING /mbtools/cx_exception.
     METHODS process_no_css FOR TESTING RAISING /mbtools/cx_exception.
@@ -87,22 +87,23 @@ CLASS ltcl_html_processor_test IMPLEMENTATION.
 
   METHOD setup.
 
-    DATA lo_asset_man TYPE REF TO /mbtools/cl_gui_asset_manager.
+    DATA li_asset_man TYPE REF TO /mbtools/if_gui_asset_manager.
 
-    CREATE OBJECT lo_asset_man.
-    lo_asset_man->register_asset( iv_url    = 'css/style1.css'
+    li_asset_man = /mbtools/cl_gui_asset_manager=>create( ).
+
+    li_asset_man->register_asset( iv_url    = 'css/style1.css'
                                   iv_type   = 'text/css'
                                   iv_inline = 'dummy1' ).
-    lo_asset_man->register_asset( iv_url    = 'css/style2.css'
+    li_asset_man->register_asset( iv_url    = 'css/style2.css'
                                   iv_type   = 'text/css'
                                   iv_inline = 'dummy2' ).
-    lo_asset_man->register_asset( iv_url    = 'css/style3.css'
+    li_asset_man->register_asset( iv_url    = 'css/style3.css'
                                   iv_type   = 'text/css'
                                   iv_inline = 'dummy3' ).
 
     CREATE OBJECT mo_cut
       EXPORTING
-        ii_asset_man = lo_asset_man.
+        ii_asset_man = li_asset_man.
 
     CREATE OBJECT mo_gui_mock.
 

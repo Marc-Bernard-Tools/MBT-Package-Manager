@@ -2,7 +2,7 @@ CLASS /mbtools/cl_gui_page_main DEFINITION
   PUBLIC
   INHERITING FROM /mbtools/cl_gui_component
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * Marc Bernard Tools - GUI Page Main
@@ -12,34 +12,34 @@ CLASS /mbtools/cl_gui_page_main DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    INTERFACES /mbtools/if_gui_event_handler .
-    INTERFACES /mbtools/if_gui_renderable .
-    INTERFACES /mbtools/if_gui_hotkeys .
+    INTERFACES /mbtools/if_gui_event_handler.
+    INTERFACES /mbtools/if_gui_renderable.
+    INTERFACES /mbtools/if_gui_hotkeys.
 
     CONSTANTS:
       BEGIN OF c_mode,
         user    TYPE c VALUE 'U',
         admin   TYPE c VALUE 'A',
         license TYPE c VALUE 'L',
-      END OF c_mode .
+      END OF c_mode.
 
     METHODS constructor
       IMPORTING
         !iv_mode TYPE abap_bool OPTIONAL
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
     CLASS-METHODS create
       IMPORTING
         !iv_mode       TYPE c OPTIONAL
       RETURNING
         VALUE(ri_page) TYPE REF TO /mbtools/if_gui_renderable
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
     DATA mv_mode TYPE c.
-    DATA mo_asset_manager TYPE REF TO /mbtools/if_gui_asset_manager.
+    DATA mi_asset_manager TYPE REF TO /mbtools/if_gui_asset_manager.
 
     METHODS get_description_admin
       IMPORTING
@@ -275,7 +275,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
         ri_html->add( render_bundles( ) ).
     ENDCASE.
 
-    gui_services( )->cache_all_assets( mo_asset_manager ).
+    gui_services( )->cache_all_assets( mi_asset_manager ).
 
   ENDMETHOD.
 
@@ -370,7 +370,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     super->constructor( ).
 
-    CREATE OBJECT mo_asset_manager TYPE /mbtools/cl_gui_asset_manager.
+    mi_asset_manager = /mbtools/cl_gui_asset_manager=>create( ).
 
     mv_mode = iv_mode.
 
@@ -559,7 +559,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     rv_result = 'img/' && io_tool->get_name( ) && '.jpg'.
 
-    mo_asset_manager->register_asset(
+    mi_asset_manager->register_asset(
       iv_url       = rv_result
       iv_type      = 'image/jpg'
       iv_mime_name = io_tool->get_thumbnail( ) ).

@@ -84,7 +84,7 @@ CLASS /mbtools/cl_gui DEFINITION
       IMPORTING
         !iv_text      TYPE string
       RETURNING
-        VALUE(rv_url) TYPE w3url
+        VALUE(rv_url) TYPE string
       RAISING
         /mbtools/cx_exception .
     METHODS render
