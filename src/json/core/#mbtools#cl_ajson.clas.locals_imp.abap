@@ -88,6 +88,9 @@ CLASS lcl_utils IMPLEMENTATION.
   METHOD string_to_xstring_utf8.
 
     DATA lo_conv TYPE REF TO object.
+    DATA lv_out_ce TYPE string.
+
+    lv_out_ce = 'CL_ABAP_CONV_OUT_CE'.
 
     TRY.
         CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_out
@@ -99,7 +102,7 @@ CLASS lcl_utils IMPLEMENTATION.
           RECEIVING
           result = rv_xstr.
       CATCH cx_sy_dyn_call_illegal_class.
-        CALL METHOD ('CL_ABAP_CONV_OUT_CE')=>create
+        CALL METHOD (lv_out_ce)=>create
           EXPORTING
           encoding = 'UTF-8'
           RECEIVING
@@ -211,7 +214,7 @@ CLASS lcl_json_parser DEFINITION FINAL.
       RETURNING
         VALUE(rt_json_tree) TYPE /mbtools/if_ajson_types=>ty_nodes_tt
       RAISING
-        /mbtools/cx_ajson_error cx_sxml_error.
+        /mbtools/cx_ajson_error cx_dynamic_check. " cx_sxml_error is not released on Steampunk #153
 
     METHODS _get_location
       IMPORTING
@@ -226,7 +229,7 @@ CLASS lcl_json_parser IMPLEMENTATION.
 
   METHOD parse.
     DATA lx_sxml_parse TYPE REF TO cx_sxml_parse_error.
-    DATA lx_sxml TYPE REF TO cx_sxml_error.
+    DATA lx_sxml TYPE REF TO cx_dynamic_check.
     DATA lv_location TYPE string.
     TRY.
       " TODO sane JSON check:
@@ -240,7 +243,7 @@ CLASS lcl_json_parser IMPLEMENTATION.
         /mbtools/cx_ajson_error=>raise(
           iv_msg      = |Json parsing error (SXML): { lx_sxml_parse->get_text( ) }|
           iv_location = lv_location ).
-      CATCH cx_sxml_error INTO lx_sxml.
+      CATCH cx_dynamic_check INTO lx_sxml. " cx_sxml_error
         /mbtools/cx_ajson_error=>raise(
           iv_msg      = |Json parsing error (SXML): { lx_sxml->get_text( ) }|
           iv_location = '@PARSER' ).
