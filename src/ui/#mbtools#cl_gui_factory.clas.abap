@@ -55,71 +55,71 @@ CLASS /mbtools/cl_gui_factory IMPLEMENTATION.
 
   METHOD get_asset_manager.
 
-    DATA lo_asset_man TYPE REF TO /mbtools/cl_gui_asset_manager.
+    DATA li_asset_man TYPE REF TO /mbtools/if_gui_asset_manager.
 
-    CREATE OBJECT lo_asset_man.
+    li_asset_man = /mbtools/cl_gui_asset_manager=>create( ).
 
-    lo_asset_man->register_asset(
+    li_asset_man->register_asset(
       iv_url       = 'css/common.css'
       iv_type      = 'text/css'
       iv_mime_name = '/MBTOOLS/MBT_COMMON_CSS' ).
 
-    lo_asset_man->register_asset(
+    li_asset_man->register_asset(
       iv_url       = 'js/common.js'
       iv_type      = 'text/javascript'
       iv_mime_name = '/MBTOOLS/MBT_COMMON_JS' ).
 
-    lo_asset_man->register_asset(
+    li_asset_man->register_asset(
       iv_url       = 'css/fontawesome.css'
       iv_type      = 'text/css'
       iv_mime_name = '/MBTOOLS/MBT_FONT_AWESOME_CSS' ).
 
-    lo_asset_man->register_asset(
+    li_asset_man->register_asset(
       iv_url       = 'fonts/fa-solid-900.woff2'
       iv_type      = 'application/x-font-woff'
       iv_mime_name = '/MBTOOLS/MBT_FONT_AWESOME' ).
 
-    lo_asset_man->register_asset(
+    li_asset_man->register_asset(
       iv_url       = 'fonts/fa-solid-900.eot?#iefix'
       iv_type      = 'application/vnd.ms-fontobject'
       iv_mime_name = '/MBTOOLS/MBT_FONT_AWESOME_EOT' ). "for IE
 
-    lo_asset_man->register_asset(
+    li_asset_man->register_asset(
       iv_url       = 'fonts/opensans.woff2'
       iv_type      = 'application/x-font-woff'
       iv_mime_name = '/MBTOOLS/MBT_FONT_OPEN_SANS' ).
 
-    lo_asset_man->register_asset(
+    li_asset_man->register_asset(
       iv_url       = 'fonts/righteous.woff2'
       iv_type      = 'application/x-font-woff'
       iv_mime_name = '/MBTOOLS/MBT_FONT_RIGHTEOUS' ).
 
-    lo_asset_man->register_asset(
+    li_asset_man->register_asset(
       iv_url       = 'img/logo.png'
       iv_type      = 'image/png'
       iv_mime_name = '/MBTOOLS/LOGO' ).
 
-    lo_asset_man->register_asset(
+    li_asset_man->register_asset(
       iv_url       = 'img/banner.png'
       iv_type      = 'image/png'
       iv_mime_name = '/MBTOOLS/BANNER' ).
 
-    lo_asset_man->register_asset(
+    li_asset_man->register_asset(
        iv_url       = 'img/background.jpg'
        iv_type      = 'image/jpg'
        iv_mime_name = '/MBTOOLS/BACKGROUND' ).
 
-    lo_asset_man->register_asset(
+    li_asset_man->register_asset(
       iv_url       = 'img/logo_header.png'
       iv_type      = 'image/png'
       iv_mime_name = '/MBTOOLS/LOGO_HEADER' ).
 
-    lo_asset_man->register_asset(
+    li_asset_man->register_asset(
       iv_url       = 'img/banner_header.png'
       iv_type      = 'image/png'
       iv_mime_name = '/MBTOOLS/BANNER_HEADER' ).
 
-    ri_asset_man = lo_asset_man.
+    ri_asset_man = li_asset_man.
 
   ENDMETHOD.
 

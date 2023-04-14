@@ -1,7 +1,7 @@
 CLASS /mbtools/cl_html_viewer DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * Marc Bernard Tools - HTML Viewer
@@ -11,12 +11,13 @@ CLASS /mbtools/cl_html_viewer DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    INTERFACES /mbtools/if_html_viewer .
+    INTERFACES /mbtools/if_html_viewer.
 
-    METHODS constructor .
+    METHODS constructor.
+
   PROTECTED SECTION.
 
-    DATA mo_html_viewer TYPE REF TO cl_gui_html_viewer .
+    DATA mo_html_viewer TYPE REF TO cl_gui_html_viewer.
 
     METHODS on_event
       FOR EVENT sapevent OF cl_gui_html_viewer
@@ -25,7 +26,7 @@ CLASS /mbtools/cl_html_viewer DEFINITION
         !frame
         !getdata
         !postdata
-        !query_table .
+        !query_table.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -58,22 +59,32 @@ CLASS /mbtools/cl_html_viewer IMPLEMENTATION.
 
   METHOD /mbtools/if_html_viewer~get_url.
 
-    mo_html_viewer->get_current_url( IMPORTING url = rv_url ).
+    DATA lv_url TYPE c LENGTH 250.
+
+    mo_html_viewer->get_current_url( IMPORTING url = lv_url ).
     cl_gui_cfw=>flush( ).
+
+    rv_url = lv_url.
 
   ENDMETHOD.
 
 
   METHOD /mbtools/if_html_viewer~load_data.
 
+    DATA lv_url TYPE c LENGTH 250.
+    DATA lv_assigned TYPE c LENGTH 250.
+
+    ASSERT strlen( iv_url ) <= 250.
+    lv_url = iv_url.
+
     mo_html_viewer->load_data(
       EXPORTING
-        url                    = iv_url
+        url                    = lv_url
         type                   = iv_type
         subtype                = iv_subtype
         size                   = iv_size
       IMPORTING
-        assigned_url           = ev_assigned_url
+        assigned_url           = lv_assigned
       CHANGING
         data_table             = ct_data_table
       EXCEPTIONS
@@ -84,6 +95,8 @@ CLASS /mbtools/cl_html_viewer IMPLEMENTATION.
     IF sy-subrc <> 0.
       /mbtools/cx_exception=>raise( |Error loading data for HTML viewer: { iv_url }| ).
     ENDIF.
+
+    ev_assigned_url = lv_assigned.
 
   ENDMETHOD.
 
@@ -106,9 +119,13 @@ CLASS /mbtools/cl_html_viewer IMPLEMENTATION.
 
   METHOD /mbtools/if_html_viewer~show_url.
 
+    DATA lv_url TYPE c LENGTH 250.
+
+    lv_url = iv_url.
+
     mo_html_viewer->show_url(
       EXPORTING
-        url                    = iv_url
+        url                    = lv_url
       EXCEPTIONS
         cntl_error             = 1
         cnht_error_not_allowed = 2
