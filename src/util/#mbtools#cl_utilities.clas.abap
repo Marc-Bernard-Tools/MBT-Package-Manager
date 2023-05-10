@@ -385,15 +385,19 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
 
   METHOD get_kernel.
 
+    DATA ls_kernel TYPE ty_strv_release_patch.
+
+    ls_kernel = get_kernel_release( ).
+
     CASE iv_property.
       WHEN c_property-kernel.
-        rv_value = get_kernel_release( ).
+        rv_value = |{ ls_kernel-release }.{ ls_kernel-patch }.{ ls_kernel-version }|.
       WHEN c_property-kernel_release.
-        rv_value = get_kernel_release( )-release.
+        rv_value = ls_kernel-release.
       WHEN c_property-kernel_patch.
-        rv_value = get_kernel_release( )-patch.
+        rv_value = ls_kernel-patch.
       WHEN c_property-kernel_bits.
-        rv_value = get_kernel_release( )-version.
+        rv_value = ls_kernel-version.
       WHEN OTHERS.
         rv_value = c_value-unknown.
     ENDCASE.
