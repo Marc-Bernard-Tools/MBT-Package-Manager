@@ -5,7 +5,7 @@
 [![REUSE Status](https://api.reuse.software/badge/github.com/Marc-Bernard-Tools/MBT-Base?color=success)](https://api.reuse.software/info/github.com/Marc-Bernard-Tools/MBT-Base)
 [![ClearlyDefined Score](https://img.shields.io/clearlydefined/score/git/github/marc-bernard-tools/MBT-Base/b368f642b8688a7a1b6b6304ea11042d5cd478a3?label=ClearlyDefined%20Score)](https://clearlydefined.io/definitions/git/github/marc-bernard-tools/MBT-Base/b368f642b8688a7a1b6b6304ea11042d5cd478a3)
 
-# MBT Base
+# MBT Package Manager
 
 Foundation for Marc Bernard Tools
 
@@ -17,7 +17,7 @@ For details, visit **[Marc Bernard Tools](https://marcbernardtools.com/downloads
 
 ## Installation
 
-Use the [MBT Installer](https://marcbernardtools.com/downloads/mbt-installer/) to deploy the repository to your SAP system. For more information, see 
+Use the latest version of [abapGit](https://github.com/abapGit/abapGit) to deploy the repository to your SAP system. For more information, see 
 [Installation Instructions](https://marcbernardtools.com/docs/marc-bernard-tools/installation/).
 
 ## Contributions
@@ -28,7 +28,7 @@ All contributions are welcome! Read our [Contribution Guidelines](CONTRIBUTING.m
 
 Made with :heart: in Canada
 
-Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
+Copyright 2023 Marc Bernard <https://marcbernardtools.com/>
 
 Follow [@marcfbe](https://twitter.com/marcfbe) on Twitter
 
