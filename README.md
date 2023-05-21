@@ -1,15 +1,15 @@
-![Version](https://img.shields.io/endpoint?url=https%3A%2F%2Fshield.abap.space%2Fversion-shield-json%2Fgithub%2FMarc-Bernard-Tools%2FMBT-Base%2Fsrc%2F%2523mbtools%2523cl_tool_bc.clas.abap&label=Version&color=blue)
+![Version](https://img.shields.io/endpoint?url=https%3A%2F%2Fshield.abap.space%2Fversion-shield-json%2Fgithub%2FMarc-Bernard-Tools%2FMBT-Package-Manager%2Fsrc%2F%2523mbtools%2523cl_tool_bc.clas.abap&label=Version&color=blue)
 
-[![License](https://img.shields.io/github/license/Marc-Bernard-Tools/MBT-Base?label=License&color=green)](LICENSE)
+[![License](https://img.shields.io/github/license/Marc-Bernard-Tools/MBT-Package-Manager?label=License&color=green)](LICENSE)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?color=green)](https://github.com/Marc-Bernard-Tools/.github/blob/main/CODE_OF_CONDUCT.md)
-[![REUSE Status](https://api.reuse.software/badge/github.com/Marc-Bernard-Tools/MBT-Base?color=success)](https://api.reuse.software/info/github.com/Marc-Bernard-Tools/MBT-Base)
+[![REUSE Status](https://api.reuse.software/badge/github.com/Marc-Bernard-Tools/MBT-Package-Manager?color=success)](https://api.reuse.software/info/github.com/Marc-Bernard-Tools/MBT-Package-Manager)
 [![ClearlyDefined Score](https://img.shields.io/clearlydefined/score/git/github/marc-bernard-tools/MBT-Base/b368f642b8688a7a1b6b6304ea11042d5cd478a3?label=ClearlyDefined%20Score)](https://clearlydefined.io/definitions/git/github/marc-bernard-tools/MBT-Base/b368f642b8688a7a1b6b6304ea11042d5cd478a3)
 
 # MBT Package Manager
 
 Foundation for Marc Bernard Tools
 
-For details, visit **[Marc Bernard Tools](https://marcbernardtools.com/downloads/mbt-base)** and follow [@marcfbe](https://twitter.com/marcfbe) on Twitter.
+For details, visit **[Marc Bernard Tools](https://marcbernardtools.com/downloads/mbt-package-manager)** and follow [@marcfbe](https://twitter.com/marcfbe) on Twitter.
 
 ![image](https://user-images.githubusercontent.com/59966492/146279035-c0e5a5af-5a71-43e1-bd48-4fdf279b7ea5.png)
 
