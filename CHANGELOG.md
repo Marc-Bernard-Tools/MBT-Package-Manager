@@ -8,6 +8,13 @@ and [ISO Date Format](https://www.iso.org/iso-8601-date-and-time-format.html).
 
 ## [Unreleased]
 
+## Version [1.4.0] - 2023-05-22
+
+### Changed
+
+- Switch from MBT Base to MBT Package Manager
+- Updated kernel properties
+
 ## Version [1.3.2] - 2023-04-14
 
 ### Added
@@ -78,7 +85,8 @@ Launch Release
 Initial Release. For details, see [Features](https://marcbernardtools.com/docs/marc-bernard-tools/features).
 
 
-[Unreleased]: https://github.com/Marc-Bernard-Tools/MBT-Base/compare/1.3.2...main
+[Unreleased]: https://github.com/Marc-Bernard-Tools/MBT-Base/compare/1.4.0...main
+[1.4.0]: https://github.com/Marc-Bernard-Tools/MBT-Base/compare/1.3.2...1.4.0
 [1.3.2]: https://github.com/Marc-Bernard-Tools/MBT-Base/compare/1.3.1...1.3.2
 [1.3.1]: https://github.com/Marc-Bernard-Tools/MBT-Base/compare/1.3.0...1.3.1
 [1.3.0]: https://github.com/Marc-Bernard-Tools/MBT-Base/compare/1.2.0...1.3.0
