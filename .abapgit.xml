@@ -12,11 +12,11 @@
     </item>
    </REQUIREMENTS>
    <PACKAGING>
-    <NAME>mbt-base</NAME>
-    <VERSION>1.3.2</VERSION>
+    <NAME>mbt-package-manager</NAME>
+    <VERSION>1.4.0</VERSION>
     <DESCRIPTION>Package Manager for Marc Bernard Tools</DESCRIPTION>
     <TARGET_PACKAGE>/MBTOOLS/BC</TARGET_PACKAGE>
-    <LOGO>/MBTOOLS/MBT_BASE_TN</LOGO>
+    <LOGO>/MBTOOLS/MBT_PACKAGE_MANAGER_TN</LOGO>
    </PACKAGING>
   </DATA>
  </asx:values>
