@@ -251,7 +251,7 @@ INITIALIZATION.
   /mbtools/cl_tool_manager=>action_bundles( /mbtools/if_actions=>tool_register ).
   /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>tool_register ).
 
-  " If MBT Base is the only installed tool, then activate it
+  " If MBT Package Manager is the only installed tool, then activate it
   IF /mbtools/cl_tool_manager=>is_base_only( ) = abap_true.
     lo_tool = /mbtools/cl_tool_manager=>factory( /mbtools/cl_tool_bc=>c_tool-title ).
     lo_tool->activate( ).

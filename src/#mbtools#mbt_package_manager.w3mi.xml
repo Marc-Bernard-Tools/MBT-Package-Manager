@@ -2,20 +2,20 @@
 <abapGit version="v1.0.0" serializer="LCL_OBJECT_W3MI" serializer_version="v2.0.0">
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
-   <NAME>/MBTOOLS/MBT_BASE_TN</NAME>
-   <TEXT>MBT Base (Thumbnail)</TEXT>
+   <NAME>/MBTOOLS/MBT_PACKAGE_MANAGER</NAME>
+   <TEXT>MBT Package Manager</TEXT>
    <PARAMS>
     <WWWPARAMS>
      <NAME>fileextension</NAME>
-     <VALUE>.jpg</VALUE>
+     <VALUE>.png</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
      <NAME>filename</NAME>
-     <VALUE>MBT_Base_TN.jpg</VALUE>
+     <VALUE>MBT_Package_Manager.png</VALUE>
     </WWWPARAMS>
     <WWWPARAMS>
      <NAME>mimetype</NAME>
-     <VALUE>image/jpeg</VALUE>
+     <VALUE>image/png</VALUE>
     </WWWPARAMS>
    </PARAMS>
   </asx:values>

@@ -4,7 +4,7 @@ CLASS /mbtools/cl_tool_bc DEFINITION
   CREATE PUBLIC.
 
 ************************************************************************
-* MBT Base
+* MBT Package Manager
 *
 * Copyright 2021 Marc Bernard <https://marcbernardtools.com/>
 * SPDX-License-Identifier: GPL-3.0-only
@@ -16,13 +16,13 @@ CLASS /mbtools/cl_tool_bc DEFINITION
 
     CONSTANTS:
       BEGIN OF c_tool,
-        version      TYPE string VALUE '1.3.1' ##NO_TEXT,
-        title        TYPE string VALUE 'MBT Base' ##NO_TEXT,
-        description  TYPE string VALUE 'Foundation for Marc Bernard Tools' ##NO_TEXT,
+        version      TYPE string VALUE '1.4.0' ##NO_TEXT,
+        title        TYPE string VALUE 'MBT Package Manager' ##NO_TEXT,
+        description  TYPE string VALUE 'Package Manager for Marc Bernard Tools' ##NO_TEXT,
         bundle_id    TYPE i VALUE 0,
         download_id  TYPE i VALUE 4873,
         has_launch   TYPE abap_bool VALUE abap_true,
-        mbt_command  TYPE string VALUE 'BASE',
+        mbt_command  TYPE string VALUE 'PM',
         mbt_shortcut TYPE string VALUE 'MBT',
       END OF c_tool.
 

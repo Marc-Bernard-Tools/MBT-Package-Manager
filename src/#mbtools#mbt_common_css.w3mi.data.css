@@ -804,6 +804,7 @@ div.log .icon {
     font-size: medium;
     padding: 6px;
     text-align: center;
+    border-radius: 5px;
 }
 .info-panel .info-title a.close-btn {
     padding-left: 12px;
