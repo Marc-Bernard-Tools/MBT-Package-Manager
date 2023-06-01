@@ -678,7 +678,9 @@ CLASS /mbtools/cl_registry_ui IMPLEMENTATION.
             text_not_found        = 1
             OTHERS                = 2.
         IF sy-subrc <> 0.
-          " Not going to happen; not exporting a text
+          MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
+                     WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+          RETURN.
         ENDIF.
 
         IF lv_answer = '1'. "Save data before moving on
