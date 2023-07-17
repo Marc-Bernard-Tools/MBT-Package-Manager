@@ -21,15 +21,10 @@ jobs:
       run: |
         git clone "https://github.com/Marc-Bernard-Tools/Mirror-AJSON.git"
         ls -l
-        bash scripts/credits.sh scripts/credits-ajson.txt Mirror-AJSON/src/core
-        bash scripts/credits.sh scripts/credits-ajson.txt Mirror-AJSON/src/libs
-        bash scripts/descriptions.sh Mirror-AJSON/src/core
-        bash scripts/descriptions.sh Mirror-AJSON/src/libs
+        bash scripts/credits.sh scripts/credits-ajson.txt Mirror-AJSON/src
+        bash scripts/descriptions.sh Mirror-AJSON/src
         rm -f src/json/#mbtools#*
-        rm -f src/json/core/*
-        rm -f src/json/libs/*
-        cp Mirror-AJSON/src/core/* src/json/core/
-        cp Mirror-AJSON/src/libs/* src/json/libs/
+        cp Mirror-AJSON/src/* src/json/
         rm -rf Mirror-AJSON
         git status
     - name: Open Pull Request
