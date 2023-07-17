@@ -29,7 +29,7 @@ jobs:
         git status
     - name: Open Pull Request
       uses: peter-evans/create-pull-request@v5
-      if: github.repository == 'Marc-Bernard-Tools/MBT-Base'
+      if: github.repository == 'Marc-Bernard-Tools/MBT-Package-Manager'
       with:
         branch: mbtools/stringmap
         title: Automatic Update STRINGMAP
