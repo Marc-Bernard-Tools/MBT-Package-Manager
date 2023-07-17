@@ -17,6 +17,7 @@ INTERFACE /mbtools/if_ajson
       read_only TYPE abap_bool,
       keep_item_order TYPE abap_bool,
       format_datetime TYPE abap_bool,
+      to_abap_corresponding_only TYPE abap_bool,
     END OF ty_opts.
 
   " DATA
@@ -54,6 +55,11 @@ INTERFACE /mbtools/if_ajson
   METHODS format_datetime
     IMPORTING
       iv_use_iso TYPE abap_bool DEFAULT abap_true
+    RETURNING
+      VALUE(ri_json) TYPE REF TO /mbtools/if_ajson.
+  METHODS to_abap_corresponding_only
+    IMPORTING
+      iv_enable TYPE abap_bool DEFAULT abap_true
     RETURNING
       VALUE(ri_json) TYPE REF TO /mbtools/if_ajson.
   METHODS opts
@@ -133,6 +139,8 @@ INTERFACE /mbtools/if_ajson
       VALUE(ri_json) TYPE REF TO /mbtools/if_ajson.
 
   METHODS to_abap
+    IMPORTING
+      iv_corresponding TYPE abap_bool DEFAULT abap_false
     EXPORTING
       ev_container TYPE any
     RAISING
