@@ -25,6 +25,7 @@ jobs:
         bash scripts/descriptions.sh Mirror-LOGGER/src
         rm src/log/#mbtools#*
         cp Mirror-LOGGER/src/#mbtools#* src/log/
+        rm -f src/log/#mbtools#cx*.xml
         rm -rf Mirror-LOGGER
         git status
     - name: Open Pull Request
