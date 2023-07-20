@@ -591,6 +591,8 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
 
     ENDLOOP.
 
+    SORT rt_tools BY name.
+
   ENDMETHOD.
 
 
