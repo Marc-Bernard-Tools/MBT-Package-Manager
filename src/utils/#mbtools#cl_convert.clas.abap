@@ -40,7 +40,9 @@ CLASS /mbtools/cl_convert DEFINITION
       IMPORTING
         !iv_string        TYPE string
       RETURNING
-        VALUE(rv_xstring) TYPE xstring.
+        VALUE(rv_xstring) TYPE xstring
+      RAISING
+        /mbtools/cx_exception.
 
     CLASS-METHODS xstring_to_bintab
       IMPORTING
@@ -52,8 +54,11 @@ CLASS /mbtools/cl_convert DEFINITION
     CLASS-METHODS xstring_to_string_utf8
       IMPORTING
         !iv_data         TYPE xsequence
+        !iv_length       TYPE i OPTIONAL
       RETURNING
-        VALUE(rv_string) TYPE string .
+        VALUE(rv_string) TYPE string
+      RAISING
+        /mbtools/cx_exception.
 
     CLASS-METHODS split_string
       IMPORTING
@@ -63,6 +68,10 @@ CLASS /mbtools/cl_convert DEFINITION
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+
+    CLASS-DATA go_convert_out TYPE REF TO cl_abap_conv_out_ce.
+    CLASS-DATA go_convert_in TYPE REF TO cl_abap_conv_in_ce.
+
 ENDCLASS.
 
 
@@ -146,19 +155,24 @@ CLASS /mbtools/cl_convert IMPLEMENTATION.
 
   METHOD string_to_xstring_utf8.
 
-    DATA: lo_obj TYPE REF TO cl_abap_conv_out_ce.
-
+    DATA lx_error TYPE REF TO cx_root.
 
     TRY.
-        lo_obj = cl_abap_conv_out_ce=>create( encoding = 'UTF-8' ).
+        IF go_convert_out IS INITIAL.
+          go_convert_out = cl_abap_conv_out_ce=>create( encoding = 'UTF-8' ).
+        ENDIF.
 
-        lo_obj->convert( EXPORTING data   = iv_string
-                         IMPORTING buffer = rv_xstring ).
+        go_convert_out->convert(
+          EXPORTING
+            data   = iv_string
+          IMPORTING
+            buffer = rv_xstring ).
 
       CATCH cx_parameter_invalid_range
             cx_sy_codepage_converter_init
             cx_sy_conversion_codepage
-            cx_parameter_invalid_type.                  "#EC NO_HANDLER
+            cx_parameter_invalid_type INTO lx_error.
+        /mbtools/cx_exception=>raise_with_text( lx_error ).
     ENDTRY.
 
   ENDMETHOD.
@@ -179,23 +193,32 @@ CLASS /mbtools/cl_convert IMPLEMENTATION.
 
   METHOD xstring_to_string_utf8.
 
-    DATA: lv_len TYPE i,
-          lo_obj TYPE REF TO cl_abap_conv_in_ce.
+    DATA:
+      lx_error  TYPE REF TO cx_root,
+      lv_length TYPE i.
 
+    lv_length = iv_length.
+    IF lv_length <= 0.
+      lv_length = xstrlen( iv_data ).
+    ENDIF.
 
     TRY.
-        lo_obj = cl_abap_conv_in_ce=>create(
-            input    = iv_data
-            encoding = 'UTF-8' ).
-        lv_len = xstrlen( iv_data ).
+        IF go_convert_in IS INITIAL.
+          go_convert_in = cl_abap_conv_in_ce=>create( encoding = 'UTF-8' ).
+        ENDIF.
 
-        lo_obj->read( EXPORTING n    = lv_len
-                      IMPORTING data = rv_string ).
+        go_convert_in->convert(
+          EXPORTING
+            input = iv_data
+            n     = lv_length
+          IMPORTING
+            data  = rv_string ).
 
       CATCH cx_parameter_invalid_range
             cx_sy_codepage_converter_init
             cx_sy_conversion_codepage
-            cx_parameter_invalid_type.                  "#EC NO_HANDLER
+            cx_parameter_invalid_type INTO lx_error.
+        /mbtools/cx_exception=>raise_with_text( lx_error ).
     ENDTRY.
 
   ENDMETHOD.

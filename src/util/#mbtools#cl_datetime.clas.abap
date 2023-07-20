@@ -1,7 +1,7 @@
 CLASS /mbtools/cl_datetime DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * Marc Bernard Tools - Date Time
@@ -11,33 +11,36 @@ CLASS /mbtools/cl_datetime DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    CONSTANTS c_minute_in_seconds TYPE i VALUE 60 ##NO_TEXT.
-    CONSTANTS c_hour_in_seconds TYPE i VALUE 3600 ##NO_TEXT.
-    CONSTANTS c_day_in_seconds TYPE i VALUE 86400 ##NO_TEXT.
-    CONSTANTS c_week_in_seconds TYPE i VALUE 604800 ##NO_TEXT.
-    CONSTANTS c_month_in_seconds TYPE i VALUE 2592000 ##NO_TEXT.
-    CONSTANTS c_year_in_seconds TYPE i VALUE 31536000 ##NO_TEXT.
-    CONSTANTS c_week_in_days TYPE i VALUE 7 ##NEEDED ##NO_TEXT.
-    CONSTANTS c_month_in_days TYPE i VALUE 30 ##NEEDED ##NO_TEXT.
-    CONSTANTS c_year_in_days TYPE i VALUE 365 ##NEEDED ##NO_TEXT.
+    CONSTANTS c_minute_in_seconds TYPE i VALUE 60.
+    CONSTANTS c_hour_in_seconds TYPE i VALUE 3600.
+    CONSTANTS c_day_in_seconds TYPE i VALUE 86400.
+    CONSTANTS c_week_in_seconds TYPE i VALUE 604800.
+    CONSTANTS c_month_in_seconds TYPE i VALUE 2592000.
+    CONSTANTS c_year_in_seconds TYPE i VALUE 31536000.
+    CONSTANTS c_week_in_days TYPE i VALUE 7 ##NEEDED.
+    CONSTANTS c_month_in_days TYPE i VALUE 30 ##NEEDED.
+    CONSTANTS c_year_in_days TYPE i VALUE 365 ##NEEDED.
 
     CLASS-METHODS human_date_diff
       IMPORTING
         !iv_from         TYPE d
         !iv_to           TYPE d OPTIONAL
       RETURNING
-        VALUE(rv_result) TYPE string .
+        VALUE(rv_result) TYPE string.
+
     CLASS-METHODS human_time_diff
       IMPORTING
         !iv_from         TYPE timestamp
         !iv_to           TYPE timestamp OPTIONAL
       RETURNING
-        VALUE(rv_result) TYPE string .
+        VALUE(rv_result) TYPE string.
+
     CLASS-METHODS get_long_date
       IMPORTING
         !iv_date         TYPE d
       RETURNING
-        VALUE(rv_result) TYPE string .
+        VALUE(rv_result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -48,6 +51,7 @@ CLASS /mbtools/cl_datetime DEFINITION
         !iv_number       TYPE numeric
       RETURNING
         VALUE(rv_result) TYPE string.
+
 ENDCLASS.
 
 
@@ -118,63 +122,42 @@ CLASS /mbtools/cl_datetime IMPLEMENTATION.
 
     IF lv_diff < c_minute_in_seconds.
       lv_val = lv_diff.
-      IF lv_val <= 1.
-        lv_val = 1.
-      ENDIF.
       rv_result = _print(
         iv_single = 'second'
         iv_plural = 'seconds'
         iv_number = lv_val ).
     ELSEIF lv_diff < c_hour_in_seconds AND lv_diff >= c_minute_in_seconds.
       lv_val = lv_diff / c_minute_in_seconds.
-      IF lv_val <= 1.
-        lv_val = 1.
-      ENDIF.
       rv_result = _print(
         iv_single = 'minute'
         iv_plural = 'minutes'
         iv_number = lv_val ).
     ELSEIF lv_diff < c_day_in_seconds AND lv_diff >= c_hour_in_seconds.
       lv_val = lv_diff / c_hour_in_seconds.
-      IF lv_val <= 1.
-        lv_val = 1.
-      ENDIF.
       rv_result = _print(
         iv_single = 'hour'
         iv_plural = 'hours'
         iv_number = lv_val ).
     ELSEIF lv_diff < c_week_in_seconds AND lv_diff >= c_day_in_seconds.
       lv_val = lv_diff / c_day_in_seconds.
-      IF lv_val <= 1.
-        lv_val = 1.
-      ENDIF.
       rv_result = _print(
         iv_single = 'day'
         iv_plural = 'days'
         iv_number = lv_val ).
     ELSEIF lv_diff < c_month_in_seconds AND lv_diff >= c_week_in_seconds.
       lv_val = lv_diff / c_week_in_seconds.
-      IF lv_val <= 1.
-        lv_val = 1.
-      ENDIF.
       rv_result = _print(
         iv_single = 'week'
         iv_plural = 'weeks'
         iv_number = lv_val ).
     ELSEIF lv_diff < c_year_in_seconds AND lv_diff >= c_month_in_seconds.
       lv_val = lv_diff / c_month_in_seconds.
-      IF lv_val <= 1.
-        lv_val = 1.
-      ENDIF.
       rv_result = _print(
         iv_single = 'month'
         iv_plural = 'months'
         iv_number = lv_val ).
     ELSEIF lv_diff >= c_year_in_seconds.
       lv_val = lv_diff / c_year_in_seconds.
-      IF lv_val <= 1.
-        lv_val = 1.
-      ENDIF.
       rv_result = _print(
         iv_single = 'year'
         iv_plural = 'years'
@@ -186,11 +169,18 @@ CLASS /mbtools/cl_datetime IMPLEMENTATION.
 
   METHOD _print.
 
-    DATA: lv_number TYPE c LENGTH 40.
+    DATA:
+      lv_int    TYPE i,
+      lv_number TYPE c LENGTH 40.
 
-    WRITE iv_number TO lv_number LEFT-JUSTIFIED.
+    lv_int = iv_number.
+    IF lv_int < 1.
+      lv_int = 1.
+    ENDIF.
 
-    IF iv_number = 1.
+    WRITE lv_int TO lv_number LEFT-JUSTIFIED.
+
+    IF lv_int = 1.
       rv_result = |{ lv_number } { iv_single }|.
     ELSE.
       rv_result = |{ lv_number } { iv_plural }|.

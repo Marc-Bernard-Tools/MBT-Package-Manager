@@ -213,7 +213,7 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
 
     CASE iv_property.
       WHEN c_property-codepage.
-        rv_value = cl_abap_codepage=>sap_codepage( '' ).
+        rv_value = cl_abap_conv_codepage=>get_sap_codepage( '' ).
       WHEN c_property-endian.
         CASE cl_abap_char_utilities=>endian.
           WHEN 'L'.

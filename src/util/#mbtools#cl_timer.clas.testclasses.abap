@@ -34,7 +34,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     FIND REGEX lv_regex IN lv_result.
 
-    cl_aunit_assert=>assert_subrc(
+    cl_abap_unit_assert=>assert_subrc(
       exp = 0
       act = sy-subrc
       msg = 'Did not return right measurement' ).
