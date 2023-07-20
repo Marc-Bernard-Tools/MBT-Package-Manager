@@ -52,13 +52,15 @@ CLASS /mbtools/cl_ajson DEFINITION
       mt_json_tree FOR /mbtools/if_ajson~mt_json_tree,
       keep_item_order FOR /mbtools/if_ajson~keep_item_order,
       format_datetime FOR /mbtools/if_ajson~format_datetime,
+      to_abap_corresponding_only FOR /mbtools/if_ajson~to_abap_corresponding_only,
       freeze FOR /mbtools/if_ajson~freeze.
 
     CLASS-METHODS parse
       IMPORTING
-        !iv_json           TYPE string
-        !iv_freeze         TYPE abap_bool DEFAULT abap_false
-        !ii_custom_mapping TYPE REF TO /mbtools/if_ajson_mapping OPTIONAL
+        !iv_json            TYPE string
+        !iv_freeze          TYPE abap_bool DEFAULT abap_false
+        !ii_custom_mapping  TYPE REF TO /mbtools/if_ajson_mapping OPTIONAL
+        !iv_keep_item_order TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(ro_instance) TYPE REF TO /mbtools/cl_ajson
       RAISING
@@ -69,6 +71,7 @@ CLASS /mbtools/cl_ajson DEFINITION
         !ii_custom_mapping TYPE REF TO /mbtools/if_ajson_mapping OPTIONAL
         iv_keep_item_order TYPE abap_bool DEFAULT abap_false
         iv_format_datetime TYPE abap_bool DEFAULT abap_true
+        iv_to_abap_corresponding_only TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(ro_instance) TYPE REF TO /mbtools/cl_ajson.
 
@@ -86,11 +89,13 @@ CLASS /mbtools/cl_ajson DEFINITION
     METHODS constructor
       IMPORTING
         iv_keep_item_order TYPE abap_bool DEFAULT abap_false
-        iv_format_datetime TYPE abap_bool DEFAULT abap_true.
+        iv_format_datetime TYPE abap_bool DEFAULT abap_true
+        iv_to_abap_corresponding_only TYPE abap_bool DEFAULT abap_false.
     CLASS-METHODS new
       IMPORTING
         iv_keep_item_order TYPE abap_bool DEFAULT abap_false
         iv_format_datetime TYPE abap_bool DEFAULT abap_true
+        iv_to_abap_corresponding_only TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(ro_instance) TYPE REF TO /mbtools/cl_ajson.
 
@@ -134,6 +139,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
   METHOD constructor.
     ms_opts-keep_item_order = iv_keep_item_order.
+    ms_opts-to_abap_corresponding_only = iv_to_abap_corresponding_only.
     format_datetime( iv_format_datetime ).
   ENDMETHOD.
 
@@ -141,6 +147,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
   METHOD create_empty.
     CREATE OBJECT ro_instance
       EXPORTING
+        iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
         iv_format_datetime = iv_format_datetime
         iv_keep_item_order = iv_keep_item_order.
     ro_instance->mi_custom_mapping = ii_custom_mapping.
@@ -157,6 +164,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
     CREATE OBJECT ro_instance
       EXPORTING
+        iv_to_abap_corresponding_only = ii_source_json->opts( )-to_abap_corresponding_only
         iv_format_datetime = ii_source_json->opts( )-format_datetime
         iv_keep_item_order = ii_source_json->opts( )-keep_item_order.
 
@@ -235,6 +243,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
   METHOD new.
     CREATE OBJECT ro_instance
       EXPORTING
+        iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
         iv_format_datetime = iv_format_datetime
         iv_keep_item_order = iv_keep_item_order.
   ENDMETHOD.
@@ -246,8 +255,11 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
 
     CREATE OBJECT ro_instance.
     CREATE OBJECT lo_parser.
-    ro_instance->mt_json_tree = lo_parser->parse( iv_json ).
+    ro_instance->mt_json_tree = lo_parser->parse(
+      iv_json            = iv_json
+      iv_keep_item_order = iv_keep_item_order ).
     ro_instance->mi_custom_mapping = ii_custom_mapping.
+    ro_instance->ms_opts-keep_item_order = iv_keep_item_order.
 
     IF iv_freeze = abap_true.
       ro_instance->freeze( ).
@@ -591,6 +603,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
     DATA ls_split_path TYPE /mbtools/if_ajson_types=>ty_path_name.
     DATA lr_parent TYPE REF TO /mbtools/if_ajson_types=>ty_node.
     DATA ls_deleted_node TYPE /mbtools/if_ajson_types=>ty_node.
+    DATA lv_item_order TYPE /mbtools/if_ajson_types=>ty_node-order.
 
     read_only_watchdog( ).
 
@@ -634,6 +647,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
       ir_parent = lr_parent
       iv_path   = ls_split_path-path
       iv_name   = ls_split_path-name ).
+    lv_item_order = ls_deleted_node-order.
 
     " convert to json
     DATA lt_new_nodes TYPE /mbtools/if_ajson_types=>ty_nodes_tt.
@@ -643,12 +657,15 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
       lv_array_index = lcl_utils=>validate_array_index(
         iv_path  = ls_split_path-path
         iv_index = ls_split_path-name ).
+    ELSEIF lr_parent->type = /mbtools/if_ajson_types=>node_type-object
+      AND lv_item_order = 0 AND ms_opts-keep_item_order = abap_true.
+      lv_item_order = lr_parent->children + 1.
     ENDIF.
 
     IF iv_node_type IS NOT INITIAL.
       lt_new_nodes = lcl_abap_to_json=>insert_with_type(
         is_opts            = ms_opts
-        iv_item_order      = ls_deleted_node-order
+        iv_item_order      = lv_item_order
         iv_data            = iv_val
         iv_type            = iv_node_type
         iv_array_index     = lv_array_index
@@ -657,7 +674,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
     ELSE.
       lt_new_nodes = lcl_abap_to_json=>convert(
         is_opts            = ms_opts
-        iv_item_order      = ls_deleted_node-order
+        iv_item_order      = lv_item_order
         iv_data            = iv_val
         iv_array_index     = lv_array_index
         is_prefix          = ls_split_path
@@ -724,7 +741,9 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
       "Expect object/array, but no further checks, parser will catch errors
       /mbtools/if_ajson~set(
         iv_path = lv_path
-        iv_val  = parse( lv_val ) ).
+        iv_val  = parse(
+          iv_json = lv_val
+          iv_keep_item_order = ms_opts-keep_item_order ) ).
     ELSE. " string
       lv_last = strlen( lv_val ) - 1.
       IF lv_val+0(1) = '"' AND lv_val+lv_last(1) = '"'.
@@ -846,7 +865,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CLEAR: ls_item-path, ls_item-name. " this becomes a new root
+    CLEAR: ls_item-path, ls_item-name, ls_item-order. " this becomes a new root
     INSERT ls_item INTO TABLE lo_section->mt_json_tree.
 
     lv_path_pattern = lv_normalized_path && `*`.
@@ -934,6 +953,7 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
     CLEAR ev_container.
     CREATE OBJECT lo_to_abap
       EXPORTING
+        iv_corresponding  = boolc( iv_corresponding = abap_true OR ms_opts-to_abap_corresponding_only = abap_true )
         ii_custom_mapping = mi_custom_mapping.
 
     lo_to_abap->to_abap(
@@ -942,5 +962,11 @@ CLASS /mbtools/cl_ajson IMPLEMENTATION.
       CHANGING
         c_container = ev_container ).
 
+  ENDMETHOD.
+
+
+  METHOD /mbtools/if_ajson~to_abap_corresponding_only.
+    ms_opts-to_abap_corresponding_only = iv_enable.
+    ri_json = me.
   ENDMETHOD.
 ENDCLASS.
