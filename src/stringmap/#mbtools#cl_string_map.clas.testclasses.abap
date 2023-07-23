@@ -28,6 +28,7 @@ CLASS ltcl_string_map DEFINITION
     METHODS from_entries FOR TESTING.
     METHODS from_string FOR TESTING.
     METHODS from_map FOR TESTING.
+    METHODS merge FOR TESTING.
 
     METHODS to_struc FOR TESTING.
     METHODS to_string FOR TESTING.
@@ -764,6 +765,76 @@ CLASS ltcl_string_map IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = lo_cut->get( 'c' )
       exp = '3' ).
+
+  ENDMETHOD.
+
+  METHOD merge.
+
+    DATA lo_src TYPE REF TO /mbtools/cl_string_map.
+    DATA lo_cut TYPE REF TO /mbtools/cl_string_map.
+
+    lo_cut = /mbtools/cl_string_map=>create( ).
+    lo_cut->set(
+      iv_key = 'a'
+      iv_val = '1' ).
+    lo_cut->set(
+      iv_key = 'b'
+      iv_val = '2' ).
+
+    lo_src = /mbtools/cl_string_map=>create( ).
+    lo_src->set(
+      iv_key = 'b'
+      iv_val = '20' ).
+    lo_src->set(
+      iv_key = 'c'
+      iv_val = '30' ).
+
+    lo_cut->merge( lo_src ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->size( )
+      exp = 3 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->get( 'a' )
+      exp = '1' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->get( 'b' )
+      exp = '20' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->get( 'c' )
+      exp = '30' ).
+
+    " Case 2
+    lo_cut = /mbtools/cl_string_map=>create( iv_case_insensitive = abap_true ).
+    lo_cut->set(
+      iv_key = 'a'
+      iv_val = '1' ).
+    lo_cut->set(
+      iv_key = 'b'
+      iv_val = '2' ).
+
+    lo_src = /mbtools/cl_string_map=>create( ).
+    lo_src->set(
+      iv_key = 'B'
+      iv_val = '200' ).
+    lo_src->set(
+      iv_key = 'D'
+      iv_val = '400' ).
+
+    lo_cut->merge( lo_src ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->size( )
+      exp = 3 ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->get( 'a' )
+      exp = '1' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->get( 'b' )
+      exp = '200' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = lo_cut->get( 'd' )
+      exp = '400' ).
 
   ENDMETHOD.
 
