@@ -93,6 +93,11 @@ CLASS /mbtools/cl_string_map DEFINITION
         !io_string_map TYPE REF TO /mbtools/cl_string_map
       RETURNING
         VALUE(ro_instance) TYPE REF TO /mbtools/cl_string_map.
+    METHODS merge
+      IMPORTING
+        !io_string_map TYPE REF TO /mbtools/cl_string_map
+      RETURNING
+        VALUE(ro_instance) TYPE REF TO /mbtools/cl_string_map.
 
     METHODS to_struc
       CHANGING
@@ -334,6 +339,19 @@ CLASS /mbtools/cl_string_map IMPLEMENTATION.
     FIELD-SYMBOLS <entry> LIKE LINE OF mt_entries.
     LOOP AT mt_entries ASSIGNING <entry>.
       APPEND <entry>-k TO rt_keys.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD merge.
+
+    FIELD-SYMBOLS <entry> LIKE LINE OF mt_entries.
+
+    LOOP AT io_string_map->mt_entries ASSIGNING <entry>.
+      set(
+        iv_key = <entry>-k
+        iv_val = <entry>-v ).
     ENDLOOP.
 
   ENDMETHOD.
