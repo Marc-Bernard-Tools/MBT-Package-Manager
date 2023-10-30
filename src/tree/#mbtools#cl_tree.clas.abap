@@ -1,6 +1,6 @@
 CLASS /mbtools/cl_tree DEFINITION
   PUBLIC
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
 ************************************************************************
 * MBT Tree
@@ -13,39 +13,52 @@ CLASS /mbtools/cl_tree DEFINITION
     METHODS handle_node_double_click
       FOR EVENT node_double_click OF cl_gui_alv_tree
       IMPORTING
-        !node_key .
+        !node_key.
+
     METHODS handle_item_double_click
       FOR EVENT item_double_click OF cl_gui_alv_tree
       IMPORTING
         !node_key
-        !fieldname .
-    METHODS constructor .
-    METHODS pbo .
+        !fieldname.
+
+    METHODS constructor.
+
+    METHODS pbo.
+
     METHODS pai
       IMPORTING
-        !iv_ok_code TYPE sy-ucomm .
-    METHODS display .
-    METHODS download .
-    METHODS print .
-    METHODS destroy .
+        !iv_ok_code TYPE sy-ucomm.
+
+    METHODS display.
+
+    METHODS download.
+
+    METHODS print.
+
+    METHODS destroy.
+
     METHODS expand
       IMPORTING
-        VALUE(iv_level) TYPE i .
-    METHODS expand_all .
+        VALUE(iv_level) TYPE i.
+
+    METHODS expand_all.
+
     METHODS add_top_node
       IMPORTING
         VALUE(iv_title) TYPE csequence
         VALUE(iv_icon)  TYPE icon_d OPTIONAL
         VALUE(iv_text)  TYPE any OPTIONAL
         VALUE(iv_value) TYPE any OPTIONAL
-        VALUE(iv_type)  TYPE csequence OPTIONAL .
+        VALUE(iv_type)  TYPE csequence OPTIONAL.
+
     METHODS add_sub_node
       IMPORTING
         VALUE(iv_title) TYPE csequence
         VALUE(iv_icon)  TYPE icon_d OPTIONAL
         VALUE(iv_text)  TYPE any OPTIONAL
         VALUE(iv_value) TYPE any OPTIONAL
-        VALUE(iv_type)  TYPE csequence OPTIONAL .
+        VALUE(iv_type)  TYPE csequence OPTIONAL.
+
     METHODS add_detail
       IMPORTING
         VALUE(iv_title)  TYPE csequence
@@ -55,36 +68,43 @@ CLASS /mbtools/cl_tree DEFINITION
         VALUE(iv_level)  TYPE i OPTIONAL
         VALUE(iv_sign)   TYPE abap_bool DEFAULT abap_false
         VALUE(iv_hidden) TYPE abap_bool DEFAULT abap_false
-        VALUE(iv_type)   TYPE csequence OPTIONAL .
-    METHODS pick_node .
-    METHODS find_node .
+        VALUE(iv_type)   TYPE csequence OPTIONAL.
+
+    METHODS pick_node.
+
+    METHODS find_node.
+
     METHODS set_key
       IMPORTING
-        !iv_key TYPE lvc_nkey .
+        !iv_key TYPE lvc_nkey.
+
     METHODS get_key
       RETURNING
-        VALUE(rv_key) TYPE lvc_nkey .
-    METHODS next_key .
+        VALUE(rv_key) TYPE lvc_nkey.
+
+    METHODS next_key.
+
   PROTECTED SECTION.
 
   PRIVATE SECTION.
 
-    DATA mv_container_name TYPE char25 VALUE 'GO_TREE_CONTAINER' ##NO_TEXT.
-    DATA mo_custom_container TYPE REF TO cl_gui_custom_container.
-    DATA mo_tree TYPE REF TO cl_gui_alv_tree.
-    DATA mv_tree_structure TYPE tabname VALUE '/MBTOOLS/TREE_CONTROL' ##NO_TEXT.
-    DATA ms_outtab TYPE /mbtools/tree_control.
     DATA:
-      mt_outtab TYPE STANDARD TABLE OF /mbtools/tree_control.
-    DATA mv_node_key TYPE lvc_nkey.
-    DATA mv_relat_key TYPE lvc_nkey.
-    DATA mt_fieldcat TYPE lvc_t_fcat.
-    DATA mt_item_layout TYPE lvc_t_layi.
-    DATA mt_typtab TYPE lvc_t_chit.
-    DATA mv_tree_level TYPE i VALUE 0 ##NO_TEXT.
-    DATA mv_done TYPE abap_bool.
+      mv_container_name   TYPE char25 VALUE 'GO_TREE_CONTAINER',
+      mo_custom_container TYPE REF TO cl_gui_custom_container,
+      mo_tree             TYPE REF TO cl_gui_alv_tree,
+      mv_tree_structure   TYPE tabname VALUE '/MBTOOLS/TREE_CONTROL',
+      ms_outtab           TYPE /mbtools/tree_control,
+      mt_outtab           TYPE STANDARD TABLE OF /mbtools/tree_control,
+      mv_node_key         TYPE lvc_nkey,
+      mv_relat_key        TYPE lvc_nkey,
+      mt_fieldcat         TYPE lvc_t_fcat,
+      mt_item_layout      TYPE lvc_t_layi,
+      mt_typtab           TYPE lvc_t_chit,
+      mv_tree_level       TYPE i VALUE 0,
+      mv_done             TYPE abap_bool.
 
     METHODS _init.
+
     METHODS _add_node
       IMPORTING
         VALUE(is_outtab) TYPE any
@@ -93,6 +113,7 @@ CLASS /mbtools/cl_tree DEFINITION
         VALUE(iv_level)  TYPE i OPTIONAL
         VALUE(iv_sign)   TYPE abap_bool DEFAULT abap_false
         VALUE(iv_hidden) TYPE abap_bool DEFAULT abap_false.
+
     METHODS _add
       IMPORTING
         VALUE(iv_title)  TYPE csequence
@@ -104,6 +125,7 @@ CLASS /mbtools/cl_tree DEFINITION
         VALUE(iv_sign)   TYPE abap_bool DEFAULT abap_false
         VALUE(iv_hidden) TYPE abap_bool DEFAULT abap_false
         VALUE(iv_type)   TYPE csequence OPTIONAL.
+
 ENDCLASS.
 
 
@@ -256,15 +278,15 @@ CLASS /mbtools/cl_tree IMPLEMENTATION.
 
   METHOD download.
 
-    MESSAGE i000 WITH 'Download the View Using "System > List > Save"'(t01).
-
     mo_tree->set_function_code(
       EXPORTING
         i_ucomm            = cl_gui_alv_tree=>mc_fc_print_prev
       EXCEPTIONS
         function_not_found = 1
         OTHERS             = 2 ).
-    IF sy-subrc <> 0.
+    IF sy-subrc = 0.
+      MESSAGE i000 WITH 'Download the View Using "System > List > Save"'(t01).
+    ELSE.
       MESSAGE i000 WITH 'Function not available'(t02).
     ENDIF.
 
