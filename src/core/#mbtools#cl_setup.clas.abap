@@ -165,7 +165,7 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
     ls_balsub-object    = /mbtools/if_definitions=>c_namespace.
     ls_balsub-subobject = 'EDD'.
     APPEND ls_balsub TO lt_balsub.
-    ls_balsub-subobject = 'INIT'.
+    ls_balsub-subobject = 'INST'.
     APPEND ls_balsub TO lt_balsub.
     ls_balsub-subobject = 'LOG'.
     APPEND ls_balsub TO lt_balsub.

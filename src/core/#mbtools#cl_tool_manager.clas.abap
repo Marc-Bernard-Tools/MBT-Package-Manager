@@ -269,6 +269,10 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    gi_log = /mbtools/cl_logger_factory=>create_log(
+               object    = '/MBTOOLS/'
+               subobject = 'LOG' ).
+
     CREATE OBJECT lo_timer.
 
     lo_timer->start( ).
@@ -367,6 +371,10 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
       iv_current = sy-tabix
       iv_text    = |Run check version for all tools| ).
 
+    gi_log = /mbtools/cl_logger_factory=>create_log(
+               object    = '/MBTOOLS/'
+               subobject = 'LOG' ).
+
     gi_log->i( |Run check version for { lines( lt_manifests ) } tools| ).
 
     LOOP AT lt_manifests INTO ls_manifest.
@@ -409,10 +417,6 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
   METHOD class_constructor.
 
     LOG-POINT ID /mbtools/bc SUBKEY /mbtools/cl_tool_bc=>c_tool-title FIELDS sy-datum sy-uzeit sy-uname.
-
-    gi_log = /mbtools/cl_logger_factory=>create_log(
-               object    = '/MBTOOLS/'
-               subobject = 'LOG' ).
 
     TRY.
         " Initialize tool instances
