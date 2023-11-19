@@ -8,6 +8,17 @@ and [ISO Date Format](https://www.iso.org/iso-8601-date-and-time-format.html).
 
 ## [Unreleased]
 
+## Version [1.4.1] - 2023-11-19
+
+### Changed
+
+- Bump AJSON to 1.1.9
+- Bump ABAP Logger 
+
+### Fixed
+
+- Fix dump when starting MBT Package Manager
+
 ## Version [1.4.0] - 2023-05-22
 
 ### Changed
@@ -42,7 +53,7 @@ and [ISO Date Format](https://www.iso.org/iso-8601-date-and-time-format.html).
 ### Changed
 
 - Changed license from GPL3-or-later to GPL3-only
-- Updated metadata to latest abapGit format
+- Updated metadata to the latest abapGit format
 - Renamed screen elements
 
 ## Version [1.3.0] - 2022-05-30
@@ -56,7 +67,7 @@ and [ISO Date Format](https://www.iso.org/iso-8601-date-and-time-format.html).
 
 ### Changed
 
-- Updated REUSE license infos and compliance check
+- Updated REUSE license info and compliance check
 - Enhanced Readme 
 - Updated linting rules
 - Adjusted support tool for Access Passes
@@ -69,7 +80,7 @@ and [ISO Date Format](https://www.iso.org/iso-8601-date-and-time-format.html).
 
 ### Fixed
 
-- Fixed detection of license expiration date
+- Fixed detection of the license expiration date
 - Fixed deletion of marcbernardtools.com certificate
 
 ## Version [1.2.0] - 2021-12-08
@@ -85,7 +96,8 @@ Launch Release
 Initial Release. For details, see [Features](https://marcbernardtools.com/docs/marc-bernard-tools/features).
 
 
-[Unreleased]: https://github.com/Marc-Bernard-Tools/MBT-Base/compare/1.4.0...main
+[Unreleased]: https://github.com/Marc-Bernard-Tools/MBT-Base/compare/1.4.1...main
+[1.4.1]: https://github.com/Marc-Bernard-Tools/MBT-Base/compare/1.3.2...1.4.1
 [1.4.0]: https://github.com/Marc-Bernard-Tools/MBT-Base/compare/1.3.2...1.4.0
 [1.3.2]: https://github.com/Marc-Bernard-Tools/MBT-Base/compare/1.3.1...1.3.2
 [1.3.1]: https://github.com/Marc-Bernard-Tools/MBT-Base/compare/1.3.0...1.3.1
