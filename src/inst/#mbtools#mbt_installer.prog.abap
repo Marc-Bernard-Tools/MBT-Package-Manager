@@ -36,6 +36,7 @@ INTERFACE zif_abapgit_git_definitions DEFERRED.
 INTERFACE zif_abapgit_definitions DEFERRED.
 INTERFACE zif_abapgit_ajson_types DEFERRED.
 INTERFACE zif_abapgit_ajson DEFERRED.
+INTERFACE zif_abapgit_ajson_filter DEFERRED.
 INTERFACE zif_abapgit_cts_api DEFERRED.
 INTERFACE zif_abapgit_data_config DEFERRED.
 INTERFACE zif_abapgit_data_deserializer DEFERRED.
@@ -744,15 +745,14 @@ CLASS zcx_abapgit_cancel IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 ENDCLASS.
-"! abapinst general error
 CLASS zcx_abapinst_exception DEFINITION
 
   INHERITING FROM cx_static_check
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
-    INTERFACES if_t100_message .
+    INTERFACES if_t100_message.
 
     CONSTANTS:
       BEGIN OF gc_section_text,
@@ -760,19 +760,21 @@ CLASS zcx_abapinst_exception DEFINITION
         system_response TYPE string VALUE `System response`,
         what_to_do      TYPE string VALUE `Procedure`,
         sys_admin       TYPE string VALUE `System administration`,
-      END OF gc_section_text .
-    CONSTANTS:
+      END OF gc_section_text,
+
       BEGIN OF gc_section_token,
         cause           TYPE string VALUE `&CAUSE&`,
         system_response TYPE string VALUE `&SYSTEM_RESPONSE&`,
         what_to_do      TYPE string VALUE `&WHAT_TO_DO&`,
         sys_admin       TYPE string VALUE `&SYS_ADMIN&`,
-      END OF gc_section_token .
-    DATA msgv1 TYPE symsgv READ-ONLY .
-    DATA msgv2 TYPE symsgv READ-ONLY .
-    DATA msgv3 TYPE symsgv READ-ONLY .
-    DATA msgv4 TYPE symsgv READ-ONLY .
-    DATA mt_callstack TYPE abap_callstack READ-ONLY .
+      END OF gc_section_token.
+
+    DATA:
+      msgv1        TYPE symsgv READ-ONLY,
+      msgv2        TYPE symsgv READ-ONLY,
+      msgv3        TYPE symsgv READ-ONLY,
+      msgv4        TYPE symsgv READ-ONLY,
+      mt_callstack TYPE abap_callstack READ-ONLY.
 
     "! Raise exception with text
     "! @parameter iv_text | Text
@@ -783,7 +785,8 @@ CLASS zcx_abapinst_exception DEFINITION
         !iv_text     TYPE clike
         !ix_previous TYPE REF TO cx_root OPTIONAL
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     "! Raise exception with T100 message
     "! <p>
     "! Will default to sy-msg* variables. These need to be set right before calling this method.
@@ -805,12 +808,14 @@ CLASS zcx_abapinst_exception DEFINITION
         VALUE(iv_msgv4) TYPE symsgv DEFAULT sy-msgv4
         !ix_previous    TYPE REF TO cx_root OPTIONAL
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     CLASS-METHODS raise_with_text
       IMPORTING
         !ix_previous TYPE REF TO cx_root
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     METHODS constructor
       IMPORTING
         !textid       LIKE if_t100_message=>t100key OPTIONAL
@@ -819,12 +824,12 @@ CLASS zcx_abapinst_exception DEFINITION
         !msgv2        TYPE symsgv OPTIONAL
         !msgv3        TYPE symsgv OPTIONAL
         !msgv4        TYPE symsgv OPTIONAL
-        !mt_callstack TYPE abap_callstack OPTIONAL .
+        !mt_callstack TYPE abap_callstack OPTIONAL.
 
-    METHODS get_source_position
-        REDEFINITION .
-    METHODS if_message~get_longtext
-        REDEFINITION .
+    METHODS get_source_position REDEFINITION.
+
+    METHODS if_message~get_longtext REDEFINITION.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -832,25 +837,31 @@ CLASS zcx_abapinst_exception DEFINITION
 
     CLASS-METHODS split_text_to_symsg
       IMPORTING
-        !iv_text TYPE string .
-    METHODS save_callstack .
+        !iv_text TYPE string.
+
+    METHODS save_callstack.
+
     METHODS itf_to_string
       IMPORTING
         !it_itf          TYPE tline_tab
       RETURNING
-        VALUE(rv_result) TYPE string .
+        VALUE(rv_result) TYPE string.
+
     METHODS get_t100_longtext_itf
       RETURNING
-        VALUE(rt_itf) TYPE tline_tab .
+        VALUE(rt_itf) TYPE tline_tab.
+
     METHODS remove_empty_section
       IMPORTING
         !iv_tabix_from TYPE i
         !iv_tabix_to   TYPE i
       CHANGING
-        !ct_itf        TYPE tline_tab .
+        !ct_itf        TYPE tline_tab.
+
     METHODS replace_section_head_with_text
       CHANGING
-        !cs_itf TYPE tline .
+        !cs_itf TYPE tline.
+
 ENDCLASS.
 
 
@@ -1192,6 +1203,7 @@ CLASS zcl_abapgit_abap_language_vers DEFINITION DEFERRED.
 CLASS zcl_abapgit_adt_link DEFINITION DEFERRED.
 CLASS zcl_abapgit_aff_registry DEFINITION DEFERRED.
 CLASS zcl_abapgit_ajson DEFINITION DEFERRED.
+CLASS zcl_abapgit_ajson_filter_lib DEFINITION DEFERRED.
 CLASS zcl_abapgit_convert DEFINITION DEFERRED.
 CLASS zcl_abapgit_cts_api DEFINITION DEFERRED.
 CLASS zcl_abapgit_data_config DEFINITION DEFERRED.
@@ -1221,9 +1233,11 @@ CLASS zcl_abapgit_lxe_texts DEFINITION DEFERRED.
 CLASS zcl_abapgit_objects_activation DEFINITION DEFERRED.
 CLASS zcl_abapgit_objects_super DEFINITION DEFERRED.
 CLASS zcl_abapgit_objects_bridge DEFINITION DEFERRED.
+CLASS zcl_abapgit_objects_factory DEFINITION DEFERRED.
 CLASS zcl_abapgit_xml DEFINITION DEFERRED.
 CLASS zcl_abapgit_xml_input DEFINITION DEFERRED.
 CLASS zcl_abapgit_objects_files DEFINITION DEFERRED.
+CLASS zcl_abapgit_objects_injector DEFINITION DEFERRED.
 CLASS zcl_abapgit_xml_output DEFINITION DEFERRED.
 CLASS zcl_abapgit_objects_program DEFINITION DEFERRED.
 CLASS zcl_abapgit_object_acid DEFINITION DEFERRED.
@@ -1712,16 +1726,7 @@ INTERFACE zif_abapgit_definitions
   TYPES: END OF ty_tpool .
   TYPES:
     ty_tpool_tt TYPE STANDARD TABLE OF ty_tpool WITH DEFAULT KEY .
-  TYPES:
-    BEGIN OF ty_obj_attribute,
-      cmpname   TYPE seocmpname,
-      attkeyfld TYPE seokeyfld,
-      attbusobj TYPE seobusobj,
-      exposure  TYPE seoexpose,
-    END OF ty_obj_attribute .
-  TYPES:
-    ty_obj_attribute_tt TYPE STANDARD TABLE OF ty_obj_attribute WITH DEFAULT KEY
-                             WITH NON-UNIQUE SORTED KEY cmpname COMPONENTS cmpname .
+
   TYPES:
     BEGIN OF ty_transport_to_branch,
       branch_name TYPE string,
@@ -2274,6 +2279,29 @@ INTERFACE zif_abapgit_ajson
       iv_indent TYPE i DEFAULT 0
     RETURNING
       VALUE(rv_json) TYPE string
+    RAISING
+      zcx_abapgit_ajson_error.
+
+ENDINTERFACE.
+INTERFACE zif_abapgit_ajson_filter
+  .
+
+  TYPES ty_filter_tab TYPE STANDARD TABLE OF REF TO zif_abapgit_ajson_filter WITH KEY table_line.
+  TYPES ty_visit_type TYPE i.
+
+  CONSTANTS:
+    BEGIN OF visit_type,
+      value TYPE ty_visit_type VALUE 0,
+      open  TYPE ty_visit_type VALUE 1,
+      close TYPE ty_visit_type VALUE 2,
+    END OF visit_type.
+
+  METHODS keep_node
+    IMPORTING
+      is_node TYPE zif_abapgit_ajson_types=>ty_node
+      iv_visit TYPE ty_visit_type DEFAULT visit_type-value
+    RETURNING
+      VALUE(rv_keep) TYPE abap_bool
     RAISING
       zcx_abapgit_ajson_error.
 
@@ -3731,12 +3759,23 @@ INTERFACE zif_abapgit_oo_object_fnc .
   TYPES:
     ty_seosubcotx_tt TYPE STANDARD TABLE OF seosubcotx WITH DEFAULT KEY .
 
+  TYPES:
+    BEGIN OF ty_obj_attribute,
+      cmpname   TYPE seocmpname,
+      attkeyfld TYPE seokeyfld,
+      attbusobj TYPE seobusobj,
+      exposure  TYPE seoexpose,
+    END OF ty_obj_attribute .
+  TYPES:
+    ty_obj_attribute_tt TYPE STANDARD TABLE OF ty_obj_attribute WITH DEFAULT KEY
+                             WITH NON-UNIQUE SORTED KEY cmpname COMPONENTS cmpname .
+
   METHODS:
     create
       IMPORTING
         iv_check      TYPE abap_bool
         iv_package    TYPE devclass
-        it_attributes TYPE zif_abapgit_definitions=>ty_obj_attribute_tt OPTIONAL
+        it_attributes TYPE ty_obj_attribute_tt OPTIONAL
       CHANGING
         cg_properties TYPE any
       RAISING
@@ -3889,7 +3928,7 @@ INTERFACE zif_abapgit_oo_object_fnc .
       IMPORTING
         iv_object_name       TYPE seoclsname
       RETURNING
-        VALUE(rt_attributes) TYPE zif_abapgit_definitions=>ty_obj_attribute_tt.
+        VALUE(rt_attributes) TYPE ty_obj_attribute_tt.
 ENDINTERFACE.
 INTERFACE zif_abapgit_aff_oo_types_v1
   .
@@ -4044,20 +4083,19 @@ INTERFACE zif_abapgit_tadir
     RETURNING
       VALUE(rs_tadir) TYPE zif_abapgit_definitions=>ty_tadir.
 ENDINTERFACE.
-INTERFACE zif_abapinst_definitions
-  .
+INTERFACE zif_abapinst_definitions .
 
-  CONSTANTS c_version TYPE string VALUE '1.0.0' ##NO_TEXT.
+  CONSTANTS c_version TYPE string VALUE '1.1.0' ##NO_TEXT.
 
-  CONSTANTS c_tabname TYPE tabname VALUE 'ZABAPINST' ##NO_TEXT.
-  CONSTANTS c_lock TYPE viewname VALUE 'EZABAPINST' ##NO_TEXT.
-  CONSTANTS c_english TYPE sy-langu VALUE 'E' ##NO_TEXT.
-  CONSTANTS c_prog_developer TYPE progname VALUE 'ZABAPINST_DEV' ##NO_TEXT.
-  CONSTANTS c_prog_standalone TYPE progname VALUE 'ZABAPINST' ##NO_TEXT.
-
-  CONSTANTS c_url_docs TYPE string VALUE 'https://github.com/abapGit/abapinst' ##NO_TEXT.
-  CONSTANTS c_url_license TYPE string VALUE 'https://github.com/abapGit/abapinst/blob/master/LICENSE' ##NO_TEXT.
-  CONSTANTS c_url_repo TYPE string VALUE 'https://github.com/abapGit/abapinst' ##NO_TEXT.
+  CONSTANTS:
+    c_tabname         TYPE tabname VALUE 'ZABAPINST' ##NO_TEXT,
+    c_lock            TYPE viewname VALUE 'EZABAPINST' ##NO_TEXT,
+    c_english         TYPE sy-langu VALUE 'E' ##NO_TEXT,
+    c_prog_developer  TYPE progname VALUE 'ZABAPINST_DEV' ##NO_TEXT,
+    c_prog_standalone TYPE progname VALUE 'ZABAPINST' ##NO_TEXT,
+    c_url_docs        TYPE string VALUE 'https://github.com/abapGit/abapinst' ##NO_TEXT,
+    c_url_license     TYPE string VALUE 'https://github.com/abapGit/abapinst/blob/master/LICENSE' ##NO_TEXT,
+    c_url_repo        TYPE string VALUE 'https://github.com/abapGit/abapinst' ##NO_TEXT.
 
   " Avoids warning due to key length
   CONSTANTS c_name_length TYPE i VALUE 90 ##NO_TEXT.
@@ -4529,6 +4567,38 @@ CLASS zcl_abapgit_ajson DEFINITION
     METHODS read_only_watchdog
       RAISING
         zcx_abapgit_ajson_error.
+ENDCLASS.
+CLASS zcl_abapgit_ajson_filter_lib DEFINITION
+
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+
+    CLASS-METHODS create_empty_filter
+      RETURNING
+        VALUE(ri_filter) TYPE REF TO zif_abapgit_ajson_filter
+      RAISING
+        zcx_abapgit_ajson_error .
+    CLASS-METHODS create_path_filter
+      IMPORTING
+        !it_skip_paths TYPE string_table OPTIONAL
+        !iv_skip_paths TYPE string OPTIONAL
+        !iv_pattern_search TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(ri_filter) TYPE REF TO zif_abapgit_ajson_filter
+      RAISING
+        zcx_abapgit_ajson_error .
+    CLASS-METHODS create_and_filter
+      IMPORTING
+        !it_filters TYPE zif_abapgit_ajson_filter=>ty_filter_tab
+      RETURNING
+        VALUE(ri_filter) TYPE REF TO zif_abapgit_ajson_filter
+      RAISING
+        zcx_abapgit_ajson_error .
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 CLASS zcl_abapgit_convert DEFINITION
 
@@ -6099,6 +6169,20 @@ CLASS zcl_abapgit_objects_bridge DEFINITION  FINAL CREATE PUBLIC INHERITING FROM
     CLASS-DATA gt_objtype_map TYPE ty_t_objtype_map.
 
 ENDCLASS.
+CLASS zcl_abapgit_objects_factory DEFINITION
+
+  CREATE PRIVATE
+   FRIENDS zcl_abapgit_objects_injector .
+
+  PUBLIC SECTION.
+    CLASS-METHODS get_gui_jumper
+      RETURNING
+        VALUE(ri_gui_jumper) TYPE REF TO zif_abapgit_gui_jumper .
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+
+    CLASS-DATA gi_gui_jumper TYPE REF TO zif_abapgit_gui_jumper .
+ENDCLASS.
 CLASS zcl_abapgit_xml DEFINITION
 
   ABSTRACT
@@ -6291,6 +6375,18 @@ CLASS zcl_abapgit_objects_files DEFINITION
         !iv_file TYPE zif_abapgit_git_definitions=>ty_file-filename
         !iv_sha1 TYPE zif_abapgit_git_definitions=>ty_file-sha1.
 
+ENDCLASS.
+CLASS zcl_abapgit_objects_injector DEFINITION
+
+  CREATE PRIVATE .
+
+  PUBLIC SECTION.
+
+    CLASS-METHODS set_gui_jumper
+      IMPORTING
+        !ii_gui_jumper TYPE REF TO zif_abapgit_gui_jumper .
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 CLASS zcl_abapgit_xml_output DEFINITION
 
@@ -6515,7 +6611,7 @@ CLASS zcl_abapgit_oo_base DEFINITION
     CLASS-METHODS:
       convert_attrib_to_vseoattrib
         IMPORTING iv_clsname           TYPE seoclsname
-                  it_attributes        TYPE zif_abapgit_definitions=>ty_obj_attribute_tt
+                  it_attributes        TYPE zif_abapgit_oo_object_fnc=>ty_obj_attribute_tt
         RETURNING VALUE(rt_vseoattrib) TYPE seoo_attributes_r.
 
   PRIVATE SECTION.
@@ -9012,9 +9108,6 @@ CLASS zcl_abapinst_factory DEFINITION
     CLASS-METHODS get_lxe_texts
       RETURNING
         VALUE(ri_lxe_texts) TYPE REF TO zif_abapgit_lxe_texts.
-    CLASS-METHODS get_gui_jumper
-      RETURNING
-        VALUE(ri_gui_jumper) TYPE REF TO zif_abapgit_gui_jumper.
     CLASS-METHODS get_sap_namespace
       RETURNING
         VALUE(ri_namespace) TYPE REF TO zif_abapgit_sap_namespace.
@@ -9052,7 +9145,7 @@ ENDCLASS.
 CLASS zcl_abapinst_file DEFINITION
 
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
@@ -9068,33 +9161,38 @@ CLASS zcl_abapinst_file DEFINITION
       RETURNING
         VALUE(rv_file)     TYPE xstring
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     CLASS-METHODS load_local
       IMPORTING
         !iv_filename   TYPE csequence
       RETURNING
         VALUE(rv_file) TYPE xstring
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     CLASS-METHODS load_server
       IMPORTING
         !iv_filename   TYPE csequence
       RETURNING
         VALUE(rv_file) TYPE xstring
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     CLASS-METHODS virus_scan
       IMPORTING
         !iv_data TYPE xstring
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     CLASS-METHODS unzip
       IMPORTING
         !iv_xstr        TYPE xstring
       RETURNING
         VALUE(rt_files) TYPE zif_abapgit_git_definitions=>ty_files_tt
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -9105,17 +9203,19 @@ CLASS zcl_abapinst_file DEFINITION
         !ev_path     TYPE string
         !ev_filename TYPE string
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     CLASS-METHODS _normalize_path
       CHANGING
         !ct_files TYPE zif_abapgit_git_definitions=>ty_files_tt
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
 ENDCLASS.
 CLASS zcl_abapinst_popups DEFINITION
 
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
@@ -9125,9 +9225,9 @@ CLASS zcl_abapinst_popups DEFINITION
         text   TYPE string,
         length TYPE lvc_outlen,
         key    TYPE abap_bool,
-      END OF ty_alv_column .
-    TYPES:
-      ty_alv_column_tt TYPE STANDARD TABLE OF ty_alv_column WITH KEY name .
+      END OF ty_alv_column,
+
+      ty_alv_column_tt TYPE STANDARD TABLE OF ty_alv_column WITH KEY name.
 
     CONSTANTS c_default_column TYPE lvc_fname VALUE `DEFAULT_COLUMN` ##NO_TEXT.
 
@@ -9138,7 +9238,8 @@ CLASS zcl_abapinst_popups DEFINITION
       RETURNING
         VALUE(rs_packaging) TYPE zif_abapinst_dot_abapgit=>ty_packaging
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     METHODS popup_to_confirm
       IMPORTING
         !iv_title                 TYPE csequence
@@ -9152,7 +9253,8 @@ CLASS zcl_abapinst_popups DEFINITION
       RETURNING
         VALUE(rv_answer)          TYPE sy-input
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     METHODS popup_to_select_from_list
       IMPORTING
         !it_list               TYPE STANDARD TABLE
@@ -9170,7 +9272,7 @@ CLASS zcl_abapinst_popups DEFINITION
       EXPORTING
         VALUE(et_list)         TYPE STANDARD TABLE
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
 
     TYPES:
       BEGIN OF ty_popup_position,
@@ -9186,35 +9288,43 @@ CLASS zcl_abapinst_popups DEFINITION
         !iv_height         TYPE i
       RETURNING
         VALUE(rs_position) TYPE ty_popup_position.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
     CONSTANTS c_fieldname_selected TYPE lvc_fname VALUE `SELECTED` ##NO_TEXT.
-    DATA mo_select_list_popup TYPE REF TO cl_salv_table .
-    DATA mr_table TYPE REF TO data .
-    DATA mv_cancel TYPE abap_bool VALUE abap_false ##NO_TEXT.
-    DATA mo_table_descr TYPE REF TO cl_abap_tabledescr .
+
+    DATA:
+      mo_select_list_popup TYPE REF TO cl_salv_table,
+      mr_table             TYPE REF TO data,
+      mv_cancel            TYPE abap_bool VALUE abap_false,
+      mo_table_descr       TYPE REF TO cl_abap_tabledescr.
 
     METHODS _create_new_table
       IMPORTING
-        !it_list TYPE STANDARD TABLE .
+        !it_list TYPE STANDARD TABLE.
+
     METHODS _get_selected_rows
       EXPORTING
-        !et_list TYPE INDEX TABLE .
+        !et_list TYPE INDEX TABLE.
+
     METHODS _on_select_list_link_click
-        FOR EVENT link_click OF cl_salv_events_table
+      FOR EVENT link_click OF cl_salv_events_table
       IMPORTING
         !row
-        !column .
+        !column.
+
     METHODS _on_select_list_function_click
-        FOR EVENT added_function OF cl_salv_events_table
+      FOR EVENT added_function OF cl_salv_events_table
       IMPORTING
-        !e_salv_function .
+        !e_salv_function.
+
     METHODS _on_double_click
-        FOR EVENT double_click OF cl_salv_events_table
+      FOR EVENT double_click OF cl_salv_events_table
       IMPORTING
         !row
-        !column .
+        !column.
+
 ENDCLASS.
 CLASS zcl_abapinst_installer DEFINITION
 
@@ -9230,19 +9340,19 @@ CLASS zcl_abapinst_installer DEFINITION
         server   TYPE i VALUE 2,
         data     TYPE i VALUE 3,
         registry TYPE i VALUE 4,
-      END OF c_enum_zip.
-    CONSTANTS:
+      END OF c_enum_zip,
+
       BEGIN OF c_enum_package,
         default       TYPE i VALUE 0,
         local         TYPE i VALUE 1,
         transportable TYPE i VALUE 2,
-      END OF c_enum_package.
-    CONSTANTS:
+      END OF c_enum_package,
+
       BEGIN OF c_enum_transport,
         prompt   TYPE i VALUE 0,
         existing TYPE i VALUE 1,
-      END OF c_enum_transport.
-    CONSTANTS:
+      END OF c_enum_transport,
+
       BEGIN OF c_enum_folder_logic,
         default TYPE i VALUE 0,
         prefix  TYPE i VALUE 1,
@@ -9256,6 +9366,7 @@ CLASS zcl_abapinst_installer DEFINITION
         !iv_lock    TYPE viewname OPTIONAL
         !iv_name    TYPE string OPTIONAL
         !iv_names   TYPE string OPTIONAL.
+
     CLASS-METHODS install
       IMPORTING
         !iv_enum_zip          TYPE i OPTIONAL
@@ -9276,47 +9387,56 @@ CLASS zcl_abapinst_installer DEFINITION
         !iv_enum_folder_logic TYPE i OPTIONAL
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS uninstall
       IMPORTING
         !iv_name TYPE zif_abapinst_definitions=>ty_name
         !iv_pack TYPE zif_abapinst_definitions=>ty_pack
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS list
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS f4
       RETURNING
         VALUE(rs_inst) TYPE zif_abapinst_definitions=>ty_inst
       RAISING
         zcx_abapinst_exception.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    CLASS-DATA go_db TYPE REF TO zcl_abapinst_persistence.
-    CLASS-DATA gt_remote TYPE zif_abapgit_git_definitions=>ty_files_tt.
-    CLASS-DATA gs_inst TYPE zif_abapinst_definitions=>ty_inst.
-    CLASS-DATA go_dot TYPE REF TO zcl_abapinst_dot_abapgit.
-    CLASS-DATA gi_log TYPE REF TO zif_abapgit_log.
-    CLASS-DATA gs_packaging TYPE zif_abapinst_dot_abapgit=>ty_packaging.
-    CLASS-DATA gt_requirements TYPE zif_abapgit_dot_abapgit=>ty_requirement_tt.
-    CLASS-DATA gv_name TYPE string.
-    CLASS-DATA gv_names TYPE string.
     CLASS-DATA:
-      gt_clmcus TYPE STANDARD TABLE OF clmcus WITH DEFAULT KEY.
-    CONSTANTS c_success TYPE sy-msgty VALUE 'S' ##NO_TEXT.
-    CONSTANTS c_warning TYPE sy-msgty VALUE 'W' ##NO_TEXT.
-    CONSTANTS c_error TYPE sy-msgty VALUE 'E' ##NO_TEXT.
+      go_db           TYPE REF TO zcl_abapinst_persistence,
+      gt_remote       TYPE zif_abapgit_git_definitions=>ty_files_tt,
+      gs_inst         TYPE zif_abapinst_definitions=>ty_inst,
+      go_dot          TYPE REF TO zcl_abapinst_dot_abapgit,
+      gi_log          TYPE REF TO zif_abapgit_log,
+      gs_packaging    TYPE zif_abapinst_dot_abapgit=>ty_packaging,
+      gt_requirements TYPE zif_abapgit_dot_abapgit=>ty_requirement_tt,
+      gv_name         TYPE string,
+      gv_names        TYPE string,
+      gt_clmcus       TYPE STANDARD TABLE OF clmcus WITH DEFAULT KEY.
+
+    CONSTANTS:
+      c_success TYPE sy-msgty VALUE 'S' ##NO_TEXT,
+      c_warning TYPE sy-msgty VALUE 'W' ##NO_TEXT,
+      c_error   TYPE sy-msgty VALUE 'E' ##NO_TEXT.
 
     CLASS-METHODS _system_check
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _clear.
+
     CLASS-METHODS _nothing_found
       IMPORTING
         !it_list         TYPE ANY TABLE
       RETURNING
         VALUE(rv_result) TYPE abap_bool.
+
     CLASS-METHODS _files
       IMPORTING
         !iv_enum_zip       TYPE i
@@ -9330,9 +9450,11 @@ CLASS zcl_abapinst_installer DEFINITION
         !iv_proxy_password TYPE char255 OPTIONAL
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _packaging
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _sap_package
       IMPORTING
         !iv_enum_package TYPE i
@@ -9341,11 +9463,13 @@ CLASS zcl_abapinst_installer DEFINITION
         !iv_devlayer     TYPE devlayer OPTIONAL
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _check
       IMPORTING
         !iv_force TYPE abap_bool DEFAULT abap_false
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _check_version
       IMPORTING
         !is_new_version       TYPE zif_abapinst_definitions=>ty_version
@@ -9353,46 +9477,60 @@ CLASS zcl_abapinst_installer DEFINITION
         !iv_force             TYPE abap_bool DEFAULT abap_false
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _check_requirements
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _check_dependencies
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _folder_logic
       IMPORTING
         !iv_enum_folder_logic TYPE i
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _transport
       IMPORTING
         !iv_enum_transport TYPE i
         !iv_transport      TYPE trkorr OPTIONAL
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _transport_get
       RETURNING
         VALUE(rv_trkorr) TYPE trkorr
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _transport_check
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _transport_reset.
+
     CLASS-METHODS _namespaces
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _confirm_messages.
+
     CLASS-METHODS _restore_messages.
+
     CLASS-METHODS _deserialize_objects
       RAISING
         zcx_abapgit_exception.
+
     CLASS-METHODS _deserialize_data
       RAISING
         zcx_abapgit_exception.
+
     CLASS-METHODS _save
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _load
       IMPORTING
         !iv_name       TYPE zif_abapinst_definitions=>ty_name OPTIONAL
@@ -9401,16 +9539,21 @@ CLASS zcl_abapinst_installer DEFINITION
         VALUE(rs_inst) TYPE zif_abapinst_definitions=>ty_inst
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _delete
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _log_start.
+
     CLASS-METHODS _log_end
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _final_message
       IMPORTING
         !iv_type TYPE string.
+
     CLASS-METHODS _find_remote_dot_abapgit
       IMPORTING
         !it_remote    TYPE zif_abapgit_git_definitions=>ty_files_tt
@@ -9418,6 +9561,7 @@ CLASS zcl_abapinst_installer DEFINITION
         VALUE(ro_dot) TYPE REF TO zcl_abapinst_dot_abapgit
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _find_remote_dot_apack
       IMPORTING
         !it_remote    TYPE zif_abapgit_git_definitions=>ty_files_tt
@@ -9425,23 +9569,29 @@ CLASS zcl_abapinst_installer DEFINITION
         VALUE(ro_dot) TYPE REF TO zcl_abapinst_dot_abapgit
       RAISING
         zcx_abapinst_exception.
+
     CLASS-METHODS _find_remote_namespaces
       RETURNING
         VALUE(rt_remote) TYPE zif_abapgit_git_definitions=>ty_files_tt.
+
     CLASS-METHODS _find_remote_data_config
       RETURNING
         VALUE(ri_config) TYPE REF TO zif_abapgit_data_config
       RAISING
         zcx_abapgit_exception.
+
     CLASS-METHODS _check_uninstalled
       IMPORTING
         !it_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt.
+
     CLASS-METHODS _uninstall_sotr
       IMPORTING
         !it_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt.
+
     CLASS-METHODS _uninstall_sots
       IMPORTING
         !it_tadir TYPE zif_abapgit_definitions=>ty_tadir_tt.
+
 ENDCLASS.
 CLASS zcl_abapinst_log_viewer DEFINITION
 
@@ -9707,20 +9857,22 @@ CLASS zcl_abapinst_objects DEFINITION
 ENDCLASS.
 CLASS zcl_abapinst_persistence DEFINITION
 
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
     METHODS constructor
       IMPORTING
         !iv_tabname TYPE tabname DEFAULT zif_abapinst_definitions=>c_tabname
-        !iv_lock    TYPE viewname DEFAULT zif_abapinst_definitions=>c_lock .
+        !iv_lock    TYPE viewname DEFAULT zif_abapinst_definitions=>c_lock.
+
     CLASS-METHODS get_instance
       IMPORTING
         !iv_tabname  TYPE tabname DEFAULT zif_abapinst_definitions=>c_tabname
         !iv_lock     TYPE viewname DEFAULT zif_abapinst_definitions=>c_lock
       RETURNING
-        VALUE(ro_db) TYPE REF TO zcl_abapinst_persistence .
+        VALUE(ro_db) TYPE REF TO zcl_abapinst_persistence.
+
     METHODS select
       IMPORTING
         !iv_name       TYPE zif_abapinst_definitions=>ty_name
@@ -9728,33 +9880,38 @@ CLASS zcl_abapinst_persistence DEFINITION
       RETURNING
         VALUE(rs_inst) TYPE zif_abapinst_definitions=>ty_inst
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     METHODS insert
       IMPORTING
         !is_inst TYPE zif_abapinst_definitions=>ty_inst
       RAISING
-        zcx_abapinst_exception  ##SHADOW[INSERT].
+        zcx_abapinst_exception ##SHADOW[INSERT].
     METHODS update
       IMPORTING
         !is_inst TYPE zif_abapinst_definitions=>ty_inst
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     METHODS delete
       IMPORTING
         !iv_name TYPE zif_abapinst_definitions=>ty_name
         !iv_pack TYPE zif_abapinst_definitions=>ty_pack
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     METHODS last
       RETURNING
         VALUE(rs_inst) TYPE zif_abapinst_definitions=>ty_inst
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     METHODS list
       RETURNING
         VALUE(rt_list) TYPE zif_abapinst_definitions=>ty_list
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     METHODS list_by_name
       IMPORTING
         !iv_name       TYPE zif_abapinst_definitions=>ty_name
@@ -9762,46 +9919,54 @@ CLASS zcl_abapinst_persistence DEFINITION
       RETURNING
         VALUE(rt_list) TYPE zif_abapinst_definitions=>ty_list
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    CLASS-DATA go_db TYPE REF TO zcl_abapinst_persistence .
-    DATA mv_update_function TYPE funcname .
-    DATA mv_tabname TYPE tabname .
-    DATA mv_lock TYPE viewname .
+    CLASS-DATA go_db TYPE REF TO zcl_abapinst_persistence.
+
+    DATA:
+      mv_update_function TYPE funcname,
+      mv_tabname         TYPE tabname,
+      mv_lock            TYPE viewname.
 
     METHODS _update_function
       RETURNING
-        VALUE(rv_funcname) TYPE funcname .
+        VALUE(rv_funcname) TYPE funcname.
+
     METHODS _content_to_list
       IMPORTING
         !it_content    TYPE zif_abapinst_definitions=>ty_contents
       RETURNING
         VALUE(rt_list) TYPE zif_abapinst_definitions=>ty_list
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     METHODS _content_to_inst
       IMPORTING
         !is_content    TYPE zif_abapinst_definitions=>ty_content
       RETURNING
         VALUE(rs_inst) TYPE zif_abapinst_definitions=>ty_inst
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     METHODS _list_to_content
       IMPORTING
         !is_inst          TYPE zif_abapinst_definitions=>ty_inst
       RETURNING
         VALUE(rs_content) TYPE zif_abapinst_definitions=>ty_content
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     METHODS _lock
       IMPORTING
         !iv_name TYPE zif_abapinst_definitions=>ty_name
         !iv_pack TYPE zif_abapinst_definitions=>ty_pack
         !iv_mode TYPE enqmode DEFAULT 'E'
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
 ENDCLASS.
 CLASS zcl_abapinst_repo_status DEFINITION
 
@@ -9962,6 +10127,7 @@ CLASS zcl_abapinst_requirements DEFINITION
         VALUE(rt_status) TYPE ty_requirement_status_tt
       RAISING
         zcx_abapgit_exception.
+
     CLASS-METHODS version_greater_or_equal
       IMPORTING
         !is_status     TYPE ty_requirement_status
@@ -9972,7 +10138,7 @@ ENDCLASS.
 CLASS zcl_abapinst_screen DEFINITION
 
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
@@ -9987,59 +10153,70 @@ CLASS zcl_abapinst_screen DEFINITION
         !iv_tsp_e   TYPE abap_bool
         !iv_conn_o  TYPE abap_bool
         !iv_prox_o  TYPE abap_bool
-        !iv_mbt     TYPE abap_bool DEFAULT abap_false .
+        !iv_mbt     TYPE abap_bool DEFAULT abap_false.
+
     CLASS-METHODS header
       IMPORTING
         !iv_icon         TYPE icon_d
         !iv_text         TYPE clike
       RETURNING
-        VALUE(rv_header) TYPE fieldname .
+        VALUE(rv_header) TYPE fieldname.
+
     CLASS-METHODS icon
       IMPORTING
         !iv_name       TYPE clike
         !iv_text       TYPE clike
         !iv_info       TYPE clike
       RETURNING
-        VALUE(rv_icon) TYPE string .
+        VALUE(rv_icon) TYPE string.
+
     CLASS-METHODS copyright
       RETURNING
-        VALUE(rv_copyright) TYPE string .
+        VALUE(rv_copyright) TYPE string.
+
     CLASS-METHODS browser
       IMPORTING
-        !iv_url TYPE csequence .
+        !iv_url TYPE csequence.
+
     CLASS-METHODS f4_file
       RETURNING
-        VALUE(rv_file) TYPE char255 .
+        VALUE(rv_file) TYPE char255.
+
     CLASS-METHODS f4_transport
       IMPORTING
         !iv_package         TYPE devclass
         !iv_layer           TYPE devlayer OPTIONAL
         !iv_transport       TYPE trkorr OPTIONAL
       RETURNING
-        VALUE(rv_transport) TYPE trkorr .
+        VALUE(rv_transport) TYPE trkorr.
+
     CLASS-METHODS banner
       IMPORTING
         !iv_show TYPE abap_bool DEFAULT abap_true
         !iv_id   TYPE csequence OPTIONAL
         !iv_top  TYPE i DEFAULT 4
         !iv_left TYPE i DEFAULT 20
-        !it_base TYPE zif_abapinst_definitions=>ty_base_tab OPTIONAL .
+        !it_base TYPE zif_abapinst_definitions=>ty_base_tab OPTIONAL.
+
     CLASS-METHODS default_layer
       RETURNING
-        VALUE(rv_layer) TYPE devlayer .
+        VALUE(rv_layer) TYPE devlayer.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    TYPES: ty_url TYPE c LENGTH 255.
+    TYPES ty_url TYPE c LENGTH 255.
 
-    CLASS-DATA go_banner_dock TYPE REF TO cl_gui_docking_container .
-    CLASS-DATA go_banner TYPE REF TO cl_gui_picture .
-    CLASS-DATA gv_banner_url TYPE ty_url.
+    CLASS-DATA:
+      go_banner_dock TYPE REF TO cl_gui_docking_container,
+      go_banner      TYPE REF TO cl_gui_picture,
+      gv_banner_url  TYPE ty_url.
+
 ENDCLASS.
 CLASS zcl_abapinst_setup DEFINITION
 
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
@@ -10049,54 +10226,64 @@ CLASS zcl_abapinst_setup DEFINITION
         !iv_lock    TYPE viewname DEFAULT zif_abapinst_definitions=>c_lock
         !iv_text    TYPE ddtext DEFAULT 'Generated by abapinst'
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    CLASS-DATA gv_text TYPE string VALUE 'Generated by abapInst' ##NO_TEXT.
-    CLASS-DATA gv_tabname TYPE tabname .
-    CLASS-DATA gv_lock TYPE viewname .
+    CLASS-DATA:
+      gv_text    TYPE string VALUE 'Generated by abapInst' ##NO_TEXT,
+      gv_tabname TYPE tabname,
+      gv_lock    TYPE viewname.
 
     CLASS-METHODS _table_create
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     CLASS-METHODS _table_exists
       RETURNING
-        VALUE(rv_exists) TYPE abap_bool .
+        VALUE(rv_exists) TYPE abap_bool.
+
     CLASS-METHODS _lock_create
       RAISING
-        zcx_abapinst_exception .
+        zcx_abapinst_exception.
+
     CLASS-METHODS _lock_exists
       RETURNING
-        VALUE(rv_exists) TYPE abap_bool .
+        VALUE(rv_exists) TYPE abap_bool.
+
     CLASS-METHODS _get_package
       RETURNING
-        VALUE(rv_package) TYPE devclass .
+        VALUE(rv_package) TYPE devclass.
+
 ENDCLASS.
 CLASS zcl_abapinst_textpool DEFINITION
 
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
     METHODS constructor
       IMPORTING
-        !iv_program TYPE progname .
+        !iv_program TYPE progname.
+
     METHODS set
       IMPORTING
-        !iv_param TYPE csequence .
-    METHODS save .
+        !iv_param TYPE csequence.
+
+    METHODS save.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    DATA mv_program TYPE progname .
     DATA:
-      mt_text_old TYPE TABLE OF textpool .
-    DATA:
-      mt_text_new TYPE TABLE OF textpool .
+      mv_program  TYPE progname,
+      mt_text_old TYPE TABLE OF textpool,
+      mt_text_new TYPE TABLE OF textpool.
 
-    METHODS _load .
+    METHODS _load.
+
 ENDCLASS.
 
 
@@ -13398,6 +13585,176 @@ CLASS zcl_abapgit_ajson IMPLEMENTATION.
   METHOD zif_abapgit_ajson~to_abap_corresponding_only.
     ms_opts-to_abap_corresponding_only = iv_enable.
     ri_json = me.
+  ENDMETHOD.
+ENDCLASS.
+**********************************************************************
+*  FILTER EMPTY VALUES
+**********************************************************************
+
+CLASS lcl_empty_filter DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES zif_abapgit_ajson_filter.
+ENDCLASS.
+
+CLASS lcl_empty_filter IMPLEMENTATION.
+  METHOD zif_abapgit_ajson_filter~keep_node.
+
+    rv_keep = boolc(
+      ( iv_visit = zif_abapgit_ajson_filter=>visit_type-value AND is_node-value IS NOT INITIAL ) OR
+      ( iv_visit <> zif_abapgit_ajson_filter=>visit_type-value AND is_node-children > 0 ) ).
+    " children = 0 on open for initially empty nodes and on close for filtered ones
+
+  ENDMETHOD.
+ENDCLASS.
+
+**********************************************************************
+*  FILTER PREDEFINED PATHS
+**********************************************************************
+
+CLASS lcl_paths_filter DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES zif_abapgit_ajson_filter.
+    METHODS constructor
+      IMPORTING
+        it_skip_paths TYPE string_table OPTIONAL
+        iv_skip_paths TYPE string OPTIONAL
+        iv_pattern_search TYPE abap_bool
+      RAISING
+        zcx_abapgit_ajson_error.
+  PRIVATE SECTION.
+    DATA mt_skip_paths TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
+    DATA mv_pattern_search TYPE abap_bool.
+ENDCLASS.
+
+CLASS lcl_paths_filter IMPLEMENTATION.
+
+  METHOD zif_abapgit_ajson_filter~keep_node.
+
+    DATA lv_full_path TYPE string.
+    FIELD-SYMBOLS <p> LIKE LINE OF mt_skip_paths.
+
+    lv_full_path = is_node-path && is_node-name.
+
+    IF mv_pattern_search = abap_true.
+      rv_keep = abap_true.
+      LOOP AT mt_skip_paths ASSIGNING <p>.
+        IF lv_full_path CP <p>.
+          rv_keep = abap_false.
+          EXIT.
+        ENDIF.
+      ENDLOOP.
+    ELSE.
+      READ TABLE mt_skip_paths WITH KEY table_line = lv_full_path TRANSPORTING NO FIELDS.
+      rv_keep = boolc( sy-subrc <> 0 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD constructor.
+
+    DATA lv_s TYPE string.
+    DATA lt_tab TYPE string_table.
+    FIELD-SYMBOLS <s> TYPE string.
+
+    IF boolc( iv_skip_paths IS INITIAL ) = boolc( it_skip_paths IS INITIAL ). " XOR
+      zcx_abapgit_ajson_error=>raise( 'no filter path specified' ).
+    ENDIF.
+
+    LOOP AT it_skip_paths INTO lv_s.
+      lv_s = to_lower( lv_s ).
+      APPEND lv_s TO lt_tab.
+    ENDLOOP.
+
+    IF iv_skip_paths IS NOT INITIAL.
+      SPLIT iv_skip_paths AT ',' INTO TABLE lt_tab.
+      LOOP AT lt_tab ASSIGNING <s>.
+        IF <s> IS INITIAL.
+          DELETE lt_tab INDEX sy-tabix.
+          CONTINUE.
+        ENDIF.
+        <s> = condense( to_lower( <s> ) ).
+      ENDLOOP.
+    ENDIF.
+
+    SORT lt_tab BY table_line.
+    DELETE ADJACENT DUPLICATES FROM lt_tab.
+
+    mt_skip_paths = lt_tab.
+    mv_pattern_search = iv_pattern_search.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+**********************************************************************
+* MULTI FILTER
+**********************************************************************
+
+CLASS lcl_and_filter DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES zif_abapgit_ajson_filter.
+    METHODS constructor
+      IMPORTING
+        it_filters TYPE zif_abapgit_ajson_filter=>ty_filter_tab
+      RAISING
+        zcx_abapgit_ajson_error.
+  PRIVATE SECTION.
+    DATA mt_filters TYPE zif_abapgit_ajson_filter=>ty_filter_tab.
+ENDCLASS.
+
+CLASS lcl_and_filter IMPLEMENTATION.
+
+  METHOD zif_abapgit_ajson_filter~keep_node.
+
+    DATA li_filter LIKE LINE OF mt_filters.
+
+    rv_keep = abap_true.
+    LOOP AT mt_filters INTO li_filter.
+      rv_keep = li_filter->keep_node(
+        is_node  = is_node
+        iv_visit = iv_visit ).
+      IF rv_keep = abap_false.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD constructor.
+
+    DATA li_filter LIKE LINE OF it_filters.
+
+    LOOP AT it_filters INTO li_filter WHERE table_line IS BOUND.
+      APPEND li_filter TO mt_filters.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+
+CLASS zcl_abapgit_ajson_filter_lib IMPLEMENTATION.
+
+
+  METHOD create_and_filter.
+    CREATE OBJECT ri_filter TYPE lcl_and_filter
+      EXPORTING
+        it_filters = it_filters.
+  ENDMETHOD.
+
+
+  METHOD create_empty_filter.
+    CREATE OBJECT ri_filter TYPE lcl_empty_filter.
+  ENDMETHOD.
+
+
+  METHOD create_path_filter.
+    CREATE OBJECT ri_filter TYPE lcl_paths_filter
+      EXPORTING
+        iv_pattern_search = iv_pattern_search
+        it_skip_paths = it_skip_paths
+        iv_skip_paths = iv_skip_paths.
   ENDMETHOD.
 ENDCLASS.
 CLASS lcl_in DEFINITION.
@@ -20440,6 +20797,22 @@ ENDCLASS.
 
 
 
+CLASS ZCL_ABAPGIT_OBJECTS_FACTORY IMPLEMENTATION.
+
+
+  METHOD get_gui_jumper.
+
+    IF gi_gui_jumper IS INITIAL.
+      CREATE OBJECT gi_gui_jumper TYPE zcl_abapgit_gui_jumper.
+    ENDIF.
+
+    ri_gui_jumper = gi_gui_jumper.
+
+  ENDMETHOD.
+ENDCLASS.
+
+
+
 CLASS zcl_abapgit_xml IMPLEMENTATION.
 
 
@@ -20986,6 +21359,18 @@ CLASS zcl_abapgit_objects_files IMPLEMENTATION.
         INSERT <ls_file> INTO TABLE mt_files.
       ENDIF.
     ENDLOOP.
+
+  ENDMETHOD.
+ENDCLASS.
+
+
+
+CLASS ZCL_ABAPGIT_OBJECTS_INJECTOR IMPLEMENTATION.
+
+
+  METHOD set_gui_jumper.
+
+    zcl_abapgit_objects_factory=>gi_gui_jumper = ii_gui_jumper.
 
   ENDMETHOD.
 ENDCLASS.
@@ -23193,7 +23578,7 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
       lt_vseoattrib TYPE seoo_attributes_r,
       ls_class_key  TYPE seoclskey,
       ls_properties TYPE vseoclass,
-      lt_attributes TYPE zif_abapgit_definitions=>ty_obj_attribute_tt.
+      lt_attributes TYPE zif_abapgit_oo_object_fnc=>ty_obj_attribute_tt.
 
     FIELD-SYMBOLS: <lv_clsname> TYPE seoclsname.
 
@@ -23626,7 +24011,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
           lt_descriptions          TYPE zif_abapgit_oo_object_fnc=>ty_seocompotx_tt,
           lt_descriptions_sub      TYPE zif_abapgit_oo_object_fnc=>ty_seosubcotx_tt,
           ls_class_key             TYPE seoclskey,
-          lt_attributes            TYPE zif_abapgit_definitions=>ty_obj_attribute_tt.
+          lt_attributes            TYPE zif_abapgit_oo_object_fnc=>ty_obj_attribute_tt.
 
 
     lt_source = zif_abapgit_object~mo_files->read_abap( ).
@@ -23928,7 +24313,7 @@ CLASS zcl_abapgit_object_clas IMPLEMENTATION.
 
   METHOD serialize_attr.
 
-    DATA: lt_attributes TYPE zif_abapgit_definitions=>ty_obj_attribute_tt.
+    DATA: lt_attributes TYPE zif_abapgit_oo_object_fnc=>ty_obj_attribute_tt.
 
     lt_attributes = mi_object_oriented_object_fct->read_attributes( iv_clsname ).
     IF lines( lt_attributes ) = 0.
@@ -39896,17 +40281,6 @@ CLASS zcl_abapinst_factory IMPLEMENTATION.
     ENDIF.
 
     ri_function_module = gi_function_module.
-
-  ENDMETHOD.
-
-
-  METHOD get_gui_jumper.
-
-    IF gi_gui_jumper IS INITIAL.
-      CREATE OBJECT gi_gui_jumper TYPE zcl_abapgit_gui_jumper.
-    ENDIF.
-
-    ri_gui_jumper = gi_gui_jumper.
 
   ENDMETHOD.
 
