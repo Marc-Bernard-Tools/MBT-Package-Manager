@@ -12,44 +12,56 @@ CLASS /mbtools/cl_setup DEFINITION
   PUBLIC SECTION.
 
     CLASS-METHODS class_constructor.
+
     CLASS-METHODS install
       IMPORTING
         !iv_force TYPE abap_bool DEFAULT abap_false
       RAISING
         /mbtools/cx_exception.
+
     CLASS-METHODS uninstall
       RAISING
         /mbtools/cx_exception.
+
     CLASS-METHODS get_rfc_destination
       RETURNING
         VALUE(rv_result) TYPE rfcdest
       RAISING
         /mbtools/cx_exception.
+
     CLASS-METHODS get_ssl_client
       RETURNING
         VALUE(rv_result) TYPE ssfapplssl
       RAISING
         /mbtools/cx_exception.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    CONSTANTS c_sslc TYPE psecontext VALUE 'SSLC' ##NO_TEXT.
-    CONSTANTS c_anonym TYPE ssfappl VALUE 'ANONYM' ##NO_TEXT.
-    CONSTANTS c_id TYPE ssfid VALUE 'CN=%SID SSL client SSL Client (Standard), OU=%ORG, O=MBT, C=CA' ##NO_TEXT.
-    CONSTANTS c_org TYPE string VALUE /mbtools/if_definitions=>c_mbt ##NO_TEXT.
-    CONSTANTS c_subject TYPE string VALUE 'CN=*.marcbernardtools.com' ##NO_TEXT.
-    CLASS-DATA go_settings TYPE REF TO /mbtools/cl_registry.
-    CLASS-DATA gv_force TYPE abap_bool.
-    CLASS-DATA gv_drop TYPE abap_bool.
+    CONSTANTS:
+      c_sslc    TYPE psecontext VALUE 'SSLC' ##NO_TEXT,
+      c_anonym  TYPE ssfappl VALUE 'ANONYM' ##NO_TEXT,
+      c_id      TYPE ssfid VALUE 'CN=%SID SSL client SSL Client (Standard), OU=%ORG, O=MBT, C=CA' ##NO_TEXT,
+      c_org     TYPE string VALUE /mbtools/if_definitions=>c_mbt ##NO_TEXT,
+      c_subject TYPE string VALUE 'CN=*.marcbernardtools.com' ##NO_TEXT.
+
+    CLASS-DATA:
+      go_settings TYPE REF TO /mbtools/cl_registry,
+      gv_force    TYPE abap_bool,
+      gv_drop     TYPE abap_bool.
 
     CLASS-METHODS _application_log.
+
     CLASS-METHODS _certificates.
+
     CLASS-METHODS _get_certificate_mbt
       RETURNING
         VALUE(rt_result) TYPE /mbtools/cl_strust=>ty_certificate.
+
     CLASS-METHODS _rfc_destinations
       RAISING
         /mbtools/cx_exception.
+
 ENDCLASS.
 
 
@@ -239,52 +251,45 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
   METHOD _get_certificate_mbt.
 
     " subject=CN = *.marcbernardtools.com
-    " issuer=C = US, O = DigiCert Inc, CN = RapidSSL TLS DV RSA Mixed SHA256 2020 CA-1
-    " notBefore=Nov 18 00:00:00 2022 GMT
-    " notAfter=Dec  3 23:59:59 2023 GMT
+    " issuer=C = US, O = DigiCert Inc, OU = www.digicert.com, CN = RapidSSL TLS RSA CA G1
+    " notBefore=Nov 20 00:00:00 2023 GMT
+    " notAfter=Dec  4 23:59:59 2024 GMT
 
     APPEND '-----BEGIN CERTIFICATE-----' TO rt_result.
-    APPEND 'MIIHrDCCBZSgAwIBAgIQCR1zSMxn49heB5UgINrEjDANBgkqhkiG9w0BAQsFADBc' TO rt_result.
-    APPEND 'MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xNDAyBgNVBAMT' TO rt_result.
-    APPEND 'K1JhcGlkU1NMIEdsb2JhbCBUTFMgUlNBNDA5NiBTSEEyNTYgMjAyMiBDQTEwHhcN' TO rt_result.
-    APPEND 'MjIxMTE4MDAwMDAwWhcNMjMxMjAzMjM1OTU5WjAhMR8wHQYDVQQDDBYqLm1hcmNi' TO rt_result.
-    APPEND 'ZXJuYXJkdG9vbHMuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA' TO rt_result.
-    APPEND 'l4OeYBB75/DWhLdyHXnsLytqeWqg+HmHDjuEpeHKo8xeicvFFayrsA3zXl7OVYew' TO rt_result.
-    APPEND 'VLhlyBezHSp2KHaROTqsqQWIEsDvDWOPm2thcVzonRxEwoEtzquJhtCJ6nSxM7dL' TO rt_result.
-    APPEND 'JrlWv5I1Mn3YS9rlupjNcOA60gYlOaDneKjjjh+bizbImq9/Xl4HO6WxzESwNmjr' TO rt_result.
-    APPEND 'oEbt3J4AsXt3UN4sUTboPXo4aRcCuj7ABipTTGaWwGGM0MvJl4ak2WMRShN+SMM3' TO rt_result.
-    APPEND 'rYPc3WmpkJKCqwgAhMSDsNf+DZrKXi8GKUH5JcYzEgNiCbmaXcZtM8MD7iIyLo+5' TO rt_result.
-    APPEND 'tJQCsey2OLHvAkhog8aBRwIDAQABo4IDozCCA58wHwYDVR0jBBgwFoAU8JyF/aKf' TO rt_result.
-    APPEND 'fY/JaLvV1IlNHb7TkP8wHQYDVR0OBBYEFNIjh+uU+D0VpvVrHeyUHuXvgeBMMDcG' TO rt_result.
-    APPEND 'A1UdEQQwMC6CFioubWFyY2Jlcm5hcmR0b29scy5jb22CFG1hcmNiZXJuYXJkdG9v' TO rt_result.
-    APPEND 'bHMuY29tMA4GA1UdDwEB/wQEAwIFoDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYB' TO rt_result.
-    APPEND 'BQUHAwIwgZ8GA1UdHwSBlzCBlDBIoEagRIZCaHR0cDovL2NybDMuZGlnaWNlcnQu' TO rt_result.
-    APPEND 'Y29tL1JhcGlkU1NMR2xvYmFsVExTUlNBNDA5NlNIQTI1NjIwMjJDQTEuY3JsMEig' TO rt_result.
-    APPEND 'RqBEhkJodHRwOi8vY3JsNC5kaWdpY2VydC5jb20vUmFwaWRTU0xHbG9iYWxUTFNS' TO rt_result.
-    APPEND 'U0E0MDk2U0hBMjU2MjAyMkNBMS5jcmwwPgYDVR0gBDcwNTAzBgZngQwBAgEwKTAn' TO rt_result.
-    APPEND 'BggrBgEFBQcCARYbaHR0cDovL3d3dy5kaWdpY2VydC5jb20vQ1BTMIGHBggrBgEF' TO rt_result.
-    APPEND 'BQcBAQR7MHkwJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmRpZ2ljZXJ0LmNvbTBR' TO rt_result.
-    APPEND 'BggrBgEFBQcwAoZFaHR0cDovL2NhY2VydHMuZGlnaWNlcnQuY29tL1JhcGlkU1NM' TO rt_result.
-    APPEND 'R2xvYmFsVExTUlNBNDA5NlNIQTI1NjIwMjJDQTEuY3J0MAkGA1UdEwQCMAAwggF8' TO rt_result.
-    APPEND 'BgorBgEEAdZ5AgQCBIIBbASCAWgBZgB1AOg+0No+9QY1MudXKLyJa8kD08vREWvs' TO rt_result.
-    APPEND '62nhd31tBr1uAAABhIidYQAAAAQDAEYwRAIgZsOmMcCMB1OZ5mNsCuueVMzWxOVo' TO rt_result.
-    APPEND '2JMbZ2t7IH2fBN0CIAeJXwgejTgXApkDNbkXvuAzOH6V9g/wwf8gQdP77NEPAHYA' TO rt_result.
-    APPEND 's3N3B+GEUPhjhtYFqdwRCUp5LbFnDAuH3PADDnk2pZoAAAGEiJ1hXwAABAMARzBF' TO rt_result.
-    APPEND 'AiEA+F+KFItSxzzcU+OUqii8jfRvs+LjL5fh77yzKTGWIoICICPhhMQ6uPgYTHAf' TO rt_result.
-    APPEND 'Mc+LTJ5Qz9n+E6s2G6WTvDz6wpSSAHUAtz77JN+cTbp18jnFulj0bF38Qs96nzXE' TO rt_result.
-    APPEND 'nh0JgSXttJkAAAGEiJ1hFQAABAMARjBEAiA4AjgnI7+IDqZL0oOdjyzpBZ0o5l5+' TO rt_result.
-    APPEND 'ak0wQxfAG1H6lAIgJpW8mID/Nk0E076JWTN+fbOSZKma2Xz6jFr2A7GmgzgwDQYJ' TO rt_result.
-    APPEND 'KoZIhvcNAQELBQADggIBABLB8/qJKVsx1XQ09rYD3X5Kz+crb1k3ra8GUmy+WH43' TO rt_result.
-    APPEND 'e4r8EbZwUV7VgE1uy2XjEM7ez7yXPZpkn+qe2MIOO66a+t7RPx/yYcUDeEPsZKeg' TO rt_result.
-    APPEND 'jNvQyzmv1joRhQXcT5LitUPAAcKQxIuWpmLsQLu5Bjk3JMRwdvsYksLqgt8BqKsO' TO rt_result.
-    APPEND 'o3Z8FDdeQW9bBHVBjzbRcjujyIXTul1S0bt1Tx6Xzusm1JgR0BumcsMr3GqJG2kn' TO rt_result.
-    APPEND 'kpMb95zKGS7sWATA1a28Sh013KlHtVWfpcdoUA9ixZomtDQErwraeX1yFXPfVQpl' TO rt_result.
-    APPEND '90USk7aPvm+9Oqj6+UKMrT+yPIDy3SLAH3wz+KJzouHgFbeV7z2P8DAqqr+bv7uH' TO rt_result.
-    APPEND 'jhjRhqyiGBPmpKO1GIhk90zYgn30xTylfR/2uyQbQEMV/K0NBOeaBKd5JuHj+XjM' TO rt_result.
-    APPEND '/jWhSQMQCKz4jt/dC30GK6RF3h4zQr8QAD2CpGEpu3Vnt3Jk8w4abXZ47i+NzUmu' TO rt_result.
-    APPEND 'L+1lGgosvB4sa21ATZRqmwAz3e/5WGyoJemwkU+eKwet+Lunz+2iJSGMNQiGSBlZ' TO rt_result.
-    APPEND '4v3xctYElBw8pyZZqWyKGjUp8ymHsTixtlfjYAEsrucILYqoMqjuEt1UDiJaEoSN' TO rt_result.
-    APPEND '+ak0UU59wxMRqOfVHipk0SBxqKN1uBBpZVYLJb8Yv9oBZvsgPudvn6DItX33BMRw' TO rt_result.
+    APPEND 'MIIGQDCCBSigAwIBAgIQCNqWSvYNNa9hfOzsk89rUjANBgkqhkiG9w0BAQsFADBg' TO rt_result.
+    APPEND 'MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3' TO rt_result.
+    APPEND 'd3cuZGlnaWNlcnQuY29tMR8wHQYDVQQDExZSYXBpZFNTTCBUTFMgUlNBIENBIEcx' TO rt_result.
+    APPEND 'MB4XDTIzMTEyMDAwMDAwMFoXDTI0MTIwNDIzNTk1OVowITEfMB0GA1UEAwwWKi5t' TO rt_result.
+    APPEND 'YXJjYmVybmFyZHRvb2xzLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC' TO rt_result.
+    APPEND 'ggEBAMsjkkR9w3KJ19ef/8ntnqmqJB90ESQjqEOhFxqkXIdjLW6ob1NGstMD6E6v' TO rt_result.
+    APPEND 'A4sln07ZrWeep3hdldYImkOJ3Xt6uclsIfK/NLRQLZZBeITmxpJ3ynqZgtfwcRel' TO rt_result.
+    APPEND 'xcWr4qPMVVxITx7NTPYW2Itvxx3w7WJySioZS4QRAjNdWJafSXUoIaQIih94gN7X' TO rt_result.
+    APPEND 'fUt2cm3jKN9dIxhwdDVDjuvPRSaq2GD25gQw20Z5PvZtIxSpdSWNCEhocEAkkBVO' TO rt_result.
+    APPEND '1I7mEa/iA5sRxjW4aosYcyKX4R/vGRDmz3ARM+CTjJAsfPZkL9+J6G0DMj8UuVtk' TO rt_result.
+    APPEND 'xxWglgl4J6pDRAeWgu7JtH0OP4UCAwEAAaOCAzMwggMvMB8GA1UdIwQYMBaAFAzb' TO rt_result.
+    APPEND 'bIJJD0pnCrgU7nrESFKI61Y4MB0GA1UdDgQWBBT3F2dgDgO3ZdINnLSKbpHhsNnY' TO rt_result.
+    APPEND 'kzA3BgNVHREEMDAughYqLm1hcmNiZXJuYXJkdG9vbHMuY29tghRtYXJjYmVybmFy' TO rt_result.
+    APPEND 'ZHRvb2xzLmNvbTA+BgNVHSAENzA1MDMGBmeBDAECATApMCcGCCsGAQUFBwIBFhto' TO rt_result.
+    APPEND 'dHRwOi8vd3d3LmRpZ2ljZXJ0LmNvbS9DUFMwDgYDVR0PAQH/BAQDAgWgMB0GA1Ud' TO rt_result.
+    APPEND 'JQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjA/BgNVHR8EODA2MDSgMqAwhi5odHRw' TO rt_result.
+    APPEND 'Oi8vY2RwLnJhcGlkc3NsLmNvbS9SYXBpZFNTTFRMU1JTQUNBRzEuY3JsMHYGCCsG' TO rt_result.
+    APPEND 'AQUFBwEBBGowaDAmBggrBgEFBQcwAYYaaHR0cDovL3N0YXR1cy5yYXBpZHNzbC5j' TO rt_result.
+    APPEND 'b20wPgYIKwYBBQUHMAKGMmh0dHA6Ly9jYWNlcnRzLnJhcGlkc3NsLmNvbS9SYXBp' TO rt_result.
+    APPEND 'ZFNTTFRMU1JTQUNBRzEuY3J0MAwGA1UdEwEB/wQCMAAwggF8BgorBgEEAdZ5AgQC' TO rt_result.
+    APPEND 'BIIBbASCAWgBZgB1AHb/iD8KtvuVUcJhzPWHujS0pM27KdxoQgqf5mdMWjp0AAAB' TO rt_result.
+    APPEND 'i+prpXkAAAQDAEYwRAIgRmuHMGxs5+YbIOBq9lQDEGoTasVb8dZiajVRnHgzBjoC' TO rt_result.
+    APPEND 'ICwvhghliCTAc5V/MEu33k43Cs/zeoyBQyM6Zu4YVU9vAHUASLDja9qmRzQP5WoC' TO rt_result.
+    APPEND '+p0w6xxSActW3SyB2bu/qznYhHMAAAGL6mulRAAABAMARjBEAiAjL6bIlTEgrrvy' TO rt_result.
+    APPEND 'Ozi+CaPvdE3lQf+VNqhH6Fr+QjS0WgIgYqaDEdHupvboESdt3riXcH6bkwhPWjYt' TO rt_result.
+    APPEND 'C2Z5Yy63Gx8AdgDatr9rP7W2Ip+bwrtca+hwkXFsu1GEhTS9pD0wSNf7qwAAAYvq' TO rt_result.
+    APPEND 'a6UkAAAEAwBHMEUCIQDSsjnYLKz1DHf/tbXgmNCGNzI9l/g9F4d7VxSx2/1RpgIg' TO rt_result.
+    APPEND 'R77/B7HsjUfYCsnCRLx9uGkfIu/MGx21PRif/hTe8aAwDQYJKoZIhvcNAQELBQAD' TO rt_result.
+    APPEND 'ggEBAIg/nlyxXFEEvW1v6c68HkIB7UOJk3gq9caZXBb96tsQtLeRVDyLi4UbeSdb' TO rt_result.
+    APPEND 'l+aQhLUFox/51TyBhLIs89DsKt0/qhvglO66+K/Z9CKZ28QYyOWFiNoZ0jpwNdAn' TO rt_result.
+    APPEND '9vm5bPDX+06U5L+Lmrqm0PgUoMHH0VVIPFbTt//o7p1dElEE919WBb3uXsJZ/tSJ' TO rt_result.
+    APPEND '5/N6fAV+puUccKGhKS1WqOrO5yTQPicEI72Zg/nXrOPOF3Fji+MD2v0wBBNTmto+' TO rt_result.
+    APPEND '+l6JmIj9V0scTjKFM5uN7UW5BanwULy4frsSraTiF9owpHBmQzGIY+XNhPjFU/mI' TO rt_result.
+    APPEND 'YRI7fsPjG8ahNuWUP9JMnAGaHTU=' TO rt_result.
     APPEND '-----END CERTIFICATE-----' TO rt_result.
 
   ENDMETHOD.
