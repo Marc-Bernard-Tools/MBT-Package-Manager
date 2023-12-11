@@ -11,7 +11,7 @@ CLASS /mbtools/cl_gui_router DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    INTERFACES /mbtools/if_gui_event_handler .
+    INTERFACES /mbtools/if_gui_event_handler.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -22,21 +22,24 @@ CLASS /mbtools/cl_gui_router DEFINITION
       RETURNING
         VALUE(rs_handled) TYPE /mbtools/if_gui_event_handler=>ty_handling_result
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
+
     METHODS actions_internet
       IMPORTING
         !ii_event         TYPE REF TO /mbtools/if_gui_event
       RETURNING
         VALUE(rs_handled) TYPE /mbtools/if_gui_event_handler=>ty_handling_result
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
+
     METHODS actions_objects
       IMPORTING
         !ii_event         TYPE REF TO /mbtools/if_gui_event
       RETURNING
         VALUE(rs_handled) TYPE /mbtools/if_gui_event_handler=>ty_handling_result
       RAISING
-        /mbtools/cx_exception .
+        /mbtools/cx_exception.
+
 ENDCLASS.
 
 
@@ -74,6 +77,12 @@ CLASS /mbtools/cl_gui_router IMPLEMENTATION.
       WHEN /mbtools/if_actions=>mbt_website.
         " Homepage
         /mbtools/cl_utilities=>call_browser( /mbtools/if_definitions=>c_www_home ).
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-no_more_act.
+
+      WHEN /mbtools/if_actions=>mbt_license.
+        " License Terms
+        /mbtools/cl_utilities=>call_browser(
+          /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_terms ).
         rs_handled-state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
       WHEN /mbtools/if_actions=>mbt_portfolio.
@@ -125,10 +134,12 @@ CLASS /mbtools/cl_gui_router IMPLEMENTATION.
 
     CASE ii_event->mv_action.
 
-
       WHEN /mbtools/if_actions=>go_home.
         rs_handled-page  = /mbtools/cl_gui_page_main=>create( /mbtools/cl_gui_page_main=>c_mode-user ).
         rs_handled-state = /mbtools/cl_gui=>c_event_state-new_page.
+
+      WHEN /mbtools/if_actions=>go_back.
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-go_back.
 
       WHEN /mbtools/if_actions=>go_admin.
         rs_handled-page  = /mbtools/cl_gui_page_main=>create( /mbtools/cl_gui_page_main=>c_mode-admin ).
