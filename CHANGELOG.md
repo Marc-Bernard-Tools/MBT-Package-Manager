@@ -8,6 +8,19 @@ and [ISO Date Format](https://www.iso.org/iso-8601-date-and-time-format.html).
 
 ## [Unreleased]
 
+## Version [1.4.3] - 2023-12-11
+
+### Changed
+
+- Update certificate for marcbernardtools.com
+- Bump ABAP String Map 
+- Open links to website in new browser window
+
+### Fixed
+
+- Update installer
+- Fix sync between registry and installer persistence
+
 ## Version [1.4.2] - 2023-11-24
 
 ### Fixed
@@ -102,7 +115,8 @@ Launch Release
 Initial Release. For details, see [Features](https://marcbernardtools.com/docs/marc-bernard-tools/features).
 
 
-[Unreleased]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.2...main
+[Unreleased]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.3...main
+[1.4.3]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.2...1.4.3
 [1.4.2]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.1...1.4.2
 [1.4.1]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.0...1.4.1
 [1.4.0]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.3.2...1.4.0
