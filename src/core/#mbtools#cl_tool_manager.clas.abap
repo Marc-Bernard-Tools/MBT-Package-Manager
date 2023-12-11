@@ -717,7 +717,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
     IF sy-subrc = 0.
       IF ls_inst_db-pack <> ls_inst-pack.
         DELETE FROM (lc_tabname) WHERE name = ls_inst-name ##SUBRC_OK.
-        INSERT (lc_tabname) FROM ls_cont.
+        INSERT (lc_tabname) FROM ls_cont ##SUBRC_OK.
       ELSE.
         UPDATE (lc_tabname) FROM ls_cont.
       ENDIF.
