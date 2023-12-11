@@ -17,10 +17,11 @@ INTERFACE /mbtools/if_actions
   CONSTANTS go_faq TYPE string VALUE 'go_faq' ##NO_TEXT.
   CONSTANTS go_about TYPE string VALUE 'go_about' ##NO_TEXT.
   " Internet
-  CONSTANTS url TYPE string VALUE 'url' ##NO_TEXT.
+  CONSTANTS url TYPE string VALUE 'url?url=' ##NO_TEXT.
   CONSTANTS mbt_portfolio TYPE string VALUE 'mbt_portfolio' ##NO_TEXT.
   CONSTANTS mbt_docs TYPE string VALUE 'mbt_docs' ##NO_TEXT.
   CONSTANTS mbt_support TYPE string VALUE 'mbt_support' ##NO_TEXT.
+  CONSTANTS mbt_license TYPE string VALUE 'mbt_license' ##NO_TEXT.
   CONSTANTS mbt_website TYPE string VALUE 'mbt_website' ##NO_TEXT.
   " Objects
   CONSTANTS show_object TYPE string VALUE 'show_object' ##NO_TEXT.

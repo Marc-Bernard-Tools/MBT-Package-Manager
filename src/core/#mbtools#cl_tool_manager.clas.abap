@@ -535,7 +535,12 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
 
     DATA lv_file TYPE string.
 
-    lv_file = iv_title && '-x.y.z.zip'.
+    IF iv_title IS INITIAL.
+      lv_file = 'package-x.y.z.zip'.
+    ELSE.
+      lv_file = iv_title && '-x.y.z.zip'.
+    ENDIF.
+
     REPLACE ALL OCCURRENCES OF ` ` IN lv_file WITH '-'.
 
     SUBMIT /mbtools/mbt_installer
@@ -689,8 +694,9 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
     CONSTANTS lc_tabname TYPE tabname VALUE 'ZMBTINST'.
 
     DATA:
-      ls_inst TYPE ty_inst,
-      ls_cont TYPE ty_content.
+      ls_inst    TYPE ty_inst,
+      ls_inst_db TYPE ty_inst,
+      ls_cont    TYPE ty_content.
 
     ls_inst-name            = io_tool->get_name( ).
     ls_inst-pack            = io_tool->get_package( ).
@@ -707,9 +713,14 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
     ls_inst-status          = 'S'. "success
     ls_cont = _sync_json( ls_inst ).
 
-    SELECT SINGLE * FROM (lc_tabname) INTO ls_cont WHERE name = ls_inst-name.
+    SELECT SINGLE * FROM (lc_tabname) INTO CORRESPONDING FIELDS OF ls_inst_db WHERE name = ls_inst-name.
     IF sy-subrc = 0.
-      UPDATE (lc_tabname) FROM ls_cont.
+      IF ls_inst_db-pack <> ls_inst-pack.
+        DELETE FROM (lc_tabname) WHERE name = ls_inst-name ##SUBRC_OK.
+        INSERT (lc_tabname) FROM ls_cont ##SUBRC_OK.
+      ELSE.
+        UPDATE (lc_tabname) FROM ls_cont.
+      ENDIF.
       IF sy-subrc <> 0.
         /mbtools/cx_exception=>raise( 'Error updating MBT Installer persistence'(003) ).
       ENDIF.
@@ -719,6 +730,8 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
         /mbtools/cx_exception=>raise( 'Error inserting MBT Installer persistence'(002) ).
       ENDIF.
     ENDIF.
+
+    COMMIT WORK.
 
     rv_result = abap_true.
 
@@ -868,7 +881,7 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
     DATA lo_json TYPE REF TO /mbtools/cl_ajson.
 
     TRY.
-        lo_json = /mbtools/cl_ajson=>create_empty( ).
+        lo_json = /mbtools/cl_ajson=>create_empty( iv_keep_item_order = abap_true ).
         lo_json->set( iv_path = '/'
                       iv_val  = is_inst ).
 
