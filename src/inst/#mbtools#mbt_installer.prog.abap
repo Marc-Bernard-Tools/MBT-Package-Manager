@@ -3419,8 +3419,17 @@ ENDINTERFACE.
 INTERFACE zif_abapgit_lxe_texts
    .
 
-  TYPES:
-    ty_text_pairs TYPE STANDARD TABLE OF lxe_pcx_s1 WITH DEFAULT KEY.
+* type LXE_PCX_S1 inlined to be compatible with open-abap and ABAP Cloud
+  TYPES: BEGIN OF ty_text_pair,
+           textkey  TYPE c LENGTH 32,
+           s_text   TYPE c LENGTH 255,
+           t_text   TYPE c LENGTH 255,
+           unitmlt  TYPE i,
+           uppcase  TYPE c LENGTH 4,
+           texttype TYPE c LENGTH 1,
+         END OF ty_text_pair.
+
+  TYPES ty_text_pairs TYPE STANDARD TABLE OF ty_text_pair WITH DEFAULT KEY.
 
   METHODS serialize
     IMPORTING
@@ -10294,7 +10303,7 @@ CLASS zcl_abapgit_abap_language_vers IMPLEMENTATION.
   METHOD check_abap_language_version.
 
     " Check if ABAP language version matches repository setting
-    IF iv_abap_language_version <> is_item-abap_language_version.
+    IF is_item-abap_language_version IS NOT INITIAL AND iv_abap_language_version <> is_item-abap_language_version.
       zcx_abapgit_exception=>raise(
         |Object { is_item-obj_type } { is_item-obj_name } has { get_description( iv_abap_language_version ) }| &&
         | but repository is set to { get_description( is_item-abap_language_version ) }| ).
