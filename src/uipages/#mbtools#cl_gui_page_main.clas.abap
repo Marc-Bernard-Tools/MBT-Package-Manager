@@ -143,6 +143,13 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
         iv_action = ii_event->mv_action ).
     ENDIF.
 
+    IF ii_event->mv_action = /mbtools/if_actions=>tools_check OR
+       ii_event->mv_action = /mbtools/if_actions=>tools_update OR
+       ii_event->mv_action = /mbtools/if_actions=>tool_install OR
+       ii_event->mv_action = /mbtools/if_actions=>tool_uninstall.
+      /mbtools/cl_tool_manager=>action_tools( /mbtools/if_actions=>tool_sync ).
+    ENDIF.
+
     CASE ii_event->mv_action.
 
       WHEN /mbtools/if_actions=>tools_check.
@@ -349,8 +356,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     lo_bar_menu->add(
       iv_txt = 'Website'
-      iv_typ = /mbtools/if_html=>c_action_type-url
-      iv_act = /mbtools/if_definitions=>c_www_home
+      iv_act = /mbtools/if_actions=>mbt_website
     )->add(
       iv_txt = 'About'
       iv_act = /mbtools/if_actions=>go_about ).

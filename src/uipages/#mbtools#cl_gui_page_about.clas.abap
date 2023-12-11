@@ -49,10 +49,6 @@ CLASS /mbtools/cl_gui_page_about IMPLEMENTATION.
   METHOD /mbtools/if_gui_event_handler~on_event.
 
     CASE ii_event->mv_action.
-      WHEN /mbtools/if_actions=>go_license.
-        /mbtools/cl_utilities=>call_browser(
-          /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_terms ).
-        rs_handled-state = /mbtools/cl_gui=>c_event_state-re_render.
       WHEN /mbtools/if_actions=>go_back.
         rs_handled-state = /mbtools/cl_gui=>c_event_state-go_back.
     ENDCASE.
@@ -155,14 +151,13 @@ CLASS /mbtools/cl_gui_page_about IMPLEMENTATION.
     " Avoid harvest
     ri_html->add( |<p>Copyright { /mbtools/if_special_chars=>c_copyright } { sy-datum(4) } Marc Bernard Tools</p>| ).
 
-    ri_html->add( |<p>{ ri_html->a( iv_typ = /mbtools/if_html=>c_action_type-url
-                                    iv_act = /mbtools/if_definitions=>c_www_home
+    ri_html->add( |<p>{ ri_html->a( iv_act = /mbtools/if_actions=>mbt_website
                                     iv_txt = /mbtools/if_definitions=>c_www_home ) }</p>| ).
 
     ri_html->add( |<form method="post">| ).
 
     ri_html->add( |<input type="submit" name="action" value="License Terms" formaction="sapevent:{
-      /mbtools/if_actions=>go_license }">| ).
+      /mbtools/if_actions=>mbt_license }">| ).
 
     ri_html->add( |<input type="submit" name="action" value="Back" formaction="sapevent:{
       /mbtools/if_actions=>go_back }" class="main">| ).

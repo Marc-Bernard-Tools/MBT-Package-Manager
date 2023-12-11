@@ -76,6 +76,12 @@ CLASS /mbtools/cl_gui_router IMPLEMENTATION.
         /mbtools/cl_utilities=>call_browser( /mbtools/if_definitions=>c_www_home ).
         rs_handled-state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
+      WHEN /mbtools/if_actions=>mbt_license.
+        " License Terms
+        /mbtools/cl_utilities=>call_browser(
+          /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_terms ).
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-no_more_act.
+
       WHEN /mbtools/if_actions=>mbt_portfolio.
         " Portfolio
         /mbtools/cl_utilities=>call_browser(
