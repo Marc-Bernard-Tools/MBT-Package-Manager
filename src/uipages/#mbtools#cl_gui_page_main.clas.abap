@@ -143,6 +143,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
         iv_action = ii_event->mv_action ).
     ENDIF.
 
+    " Sync registry and persistence of installer (ZMBTINST)
     IF ii_event->mv_action = /mbtools/if_actions=>tools_check OR
        ii_event->mv_action = /mbtools/if_actions=>tools_update OR
        ii_event->mv_action = /mbtools/if_actions=>tool_install OR

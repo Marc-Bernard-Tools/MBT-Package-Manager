@@ -47,12 +47,7 @@ CLASS /mbtools/cl_gui_page_about IMPLEMENTATION.
 
 
   METHOD /mbtools/if_gui_event_handler~on_event.
-
-    CASE ii_event->mv_action.
-      WHEN /mbtools/if_actions=>go_back.
-        rs_handled-state = /mbtools/cl_gui=>c_event_state-go_back.
-    ENDCASE.
-
+    RETURN.
   ENDMETHOD.
 
 
