@@ -695,9 +695,6 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
 
     REPLACE ALL OCCURRENCES OF ` ` IN rv_slug WITH '-'.
 
-    " Slug for extension is same as for tool
-    REPLACE `-ext` IN rv_slug WITH ''.
-
   ENDMETHOD.
 
 

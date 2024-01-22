@@ -12,22 +12,26 @@ CLASS /mbtools/cl_tool_manager DEFINITION
   PUBLIC SECTION.
 
     " Length of MBT Installer package name
-    CONSTANTS c_name_length TYPE i VALUE 90 ##NO_TEXT.
+    CONSTANTS c_name_length TYPE i VALUE 90.
 
     " Constructor
     CLASS-METHODS class_constructor.
+
     CLASS-METHODS init
       IMPORTING
         !iv_title TYPE string OPTIONAL.
+
     " Class Get
     CLASS-METHODS factory
       IMPORTING
         !iv_title      TYPE csequence DEFAULT /mbtools/cl_tool_bc=>c_tool-title
       RETURNING
         VALUE(ro_tool) TYPE REF TO /mbtools/cl_tool.
+
     CLASS-METHODS manifests
       RETURNING
         VALUE(rt_manifests) TYPE /mbtools/if_tool=>ty_manifests.
+
     CLASS-METHODS select
       IMPORTING
         VALUE(iv_pattern)        TYPE csequence OPTIONAL
@@ -39,6 +43,7 @@ CLASS /mbtools/cl_tool_manager DEFINITION
         VALUE(iv_admin)          TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(rt_manifests)      TYPE /mbtools/if_tool=>ty_manifests.
+
     CLASS-METHODS list
       IMPORTING
         VALUE(iv_pattern)        TYPE csequence OPTIONAL
@@ -50,6 +55,7 @@ CLASS /mbtools/cl_tool_manager DEFINITION
         VALUE(iv_admin)          TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(rt_tools)          TYPE /mbtools/if_tool=>ty_tools_with_text.
+
     CLASS-METHODS f4
       IMPORTING
         VALUE(iv_pattern)        TYPE csequence OPTIONAL
@@ -61,42 +67,50 @@ CLASS /mbtools/cl_tool_manager DEFINITION
         VALUE(iv_admin)          TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(rv_title)          TYPE string.
+
     CLASS-METHODS action_tools
       IMPORTING
         !iv_action       TYPE string
         !iv_license      TYPE string OPTIONAL
       RETURNING
         VALUE(rv_result) TYPE abap_bool.
+
     CLASS-METHODS action_bundles
       IMPORTING
         !iv_action       TYPE string
         !iv_passes       TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(rv_result) TYPE abap_bool.
+
     CLASS-METHODS action_passes
       IMPORTING
         !iv_action       TYPE string
         !iv_license      TYPE string OPTIONAL
       RETURNING
         VALUE(rv_result) TYPE abap_bool.
+
     CLASS-METHODS install
       IMPORTING
         !iv_title        TYPE csequence
       RETURNING
         VALUE(rv_result) TYPE abap_bool.
+
     CLASS-METHODS check
       RETURNING
         VALUE(rv_result) TYPE abap_bool.
+
     CLASS-METHODS update
       IMPORTING
         !io_tool         TYPE REF TO /mbtools/cl_tool
       RETURNING
         VALUE(rv_result) TYPE abap_bool.
+
     CLASS-METHODS uninstall
       IMPORTING
         !io_tool         TYPE REF TO /mbtools/cl_tool
       RETURNING
         VALUE(rv_result) TYPE abap_bool.
+
     CLASS-METHODS sync
       IMPORTING
         !io_tool         TYPE REF TO /mbtools/cl_tool
@@ -104,9 +118,11 @@ CLASS /mbtools/cl_tool_manager DEFINITION
         VALUE(rv_result) TYPE abap_bool
       RAISING
         /mbtools/cx_exception.
+
     CLASS-METHODS is_base_only
       RETURNING
         VALUE(rv_result) TYPE abap_bool.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -115,16 +131,20 @@ CLASS /mbtools/cl_tool_manager DEFINITION
         key      TYPE string,
         instance TYPE REF TO /mbtools/cl_tool,
       END OF ty_instance.
+
     TYPES:
     " Sync with zif_abapinst_definitions
       ty_name TYPE c LENGTH c_name_length.
+
     TYPES ty_pack TYPE devclass.
+
     TYPES:
       BEGIN OF ty_content,
         name TYPE ty_name,
         pack TYPE ty_pack,
         json TYPE string,
       END OF ty_content.
+
     TYPES:
       BEGIN OF ty_version,
         major           TYPE i,
@@ -133,6 +153,7 @@ CLASS /mbtools/cl_tool_manager DEFINITION
         prerelase       TYPE string,
         prerelase_patch TYPE i,
       END OF ty_version.
+
     TYPES:
       BEGIN OF ty_inst,
         name            TYPE ty_name,
@@ -151,23 +172,26 @@ CLASS /mbtools/cl_tool_manager DEFINITION
         updated_at      TYPE timestamp,
         status          TYPE sy-msgty,
       END OF ty_inst.
+
     TYPES:
       ty_classes TYPE STANDARD TABLE OF seoclsname WITH DEFAULT KEY.
 
     CLASS-DATA:
-      gt_instances TYPE HASHED TABLE OF ty_instance WITH UNIQUE KEY key.
-    CLASS-DATA gi_log TYPE REF TO /mbtools/if_logger.
+      gt_instances TYPE HASHED TABLE OF ty_instance WITH UNIQUE KEY key,
+      gi_log       TYPE REF TO /mbtools/if_logger.
 
     CLASS-METHODS _clean_title
       IMPORTING
         !iv_title        TYPE csequence
       RETURNING
         VALUE(rv_result) TYPE string.
+
     CLASS-METHODS _get_implementations
       IMPORTING
         VALUE(iv_quiet)   TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(rt_classes) TYPE ty_classes.
+
     CLASS-METHODS _sync_json
       IMPORTING
         !is_inst          TYPE ty_inst
@@ -175,6 +199,7 @@ CLASS /mbtools/cl_tool_manager DEFINITION
         VALUE(rs_content) TYPE ty_content
       RAISING
         /mbtools/cx_exception.
+
 ENDCLASS.
 
 
@@ -410,6 +435,9 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
     li_progress->hide( ).
 
     gi_log->i( lo_timer->end( ) ).
+
+    " Checking tools for latest version completed successfully
+    MESSAGE s005(/mbtools/bc).
 
   ENDMETHOD.
 
@@ -694,11 +722,17 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
     CONSTANTS lc_tabname TYPE tabname VALUE 'ZMBTINST'.
 
     DATA:
-      ls_inst    TYPE ty_inst,
-      ls_inst_db TYPE ty_inst,
-      ls_cont    TYPE ty_content.
+      lv_old_name TYPE string,
+      ls_inst     TYPE ty_inst,
+      ls_inst_db  TYPE ty_inst,
+      ls_cont     TYPE ty_content.
 
-    ls_inst-name            = io_tool->get_name( ).
+    " Clean-up old name (not slug)
+    lv_old_name = io_tool->get_name( ).
+    DELETE FROM (lc_tabname) WHERE name = lv_old_name ##SUBRC_OK.
+
+    " Compile new or updated entry for persistence
+    ls_inst-name            = io_tool->get_slug( ).
     ls_inst-pack            = io_tool->get_package( ).
     ls_inst-version         = io_tool->get_version( ).
     ls_inst-sem_version     = /mbtools/cl_version=>convert_string_to_version( ls_inst-version ).
@@ -741,34 +775,23 @@ CLASS /mbtools/cl_tool_manager IMPLEMENTATION.
   METHOD uninstall.
 
     DATA:
-      lo_popup  TYPE REF TO /mbtools/if_popups,
-      lv_name   TYPE string,
-      lv_pack   TYPE string,
-      lv_answer TYPE sy-input.
-
-    lo_popup = /mbtools/cl_gui_factory=>get_popups( ).
+      lv_name TYPE string,
+      lv_pack TYPE string.
 
     TRY.
-        lv_answer = lo_popup->popup_to_confirm(
-          iv_titlebar       = 'Marc Bernard Tools - Uninstall'
-          iv_text_question  = |Are you sure, you want to uninstall { io_tool->get_name( ) }?|
-          iv_default_button = '2' ).
+        lv_name = io_tool->get_slug( ).
+        lv_pack = io_tool->get_package( ).
 
-        IF lv_answer = '1'.
-          lv_name = io_tool->get_title( ).
-          lv_pack = io_tool->get_package( ).
+        SUBMIT /mbtools/mbt_installer
+          WITH p_drop_n = lv_name
+          WITH p_drop_p = lv_pack
+          AND RETURN.
 
-          SUBMIT /mbtools/mbt_installer
-            WITH p_drop_n = lv_name
-            WITH p_drop_p = lv_pack
-            AND RETURN.
+        " Unregister tool
+        rv_result = io_tool->unregister( ).
 
-          " Unregister tool
-          rv_result = io_tool->unregister( ).
-
-          IF rv_result = abap_true.
-            init( ).
-          ENDIF.
+        IF rv_result = abap_true.
+          init( ).
         ENDIF.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
