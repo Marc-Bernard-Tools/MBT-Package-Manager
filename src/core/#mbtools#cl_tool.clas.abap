@@ -29,6 +29,7 @@ CLASS /mbtools/cl_tool DEFINITION
         key_install_user     TYPE string VALUE 'InstallUser' ##NO_TEXT,
         key_update_time      TYPE string VALUE 'UpdateTimestamp' ##NO_TEXT,
         key_update_user      TYPE string VALUE 'UpdateUser' ##NO_TEXT,
+        val_update_never     TYPE string VALUE 'never' ##NO_TEXT,
         " Registry Switches
         switches             TYPE string VALUE 'Switches' ##NO_TEXT,
         key_active           TYPE string VALUE 'Active' ##NO_TEXT,
@@ -566,6 +567,13 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
       iv_name     = ms_manifest-name
       iv_key      = c_reg-key_update_time
       iv_internal = iv_internal ).
+
+    IF rv_result = c_reg-val_update_never.
+      rv_result = _get_time(
+        iv_name     = ms_manifest-name
+        iv_key      = c_reg-key_install_time
+        iv_internal = iv_internal ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -1414,12 +1422,12 @@ CLASS /mbtools/cl_tool IMPLEMENTATION.
           IF iv_internal = abap_true.
             rv_result = lv_timestamp.
           ELSEIF lv_timestamp IS INITIAL.
-            rv_result = 'never'.
+            rv_result = c_reg-val_update_never.
           ELSE.
             rv_result = /mbtools/cl_datetime=>human_time_diff( lv_timestamp ) && ' ago'.
           ENDIF.
         ELSEIF iv_internal = abap_false.
-          rv_result = 'never'.
+          rv_result = c_reg-val_update_never.
         ENDIF.
 
       CATCH cx_root.
