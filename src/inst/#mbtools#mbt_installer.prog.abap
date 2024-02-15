@@ -344,7 +344,7 @@ CLASS zcx_abapgit_exception DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    CONSTANTS c_generic_error_msg TYPE string VALUE `An error occured (ZCX_ABAPGIT_EXCEPTION)`.
+    CONSTANTS c_generic_error_msg TYPE string VALUE `An error occurred (ZCX_ABAPGIT_EXCEPTION)`.
 
     CLASS-METHODS split_text_to_symsg
       IMPORTING
@@ -1905,6 +1905,7 @@ INTERFACE zif_abapgit_definitions
       homepage                      TYPE string VALUE 'homepage',
       ie_devtools                   TYPE string VALUE 'ie_devtools',
       jump                          TYPE string VALUE 'jump',
+      jump_transaction              TYPE string VALUE 'jump_transaction',
       jump_transport                TYPE string VALUE 'jump_transport',
       jump_user                     TYPE string VALUE 'jump_user',
       performance_test              TYPE string VALUE 'performance_test',
@@ -2025,7 +2026,7 @@ ENDINTERFACE.
 INTERFACE zif_abapgit_ajson
   .
 
-  CONSTANTS version TYPE string VALUE 'v1.1.9'. "#EC NOTEXT
+  CONSTANTS version TYPE string VALUE 'v1.1.10'. "#EC NOTEXT
   CONSTANTS origin TYPE string VALUE 'https://github.com/sbcgua/ajson'. "#EC NOTEXT
   CONSTANTS license TYPE string VALUE 'MIT'. "#EC NOTEXT
 
@@ -2462,6 +2463,13 @@ INTERFACE zif_abapgit_cts_api
       !iv_transport_request TYPE trkorr
     RAISING
       zcx_abapgit_exception .
+
+  METHODS change_transport_type
+    IMPORTING
+      !iv_transport_request TYPE trkorr
+      !iv_transport_type    TYPE trfunction
+    RAISING
+      zcx_abapgit_exception.
 ENDINTERFACE.
 INTERFACE zif_abapgit_data_config
    .
@@ -2929,6 +2937,7 @@ INTERFACE zif_abapgit_objects
 ENDINTERFACE.
 INTERFACE zif_abapgit_exit .
 
+
   TYPES:
     BEGIN OF ty_ci_repo,
       name      TYPE string,
@@ -2953,65 +2962,56 @@ INTERFACE zif_abapgit_exit .
       !cv_display_url TYPE csequence
     RAISING
       zcx_abapgit_exception.
-
   METHODS adjust_display_filename
     IMPORTING
       !is_repo_meta      TYPE zif_abapgit_persistence=>ty_repo
       !iv_filename       TYPE string
     RETURNING
       VALUE(rv_filename) TYPE string.
-
   METHODS allow_sap_objects
     RETURNING
       VALUE(rv_allowed) TYPE abap_bool.
-
   METHODS change_local_host
     CHANGING
       !ct_hosts TYPE zif_abapgit_definitions=>ty_string_tt.
-
   METHODS change_max_parallel_processes
     IMPORTING
-      iv_package       TYPE devclass
+      !iv_package       TYPE devclass
     CHANGING
-      cv_max_processes TYPE i.
-
+      !cv_max_processes TYPE i.
   METHODS change_proxy_authentication
     IMPORTING
       !iv_repo_url             TYPE csequence
     CHANGING
       !cv_proxy_authentication TYPE abap_bool.
-
   METHODS change_proxy_port
     IMPORTING
       !iv_repo_url   TYPE csequence
     CHANGING
       !cv_proxy_port TYPE string.
-
   METHODS change_proxy_url
     IMPORTING
       !iv_repo_url  TYPE csequence
     CHANGING
       !cv_proxy_url TYPE string.
-
   METHODS change_rfc_server_group
     CHANGING
-      cv_group TYPE rzlli_apcl.
-
+      !cv_group TYPE rzlli_apcl.
   METHODS change_supported_data_objects
     CHANGING
       !ct_objects TYPE zif_abapgit_data_supporter=>ty_objects.
-
   METHODS change_supported_object_types
     CHANGING
       !ct_types TYPE ty_object_types.
-
   METHODS change_tadir
     IMPORTING
-      !iv_package TYPE devclass
-      !ii_log     TYPE REF TO zif_abapgit_log
+      !iv_package            TYPE devclass
+      !ii_log                TYPE REF TO zif_abapgit_log
+      !is_dot_abapgit        TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit
+      !iv_ignore_subpackages TYPE abap_bool DEFAULT abap_false
+      !iv_only_local_objects TYPE abap_bool DEFAULT abap_false
     CHANGING
-      !ct_tadir   TYPE zif_abapgit_definitions=>ty_tadir_tt.
-
+      !ct_tadir              TYPE zif_abapgit_definitions=>ty_tadir_tt.
   METHODS create_http_client
     IMPORTING
       !iv_url          TYPE string
@@ -3019,7 +3019,6 @@ INTERFACE zif_abapgit_exit .
       VALUE(ri_client) TYPE REF TO if_http_client
     RAISING
       zcx_abapgit_exception.
-
   METHODS custom_serialize_abap_clif
     IMPORTING
       !is_class_key    TYPE ty_class_key
@@ -3028,40 +3027,33 @@ INTERFACE zif_abapgit_exit .
       VALUE(rt_source) TYPE zif_abapgit_definitions=>ty_string_tt
     RAISING
       zcx_abapgit_exception.
-
   METHODS deserialize_postprocess
     IMPORTING
       !is_step TYPE zif_abapgit_objects=>ty_step_data
       !ii_log  TYPE REF TO zif_abapgit_log.
-
   METHODS determine_transport_request
     IMPORTING
       !io_repo              TYPE REF TO zcl_abapgit_repo
       !iv_transport_type    TYPE zif_abapgit_definitions=>ty_transport_type
     CHANGING
       !cv_transport_request TYPE trkorr.
-
   METHODS enhance_repo_toolbar
     IMPORTING
       !io_menu TYPE REF TO zcl_abapgit_html_toolbar
       !iv_key  TYPE zif_abapgit_persistence=>ty_value
       !iv_act  TYPE string.
-
   METHODS get_ci_tests
     IMPORTING
       !iv_object   TYPE tadir-object
     CHANGING
       !ct_ci_repos TYPE ty_ci_repos.
-
   METHODS get_ssl_id
     RETURNING
       VALUE(rv_ssl_id) TYPE ssfapplssl.
-
   METHODS http_client
     IMPORTING
       !iv_url    TYPE string
       !ii_client TYPE REF TO if_http_client.
-
   METHODS pre_calculate_repo_status
     IMPORTING
       !is_repo_meta TYPE zif_abapgit_persistence=>ty_repo
@@ -3070,14 +3062,12 @@ INTERFACE zif_abapgit_exit .
       !ct_remote    TYPE zif_abapgit_git_definitions=>ty_files_tt
     RAISING
       zcx_abapgit_exception.
-
   METHODS serialize_postprocess
     IMPORTING
       !iv_package TYPE devclass
       !ii_log     TYPE REF TO zif_abapgit_log
     CHANGING
       !ct_files   TYPE zif_abapgit_definitions=>ty_files_item_tt.
-
   METHODS validate_before_push
     IMPORTING
       !is_comment TYPE zif_abapgit_git_definitions=>ty_comment
@@ -3085,7 +3075,6 @@ INTERFACE zif_abapgit_exit .
       !io_repo    TYPE REF TO zcl_abapgit_repo_online
     RAISING
       zcx_abapgit_exception.
-
 ENDINTERFACE.
 INTERFACE zif_abapgit_frontend_services .
 
@@ -4339,7 +4328,7 @@ INTERFACE zif_abapgit_version
    .
 
   CONSTANTS c_xml_version TYPE string VALUE 'v1.0.0' ##NO_TEXT.
-  CONSTANTS c_abap_version TYPE string VALUE '1.126.0' ##NO_TEXT.
+  CONSTANTS c_abap_version TYPE string VALUE '1.127.0' ##NO_TEXT.
 
 ENDINTERFACE.
 CLASS zcl_abapgit_abap_language_vers DEFINITION
@@ -7956,7 +7945,7 @@ CLASS zcl_abapgit_object_tabl DEFINITION
 
     "! Deserialize IDoc Segment type/definition if exits
     "! @parameter iv_package | Target package
-    "! @parameter rv_deserialized | It's a segment and was desserialized
+    "! @parameter rv_deserialized | It's a segment and was deserialized
     "! @raising zcx_abapgit_exception | Exceptions
     METHODS deserialize_idoc_segment IMPORTING is_internal            TYPE zif_abapgit_object_tabl=>ty_internal
                                                iv_transport           TYPE trkorr
@@ -10901,6 +10890,8 @@ CLASS zcl_abapgit_aff_registry IMPLEMENTATION.
     register( 'CHKC' ).
     register( 'CHKO' ).
     register( 'CHKV' ).
+    register( 'DRTY' ).
+    register( 'DTEB' ).
     register( 'EVTB' ).
     register( 'EEEC' ).
     register( 'GSMP' ).
@@ -11613,6 +11604,14 @@ CLASS lcl_json_to_abap DEFINITION FINAL.
       RAISING
         zcx_abapgit_ajson_error.
 
+    METHODS to_time
+      IMPORTING
+        iv_value         TYPE zif_abapgit_ajson_types=>ty_node-value
+      RETURNING
+        VALUE(rv_result) TYPE t
+      RAISING
+        zcx_abapgit_ajson_error.
+
   PRIVATE SECTION.
 
     TYPES:
@@ -11744,7 +11743,7 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
           zcx_abapgit_ajson_error=>raise( |Unexpected parent type| ).
       ENDCASE.
 
-      rs_node_type-type_kind         = rs_node_type-dd->type_kind. " for caching and cleaner unintialized access
+      rs_node_type-type_kind         = rs_node_type-dd->type_kind. " for caching and cleaner uninitialized access
       IF rs_node_type-type_kind = lif_kind=>table.
         lo_tdescr ?= rs_node_type-dd.
         IF lo_tdescr->table_kind <> cl_abap_tabledescr=>tablekind_std.
@@ -11927,6 +11926,8 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
         " TODO: check type ?
         IF is_node_type-type_kind = lif_kind=>date AND is_node-value IS NOT INITIAL.
           <container> = to_date( is_node-value ).
+        ELSEIF is_node_type-type_kind = lif_kind=>time AND is_node-value IS NOT INITIAL.
+          <container> = to_time( is_node-value ).
         ELSEIF is_node_type-type_kind = lif_kind=>packed AND is_node-value IS NOT INITIAL.
           <container> = to_timestamp( is_node-value ).
         ELSE.
@@ -12033,6 +12034,22 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
         IMPORTING
           tstmp_tgt = rv_result ).
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD to_time.
+
+    DATA lv_h TYPE c LENGTH 2.
+    DATA lv_m TYPE c LENGTH 2.
+    DATA lv_s TYPE c LENGTH 2.
+
+    FIND FIRST OCCURRENCE OF REGEX '^(\d{2}):(\d{2}):(\d{2})(T|$)'
+      IN iv_value
+      SUBMATCHES lv_h lv_m lv_s.
+    IF sy-subrc <> 0.
+      zcx_abapgit_ajson_error=>raise( 'Unexpected time format' ).
+    ENDIF.
+    CONCATENATE lv_h lv_m lv_s INTO rv_result.
 
   ENDMETHOD.
 
@@ -14107,7 +14124,7 @@ CLASS zcl_abapgit_convert IMPLEMENTATION.
     DO lv_len TIMES.
 
       IF sy-index = 1.
-        "Intialize
+        "Initialize
         IF lv_bitbyte+lv_offset(1) = '1'.
           rv_int = 1.
         ENDIF.
@@ -14391,7 +14408,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_CTS_API IMPLEMENTATION.
+CLASS zcl_abapgit_cts_api IMPLEMENTATION.
 
 
   METHOD get_current_transport_for_obj.
@@ -14519,6 +14536,56 @@ CLASS ZCL_ABAPGIT_CTS_API IMPLEMENTATION.
         pe_result = lv_type_check_result.
 
     rv_transportable = boolc( lv_type_check_result CA 'RTL' ).
+  ENDMETHOD.
+
+
+  METHOD zif_abapgit_cts_api~change_transport_type.
+
+    DATA ls_request_header TYPE trwbo_request_header.
+
+    CALL FUNCTION 'ENQUEUE_E_TRKORR'
+      EXPORTING
+        trkorr         = iv_transport_request
+      EXCEPTIONS
+        foreign_lock   = 1
+        system_failure = 2
+        OTHERS         = 3.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
+
+    CALL FUNCTION 'TRINT_READ_REQUEST_HEADER'
+      EXPORTING
+        iv_read_e070   = abap_true
+        iv_read_e070c  = abap_true
+      CHANGING
+        cs_request     = ls_request_header
+      EXCEPTIONS
+        empty_trkorr   = 1
+        not_exist_e070 = 2
+        OTHERS         = 3.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
+
+    CALL FUNCTION 'TRINT_CHANGE_TRFUNCTION'
+      EXPORTING
+        iv_new_trfunction      = iv_transport_type
+      CHANGING
+        cs_request_header      = ls_request_header
+      EXCEPTIONS
+        action_aborted_by_user = 1
+        change_not_allowed     = 2
+        db_access_error        = 3
+        OTHERS                 = 4.
+    IF sy-subrc <> 0.
+      zcx_abapgit_exception=>raise_t100( ).
+    ENDIF.
+
+    CALL FUNCTION 'DEQUEUE_E_TRKORR'
+      EXPORTING
+        trkorr = iv_transport_request.
+
   ENDMETHOD.
 
 
@@ -15936,7 +16003,7 @@ CLASS ZCL_ABAPGIT_DEFAULT_TRANSPORT IMPLEMENTATION.
 
   METHOD zif_abapgit_default_transport~set.
 
-    " checks whether object changes of the package are rerorded in transport
+    " checks whether object changes of the package are reordered in transport
     " requests. If true then we set the default task, so that no annoying
     " transport request popups are shown while deserializing.
 
@@ -17045,10 +17112,13 @@ CLASS zcl_abapgit_exit IMPLEMENTATION.
       TRY.
           gi_exit->change_tadir(
             EXPORTING
-              iv_package = iv_package
-              ii_log     = ii_log
+              iv_package            = iv_package
+              ii_log                = ii_log
+              is_dot_abapgit        = is_dot_abapgit
+              iv_ignore_subpackages = iv_ignore_subpackages
+              iv_only_local_objects = iv_only_local_objects
             CHANGING
-              ct_tadir   = ct_tadir ).
+              ct_tadir              = ct_tadir ).
         CATCH cx_sy_ref_is_initial cx_sy_dyn_call_illegal_method ##NO_HANDLER.
       ENDTRY.
     ENDIF.
@@ -17515,7 +17585,7 @@ CLASS zcl_abapgit_folder_logic IMPLEMENTATION.
             IF iv_package(lv_len) <> lv_parentcl.
               " If abapGit project is installed in package ZZZ, all subpackages should be named
               " ZZZ_something. This will define the folder name in the zip file to be "something",
-              " similarily with online projects. Alternatively change to FULL folder logic
+              " similarly with online projects. Alternatively change to FULL folder logic
               lv_message = |PREFIX: Unexpected package naming |
                         && |(top: { iv_top }, parent: { lv_parentcl }, child: { iv_package }). |
                         && |Try using the folder logic FULL|.
@@ -19691,7 +19761,7 @@ CLASS zcl_abapgit_lxe_texts IMPLEMENTATION.
 
     " Returns a list of translation languages for serialization
     " If the setting is initial, no translations shall be serialized
-    " If the setting is `*`, all all installed system languages shall be serialized
+    " If the setting is `*`, all installed system languages shall be serialized
     " Else, the setting shall contain all languages to be serialized
 
     DATA lv_main_lang_laiso TYPE laiso.
@@ -20227,7 +20297,7 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
     io_checklist->get_error_messages( IMPORTING p_error_tab = lt_message ).
 
     LOOP AT lt_message ASSIGNING <ls_message> WHERE mtype = 'E'.
-      " When activting without popup, includes used in multiple main programs cause error
+      " When activating without popup, includes used in multiple main programs cause error
       " Run again WITH activation popup (see abapGit, Personal Settings)
       IF <ls_message>-message-msgid = 'EU' AND <ls_message>-message-msgno = '404'.
         rv_try_again = abap_true.
@@ -20276,7 +20346,7 @@ CLASS zcl_abapgit_objects_activation IMPLEMENTATION.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
 
-    " Only error messsages
+    " Only error messages
     DELETE lt_lines WHERE severity <> 'E'
                       AND severity <> 'W'.
     " Remove "Return code..." message
@@ -20914,7 +20984,7 @@ CLASS zcl_abapgit_objects_bridge IMPLEMENTATION.
       LOOP AT lt_plugin_obj_type INTO ls_objtype_map-obj_typ.
         INSERT ls_objtype_map INTO TABLE gt_objtype_map.
         IF sy-subrc <> 0.
-* No exception in class-contructor possible.
+* No exception in class-constructor possible.
 * Anyway, a shortdump is more appropriate in this case
           ASSERT 'There must not be' =
             |multiple abapGit-Plugins for the same object type {
@@ -22105,7 +22175,7 @@ CLASS zcl_abapgit_objects_program IMPLEMENTATION.
       ELSE.
         INSERT TEXTPOOL iv_program "In case of includes: Deletion of textpool in
           FROM it_tpool            "main language cannot be activated because
-          LANGUAGE lv_language     "this woul activate the deletion of the textpool
+          LANGUAGE lv_language     "this would activate the deletion of the textpool
           STATE lv_state.          "of the mail program -> insert empty textpool
       ENDIF.
     ELSE.
@@ -25960,7 +26030,7 @@ CLASS zcl_abapgit_object_dtel IMPLEMENTATION.
     ENDIF.
 
     IF ls_dd04v-routputlen = ''.
-* numeric field, make sure it is initial or XML serilization will dump
+* numeric field, make sure it is initial or XML serialization will dump
       CLEAR ls_dd04v-routputlen.
     ENDIF.
     IF ls_dd04v-authclass = ''.
@@ -28295,7 +28365,7 @@ CLASS zcl_abapgit_object_fugr IMPLEMENTATION.
 
       IF zcl_abapinst_factory=>get_function_module( )->function_exists( <ls_func>-funcname ) = abap_true.
 * delete the function module to make sure the parameters are updated
-* havent found a nice way to update the paramters
+* haven't found a nice way to update the parameters
         CALL FUNCTION 'FUNCTION_DELETE'
           EXPORTING
             funcname                 = <ls_func>-funcname
@@ -31247,7 +31317,7 @@ CLASS zcl_abapgit_object_msag IMPLEMENTATION.
           lv_frozen     TYPE abap_bool,
           lv_message_id TYPE arbgb.
 
-* parameter SUPPRESS_DIALOG doesnt exist in all versions of FM RS_DELETE_MESSAGE_ID
+* parameter SUPPRESS_DIALOG doesn't exist in all versions of FM RS_DELETE_MESSAGE_ID
 * replaced with a copy
     lv_message_id = ms_item-obj_name.
     IF ms_item-obj_name = space.
@@ -35753,7 +35823,7 @@ CLASS zcl_abapgit_object_tran IMPLEMENTATION.
 
     CLEAR cs_rsstcd-s_vari.
 
-    IF cs_tstcp-param(1) = '\'.             " OO-Transaktion ohne FR
+    IF cs_tstcp-param(1) = '\'.             " OO-Transaction without FR
       split_parameters_comp( EXPORTING ig_type = c_oo_program
                                        ig_param = cs_tstcp-param
                              CHANGING  cg_value = cs_tstc-pgmna ).
@@ -35768,7 +35838,7 @@ CLASS zcl_abapgit_object_tran IMPLEMENTATION.
         cs_rsstcd-s_local = c_true.
       ENDIF.
       RETURN.
-    ELSEIF cs_tstcp-param(1) = '@'.         " Transaktionsvariante
+    ELSEIF cs_tstcp-param(1) = '@'.         " Transaction variant
       cs_rsstcd-s_vari = c_true.
       IF cs_tstcp-param(2) = '@@'.
         cs_rsstcd-s_ind_vari = c_true.
@@ -36802,7 +36872,7 @@ CLASS zcl_abapgit_object_w3xx_super IMPLEMENTATION.
     io_xml->add( iv_name = 'PARAMS'
                  ig_data = lt_w3params ).
 
-    " Seriazation v2, separate data file. 'extra' added to prevent conflict with .xml
+    " Serialization v2, separate data file. 'extra' added to prevent conflict with .xml
     mo_files->add_raw( iv_data  = lv_xstring
                        iv_extra = 'data'
                        iv_ext   = get_ext( lt_w3params ) ).
@@ -38054,7 +38124,8 @@ CLASS zcl_abapgit_oo_class IMPLEMENTATION.
         syntaxerror                  = lv_syntaxerror
       EXCEPTIONS
         _internal_class_not_existing = 1
-        OTHERS                       = 2.
+        error_message                = 2 " suppress S-message
+        OTHERS                       = 3.
     IF sy-subrc <> 0.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
@@ -38375,7 +38446,8 @@ CLASS zcl_abapgit_oo_interface IMPLEMENTATION.
       IMPORTING
         syntaxerror          = lv_syntaxerror
       EXCEPTIONS
-        OTHERS               = 1.
+        error_message        = 1 " suppress S-message
+        OTHERS               = 2.
     IF sy-subrc <> 0.
       zcx_abapgit_exception=>raise_t100( ).
     ENDIF.
@@ -39723,7 +39795,7 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
           " Namespace with repair license requires repair task
           rs_transport_type-task = 'R'.
         ELSE.
-          " Otherweise use correction task
+          " Otherwise use correction task
           rs_transport_type-task = 'S'.
         ENDIF.
       WHEN OTHERS.
@@ -40957,9 +41029,10 @@ CLASS zcl_abapgit_tadir IMPLEMENTATION.
 
   METHOD zif_abapgit_tadir~read.
 
-    DATA: li_exit TYPE REF TO zif_abapgit_exit.
-    DATA: lr_tadir TYPE REF TO zif_abapgit_definitions=>ty_tadir.
-    DATA: lt_filter TYPE zif_abapgit_definitions=>ty_tadir_tt.
+    DATA li_exit TYPE REF TO zif_abapgit_exit.
+    DATA lr_tadir TYPE REF TO zif_abapgit_definitions=>ty_tadir.
+    DATA lt_filter TYPE zif_abapgit_definitions=>ty_tadir_tt.
+    DATA ls_dot_data TYPE zif_abapgit_dot_abapgit=>ty_dot_abapgit.
 
     ASSERT iv_package IS NOT INITIAL.
 
@@ -40971,13 +41044,20 @@ CLASS zcl_abapgit_tadir IMPLEMENTATION.
       iv_ignore_subpackages = iv_ignore_subpackages
       iv_only_local_objects = iv_only_local_objects ).
 
+    IF io_dot IS NOT INITIAL.
+      ls_dot_data = io_dot->get_data( ).
+    ENDIF.
+
     li_exit = zcl_abapgit_exit=>get_instance( ).
     li_exit->change_tadir(
       EXPORTING
-        iv_package = iv_package
-        ii_log     = ii_log
+        iv_package            = iv_package
+        ii_log                = ii_log
+        is_dot_abapgit        = ls_dot_data
+        iv_ignore_subpackages = iv_ignore_subpackages
+        iv_only_local_objects = iv_only_local_objects
       CHANGING
-        ct_tadir   = rt_tadir ).
+        ct_tadir              = rt_tadir ).
 
     IF it_filter IS NOT INITIAL.
       "Apply filter manually instead of calling zcl_abapgit_repo_filter->apply,
