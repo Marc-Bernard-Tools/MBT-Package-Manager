@@ -8,6 +8,18 @@ and [ISO Date Format](https://www.iso.org/iso-8601-date-and-time-format.html).
 
 ## [Unreleased]
 
+## Version [1.4.4] - 2024-02-15
+
+### Changed
+
+- Add link to MBT account on license page
+- Update installer
+- Added repository name and version constant
+
+### Fixed
+
+- Fall back "last update: never" to "install time"
+
 ## Version [1.4.3] - 2023-12-11
 
 ### Changed
@@ -115,7 +127,8 @@ Launch Release
 Initial Release. For details, see [Features](https://marcbernardtools.com/docs/marc-bernard-tools/features).
 
 
-[Unreleased]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.3...main
+[Unreleased]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.4...main
+[1.4.4]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.3...1.4.4
 [1.4.3]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.2...1.4.3
 [1.4.2]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.1...1.4.2
 [1.4.1]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.0...1.4.1
