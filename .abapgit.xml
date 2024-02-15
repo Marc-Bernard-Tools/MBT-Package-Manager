@@ -2,6 +2,7 @@
 <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
  <asx:values>
   <DATA>
+   <NAME>mbt-package-manager</NAME>
    <MASTER_LANGUAGE>E</MASTER_LANGUAGE>
    <STARTING_FOLDER>/src/</STARTING_FOLDER>
    <FOLDER_LOGIC>PREFIX</FOLDER_LOGIC>
@@ -11,7 +12,7 @@
      <MIN_RELEASE>731</MIN_RELEASE>
     </item>
    </REQUIREMENTS>
-   <VERSION_CONSTANT>/mbtools/cl_tool_bc=&gt;c_tool-version</VERSION_CONSTANT>
+   <VERSION_CONSTANT>/MBTOOLS/CL_TOOL_BC=&gt;C_TOOL-VERSION</VERSION_CONSTANT>
    <PACKAGING>
     <NAME>mbt-package-manager</NAME>
     <VERSION>1.4.4</VERSION>
