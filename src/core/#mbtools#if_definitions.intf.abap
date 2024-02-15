@@ -124,4 +124,5 @@ INTERFACE /mbtools/if_definitions
   CONSTANTS c_www_support TYPE string VALUE 'support/ticket/' ##NO_TEXT.
   CONSTANTS c_www_faq TYPE string VALUE 'support/faq/' ##NO_TEXT.
   CONSTANTS c_www_portfolio TYPE string VALUE 'tools/portfolio/' ##NO_TEXT.
+  CONSTANTS c_www_account TYPE string VALUE 'your-account/' ##NO_TEXT.
 ENDINTERFACE.

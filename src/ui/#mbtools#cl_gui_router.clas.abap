@@ -103,6 +103,12 @@ CLASS /mbtools/cl_gui_router IMPLEMENTATION.
           /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_support ).
         rs_handled-state = /mbtools/cl_gui=>c_event_state-no_more_act.
 
+      WHEN /mbtools/if_actions=>mbt_account.
+        " Your Account
+        /mbtools/cl_utilities=>call_browser(
+          /mbtools/if_definitions=>c_www_home && /mbtools/if_definitions=>c_www_account ).
+        rs_handled-state = /mbtools/cl_gui=>c_event_state-no_more_act.
+
     ENDCASE.
 
   ENDMETHOD.

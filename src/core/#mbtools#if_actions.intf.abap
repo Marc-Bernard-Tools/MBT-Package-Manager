@@ -23,6 +23,7 @@ INTERFACE /mbtools/if_actions
   CONSTANTS mbt_support TYPE string VALUE 'mbt_support' ##NO_TEXT.
   CONSTANTS mbt_license TYPE string VALUE 'mbt_license' ##NO_TEXT.
   CONSTANTS mbt_website TYPE string VALUE 'mbt_website' ##NO_TEXT.
+  CONSTANTS mbt_account TYPE string VALUE 'mbt_account' ##NO_TEXT.
   " Objects
   CONSTANTS show_object TYPE string VALUE 'show_object' ##NO_TEXT.
   CONSTANTS run_program TYPE string VALUE 'run_program' ##NO_TEXT.

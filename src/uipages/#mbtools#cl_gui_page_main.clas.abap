@@ -743,8 +743,10 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
         ri_html->add( 'You can activate, deactivate, or uninstall any of the installed tools below.' &&
                       ' Use the "Tools" menu to add a new tool or update any of your exsting tools.' ).
       WHEN c_mode-license.
-        ri_html->add( 'Enter your license keys to receive updates for purchased tools.' &&
-                      ' If your license key has expired, please renew your license.' ). "##TODO
+        ri_html->add( `Enter your license keys to receive updates for purchased tools. ` &&
+                      `If your license key has expired, please renew your license: ` &&
+                      ri_html->a( iv_act = /mbtools/if_actions=>mbt_account
+                                  iv_txt = 'Check your MBT account' ) ).
     ENDCASE.
     ri_html->add( '</div>' ).
 
