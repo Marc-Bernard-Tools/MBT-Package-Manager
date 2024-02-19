@@ -169,6 +169,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
     DATA:
       lv_endpoint TYPE string,
       lv_data     TYPE string,
+      lv_error    TYPE string,
       lo_json     TYPE REF TO /mbtools/if_ajson.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
@@ -189,26 +190,28 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
     IF lo_json->get_boolean( '/success' ) <> abap_true.
       CASE lo_json->get_string( '/error' ).
         WHEN 'missing'.
-          /mbtools/cx_exception=>raise( 'License doesn''t exist'(010) ).
+          lv_error = 'License doesn''t exist'(010).
         WHEN 'missing_url'.
-          /mbtools/cx_exception=>raise( 'URL not provided'(011) ).
+          lv_error = 'URL not provided'(011).
         WHEN 'license_not_activable'.
-          /mbtools/cx_exception=>raise( 'Attempting to activate a bundle''s parent license'(012) ).
+          lv_error = 'Attempting to activate a bundle''s parent license'(012).
         WHEN 'disabled'.
-          /mbtools/cx_exception=>raise( 'License key revoked'(013) ).
+          lv_error = 'License key revoked'(013).
         WHEN 'no_activations_left'.
-          /mbtools/cx_exception=>raise( 'No activations left'(014) ).
+          lv_error = 'No activations left'(014).
         WHEN 'expired'.
-          /mbtools/cx_exception=>raise( 'License has expired'(015) ).
+          lv_error = 'License has expired'(015).
         WHEN 'key_mismatch'.
-          /mbtools/cx_exception=>raise( 'License is not valid for this product'(016) ).
+          lv_error = 'License is not valid for this product'(016).
         WHEN 'invalid_item_id'.
-          /mbtools/cx_exception=>raise( 'Invalid item ID'(017) ).
+          lv_error = 'Invalid item ID'(017).
         WHEN 'item_name_mismatch'.
-          /mbtools/cx_exception=>raise( 'License is not valid for this product'(018) ).
+          lv_error = 'License is not valid for this product'(018).
         WHEN OTHERS.
-          /mbtools/cx_exception=>raise( 'License is not valid for this product'(018) ).
+          lv_error = 'License is not valid for this product'(018).
       ENDCASE.
+      gi_log->e( lv_error ).
+      /mbtools/cx_exception=>raise( lv_error ).
     ENDIF.
 
     IF lo_json->get_string( '/license' ) = 'valid' ##NO_TEXT.
@@ -218,6 +221,8 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
     lv_data = lo_json->get_string( '/expires' ) ##NO_TEXT.
 
     ev_expire = lv_data(4) && lv_data+5(2) && lv_data+8(2).
+
+    gi_log->s( |License activated and valid until { ev_expire }| ).
 
   ENDMETHOD.
 
@@ -280,6 +285,7 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
     DATA:
       lv_endpoint TYPE string,
       lv_data     TYPE string,
+      lv_error    TYPE string,
       lo_json     TYPE REF TO /mbtools/if_ajson.
 
     LOG-POINT ID /mbtools/bc SUBKEY c_name FIELDS sy-datum sy-uzeit sy-uname.
@@ -300,18 +306,20 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
     IF lo_json->get_boolean( '/success' ) <> abap_true.
       CASE lo_json->get_string( '/error' ).
         WHEN 'disabled'.
-          /mbtools/cx_exception=>raise( 'License key revoked'(001) ).
+          lv_error = 'License key revoked'(001).
         WHEN 'expired'.
-          /mbtools/cx_exception=>raise( 'License has expired'(002) ).
+          lv_error = 'License has expired'(002).
         WHEN 'key_mismatch'.
-          /mbtools/cx_exception=>raise( 'License is not valid for this product'(003) ).
+          lv_error = 'License is not valid for this product'(003).
         WHEN 'invalid_item_id'.
-          /mbtools/cx_exception=>raise( 'Invalid item ID'(004) ).
+          lv_error = 'Invalid item ID'(004).
         WHEN 'item_name_mismatch'.
-          /mbtools/cx_exception=>raise( 'License is not valid for this product'(005) ).
+          lv_error = 'License is not valid for this product'(005).
         WHEN OTHERS.
-          /mbtools/cx_exception=>raise( 'License is not valid for this product'(006) ).
+          lv_error = 'License is not valid for this product'(006).
       ENDCASE.
+      gi_log->e( lv_error ).
+      /mbtools/cx_exception=>raise( lv_error ).
     ENDIF.
 
     IF lo_json->get_string( '/license' ) = 'valid' ##NO_TEXT.
@@ -321,6 +329,8 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
     lv_data = lo_json->get_date( 'expires' ) ##NO_TEXT.
 
     ev_expire = lv_data(4) && lv_data+5(2) && lv_data+8(2).
+
+    gi_log->s( |License valid until { ev_expire }| ).
 
   ENDMETHOD.
 
@@ -355,8 +365,10 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
     lo_json = _get_json( lv_data ).
 
     IF lo_json->get_boolean( '/success' ) <> abap_true.
-      " Probably wasn't a valid license in the first place. Ignore errors.
-      rv_result = abap_true.
+      " Probably wasn't a valid license in the first place. Log error and ignore it.
+      gi_log->e( |Error deactivating license| ).
+    ELSE.
+      gi_log->s( |License deactivated| ).
     ENDIF.
 
     rv_result = abap_true.
@@ -432,8 +444,11 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
             iv_headers = abap_true ).
         ENDIF.
       CATCH /mbtools/cx_ajson_error INTO lx_error.
+        gi_log->e( |Error checking version { lx_error->get_text( ) }| ).
         /mbtools/cx_exception=>raise( lx_error->get_text( ) ).
     ENDTRY.
+
+    gi_log->s( |New version: { ev_version }| ).
 
   ENDMETHOD.
 
@@ -468,10 +483,13 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
 
     LOOP AT ct_products ASSIGNING <ls_product>.
 
+      gi_log->i( |Product : { <ls_product>-id }| ).
+
       lo_json = lo_json_all->slice( condense( |/{ <ls_product>-id }| ) ).
 
       lv_msg = lo_json->get_string( '/msg' ).
       IF lv_msg IS NOT INITIAL AND lv_msg NS 'No license key'.
+        gi_log->e( |Error: { lv_msg }| ).
         /mbtools/cx_exception=>raise( lv_msg ).
       ENDIF.
 
@@ -503,8 +521,11 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
               iv_headers = abap_true ).
           ENDIF.
         CATCH /mbtools/cx_ajson_error INTO lx_error.
+          gi_log->e( |Error: { lx_error->get_text( ) }| ).
           /mbtools/cx_exception=>raise( lx_error->get_text( ) ).
       ENDTRY.
+
+      gi_log->s( |New version: { <ls_product>-version }| ).
 
     ENDLOOP.
 
