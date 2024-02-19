@@ -297,7 +297,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
     CREATE OBJECT ro_menu EXPORTING iv_id = 'toolbar-main'.
 
-    CREATE OBJECT lo_support_menu.
+    CREATE OBJECT lo_support_menu EXPORTING iv_id = 'toolbar-support'.
 
     lo_support_menu->add(
       iv_txt = 'FAQ'
@@ -309,7 +309,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
       iv_txt = 'Ticket'
       iv_act = /mbtools/if_actions=>mbt_support ).
 
-    CREATE OBJECT lo_bar_menu.
+    CREATE OBJECT lo_bar_menu EXPORTING iv_id = 'toolbar-admin'.
 
     CASE iv_mode.
 
@@ -321,7 +321,7 @@ CLASS /mbtools/cl_gui_page_main IMPLEMENTATION.
 
       WHEN c_mode-admin.
 
-        CREATE OBJECT lo_tools_menu.
+        CREATE OBJECT lo_tools_menu EXPORTING iv_id = 'toolbar-tools'.
 
         lo_tools_menu->add(
           iv_txt = 'Add Tool'
