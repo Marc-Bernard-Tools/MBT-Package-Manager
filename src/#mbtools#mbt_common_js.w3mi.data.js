@@ -16,7 +16,8 @@
 /* exported enableArrowListNavigation */
 /* exported activateLinkHints */
 /* exported setKeyBindings */
-/* exported enumerateToolbarActions */
+/* exported CommandPalette */
+/* exported enumerateUiActions */
 
 /**********************************************************
  * Polyfills
