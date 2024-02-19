@@ -31,6 +31,7 @@ jobs:
       uses: peter-evans/create-pull-request@v5
       if: github.repository == 'Marc-Bernard-Tools/MBT-Package-Manager'
       with:
+        node-version: 20
         branch: mbtools/stringmap
         title: Automatic Update STRINGMAP
         body: |
