@@ -89,8 +89,14 @@ can_create_anon_log FOR TESTING,
       return_proper_length FOR TESTING,
       can_add_table_msg_context FOR TESTING RAISING cx_static_check,
       can_log_string_and_export FOR TESTING,
+      can_log_exception_and_export FOR TESTING,
       can_change_description FOR TESTING RAISING cx_static_check,
-      can_log_callback_params FOR TESTING RAISING cx_static_check.
+      can_log_callback_params FOR TESTING RAISING cx_static_check,
+      can_log_log FOR TESTING,
+      can_log_bapi_alm_return FOR TESTING,
+      can_log_bapi_meth_message FOR TESTING RAISING cx_static_check,
+      can_log_bapi_status_result FOR TESTING RAISING cx_static_check,
+      can_log_detlevel FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -99,17 +105,17 @@ CLASS lcl_test IMPLEMENTATION.
   METHOD class_setup.
     /mbtools/cl_logger=>new(
       object = 'ABAPUNIT'
-      subobject = 'LOGGER'
+      subobject = ''
       desc = 'Log saved in database' )->add( 'This message is in the database' ).
   ENDMETHOD.
 
   METHOD setup.
     anon_log  = /mbtools/cl_logger=>new( ).
     named_log = /mbtools/cl_logger=>new( object = 'ABAPUNIT'
-                                 subobject = 'LOGGER'
+                                 subobject = ''
                                  desc = `Hey it's a log` ).
     reopened_log = /mbtools/cl_logger=>open( object = 'ABAPUNIT'
-                                     subobject = 'LOGGER'
+                                     subobject = ''
                                      desc = 'Log saved in database' ).
   ENDMETHOD.
 
@@ -133,7 +139,7 @@ CLASS lcl_test IMPLEMENTATION.
 
     expiring_log = /mbtools/cl_logger_factory=>create_log(
       object    = 'ABAPUNIT'
-      subobject = 'LOGGER'
+      subobject = ''
       desc      = 'Log that is not deletable and expiring'
       settings  = /mbtools/cl_logger_factory=>create_settings(
         )->set_expiry_in_days( days_until_log_can_be_deleted
@@ -172,7 +178,7 @@ CLASS lcl_test IMPLEMENTATION.
 
     expiring_log = /mbtools/cl_logger_factory=>create_log(
       object    = 'ABAPUNIT'
-      subobject = 'LOGGER'
+      subobject = ''
       desc      = 'Log that is not deletable and expiring'
       settings  = /mbtools/cl_logger_factory=>create_settings(
         )->set_expiry_date( lv_expire
@@ -209,11 +215,11 @@ CLASS lcl_test IMPLEMENTATION.
           handles     TYPE bal_t_logh.
     CALL FUNCTION 'BAL_GLB_MEMORY_REFRESH'.                "Close Logs
     reopened_log = /mbtools/cl_logger=>open( object = 'ABAPUNIT'
-                                     subobject = 'LOGGER'
+                                     subobject = ''
                                      desc = 'Log saved in database'
                                      create_if_does_not_exist = abap_true ).
     created_log = /mbtools/cl_logger=>open( object = 'ABAPUNIT'
-                                    subobject = 'LOGGER'
+                                    subobject = ''
                                     desc = 'Log not in database'
                                     create_if_does_not_exist = abap_true ).
     CALL FUNCTION 'BAL_GLB_SEARCH_LOG'
@@ -433,10 +439,6 @@ CLASS lcl_test IMPLEMENTATION.
       act = actual_details
       msg = 'Did not log system message properly' ).
     cl_abap_unit_assert=>assert_equals(
-      exp = 'This is a test'
-      act = condense( actual_text )
-      msg = 'Did not log system message properly' ).
-    cl_abap_unit_assert=>assert_equals(
       exp = abap_true
       act = anon_log->has_warnings( )
       msg = 'Did not log or fetch system message properly' ).
@@ -548,7 +550,7 @@ CLASS lcl_test IMPLEMENTATION.
 
     "Solution manager doens't have BAPI_ORDER_RETURN. Therefore avoid using the concrete type
     DATA bapi_order_return_data_ref TYPE REF TO data.
-    DATA bapi_return_temp           TYPE bapiret2.         "these fields have the same name as BAPI_ORDER_RETURN
+    DATA bapi_return_temp TYPE bapiret2.         "these fields have the same name as BAPI_ORDER_RETURN
     FIELD-SYMBOLS <bapi_order_return_structure> TYPE any.
     TRY.
         CREATE DATA bapi_order_return_data_ref TYPE ('BAPI_ORDER_RETURN').
@@ -602,10 +604,10 @@ CLASS lcl_test IMPLEMENTATION.
 
   METHOD can_log_rcomp.
     DATA:
-          msg_handle       TYPE balmsghndl,
-          expected_details TYPE bal_s_msg,
-          actual_details   TYPE bal_s_msg,
-          actual_text      TYPE char200.
+      msg_handle       TYPE balmsghndl,
+      expected_details TYPE bal_s_msg,
+      actual_details   TYPE bal_s_msg,
+      actual_text      TYPE char200.
 
     "Solution manager doens't have PROTT. Therefore avoid using the concrete type
     DATA rcomp_data_ref TYPE REF TO data.
@@ -1023,10 +1025,10 @@ CLASS lcl_test IMPLEMENTATION.
              comp1 TYPE string,
              comp2 TYPE i,
            END   OF ty_struct,
-             BEGIN OF ty_deep_struct,
+           BEGIN OF ty_deep_struct,
              comp1 TYPE string,
              deep  TYPE ty_struct,
-             END OF ty_deep_struct.
+           END OF ty_deep_struct.
     DATA: struct      TYPE ty_deep_struct,
           act_table   TYPE table_of_strings,
           exp_table   TYPE table_of_strings,
@@ -1305,6 +1307,7 @@ CLASS lcl_test IMPLEMENTATION.
           message_handles TYPE bal_t_msgh,
           msg_handle      TYPE balmsghndl,
           msg_detail      TYPE bal_s_msg,
+          exc_detail      TYPE bal_s_excr,
           msg_text        TYPE char255.
 
     INSERT log_handle INTO TABLE handle_as_table.
@@ -1320,7 +1323,27 @@ CLASS lcl_test IMPLEMENTATION.
           i_s_msg_handle = msg_handle
         IMPORTING
           e_s_msg        = msg_detail
-          e_txt_msg      = msg_text.
+          e_txt_msg      = msg_text
+        EXCEPTIONS
+          log_not_found  = 1
+          msg_not_found  = 2
+          OTHERS         = 3.
+      IF sy-subrc <> 0.
+        CALL FUNCTION 'BAL_LOG_EXCEPTION_READ'
+          EXPORTING
+            i_s_msg_handle = msg_handle
+          IMPORTING
+            e_s_exc        = exc_detail
+            e_txt_msg      = msg_text
+          EXCEPTIONS
+            log_not_found  = 1
+            msg_not_found  = 2
+            OTHERS         = 3.
+        IF sy-subrc <> 0.
+          CONTINUE.
+        ENDIF.
+        MOVE-CORRESPONDING exc_detail TO msg_detail.
+      ENDIF.
       APPEND msg_detail TO msg_details.
       APPEND msg_text TO texts.
     ENDLOOP.
@@ -1407,6 +1430,25 @@ CLASS lcl_test IMPLEMENTATION.
       msg = 'Did not log system message properly' ).
   ENDMETHOD.
 
+  METHOD can_log_exception_and_export.
+    DATA:
+      table TYPE bapirettab,
+      error TYPE REF TO cx_sy_zerodivide.
+
+    TRY.
+        RAISE EXCEPTION TYPE cx_sy_zerodivide.
+      CATCH cx_sy_zerodivide INTO error.
+        anon_log->add( error ).
+    ENDTRY.
+
+    table = anon_log->export_to_table( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = 1
+      act = lines( table )
+      msg = 'Did not log exception message properly' ).
+  ENDMETHOD.
+
   METHOD can_change_description.
 
     DATA desc TYPE bal_s_log-extnumber.
@@ -1414,7 +1456,7 @@ CLASS lcl_test IMPLEMENTATION.
     desc = cl_system_uuid=>create_uuid_c32_static( ).
 
     named_log = /mbtools/cl_logger=>new( object    = 'ABAPUNIT'
-                                 subobject = 'LOGGER'
+                                 subobject = ''
                                  auto_save = abap_false ).
 
     named_log->set_header( desc ).
@@ -1428,7 +1470,7 @@ CLASS lcl_test IMPLEMENTATION.
 
     CALL FUNCTION 'BAL_GLB_MEMORY_REFRESH'.                "Close Logs
     reopened_log = /mbtools/cl_logger=>open( object    = 'ABAPUNIT'
-                                     subobject = 'LOGGER'
+                                     subobject = ''
                                      desc      = desc ).
 
     cl_abap_unit_assert=>assert_bound(
@@ -1495,6 +1537,352 @@ CLASS lcl_test IMPLEMENTATION.
           act = <detail>-params-t_par ).
 
     ENDLOOP.
+  ENDMETHOD.
+
+  METHOD can_log_log.
+    "given
+    DATA: message_i TYPE string,
+          message_s TYPE string,
+          message_w TYPE string,
+          message_e TYPE string,
+          message_a TYPE string.
+    DATA: texts TYPE table_of_strings,
+          text  TYPE string.
+    DATA: msg_details TYPE bal_tt_msg,
+          msg_detail  TYPE bal_s_msg.
+
+    message_i = 'Info message from appended log'.
+    message_s = 'Success message from appended log'.
+    message_w = 'Warning message from appended log'.
+    message_e = 'Error message from appended log'.
+    message_a = 'Abort message from appended log'.
+
+    anon_log->i( message_i ).
+    anon_log->s( message_s ).
+    anon_log->w( message_w ).
+    anon_log->e( message_e ).
+    anon_log->a( message_a ).
+
+    "when
+    named_log->add( anon_log ).
+
+    "then
+    get_messages( EXPORTING log_handle  = named_log->handle
+                  IMPORTING texts       = texts
+                            msg_details = msg_details ).
+
+    READ TABLE texts INDEX 1 INTO text.
+    READ TABLE msg_details INDEX 1 INTO msg_detail.
+    cl_abap_unit_assert=>assert_equals(
+      exp = message_i
+      act = text
+      msg = 'Did not add logger message correctly' ).
+    cl_abap_unit_assert=>assert_equals(
+      exp = 'I'
+      act = msg_detail-msgty
+      msg = 'Did not return correct message type' ).
+
+    READ TABLE texts INDEX 2 INTO text.
+    READ TABLE msg_details INDEX 2 INTO msg_detail.
+    cl_abap_unit_assert=>assert_equals(
+      exp = message_s
+      act = text
+      msg = 'Did not add logger message correctly' ).
+    cl_abap_unit_assert=>assert_equals(
+      exp = 'S'
+      act = msg_detail-msgty
+      msg = 'Did not return correct message type' ).
+
+    READ TABLE texts INDEX 3 INTO text.
+    READ TABLE msg_details INDEX 3 INTO msg_detail.
+    cl_abap_unit_assert=>assert_equals(
+      exp = message_w
+      act = text
+      msg = 'Did not add logger message correctly' ).
+    cl_abap_unit_assert=>assert_equals(
+      exp = 'W'
+      act = msg_detail-msgty
+      msg = 'Did not return correct message type' ).
+
+    READ TABLE texts INDEX 4 INTO text.
+    READ TABLE msg_details INDEX 4 INTO msg_detail.
+    cl_abap_unit_assert=>assert_equals(
+      exp = message_e
+      act = text
+      msg = 'Did not add logger message correctly' ).
+    cl_abap_unit_assert=>assert_equals(
+      exp = 'E'
+      act = msg_detail-msgty
+      msg = 'Did not return correct message type' ).
+
+    READ TABLE texts INDEX 5 INTO text.
+    READ TABLE msg_details INDEX 5 INTO msg_detail.
+    cl_abap_unit_assert=>assert_equals(
+      exp = message_a
+      act = text
+      msg = 'Did not add logger message correctly' ).
+    cl_abap_unit_assert=>assert_equals(
+      exp = 'A'
+      act = msg_detail-msgty
+      msg = 'Did not return correct message type' ).
+  ENDMETHOD.
+
+  METHOD can_log_bapi_alm_return.
+    DATA: msg_handle       TYPE balmsghndl,
+          expected_details TYPE bal_s_msg,
+          actual_details   TYPE bal_s_msg,
+          actual_text      TYPE char200.
+
+    DATA bapi_alm_return_data_ref TYPE REF TO data.
+    DATA: "Avoid using concrete type as certain systems may not have BAPI_ALM_RETURN
+      BEGIN OF bapi_alm_return_temp,
+        type           TYPE bapi_mtype,
+        message_id     TYPE symsgid,
+        message_number TYPE symsgno,
+        message_v1     TYPE symsgv,
+        message_v2     TYPE symsgv,
+        message_v3     TYPE symsgv,
+        message_v4     TYPE symsgv,
+      END OF bapi_alm_return_temp.
+    FIELD-SYMBOLS <bapi_alm_return_structure> TYPE any.
+    TRY.
+        CREATE DATA bapi_alm_return_data_ref TYPE ('BAPI_ALM_RETURN').
+      CATCH cx_sy_create_data_error.
+        RETURN."Non ECC System such as SolutionManager
+    ENDTRY.
+    ASSIGN bapi_alm_return_data_ref->* TO <bapi_alm_return_structure>.
+
+    expected_details-msgty = bapi_alm_return_temp-type = 'E'.
+    expected_details-msgid = bapi_alm_return_temp-message_id = 'BL'.
+    expected_details-msgno = bapi_alm_return_temp-message_number = '001'.
+    expected_details-msgv1 = bapi_alm_return_temp-message_v1 = 'This'.
+    expected_details-msgv2 = bapi_alm_return_temp-message_v2 = 'is'.
+    expected_details-msgv3 = bapi_alm_return_temp-message_v3 = 'a'.
+    expected_details-msgv4 = bapi_alm_return_temp-message_v4 = 'test'.
+    MOVE-CORRESPONDING bapi_alm_return_temp TO <bapi_alm_return_structure>.
+    anon_log->add( <bapi_alm_return_structure> ).
+
+    msg_handle-log_handle = anon_log->handle.
+    msg_handle-msgnumber  = '000001'.
+
+    CALL FUNCTION 'BAL_LOG_MSG_READ'
+      EXPORTING
+        i_s_msg_handle = msg_handle
+      IMPORTING
+        e_s_msg        = actual_details
+        e_txt_msg      = actual_text.
+
+    cl_abap_unit_assert=>assert_not_initial(
+      act = actual_details-time_stmp
+      msg = 'Did not log system message properly' ).
+
+    expected_details-msg_count = 1.
+    CLEAR actual_details-time_stmp.
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = expected_details
+      act = actual_details
+      msg = 'Did not log system message properly' ).
+    cl_abap_unit_assert=>assert_equals(
+      exp = 'This is a test'
+      act = condense( actual_text )
+      msg = 'Did not log system message properly' ).
+    cl_abap_unit_assert=>assert_equals(
+      exp = abap_true
+      act = anon_log->has_errors( )
+      msg = 'Did not log or fetch system message properly' ).
+  ENDMETHOD.
+
+
+  METHOD can_log_bapi_meth_message.
+    DATA: msg_handle       TYPE balmsghndl,
+          expected_details TYPE bal_s_msg,
+          actual_details   TYPE bal_s_msg,
+          actual_text      TYPE char200.
+
+    DATA bapi_meth_message_data_ref TYPE REF TO data.
+    DATA: "Avoid using concrete type as certain systems may not have BAPI_METH_MESSAGE
+      BEGIN OF bapi_meth_message_temp,
+        method             TYPE c LENGTH 32, "bapi_method,
+        object_type        TYPE c LENGTH 32, "obj_typ,
+        internal_object_id TYPE c LENGTH 90, "objidint,
+        external_object_id TYPE c LENGTH 90, "objidext,
+        message_id         TYPE c LENGTH 20, "bapi_msgid,
+        message_number     TYPE msgno,
+        message_type       TYPE msgty,
+        message_text       TYPE c LENGTH 72, "bapi_text,
+      END OF bapi_meth_message_temp.
+    FIELD-SYMBOLS <bapi_meth_message_structure> TYPE any.
+    TRY.
+        CREATE DATA bapi_meth_message_data_ref TYPE ('BAPI_METH_MESSAGE').
+      CATCH cx_sy_create_data_error.
+        RETURN."Non ECC System such as SolutionManager
+    ENDTRY.
+    ASSIGN bapi_meth_message_data_ref->* TO <bapi_meth_message_structure>.
+
+    expected_details-msgty = bapi_meth_message_temp-message_type = 'E'.
+    expected_details-msgid = bapi_meth_message_temp-message_id = 'CJ'.
+    expected_details-msgno = bapi_meth_message_temp-message_number = '036'.
+    MOVE-CORRESPONDING bapi_meth_message_temp TO <bapi_meth_message_structure>.
+    anon_log->add( <bapi_meth_message_structure> ).
+
+    msg_handle-log_handle = anon_log->handle.
+    msg_handle-msgnumber  = '000001'.
+
+    CALL FUNCTION 'BAL_LOG_MSG_READ'
+      EXPORTING
+        i_s_msg_handle = msg_handle
+      IMPORTING
+        e_s_msg        = actual_details
+        e_txt_msg      = actual_text.
+
+    cl_abap_unit_assert=>assert_not_initial(
+      act = actual_details-time_stmp
+      msg = 'Did not log system message properly' ).
+
+    expected_details-msg_count = 1.
+    CLEAR actual_details-time_stmp.
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = expected_details
+      act = actual_details
+      msg = 'Did not log system message properly' ).
+    cl_abap_unit_assert=>assert_equals(
+      exp = abap_true
+      act = anon_log->has_errors( )
+      msg = 'Did not log or fetch system message properly' ).
+  ENDMETHOD.
+
+
+  METHOD can_log_bapi_status_result.
+    DATA: msg_handle       TYPE balmsghndl,
+          expected_details TYPE bal_s_msg,
+          actual_details   TYPE bal_s_msg,
+          actual_text      TYPE char200.
+
+    DATA bapi_bapi_status_data_ref TYPE REF TO data.
+    DATA: "Avoid using concrete type as certain systems may not have BAPI_METH_MESSAGE
+      BEGIN OF bapi_status_result_temp,
+        objectkey      TYPE c LENGTH 90, "  OBJIDEXT,
+        status_action  TYPE c LENGTH 1, "  BAPI_STATUS_ACTION,
+        status_type    TYPE c LENGTH 6, "  BAPI_STATUS_TYPE,
+        message_id     TYPE c LENGTH 20, "  BAPI_MSGID,
+        message_number TYPE c LENGTH 3, "  MSGNO,
+        message_type   TYPE c LENGTH 1, "  MSGTY,
+        message_text   TYPE c LENGTH 72, "  BAPI_TEXT,
+      END OF bapi_status_result_temp.
+    FIELD-SYMBOLS <bapi_status_result_structure> TYPE any.
+    TRY.
+        CREATE DATA bapi_bapi_status_data_ref TYPE ('BAPI_STATUS_RESULT').
+      CATCH cx_sy_create_data_error.
+        RETURN."Non ECC System such as SolutionManager
+    ENDTRY.
+    ASSIGN bapi_bapi_status_data_ref->* TO <bapi_status_result_structure>.
+
+    expected_details-msgty = bapi_status_result_temp-message_type = 'E'.
+    expected_details-msgid = bapi_status_result_temp-message_id = 'CNIF_STATUS'.
+    expected_details-msgno = bapi_status_result_temp-message_number = '005'.
+    MOVE-CORRESPONDING bapi_status_result_temp TO <bapi_status_result_structure>.
+    anon_log->add( <bapi_status_result_structure> ).
+
+    msg_handle-log_handle = anon_log->handle.
+    msg_handle-msgnumber  = '000001'.
+
+    CALL FUNCTION 'BAL_LOG_MSG_READ'
+      EXPORTING
+        i_s_msg_handle = msg_handle
+      IMPORTING
+        e_s_msg        = actual_details
+        e_txt_msg      = actual_text.
+
+    cl_abap_unit_assert=>assert_not_initial(
+      act = actual_details-time_stmp
+      msg = 'Did not log system message properly' ).
+
+    expected_details-msg_count = 1.
+    CLEAR actual_details-time_stmp.
+
+    cl_abap_unit_assert=>assert_equals(
+      exp = expected_details
+      act = actual_details
+      msg = 'Did not log system message properly' ).
+    cl_abap_unit_assert=>assert_equals(
+      exp = abap_true
+      act = anon_log->has_errors( )
+      msg = 'Did not log or fetch system message properly' ).
+  ENDMETHOD.
+
+  METHOD can_log_detlevel.
+
+    DATA:
+      dummy         TYPE string,
+      bapi_messages TYPE bapirettab,
+      bapi_msg      TYPE bapiret2,
+      error         TYPE REF TO cx_sy_zerodivide,
+      act_details   TYPE ty_bal_tt_msg.
+
+    FIELD-SYMBOLS <detail> TYPE bal_s_msg.
+
+    anon_log->s(
+      obj_to_log = 'success'
+      detlevel   = '1' ).
+    anon_log->i(
+      obj_to_log = 'info'
+      detlevel   = '2' ).
+    anon_log->e(
+      obj_to_log = 'error'
+      detlevel   = '3' ).
+    anon_log->w(
+      obj_to_log = 'warning'
+      detlevel   = '4' ).
+    anon_log->a(
+      obj_to_log = 'abort'
+      detlevel   = '5' ).
+
+    MESSAGE w001(bl) WITH 'This' 'is' 'a' 'test' INTO dummy.
+
+    anon_log->i( detlevel = '6' ).
+
+    bapi_msg-type       = 'E'.
+    bapi_msg-id         = 'BL'.
+    bapi_msg-number     = '001'.
+    bapi_msg-message_v1 = 'This'.
+    bapi_msg-message_v2 = 'is'.
+    bapi_msg-message_v3 = 'a'.
+    bapi_msg-message_v4 = 'test'.
+
+    anon_log->add(
+      obj_to_log = bapi_msg
+      detlevel   = '7' ).
+
+    INSERT bapi_msg INTO TABLE bapi_messages.
+
+    anon_log->add(
+      obj_to_log = bapi_messages
+      detlevel   = '8' ).
+
+    TRY.
+        RAISE EXCEPTION TYPE cx_sy_zerodivide.
+      CATCH cx_sy_zerodivide INTO error.
+        anon_log->i(
+          obj_to_log = error
+          detlevel   = '9' ).
+    ENDTRY.
+
+    get_messages(
+      EXPORTING
+        log_handle  = anon_log->handle
+      IMPORTING
+        msg_details = act_details ).
+
+    LOOP AT act_details ASSIGNING <detail>.
+
+      cl_abap_unit_assert=>assert_equals(
+        exp = sy-tabix
+        act = <detail>-detlevel ).
+
+    ENDLOOP.
+
   ENDMETHOD.
 
 ENDCLASS.

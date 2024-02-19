@@ -1,7 +1,8 @@
 CLASS /mbtools/cl_logger_factory DEFINITION
   PUBLIC
   FINAL
-  CREATE PRIVATE.
+  CREATE PRIVATE
+  GLOBAL FRIENDS /mbtools/cl_logger_injector.
 
 ************************************************************************
 * abap logger
@@ -53,18 +54,59 @@ CLASS /mbtools/cl_logger_factory DEFINITION
         i_standard               TYPE clike DEFAULT abap_true
       RETURNING
         VALUE(r_display_profile) TYPE REF TO /mbtools/if_logger_disp_prof.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
+
+    CLASS-DATA:
+      log_logger          TYPE REF TO /mbtools/if_logger,
+      log_settings        TYPE REF TO /mbtools/if_logger_settings,
+      log_collection      TYPE REF TO /mbtools/if_logger_collection,
+      log_display_profile TYPE REF TO /mbtools/if_logger_disp_prof.
+
 ENDCLASS.
 
 
+
 CLASS /mbtools/cl_logger_factory IMPLEMENTATION.
+
+
+  METHOD create_collection.
+    IF log_collection IS INITIAL.
+      CREATE OBJECT r_collection TYPE /mbtools/cl_logger_collection.
+    ELSE.
+      r_collection = log_collection.
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD create_display_profile.
+    IF log_display_profile IS INITIAL.
+      CREATE OBJECT r_display_profile TYPE /mbtools/cl_logger_disp_prof.
+    ELSE.
+      r_display_profile = log_display_profile.
+    ENDIF.
+
+    r_display_profile->set(
+      i_detlevel    = i_detlevel
+      i_no_tree     = i_no_tree
+      i_popup       = i_popup
+      i_single_log  = i_single_log
+      i_standard    = i_standard ).
+  ENDMETHOD.
+
 
   METHOD create_log.
     FIELD-SYMBOLS <context_val> TYPE c.
 
     DATA lo_log TYPE REF TO /mbtools/cl_logger.
-    CREATE OBJECT lo_log.
+
+    IF log_logger IS INITIAL.
+      CREATE OBJECT lo_log TYPE /mbtools/cl_logger.
+    ELSE.
+      lo_log ?= log_logger.
+    ENDIF.
+
     lo_log->header-object    = object.
     lo_log->header-subobject = subobject.
     lo_log->header-extnumber = desc.
@@ -72,7 +114,7 @@ CLASS /mbtools/cl_logger_factory IMPLEMENTATION.
     IF settings IS BOUND.
       lo_log->settings = settings.
     ELSE.
-      CREATE OBJECT lo_log->settings TYPE /mbtools/cl_logger_settings.
+      lo_log->settings = create_settings( ).
     ENDIF.
 
     " Special case: Logger can work without object - but then the data cannot be written to the database.
@@ -115,9 +157,15 @@ CLASS /mbtools/cl_logger_factory IMPLEMENTATION.
     r_log = lo_log.
   ENDMETHOD.
 
+
   METHOD create_settings.
-    CREATE OBJECT r_settings TYPE /mbtools/cl_logger_settings.
+    IF log_settings IS INITIAL.
+      CREATE OBJECT r_settings TYPE /mbtools/cl_logger_settings.
+    ELSE.
+      r_settings = log_settings.
+    ENDIF.
   ENDMETHOD.
+
 
   METHOD open_log.
     DATA: filter             TYPE bal_s_lfil,
@@ -150,9 +198,10 @@ CLASS /mbtools/cl_logger_factory IMPLEMENTATION.
 
     IF sy-subrc = 1.
       IF create_if_does_not_exist = abap_true.
-        r_log = /mbtools/cl_logger=>new( object    = object
-                                 subobject = subobject
-                                 desc      = desc ).
+        r_log = create_log( object    = object
+                            subobject = subobject
+                            desc      = desc
+                            settings  = settings ).
       ENDIF.
       RETURN.
     ENDIF.
@@ -164,14 +213,20 @@ CLASS /mbtools/cl_logger_factory IMPLEMENTATION.
     READ TABLE found_headers INDEX 1 INTO most_recent_header.
 
 
-    CREATE OBJECT lo_log.
+
+    IF log_logger IS INITIAL.
+      CREATE OBJECT lo_log TYPE /mbtools/cl_logger.
+    ELSE.
+      lo_log ?= log_logger.
+    ENDIF.
+
     lo_log->db_number = most_recent_header-lognumber.
     lo_log->handle    = most_recent_header-log_handle.
 
     IF settings IS BOUND.
       lo_log->settings = settings.
     ELSE.
-      CREATE OBJECT lo_log->settings TYPE /mbtools/cl_logger_settings.
+      lo_log->settings = create_settings( ).
     ENDIF.
 
     CALL FUNCTION 'BAL_DB_LOAD'
@@ -186,19 +241,4 @@ CLASS /mbtools/cl_logger_factory IMPLEMENTATION.
 
     r_log = lo_log.
   ENDMETHOD.
-
-  METHOD create_collection.
-    CREATE OBJECT r_collection TYPE /mbtools/cl_logger_collection.
-  ENDMETHOD.
-
-  METHOD create_display_profile.
-    CREATE OBJECT r_display_profile TYPE /mbtools/cl_logger_disp_prof.
-    r_display_profile->set(
-      i_detlevel    = i_detlevel
-      i_no_tree     = i_no_tree
-      i_popup       = i_popup
-      i_single_log  = i_single_log
-      i_standard    = i_standard ).
-  ENDMETHOD.
-
 ENDCLASS.

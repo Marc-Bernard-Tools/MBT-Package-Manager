@@ -3,9 +3,10 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>/MBTOOLS/CL_LOGGER_COLLECTION</CLSNAME>
+    <CLSNAME>/MBTOOLS/CL_LOGGER_INJECTOR</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>MBT ABAP Logger: Collection</DESCRIPT>
+    <DESCRIPT>MBT ABAP Logger: Injector</DESCRIPT>
+    <CATEGORY>05</CATEGORY>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

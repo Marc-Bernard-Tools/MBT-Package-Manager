@@ -86,6 +86,8 @@ CLASS /mbtools/cl_logger_disp_prof IMPLEMENTATION.
       colpos = colpos + 1.
 
     ENDLOOP.
+
+    r_self = me.
   ENDMETHOD.
 
   METHOD /mbtools/if_logger_disp_prof~set_context_tree.
@@ -154,6 +156,8 @@ CLASS /mbtools/cl_logger_disp_prof IMPLEMENTATION.
     lev_sort-up        = 'X'.
     lev_sort-spos      = 1.
     APPEND lev_sort TO <lev2_sort>.
+
+    r_self = me.
   ENDMETHOD.
 
   METHOD /mbtools/if_logger_disp_prof~set_grid.
@@ -173,7 +177,7 @@ CLASS /mbtools/cl_logger_disp_prof IMPLEMENTATION.
     ELSE.
       RAISE EXCEPTION TYPE /mbtools/cx_logger_disp_prof
         EXPORTING
-          info = |field { i_fld } does not exist| ##no_text.
+          info = |field { i_fld } does not exist| ##NO_TEXT.
     ENDIF.
 
   ENDMETHOD.
