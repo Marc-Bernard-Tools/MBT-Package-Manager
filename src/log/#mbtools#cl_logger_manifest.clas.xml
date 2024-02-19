@@ -3,14 +3,21 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>/MBTOOLS/CL_LOGGER_COLLECTION</CLSNAME>
+    <CLSNAME>/MBTOOLS/CL_LOGGER_MANIFEST</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>MBT ABAP Logger: Collection</DESCRIPT>
+    <DESCRIPT>MBT ABAP-Logger: Apack Manifest</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
     <UNICODE>X</UNICODE>
    </VSEOCLASS>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CMPNAME>CONSTRUCTOR</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>CONSTRUCTOR</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
   </asx:values>
  </asx:abap>
 </abapGit>
