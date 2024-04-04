@@ -1,7 +1,8 @@
 ![Version](https://img.shields.io/endpoint?url=https%3A%2F%2Fshield.abap.space%2Fversion-shield-json%2Fgithub%2FMarc-Bernard-Tools%2FMBT-Package-Manager%2Fsrc%2F%2523mbtools%2523cl_tool_bc.clas.abap&label=Version&color=blue)
+[![Slack](https://img.shields.io/badge/Join-Slack-blue)](https://communityinviter.com/apps/marc-bernard-tools/join-our-slack-community)
 
-[![License](https://img.shields.io/github/license/Marc-Bernard-Tools/MBT-Package-Manager?label=License&color=green)](LICENSE)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?color=green)](https://github.com/Marc-Bernard-Tools/.github/blob/main/CODE_OF_CONDUCT.md)
+[![License](https://img.shields.io/github/license/Marc-Bernard-Tools/MBT-Package-Manager?label=License&color=success)](LICENSE)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?color=success)](https://github.com/Marc-Bernard-Tools/.github/blob/main/CODE_OF_CONDUCT.md)
 [![REUSE Status](https://api.reuse.software/badge/github.com/Marc-Bernard-Tools/MBT-Package-Manager?color=success)](https://api.reuse.software/info/github.com/Marc-Bernard-Tools/MBT-Package-Manager)
 [![ClearlyDefined Score](https://img.shields.io/clearlydefined/score/git/github/marc-bernard-tools/MBT-Base/b368f642b8688a7a1b6b6304ea11042d5cd478a3?label=ClearlyDefined%20Score)](https://clearlydefined.io/definitions/git/github/marc-bernard-tools/MBT-Base/b368f642b8688a7a1b6b6304ea11042d5cd478a3)
 
