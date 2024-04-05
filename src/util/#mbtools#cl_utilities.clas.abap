@@ -62,8 +62,8 @@ CLASS /mbtools/cl_utilities DEFINITION
 
     CONSTANTS:
       BEGIN OF c_endian,
-        little TYPE string VALUE 'LITTLE',
-        big    TYPE string VALUE 'BIG',
+        little TYPE string VALUE 'LittleEndian',
+        big    TYPE string VALUE 'BigEndian',
       END OF c_endian.
 
     CONSTANTS c_not_authorized TYPE string VALUE 'NOT_AUTHORIZED' ##NO_TEXT.
@@ -201,7 +201,6 @@ CLASS /mbtools/cl_utilities DEFINITION
       IMPORTING
         !iv_parameter TYPE clike
         !iv_value     TYPE clike.
-
   PROTECTED SECTION.
   PRIVATE SECTION.
 
