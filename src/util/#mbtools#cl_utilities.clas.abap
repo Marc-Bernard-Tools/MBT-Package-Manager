@@ -52,35 +52,54 @@ CLASS /mbtools/cl_utilities DEFINITION
         endian           TYPE string VALUE 'ENDIAN',
         is_unicode       TYPE string VALUE 'IS_UNICODE',
       END OF c_property.
+
     CONSTANTS:
       BEGIN OF c_value,
         unknown TYPE string VALUE 'UNKNOWN',
         yes     TYPE string VALUE 'YES',
         no      TYPE string VALUE 'NO',
       END OF c_value.
+
+    CONSTANTS:
+      BEGIN OF c_endian,
+        little TYPE string VALUE 'LittleEndian',
+        big    TYPE string VALUE 'BigEndian',
+      END OF c_endian.
+
     CONSTANTS c_not_authorized TYPE string VALUE 'NOT_AUTHORIZED' ##NO_TEXT.
 
     CLASS-METHODS call_browser
       IMPORTING
         !iv_url TYPE csequence.
+
     CLASS-METHODS is_batch
       RETURNING
         VALUE(rv_batch) TYPE abap_bool.
+
+    CLASS-METHODS is_batchinput
+      RETURNING
+        VALUE(rv_batchinput) TYPE abap_bool.
+
     CLASS-METHODS is_system_modifiable
       RETURNING
         VALUE(rv_modifiable) TYPE abap_bool.
+
     CLASS-METHODS is_system_test_or_prod
       RETURNING
         VALUE(rv_test_prod) TYPE abap_bool.
+
     CLASS-METHODS is_snote_allowed
       RETURNING
         VALUE(rv_snote_allowed) TYPE abap_bool.
+
     CLASS-METHODS is_upgrage_running
       RETURNING
         VALUE(rv_upgrade_running) TYPE abap_bool.
+
     CLASS-METHODS is_spam_locked
       RETURNING
         VALUE(rv_spam_locked) TYPE abap_bool.
+
     CLASS-METHODS get_property
       IMPORTING
         VALUE(iv_property) TYPE clike
@@ -89,78 +108,95 @@ CLASS /mbtools/cl_utilities DEFINITION
         !ev_value_float    TYPE f
         !ev_value_integer  TYPE i
         !ev_subrc          TYPE sy-subrc.
+
     CLASS-METHODS get_syst_field
       IMPORTING
         VALUE(iv_field) TYPE clike
       RETURNING
         VALUE(rv_value) TYPE string.
+
     CLASS-METHODS get_db_release
       RETURNING
         VALUE(rs_dbinfo) TYPE dbrelinfo.
+
     CLASS-METHODS get_hana_release
       RETURNING
         VALUE(rs_hana_release) TYPE ty_strv_release_patch.
+
     CLASS-METHODS get_spam_release
       RETURNING
         VALUE(rs_details) TYPE ty_strv_release_patch.
+
     CLASS-METHODS get_kernel_release
       RETURNING
         VALUE(rs_details) TYPE ty_strv_release_patch.
+
     CLASS-METHODS get_swcomp_release
       IMPORTING
         VALUE(iv_component) TYPE clike
       RETURNING
         VALUE(rv_release)   TYPE string.
+
     CLASS-METHODS get_swcomp_support_package
       IMPORTING
         VALUE(iv_component)       TYPE clike
       RETURNING
         VALUE(rv_support_package) TYPE string.
+
     CLASS-METHODS get_profile_parameter
       IMPORTING
         VALUE(iv_parameter) TYPE clike
       RETURNING
         VALUE(rv_value)     TYPE string.
+
     CLASS-METHODS get_profile_parameter_name
       IMPORTING
         VALUE(iv_parameter) TYPE clike
       RETURNING
         VALUE(rv_result)    TYPE string.
+
     CLASS-METHODS get_date_time
       IMPORTING
         !iv_property    TYPE string
       RETURNING
         VALUE(rv_value) TYPE string.
+
     CLASS-METHODS get_database
       IMPORTING
         !iv_property    TYPE string
       RETURNING
         VALUE(rv_value) TYPE string.
+
     CLASS-METHODS get_hana
       IMPORTING
         !iv_property    TYPE string
       RETURNING
         VALUE(rv_value) TYPE string.
+
     CLASS-METHODS get_spam
       IMPORTING
         !iv_property    TYPE string
       RETURNING
         VALUE(rv_value) TYPE string.
+
     CLASS-METHODS get_kernel
       IMPORTING
         !iv_property    TYPE string
       RETURNING
         VALUE(rv_value) TYPE string.
+
     CLASS-METHODS get_codepage
       IMPORTING
         !iv_property    TYPE string
       RETURNING
         VALUE(rv_value) TYPE string.
+
     CLASS-METHODS get_user_parameter
       IMPORTING
         !iv_parameter    TYPE clike
       RETURNING
         VALUE(rv_result) TYPE string.
+
     CLASS-METHODS set_user_parameter
       IMPORTING
         !iv_parameter TYPE clike
@@ -169,6 +205,7 @@ CLASS /mbtools/cl_utilities DEFINITION
   PRIVATE SECTION.
 
     CONSTANTS c_original_name TYPE string VALUE 'ORIG:' ##NO_TEXT.
+
     CLASS-DATA:
       gt_cvers TYPE SORTED TABLE OF cvers WITH UNIQUE KEY component.
 
@@ -177,6 +214,7 @@ CLASS /mbtools/cl_utilities DEFINITION
         VALUE(ro_parameters) TYPE REF TO /mbtools/cl_string_map
       RAISING
         /mbtools/cx_exception.
+
 ENDCLASS.
 
 
@@ -211,15 +249,23 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
 
   METHOD get_codepage.
 
+    DATA lv_codepage TYPE cpcodepage.
+
     CASE iv_property.
       WHEN c_property-codepage.
-        rv_value = cl_abap_conv_codepage=>get_sap_codepage( '' ).
+        CALL FUNCTION 'SCP_GET_CODEPAGE_NUMBER'
+          EXPORTING
+            database_also = space
+          IMPORTING
+            appl_codepage = lv_codepage.
+
+        rv_value = lv_codepage.
       WHEN c_property-endian.
         CASE cl_abap_char_utilities=>endian.
           WHEN 'L'.
-            rv_value = 'LittleEndian'.
+            rv_value = c_endian-little.
           WHEN 'B'.
-            rv_value = 'BigEndian'.
+            rv_value = c_endian-big.
           WHEN OTHERS.
             rv_value = c_value-unknown.
         ENDCASE.
@@ -653,7 +699,14 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
 
   METHOD is_batch.
 
-    rv_batch = boolc( sy-binpt = abap_true OR sy-batch = abap_true ).
+    rv_batch = boolc( sy-batch = abap_true ).
+
+  ENDMETHOD.
+
+
+  METHOD is_batchinput.
+
+    rv_batchinput = boolc( sy-binpt = abap_true ).
 
   ENDMETHOD.
 
