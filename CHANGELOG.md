@@ -8,6 +8,18 @@ and [ISO Date Format](https://www.iso.org/iso-8601-date-and-time-format.html).
 
 ## [Unreleased]
 
+## Version [1.4.5] - 2024-04-05
+
+### Changed
+
+- Improve EDD endpoint logging
+
+### Fixed
+
+- Fix double entries in command palette
+- Replace cl_abap_conv_codepage with function call
+- Bump AJSON to 1.1.10
+
 ## Version [1.4.4] - 2024-02-15
 
 ### Changed
@@ -127,7 +139,8 @@ Launch Release
 Initial Release. For details, see [Features](https://marcbernardtools.com/docs/marc-bernard-tools/features).
 
 
-[Unreleased]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.4...main
+[Unreleased]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.5...main
+[1.4.5]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.4...1.4.5
 [1.4.4]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.3...1.4.4
 [1.4.3]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.2...1.4.3
 [1.4.2]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.1...1.4.2
