@@ -27,6 +27,7 @@ CLASS /mbtools/cl_edd DEFINITION
       ty_products TYPE STANDARD TABLE OF ty_product WITH KEY id.
 
     CONSTANTS c_name TYPE string VALUE 'MBT_EDD_API' ##NO_TEXT ##NEEDED.
+
     CONSTANTS:
       BEGIN OF c_edd_action,
         activate   TYPE string VALUE 'activate_license' ##NO_TEXT,
@@ -34,6 +35,7 @@ CLASS /mbtools/cl_edd DEFINITION
         check      TYPE string VALUE 'check_license' ##NO_TEXT,
         version    TYPE string VALUE 'get_version' ##NO_TEXT,
       END OF c_edd_action.
+
     CONSTANTS:
       BEGIN OF c_edd_param,
         action TYPE string VALUE '$action$' ##NO_TEXT,
@@ -45,6 +47,7 @@ CLASS /mbtools/cl_edd DEFINITION
       END OF c_edd_param.
 
     CLASS-METHODS class_constructor.
+
     CLASS-METHODS activate_license
       IMPORTING
         !iv_id      TYPE string
@@ -54,6 +57,7 @@ CLASS /mbtools/cl_edd DEFINITION
         !ev_expire  TYPE d
       RAISING
         /mbtools/cx_exception.
+
     CLASS-METHODS deactivate_license
       IMPORTING
         !iv_id           TYPE string
@@ -62,6 +66,7 @@ CLASS /mbtools/cl_edd DEFINITION
         VALUE(rv_result) TYPE abap_bool
       RAISING
         /mbtools/cx_exception.
+
     CLASS-METHODS check_license
       IMPORTING
         !iv_id      TYPE string
@@ -71,6 +76,7 @@ CLASS /mbtools/cl_edd DEFINITION
         !ev_expire  TYPE d
       RAISING
         /mbtools/cx_exception.
+
     CLASS-METHODS get_version
       IMPORTING
         !iv_id            TYPE string
@@ -83,11 +89,13 @@ CLASS /mbtools/cl_edd DEFINITION
         !ev_download_url  TYPE string
       RAISING
         /mbtools/cx_exception.
+
     CLASS-METHODS get_versions
       CHANGING
         !ct_products TYPE ty_products
       RAISING
         /mbtools/cx_exception.
+
     CLASS-METHODS activate_pass
       IMPORTING
         !iv_license TYPE string
@@ -97,8 +105,8 @@ CLASS /mbtools/cl_edd DEFINITION
         !ev_id      TYPE string
       RAISING
         /mbtools/cx_exception.
-  PROTECTED SECTION.
 
+  PROTECTED SECTION.
   PRIVATE SECTION.
 
     CLASS-DATA gi_log TYPE REF TO /mbtools/if_logger.
@@ -111,6 +119,7 @@ CLASS /mbtools/cl_edd DEFINITION
         VALUE(rv_data) TYPE string
       RAISING
         /mbtools/cx_exception.
+
     CLASS-METHODS _get_endpoint
       IMPORTING
         !iv_action         TYPE string
@@ -120,6 +129,7 @@ CLASS /mbtools/cl_edd DEFINITION
         VALUE(rv_endpoint) TYPE string
       RAISING
         /mbtools/cx_exception.
+
     CLASS-METHODS _get_endpoint_products
       IMPORTING
         !iv_action         TYPE string
@@ -128,6 +138,7 @@ CLASS /mbtools/cl_edd DEFINITION
         VALUE(rv_endpoint) TYPE string
       RAISING
         /mbtools/cx_exception.
+
     CLASS-METHODS _get_json
       IMPORTING
         !iv_data       TYPE string
@@ -135,12 +146,14 @@ CLASS /mbtools/cl_edd DEFINITION
         VALUE(ro_json) TYPE REF TO /mbtools/if_ajson
       RAISING
         /mbtools/cx_exception.
+
     CLASS-METHODS _adjust_html
       IMPORTING
         !iv_html         TYPE string
         !iv_headers      TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(rv_result) TYPE string.
+
 ENDCLASS.
 
 
@@ -561,7 +574,18 @@ CLASS /mbtools/cl_edd IMPLEMENTATION.
     lv_rfcdest = /mbtools/cl_setup=>get_rfc_destination( ).
 
     gi_log->i( |RFC Destination { lv_rfcdest }| ).
-    gi_log->i( |Endpoint { iv_path }| ).
+
+    IF strlen( iv_path ) > 110.
+      gi_log->i( |Endpoint { iv_path(110) }| ).
+      IF strlen( iv_path ) > 230.
+        gi_log->i( |{ iv_path+110(120) }| ).
+        gi_log->i( |{ iv_path+230(*) }| ).
+      ELSE.
+        gi_log->i( |{ iv_path+110(*) }| ).
+      ENDIF.
+    ELSE.
+      gi_log->i( |Endpoint { iv_path }| ).
+    ENDIF.
 
     TRY.
         lo_client = /mbtools/cl_http=>create_by_destination(
