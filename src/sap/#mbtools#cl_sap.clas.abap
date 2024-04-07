@@ -151,7 +151,6 @@ CLASS /mbtools/cl_sap DEFINITION
 
     CLASS-METHODS _jump_basis
       IMPORTING
-        !iv_pgmid    TYPE csequence DEFAULT c_pgmid-basis
         !iv_object   TYPE csequence
         !iv_obj_name TYPE csequence.
 
@@ -693,7 +692,6 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
     " Basis objects
     IF iv_pgmid = c_pgmid-basis.
       _jump_basis(
-        iv_pgmid    = iv_pgmid
         iv_object   = iv_object
         iv_obj_name = iv_obj_name ).
 
