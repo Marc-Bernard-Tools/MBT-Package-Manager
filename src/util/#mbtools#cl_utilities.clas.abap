@@ -185,6 +185,12 @@ CLASS /mbtools/cl_utilities DEFINITION
       RETURNING
         VALUE(rv_value) TYPE string.
 
+    CLASS-METHODS get_environment
+      IMPORTING
+        !iv_property    TYPE string
+      RETURNING
+        VALUE(rv_value) TYPE string.
+
     CLASS-METHODS get_codepage
       IMPORTING
         !iv_property    TYPE string
@@ -201,6 +207,7 @@ CLASS /mbtools/cl_utilities DEFINITION
       IMPORTING
         !iv_parameter TYPE clike
         !iv_value     TYPE clike.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -210,6 +217,12 @@ CLASS /mbtools/cl_utilities DEFINITION
       gt_cvers TYPE SORTED TABLE OF cvers WITH UNIQUE KEY component.
 
     CLASS-METHODS _get_all_profile_parameters
+      RETURNING
+        VALUE(ro_parameters) TYPE REF TO /mbtools/cl_string_map
+      RAISING
+        /mbtools/cx_exception.
+
+    CLASS-METHODS _get_all_environment_params
       RETURNING
         VALUE(ro_parameters) TYPE REF TO /mbtools/cl_string_map
       RAISING
@@ -313,6 +326,8 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
         rv_value = c_value-unknown.
     ENDCASE.
 
+    SHIFT rv_value LEFT DELETING LEADING '0'.
+
   ENDMETHOD.
 
 
@@ -339,6 +354,8 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
         rv_value = c_value-unknown.
     ENDCASE.
 
+    SHIFT rv_value LEFT DELETING LEADING '0'.
+
   ENDMETHOD.
 
 
@@ -347,6 +364,26 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
     CALL FUNCTION 'DB_DBRELINFO'
       IMPORTING
         dbinfo = rs_dbinfo.
+
+  ENDMETHOD.
+
+
+  METHOD get_environment.
+
+    DATA lo_parameters TYPE REF TO /mbtools/cl_string_map.
+
+    TRY.
+        lo_parameters = _get_all_environment_params( ).
+      CATCH /mbtools/cx_exception.
+        rv_value = c_not_authorized.
+        RETURN.
+    ENDTRY.
+
+    rv_value = lo_parameters->get( iv_property ).
+
+    IF rv_value IS INITIAL.
+      rv_value = c_value-unknown.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -371,6 +408,8 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       WHEN OTHERS.
         rv_value = c_value-unknown.
     ENDCASE.
+
+    SHIFT rv_value LEFT DELETING LEADING '0'.
 
   ENDMETHOD.
 
@@ -447,6 +486,8 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       WHEN OTHERS.
         rv_value = c_value-unknown.
     ENDCASE.
+
+    SHIFT rv_value LEFT DELETING LEADING '0'.
 
   ENDMETHOD.
 
@@ -554,6 +595,9 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
     IF ev_value = c_value-unknown.
       ev_value = get_profile_parameter( lv_property ).
     ENDIF.
+    IF ev_value = c_value-unknown.
+      ev_value = get_environment( lv_property ).
+    ENDIF.
 
     IF ev_value = c_value-unknown OR ev_value = c_not_authorized.
       ev_subrc = 4.
@@ -583,6 +627,8 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       WHEN OTHERS.
         rv_value = c_value-unknown.
     ENDCASE.
+
+    SHIFT rv_value LEFT DELETING LEADING '0'.
 
   ENDMETHOD.
 
@@ -627,6 +673,8 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
       rv_release = c_value-unknown.
     ENDIF.
 
+    SHIFT rv_release LEFT DELETING LEADING '0'.
+
   ENDMETHOD.
 
 
@@ -650,6 +698,8 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
     ELSE.
       rv_support_package = c_value-unknown.
     ENDIF.
+
+    SHIFT rv_support_package LEFT DELETING LEADING '0'.
 
   ENDMETHOD.
 
@@ -796,6 +846,36 @@ CLASS /mbtools/cl_utilities IMPLEMENTATION.
     ls_usr05-parva = iv_value.
 
     MODIFY usr05 FROM ls_usr05 ##SUBRC_OK.
+
+  ENDMETHOD.
+
+
+  METHOD _get_all_environment_params.
+
+    DATA:
+      lt_environment TYPE STANDARD TABLE OF thenv WITH DEFAULT KEY,
+      lv_key         TYPE string,
+      lv_val         TYPE string.
+
+    FIELD-SYMBOLS <ls_environment> LIKE LINE OF lt_environment.
+
+    AUTHORITY-CHECK OBJECT 'S_ADMI_FCD' ID 'S_ADMI_FCD' FIELD 'DBA'.
+    IF sy-subrc <> 0.
+      /mbtools/cx_exception=>raise( 'No authorization to read environment parameters' ).
+    ENDIF.
+
+    ro_parameters = /mbtools/cl_string_map=>create( iv_case_insensitive = abap_true ).
+
+    CALL FUNCTION 'TH_ENVIRONMENT'
+      TABLES
+        environment = lt_environment.
+
+    LOOP AT lt_environment ASSIGNING <ls_environment>.
+      SPLIT <ls_environment> AT '=' INTO lv_key lv_val.
+      ro_parameters->set(
+        iv_key = lv_key
+        iv_val = lv_val ).
+    ENDLOOP.
 
   ENDMETHOD.
 
