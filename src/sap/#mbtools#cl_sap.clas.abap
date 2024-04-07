@@ -12,6 +12,14 @@ CLASS /mbtools/cl_sap DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
+    CONSTANTS:
+      BEGIN OF c_pgmid,
+        head  TYPE pgmid VALUE 'HEAD',
+        r3tr  TYPE pgmid VALUE 'R3TR',
+        limu  TYPE pgmid VALUE 'LIMU',
+        basis TYPE pgmid VALUE 'ZZ01',
+      END OF c_pgmid.
+
     TYPES:
       BEGIN OF ty_domain_value,
         domvalue_l TYPE domvalue_l,
@@ -102,7 +110,7 @@ CLASS /mbtools/cl_sap DEFINITION
 
     CLASS-METHODS show_object
       IMPORTING
-        !iv_pgmid        TYPE csequence DEFAULT 'R3TR'
+        !iv_pgmid        TYPE csequence DEFAULT c_pgmid-r3tr
         !iv_object       TYPE csequence
         !iv_obj_name     TYPE csequence
         !iv_line_number  TYPE i OPTIONAL
@@ -121,7 +129,6 @@ CLASS /mbtools/cl_sap DEFINITION
         !iv_program    TYPE csequence
       RETURNING
         VALUE(rv_exit) TYPE abap_bool.
-
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -134,7 +141,7 @@ CLASS /mbtools/cl_sap DEFINITION
 
     CLASS-METHODS _map_object
       IMPORTING
-        !iv_pgmid    TYPE csequence DEFAULT 'R3TR'
+        !iv_pgmid    TYPE csequence DEFAULT c_pgmid-r3tr
         !iv_object   TYPE csequence
         !iv_obj_name TYPE csequence
       EXPORTING
@@ -144,7 +151,7 @@ CLASS /mbtools/cl_sap DEFINITION
 
     CLASS-METHODS _jump_basis
       IMPORTING
-        !iv_pgmid    TYPE csequence DEFAULT 'R3TR'
+        !iv_pgmid    TYPE csequence DEFAULT c_pgmid-basis
         !iv_object   TYPE csequence
         !iv_obj_name TYPE csequence.
 
@@ -166,11 +173,11 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
         wt_object_text = gt_object_texts.
 
     " Add texts for non-transportable objects (or from previous releases)
-    ls_object_text-pgmid  = 'HEAD'.
+    ls_object_text-pgmid  = c_pgmid-head.
     ls_object_text-object = 'SYST'.
     ls_object_text-text   = 'System Head'(107).
     COLLECT ls_object_text INTO gt_object_texts.
-    ls_object_text-pgmid  = 'R3TR'.
+    ls_object_text-pgmid  = c_pgmid-r3tr.
     ls_object_text-object = 'LSYS'.
     ls_object_text-text   = 'Source System'(100).
     COLLECT ls_object_text INTO gt_object_texts.
@@ -197,38 +204,38 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
     COLLECT ls_object_text INTO gt_object_texts.
 
     " Add Basis Objects
-    ls_object_text-pgmid  = 'ZZZZ'.
-    ls_object_text-object = 'ZACT'.
+    ls_object_text-pgmid  = c_pgmid-basis.
+    ls_object_text-object = /mbtools/if_objects=>c_basis-activity.
     ls_object_text-text   = 'Activity'(110).
     COLLECT ls_object_text INTO gt_object_texts.
-    ls_object_text-object = 'ZCLI'.
+    ls_object_text-object = /mbtools/if_objects=>c_basis-client.
     ls_object_text-text   = 'Client'(111).
     COLLECT ls_object_text INTO gt_object_texts.
-    ls_object_text-object = 'ZPCK'.
+    ls_object_text-object = /mbtools/if_objects=>c_basis-devclass.
     ls_object_text-text   = 'Package'(112).
     COLLECT ls_object_text INTO gt_object_texts.
-    ls_object_text-object = 'ZOWN'.
+    ls_object_text-object = /mbtools/if_objects=>c_basis-owner.
     ls_object_text-text   = 'Owner'(113).
     COLLECT ls_object_text INTO gt_object_texts.
-    ls_object_text-object = 'ZPRJ'.
+    ls_object_text-object = /mbtools/if_objects=>c_basis-project.
     ls_object_text-text   = 'Project'(114).
     COLLECT ls_object_text INTO gt_object_texts.
-    ls_object_text-object = 'ZREQ'.
+    ls_object_text-object = /mbtools/if_objects=>c_basis-request.
     ls_object_text-text   = 'Transport Request'(115).
     COLLECT ls_object_text INTO gt_object_texts.
-    ls_object_text-object = 'ZSYS'.
+    ls_object_text-object = /mbtools/if_objects=>c_basis-system.
     ls_object_text-text   = 'System'(116).
     COLLECT ls_object_text INTO gt_object_texts.
-    ls_object_text-object = 'ZGRP'.
+    ls_object_text-object = /mbtools/if_objects=>c_basis-target_group.
     ls_object_text-text   = 'Target Group'(117).
     COLLECT ls_object_text INTO gt_object_texts.
-    ls_object_text-object = 'ZLAY'.
+    ls_object_text-object = /mbtools/if_objects=>c_basis-translayer.
     ls_object_text-text   = 'Transport Layer'(118).
     COLLECT ls_object_text INTO gt_object_texts.
-    ls_object_text-object = 'ZTGT'.
+    ls_object_text-object = /mbtools/if_objects=>c_basis-transport_target.
     ls_object_text-text   = 'Transport Target'(119).
     COLLECT ls_object_text INTO gt_object_texts.
-    ls_object_text-object = 'ZUSR'.
+    ls_object_text-object = /mbtools/if_objects=>c_basis-user.
     ls_object_text-text   = 'User'(120).
     COLLECT ls_object_text INTO gt_object_texts.
 
@@ -675,16 +682,16 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
       lv_pgmid  = iv_pgmid.
     ELSE.
       READ TABLE gt_object_texts TRANSPORTING NO FIELDS
-        WITH KEY pgmid = 'LIMU' object = iv_object.
+        WITH KEY pgmid = c_pgmid-limu object = iv_object.
       IF sy-subrc = 0.
-        lv_pgmid = 'LIMU'.
+        lv_pgmid = c_pgmid-limu.
       ELSE.
         RETURN.
       ENDIF.
     ENDIF.
 
     " Basis objects
-    IF iv_pgmid = 'ZZZZ'.
+    IF iv_pgmid = c_pgmid-basis.
       _jump_basis(
         iv_pgmid    = iv_pgmid
         iv_object   = iv_object
@@ -770,42 +777,42 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
       lv_username   TYPE xubname.
 
     CASE iv_object.
-      WHEN /mbtools/if_command_field=>c_objects_basis-activity.
+      WHEN /mbtools/if_objects=>c_basis-activity.
         lv_activity = iv_obj_name.
 
         CALL FUNCTION 'TR_SHOW_ACTIVITY'
           EXPORTING
             iv_activity = lv_activity.
 
-      WHEN /mbtools/if_command_field=>c_objects_basis-client.
+      WHEN /mbtools/if_objects=>c_basis-client.
         lv_client = iv_obj_name.
 
         CALL FUNCTION 'TR_SHOW_CLIENT'
           EXPORTING
             iv_client = lv_client.
 
-      WHEN /mbtools/if_command_field=>c_objects_basis-devclass.
+      WHEN /mbtools/if_objects=>c_basis-devclass.
         lv_devclass = iv_obj_name.
 
         CALL FUNCTION 'TR_SHOW_DEVCLASS'
           EXPORTING
             iv_devclass = lv_devclass.
 
-      WHEN /mbtools/if_command_field=>c_objects_basis-owner.
+      WHEN /mbtools/if_objects=>c_basis-owner.
         lv_trkorr = iv_obj_name.
 
         CALL FUNCTION 'TR_SHOW_OWNER'
           EXPORTING
             iv_trkorr = lv_trkorr.
 
-      WHEN /mbtools/if_command_field=>c_objects_basis-project.
+      WHEN /mbtools/if_objects=>c_basis-project.
         lv_project = iv_obj_name.
 
         CALL FUNCTION 'TR_SHOW_PROJECT'
           EXPORTING
             iv_project = lv_project.
 
-      WHEN /mbtools/if_command_field=>c_objects_basis-request.
+      WHEN /mbtools/if_objects=>c_basis-request.
         lv_trkorr = iv_obj_name.
 
         CALL FUNCTION 'TR_SHOW_REQUEST'
@@ -813,21 +820,21 @@ CLASS /mbtools/cl_sap IMPLEMENTATION.
             iv_trkorr = lv_trkorr
             iv_popup  = abap_true.
 
-      WHEN /mbtools/if_command_field=>c_objects_basis-system.
+      WHEN /mbtools/if_objects=>c_basis-system.
         lv_system = iv_obj_name.
 
         CALL FUNCTION 'TR_SHOW_SYSTEM'
           EXPORTING
             iv_system = lv_system.
 
-      WHEN /mbtools/if_command_field=>c_objects_basis-translayer.
+      WHEN /mbtools/if_objects=>c_basis-translayer.
         lv_translayer = iv_obj_name.
 
         CALL FUNCTION 'TR_SHOW_TRANSLAYER'
           EXPORTING
             iv_translayer = lv_translayer.
 
-      WHEN /mbtools/if_command_field=>c_objects_basis-user.
+      WHEN /mbtools/if_objects=>c_basis-user.
         lv_username = iv_obj_name.
 
         CALL FUNCTION 'TR_SHOW_USER'
