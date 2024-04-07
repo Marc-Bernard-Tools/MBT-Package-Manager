@@ -135,8 +135,8 @@ CLASS /mbtools/cl_sap DEFINITION
 
     CONSTANTS:
       c_note_min TYPE cwbntnumm VALUE '1',
-      c_note_max TYPE cwbntnumm VALUE '4999999'
-      .
+      c_note_max TYPE cwbntnumm VALUE '4999999'.
+
     CLASS-DATA gt_object_texts TYPE /mbtools/if_definitions=>ty_object_texts.
 
     CLASS-METHODS _map_object
