@@ -720,8 +720,8 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
           i_probclass  = importance
           i_text       = free_text_msg
           i_s_context  = formatted_context
-          i_s_params   = formatted_params
-          i_detlevel   = detlevel.
+          i_s_params   = formatted_params.
+          " i_detlevel   = detlevel " mising in 740
     ELSEIF exception_data_table IS NOT INITIAL.
 
       LOOP AT exception_data_table ASSIGNING <exception_data>.
