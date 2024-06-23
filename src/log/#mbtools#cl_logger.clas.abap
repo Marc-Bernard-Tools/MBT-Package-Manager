@@ -82,8 +82,6 @@ CLASS /mbtools/cl_logger DEFINITION
         bapi_status_result TYPE i VALUE 7,
       END OF c_struct_kind.
 
-    DATA sec_connection     TYPE abap_bool.
-    DATA sec_connect_commit TYPE abap_bool.
     DATA settings           TYPE REF TO /mbtools/if_logger_settings.
 
     METHODS:
@@ -153,9 +151,14 @@ add_structure
         VALUE(detailed_msg) TYPE bal_s_msg.
     METHODS add_bapi_status_result
       IMPORTING
-        !obj_to_log         TYPE any
+        obj_to_log          TYPE any
       RETURNING
         VALUE(detailed_msg) TYPE bal_s_msg.
+    METHODS add_exception
+      IMPORTING
+        exception_data    TYPE bal_s_exc
+        formatted_context TYPE bal_s_cont
+        formatted_params  TYPE bal_s_parm.
 ENDCLASS.
 
 
@@ -245,6 +248,71 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
     detailed_msg-msgv2 = bdc_message-msgv2.
     detailed_msg-msgv3 = bdc_message-msgv3.
     detailed_msg-msgv4 = bdc_message-msgv4.
+  ENDMETHOD.
+
+
+  METHOD add_exception.
+
+    DATA: detailed_msg         TYPE bal_s_msg,
+          l_t100key            TYPE scx_t100key,
+          l_inc                TYPE i,
+          l_textid             TYPE sotr_conc,
+          l_substitution_table TYPE sotr_params.
+
+    FIELD-SYMBOLS:
+      <l_attr>         TYPE scx_t100key-attr1,
+      <l_msgv>         TYPE bal_s_msg-msgv1,
+      <l_substitution> TYPE sotr_param.
+
+    "exception -> type OTR-message or T100-message?
+    cl_message_helper=>check_msg_kind( EXPORTING msg     = exception_data-exception
+                                       IMPORTING t100key = l_t100key
+                                                 textid  = l_textid ).
+
+    IF l_textid IS NOT INITIAL.
+      "If it is a OTR-message
+      CALL FUNCTION 'BAL_LOG_EXCEPTION_ADD'
+        EXPORTING
+          i_log_handle = me->handle
+          i_s_exc      = exception_data.
+      RETURN.
+    ENDIF.
+
+    "get the parameter for text switching
+    cl_message_helper=>get_text_params( EXPORTING obj    = exception_data-exception
+                                        IMPORTING params = l_substitution_table ).
+
+    "exception with T100 message
+    detailed_msg-msgid = l_t100key-msgid.
+    detailed_msg-msgno = l_t100key-msgno.
+
+    DO 4 TIMES.
+      l_inc = sy-index - 1.
+      ASSIGN l_t100key-attr1 INCREMENT l_inc TO <l_attr> RANGE l_t100key.
+      IF sy-subrc = 0 AND <l_attr> IS NOT INITIAL.
+        READ TABLE l_substitution_table ASSIGNING <l_substitution> WITH KEY param = <l_attr>.
+        IF sy-subrc = 0 AND <l_substitution>-value IS NOT INITIAL.
+          ASSIGN detailed_msg-msgv1 INCREMENT l_inc TO <l_msgv> RANGE detailed_msg.
+          IF sy-subrc = 0.
+            <l_msgv> = <l_substitution>-value.
+          ENDIF.
+        ENDIF.
+      ENDIF.
+    ENDDO.
+
+    detailed_msg-msgty     = exception_data-msgty.
+    detailed_msg-probclass = exception_data-probclass.
+    detailed_msg-detlevel  = exception_data-detlevel.
+    detailed_msg-time_stmp = exception_data-time_stmp.
+    detailed_msg-alsort    = exception_data-alsort.
+    detailed_msg-context   = formatted_context.
+    detailed_msg-params    = formatted_params.
+
+    CALL FUNCTION 'BAL_LOG_MSG_ADD'
+      EXPORTING
+        i_log_handle = me->handle
+        i_s_msg      = detailed_msg.
+
   ENDMETHOD.
 
 
@@ -484,13 +552,16 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
     DATA log_handles TYPE bal_t_logh.
     DATA log_numbers TYPE bal_t_lgnm.
     DATA log_number  TYPE bal_s_lgnm.
+    DATA secondary_db_conn TYPE flag.
+    secondary_db_conn = settings->get_usage_of_secondary_db_conn( ).
 
     INSERT me->handle INTO TABLE log_handles.
+
     CALL FUNCTION 'BAL_DB_SAVE'
       EXPORTING
         i_t_log_handle       = log_handles
-        i_2th_connection     = me->sec_connection
-        i_2th_connect_commit = me->sec_connect_commit
+        i_2th_connection     = secondary_db_conn
+        i_2th_connect_commit = secondary_db_conn
       IMPORTING
         e_new_lognumbers     = log_numbers.
     IF me->db_number IS INITIAL.
@@ -713,22 +784,32 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
         message_type = if_msg_output=>msgtype_success.
       ENDIF.
 
-      CALL FUNCTION 'BAL_LOG_MSG_ADD_FREE_TEXT'
-        EXPORTING
-          i_log_handle = me->handle
-          i_msgty      = message_type
-          i_probclass  = importance
-          i_text       = free_text_msg
-          i_s_context  = formatted_context
-          i_s_params   = formatted_params.
-          " i_detlevel   = detlevel " mising in 740
+      TRY.
+          CALL FUNCTION 'BAL_LOG_MSG_ADD_FREE_TEXT'
+            EXPORTING
+              i_log_handle = me->handle
+              i_msgty      = message_type
+              i_probclass  = importance
+              i_text       = free_text_msg
+              i_s_context  = formatted_context
+              i_s_params   = formatted_params
+              i_detlevel   = detlevel.
+        CATCH cx_sy_dyn_call_param_not_found.
+          CALL FUNCTION 'BAL_LOG_MSG_ADD_FREE_TEXT'
+            EXPORTING
+              i_log_handle = me->handle
+              i_msgty      = message_type
+              i_probclass  = importance
+              i_text       = free_text_msg
+              i_s_context  = formatted_context
+              i_s_params   = formatted_params.
+      ENDTRY.
     ELSEIF exception_data_table IS NOT INITIAL.
 
       LOOP AT exception_data_table ASSIGNING <exception_data>.
-        CALL FUNCTION 'BAL_LOG_EXCEPTION_ADD'
-          EXPORTING
-            i_log_handle = me->handle
-            i_s_exc      = <exception_data>.
+        add_exception( exception_data = <exception_data>
+                       formatted_context = formatted_context
+                       formatted_params = formatted_params ).
       ENDLOOP.
     ELSEIF detailed_msg IS NOT INITIAL.
       detailed_msg-context   = formatted_context.
@@ -921,8 +1002,10 @@ CLASS /mbtools/cl_logger IMPLEMENTATION.
 
   METHOD /mbtools/if_logger~free.
 
-    " Save any messages (safety)
-    /mbtools/if_logger~save( ).
+    " Save any messages (safety) only if an object has been defined
+    IF me->header-object IS NOT INITIAL.
+      /mbtools/if_logger~save( ).
+    ENDIF.
 
     " Clear log from memory
     CALL FUNCTION 'BAL_LOG_REFRESH'
