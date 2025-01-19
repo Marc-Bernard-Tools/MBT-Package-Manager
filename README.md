@@ -27,9 +27,9 @@ All contributions are welcome! Read our [Contribution Guidelines](CONTRIBUTING.m
 
 ## About
 
-Made with :heart: in Canada
+Made with ❤️ in Canada
 
-Copyright 2024 Marc Bernard <https://marcbernardtools.com/>
+Copyright 2025 Marc Bernard <https://marcbernardtools.com/>
 
 Follow [@marcf.be](https://bsky.app/profile/marcf.be) on Bluesky and [@marcfbe](https://linkedin.com/in/marcfbe) on LinkedIn
 
