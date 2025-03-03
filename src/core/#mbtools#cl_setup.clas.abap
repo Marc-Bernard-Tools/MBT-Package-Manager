@@ -254,7 +254,8 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
   METHOD _get_certificate_mbt.
 
     " subject=CN = *.marcbernardtools.com
-    " issuer=CN=Sectigo RSA Domain Validation Secure Server CA, O=Sectigo Limited, L=Salford, SP=Greater Manchester, C=GB
+    " issuer=CN=Sectigo RSA Domain Validation Secure Server CA, O=Sectigo Limited,
+    "        L=Salford, SP=Greater Manchester, C=GB
     " notBefore=Nov 14 00:00:00 2024 GMT
     " notAfter=Nov 29 23:59:59 2025 GMT
 
