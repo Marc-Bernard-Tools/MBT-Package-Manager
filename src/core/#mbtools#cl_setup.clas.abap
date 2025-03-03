@@ -11,8 +11,6 @@ CLASS /mbtools/cl_setup DEFINITION
 ************************************************************************
   PUBLIC SECTION.
 
-    CLASS-METHODS class_constructor.
-
     CLASS-METHODS install
       IMPORTING
         !iv_force TYPE abap_bool DEFAULT abap_false
@@ -50,6 +48,8 @@ CLASS /mbtools/cl_setup DEFINITION
       gv_force    TYPE abap_bool,
       gv_drop     TYPE abap_bool.
 
+    CLASS-METHODS _settings.
+
     CLASS-METHODS _application_log.
 
     CLASS-METHODS _certificates.
@@ -69,14 +69,9 @@ ENDCLASS.
 CLASS /mbtools/cl_setup IMPLEMENTATION.
 
 
-  METHOD class_constructor.
-
-    go_settings = /mbtools/cl_tool_manager=>factory( )->get_settings( ).
-
-  ENDMETHOD.
-
-
   METHOD get_rfc_destination.
+
+    _settings( ).
 
     IF go_settings IS BOUND.
       rv_result = go_settings->get_value( /mbtools/cl_tool=>c_reg-key_rfcdest ).
@@ -90,6 +85,8 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
 
 
   METHOD get_ssl_client.
+
+    _settings( ).
 
     IF go_settings IS BOUND.
       rv_result = go_settings->get_value( /mbtools/cl_tool=>c_reg-key_ssl_client ).
@@ -106,6 +103,8 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
 
     gv_force = iv_force.
     gv_drop  = abap_false.
+
+    _settings( ).
 
     _application_log( ).
 
@@ -124,6 +123,8 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
 
     gv_force = abap_true.
     gv_drop  = abap_true.
+
+    _settings( ).
 
     _application_log( ).
 
@@ -200,6 +201,8 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
     INSERT balsubt FROM TABLE lt_balsubt.
     ASSERT sy-subrc >= 0.
 
+    CALL FUNCTION 'DB_COMMIT'.
+
   ENDMETHOD.
 
 
@@ -256,40 +259,40 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
     " notAfter=Dec  4 23:59:59 2024 GMT
 
     APPEND '-----BEGIN CERTIFICATE-----' TO rt_result.
-    APPEND 'MIIGQDCCBSigAwIBAgIQCNqWSvYNNa9hfOzsk89rUjANBgkqhkiG9w0BAQsFADBg' TO rt_result.
-    APPEND 'MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3' TO rt_result.
-    APPEND 'd3cuZGlnaWNlcnQuY29tMR8wHQYDVQQDExZSYXBpZFNTTCBUTFMgUlNBIENBIEcx' TO rt_result.
-    APPEND 'MB4XDTIzMTEyMDAwMDAwMFoXDTI0MTIwNDIzNTk1OVowITEfMB0GA1UEAwwWKi5t' TO rt_result.
+    APPEND 'MIIGSjCCBTKgAwIBAgIQWo+DT/WooZSe/KVFZRpj6zANBgkqhkiG9w0BAQsFADCB' TO rt_result.
+    APPEND 'jzELMAkGA1UEBhMCR0IxGzAZBgNVBAgTEkdyZWF0ZXIgTWFuY2hlc3RlcjEQMA4G' TO rt_result.
+    APPEND 'A1UEBxMHU2FsZm9yZDEYMBYGA1UEChMPU2VjdGlnbyBMaW1pdGVkMTcwNQYDVQQD' TO rt_result.
+    APPEND 'Ey5TZWN0aWdvIFJTQSBEb21haW4gVmFsaWRhdGlvbiBTZWN1cmUgU2VydmVyIENB' TO rt_result.
+    APPEND 'MB4XDTI0MTExNDAwMDAwMFoXDTI1MTEyOTIzNTk1OVowITEfMB0GA1UEAwwWKi5t' TO rt_result.
     APPEND 'YXJjYmVybmFyZHRvb2xzLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC' TO rt_result.
-    APPEND 'ggEBAMsjkkR9w3KJ19ef/8ntnqmqJB90ESQjqEOhFxqkXIdjLW6ob1NGstMD6E6v' TO rt_result.
-    APPEND 'A4sln07ZrWeep3hdldYImkOJ3Xt6uclsIfK/NLRQLZZBeITmxpJ3ynqZgtfwcRel' TO rt_result.
-    APPEND 'xcWr4qPMVVxITx7NTPYW2Itvxx3w7WJySioZS4QRAjNdWJafSXUoIaQIih94gN7X' TO rt_result.
-    APPEND 'fUt2cm3jKN9dIxhwdDVDjuvPRSaq2GD25gQw20Z5PvZtIxSpdSWNCEhocEAkkBVO' TO rt_result.
-    APPEND '1I7mEa/iA5sRxjW4aosYcyKX4R/vGRDmz3ARM+CTjJAsfPZkL9+J6G0DMj8UuVtk' TO rt_result.
-    APPEND 'xxWglgl4J6pDRAeWgu7JtH0OP4UCAwEAAaOCAzMwggMvMB8GA1UdIwQYMBaAFAzb' TO rt_result.
-    APPEND 'bIJJD0pnCrgU7nrESFKI61Y4MB0GA1UdDgQWBBT3F2dgDgO3ZdINnLSKbpHhsNnY' TO rt_result.
-    APPEND 'kzA3BgNVHREEMDAughYqLm1hcmNiZXJuYXJkdG9vbHMuY29tghRtYXJjYmVybmFy' TO rt_result.
-    APPEND 'ZHRvb2xzLmNvbTA+BgNVHSAENzA1MDMGBmeBDAECATApMCcGCCsGAQUFBwIBFhto' TO rt_result.
-    APPEND 'dHRwOi8vd3d3LmRpZ2ljZXJ0LmNvbS9DUFMwDgYDVR0PAQH/BAQDAgWgMB0GA1Ud' TO rt_result.
-    APPEND 'JQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjA/BgNVHR8EODA2MDSgMqAwhi5odHRw' TO rt_result.
-    APPEND 'Oi8vY2RwLnJhcGlkc3NsLmNvbS9SYXBpZFNTTFRMU1JTQUNBRzEuY3JsMHYGCCsG' TO rt_result.
-    APPEND 'AQUFBwEBBGowaDAmBggrBgEFBQcwAYYaaHR0cDovL3N0YXR1cy5yYXBpZHNzbC5j' TO rt_result.
-    APPEND 'b20wPgYIKwYBBQUHMAKGMmh0dHA6Ly9jYWNlcnRzLnJhcGlkc3NsLmNvbS9SYXBp' TO rt_result.
-    APPEND 'ZFNTTFRMU1JTQUNBRzEuY3J0MAwGA1UdEwEB/wQCMAAwggF8BgorBgEEAdZ5AgQC' TO rt_result.
-    APPEND 'BIIBbASCAWgBZgB1AHb/iD8KtvuVUcJhzPWHujS0pM27KdxoQgqf5mdMWjp0AAAB' TO rt_result.
-    APPEND 'i+prpXkAAAQDAEYwRAIgRmuHMGxs5+YbIOBq9lQDEGoTasVb8dZiajVRnHgzBjoC' TO rt_result.
-    APPEND 'ICwvhghliCTAc5V/MEu33k43Cs/zeoyBQyM6Zu4YVU9vAHUASLDja9qmRzQP5WoC' TO rt_result.
-    APPEND '+p0w6xxSActW3SyB2bu/qznYhHMAAAGL6mulRAAABAMARjBEAiAjL6bIlTEgrrvy' TO rt_result.
-    APPEND 'Ozi+CaPvdE3lQf+VNqhH6Fr+QjS0WgIgYqaDEdHupvboESdt3riXcH6bkwhPWjYt' TO rt_result.
-    APPEND 'C2Z5Yy63Gx8AdgDatr9rP7W2Ip+bwrtca+hwkXFsu1GEhTS9pD0wSNf7qwAAAYvq' TO rt_result.
-    APPEND 'a6UkAAAEAwBHMEUCIQDSsjnYLKz1DHf/tbXgmNCGNzI9l/g9F4d7VxSx2/1RpgIg' TO rt_result.
-    APPEND 'R77/B7HsjUfYCsnCRLx9uGkfIu/MGx21PRif/hTe8aAwDQYJKoZIhvcNAQELBQAD' TO rt_result.
-    APPEND 'ggEBAIg/nlyxXFEEvW1v6c68HkIB7UOJk3gq9caZXBb96tsQtLeRVDyLi4UbeSdb' TO rt_result.
-    APPEND 'l+aQhLUFox/51TyBhLIs89DsKt0/qhvglO66+K/Z9CKZ28QYyOWFiNoZ0jpwNdAn' TO rt_result.
-    APPEND '9vm5bPDX+06U5L+Lmrqm0PgUoMHH0VVIPFbTt//o7p1dElEE919WBb3uXsJZ/tSJ' TO rt_result.
-    APPEND '5/N6fAV+puUccKGhKS1WqOrO5yTQPicEI72Zg/nXrOPOF3Fji+MD2v0wBBNTmto+' TO rt_result.
-    APPEND '+l6JmIj9V0scTjKFM5uN7UW5BanwULy4frsSraTiF9owpHBmQzGIY+XNhPjFU/mI' TO rt_result.
-    APPEND 'YRI7fsPjG8ahNuWUP9JMnAGaHTU=' TO rt_result.
+    APPEND 'ggEBALUVPPPxjo2a/QY4DqbD/gA9yRlwUxW22HQmzEaeNGVZ+o53frGgQ+mnk05n' TO rt_result.
+    APPEND 's0GM8jlHFhmjn3jxR06ELLQRF3SPA5UdRCgzJ2A6Ru7zK44TeTmSop/ZrqgMBVe6' TO rt_result.
+    APPEND '+8wGicdlvEV0LJhHoRkBUUSLq7aFaVK4hRnnK1uYrQi8JaTWYZBD89gq276s+t89' TO rt_result.
+    APPEND 'jBjY0h/SLmLDllgAlq4OdoDn1pUJyjhWLOFf9kk2chOUUnxGr035e3mligQ9iKr9' TO rt_result.
+    APPEND '9NzSSWtHbcfpIloJupgk3rnhS2pyKwZDR6Xbj04xEAi7Ksw+vOoMM/iJUwJiu6SO' TO rt_result.
+    APPEND 'iVsLHQ50WI35ys+DpG9yYPHt5K8CAwEAAaOCAw0wggMJMB8GA1UdIwQYMBaAFI2M' TO rt_result.
+    APPEND 'XsRUrYrhd+mb+ZsF4bgBjWHhMB0GA1UdDgQWBBT7PeILH3G4K3vMGFc/XMPkcPZY' TO rt_result.
+    APPEND 'eTAOBgNVHQ8BAf8EBAMCBaAwDAYDVR0TAQH/BAIwADAdBgNVHSUEFjAUBggrBgEF' TO rt_result.
+    APPEND 'BQcDAQYIKwYBBQUHAwIwSQYDVR0gBEIwQDA0BgsrBgEEAbIxAQICBzAlMCMGCCsG' TO rt_result.
+    APPEND 'AQUFBwIBFhdodHRwczovL3NlY3RpZ28uY29tL0NQUzAIBgZngQwBAgEwgYQGCCsG' TO rt_result.
+    APPEND 'AQUFBwEBBHgwdjBPBggrBgEFBQcwAoZDaHR0cDovL2NydC5zZWN0aWdvLmNvbS9T' TO rt_result.
+    APPEND 'ZWN0aWdvUlNBRG9tYWluVmFsaWRhdGlvblNlY3VyZVNlcnZlckNBLmNydDAjBggr' TO rt_result.
+    APPEND 'BgEFBQcwAYYXaHR0cDovL29jc3Auc2VjdGlnby5jb20wNwYDVR0RBDAwLoIWKi5t' TO rt_result.
+    APPEND 'YXJjYmVybmFyZHRvb2xzLmNvbYIUbWFyY2Jlcm5hcmR0b29scy5jb20wggF9Bgor' TO rt_result.
+    APPEND 'BgEEAdZ5AgQCBIIBbQSCAWkBZwB1AN3cyjSV1+EWBeeVMvrHn/g9HFDf2wA6FBJ2' TO rt_result.
+    APPEND 'Ciysu8gqAAABkyktxosAAAQDAEYwRAIgMyD0emvh61HUuIWnjw/t9R9i5ruZc9JM' TO rt_result.
+    APPEND 'g9lHSqUwqjkCIHnOa78Nr2jEqCzQudwx5qXg82pGZzfL2mbWjOGDE6IjAHYAzPsP' TO rt_result.
+    APPEND 'aoVxCWX+lZtTzumyfCLphVwNl422qX5UwP5MDbAAAAGTKS3GbgAABAMARzBFAiEA' TO rt_result.
+    APPEND '25dZpkbBl69b0RXZJemMgsLM579fMbevO1gHqgKiWYECIB4FmksQ7F+5uBtNrA/6' TO rt_result.
+    APPEND 'JBnTE6TeMPUK1aH8shFNxnktAHYAEvFONL1TckyEBhnDjz96E/jntWKHiJxtMAWE' TO rt_result.
+    APPEND '6+WGJjoAAAGTKS3GTQAABAMARzBFAiEA/crOBHguPHgWEOkLz6fw/tcQhMgNa0ui' TO rt_result.
+    APPEND 'ED949f9n3PsCIGmpofvmlsJ+jrYEbb+hLJF7u77WOvwHC2B7izCbpkLwMA0GCSqG' TO rt_result.
+    APPEND 'SIb3DQEBCwUAA4IBAQAjusRcmsyWJYvvIMV322ztBMdcSe1ncovjX8n3H/Jkc0hG' TO rt_result.
+    APPEND 'lxiwezWmXqBVLzguQ6jinB4gLyOmSG8/bE3wO56nIPDb3OUdEC4V7eGgnJE1XPJ5' TO rt_result.
+    APPEND 'W6o6JGn5eEzTw9M7jRy9GDOLJxJlBe117qQxeoYEKP9ijHH+/GgZd5gwNNOtFYcs' TO rt_result.
+    APPEND 'pSL/2Xn8SWSh6dYKDQp6DnSxP6ZpsLy+0UvaPXTKOhUgiVXWsCUZPnKufIkgxKXQ' TO rt_result.
+    APPEND 'Di1Zub4ga4Xcv6ANHbAmeVmIUXW4nqPyE1xwdwL4MwrkBv7SJcJYv8xl8VeEWYEO' TO rt_result.
+    APPEND 'Df2TseUUPkANsRf5dMqvJ6FgxTZb4czJXlcPCrBM' TO rt_result.
     APPEND '-----END CERTIFICATE-----' TO rt_result.
 
   ENDMETHOD.
@@ -392,4 +395,13 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
+
+METHOD _settings.
+
+    IF go_settings IS INITIAL.
+      go_settings = /mbtools/cl_tool_manager=>factory( )->get_settings( ).
+    ENDIF.
+
+ENDMETHOD.
 ENDCLASS.
