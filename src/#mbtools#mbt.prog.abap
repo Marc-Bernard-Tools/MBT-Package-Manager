@@ -244,7 +244,8 @@ ENDFORM.
 
 INITIALIZATION.
 
-  DATA lo_tool TYPE REF TO /mbtools/cl_tool.
+  " Initialize MBT application
+  /mbtools/cl_setup=>install( ).
 
   " Register all installed passes, bundles, and tools
   /mbtools/cl_tool_manager=>action_passes( /mbtools/if_actions=>tool_register ).
@@ -253,8 +254,7 @@ INITIALIZATION.
 
   " If MBT Package Manager is the only installed tool, then activate it
   IF /mbtools/cl_tool_manager=>is_base_only( ) = abap_true.
-    lo_tool = /mbtools/cl_tool_manager=>factory( /mbtools/cl_tool_bc=>c_tool-title ).
-    lo_tool->activate( ).
+    /mbtools/cl_tool_manager=>factory( )->activate( ).
   ENDIF.
 
   lcl_main=>main_screen_init( ).
