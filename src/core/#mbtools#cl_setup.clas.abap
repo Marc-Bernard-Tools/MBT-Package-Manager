@@ -104,9 +104,9 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
     gv_force = iv_force.
     gv_drop  = abap_false.
 
-    _settings( ).
-
     _application_log( ).
+
+    _settings( ).
 
     IF /mbtools/cl_mbt=>is_offline( ) = abap_true.
       RETURN.
@@ -254,9 +254,9 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
   METHOD _get_certificate_mbt.
 
     " subject=CN = *.marcbernardtools.com
-    " issuer=C = US, O = DigiCert Inc, OU = www.digicert.com, CN = RapidSSL TLS RSA CA G1
-    " notBefore=Nov 20 00:00:00 2023 GMT
-    " notAfter=Dec  4 23:59:59 2024 GMT
+    " issuer=CN=Sectigo RSA Domain Validation Secure Server CA, O=Sectigo Limited, L=Salford, SP=Greater Manchester, C=GB
+    " notBefore=Nov 14 00:00:00 2024 GMT
+    " notAfter=Nov 29 23:59:59 2025 GMT
 
     APPEND '-----BEGIN CERTIFICATE-----' TO rt_result.
     APPEND 'MIIGSjCCBTKgAwIBAgIQWo+DT/WooZSe/KVFZRpj6zANBgkqhkiG9w0BAQsFADCB' TO rt_result.
@@ -397,11 +397,11 @@ CLASS /mbtools/cl_setup IMPLEMENTATION.
   ENDMETHOD.
 
 
-METHOD _settings.
+  METHOD _settings.
 
     IF go_settings IS INITIAL.
       go_settings = /mbtools/cl_tool_manager=>factory( )->get_settings( ).
     ENDIF.
 
-ENDMETHOD.
+  ENDMETHOD.
 ENDCLASS.
