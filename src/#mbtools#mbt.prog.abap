@@ -244,8 +244,17 @@ ENDFORM.
 
 INITIALIZATION.
 
+  DATA lx_error TYPE REF TO cx_root.
+
   " Initialize MBT application
-  /mbtools/cl_setup=>install( ).
+  TRY.
+      /mbtools/cl_setup_db=>install( ).
+      /mbtools/cl_setup=>install( ).
+    CATCH cx_root INTO lx_error.
+      " unexpected
+      MESSAGE lx_error TYPE 'I' DISPLAY LIKE 'E'.
+      STOP.
+  ENDTRY.
 
   " Register all installed passes, bundles, and tools
   /mbtools/cl_tool_manager=>action_passes( /mbtools/if_actions=>tool_register ).
