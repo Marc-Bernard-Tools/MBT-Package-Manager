@@ -51154,7 +51154,7 @@ PARAMETERS:
 SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4,
   COMMENT (22) sc_t103 FOR FIELD p_file_f.
 PARAMETERS:
-  p_file_f TYPE char255 LOWER CASE
+  p_file_f TYPE string LOWER CASE
     DEFAULT 'C:\Tmp\MBT-Package-Manager-main.zip' MODIF ID c12.
 SELECTION-SCREEN END OF LINE.
 
@@ -51164,7 +51164,7 @@ PARAMETERS:
 SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4,
   COMMENT (22) sc_t104 FOR FIELD p_file_s.
 PARAMETERS:
-  p_file_s TYPE char255 LOWER CASE
+  p_file_s TYPE string LOWER CASE
     DEFAULT 'MBT-Package-Manager-main.zip' MODIF ID c13.
 SELECTION-SCREEN END OF LINE.
 
@@ -51174,7 +51174,7 @@ PARAMETERS:
 SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4,
   COMMENT (22) sc_t102 FOR FIELD p_file_i.
 PARAMETERS:
-  p_file_i TYPE char255 LOWER CASE
+  p_file_i TYPE string LOWER CASE
     DEFAULT 'https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/archive/main.zip' MODIF ID c11.
 SELECTION-SCREEN END OF LINE.
 
@@ -51269,11 +51269,11 @@ PARAMETERS:
 SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4,
   COMMENT (22) sc_t402 FOR FIELD p_conn_u.
 PARAMETERS:
-  p_conn_u TYPE char255 LOWER CASE MODIF ID c40.
+  p_conn_u TYPE string LOWER CASE MODIF ID c40.
 SELECTION-SCREEN: END OF LINE, BEGIN OF LINE, POSITION 4,
   COMMENT (22) sc_t403 FOR FIELD p_conn_p.
 PARAMETERS:
-  p_conn_p TYPE char255 LOWER CASE MODIF ID p40.
+  p_conn_p TYPE string LOWER CASE MODIF ID p40.
 SELECTION-SCREEN END OF LINE.
 SELECTION-SCREEN SKIP 2.
 
@@ -51282,7 +51282,7 @@ PARAMETERS:
 SELECTION-SCREEN: SKIP, BEGIN OF LINE, POSITION 4,
   COMMENT (22) sc_t404 FOR FIELD p_prox_h.
 PARAMETERS:
-  p_prox_h TYPE char255 LOWER CASE MODIF ID c41.
+  p_prox_h TYPE string LOWER CASE MODIF ID c41.
 SELECTION-SCREEN: END OF LINE, BEGIN OF LINE, POSITION 4,
   COMMENT (22) sc_t405 FOR FIELD p_prox_s.
 PARAMETERS:
@@ -51290,11 +51290,11 @@ PARAMETERS:
 SELECTION-SCREEN: END OF LINE, BEGIN OF LINE, POSITION 4,
   COMMENT (22) sc_t406 FOR FIELD p_prox_u.
 PARAMETERS:
-  p_prox_u TYPE char255 LOWER CASE MODIF ID c41.
+  p_prox_u TYPE string LOWER CASE MODIF ID c41.
 SELECTION-SCREEN: END OF LINE, BEGIN OF LINE, POSITION 4,
   COMMENT (22) sc_t407 FOR FIELD p_prox_p.
 PARAMETERS:
-  p_prox_p TYPE char255 LOWER CASE MODIF ID p41.
+  p_prox_p TYPE string LOWER CASE MODIF ID p41.
 SELECTION-SCREEN END OF LINE.
 
 SELECTION-SCREEN SKIP 1.
@@ -51744,12 +51744,12 @@ START-OF-SELECTION.
           iv_devlayer          = p_layr_t
           iv_enum_transport    = lv_enum_transport
           iv_transport         = p_req_e
-          iv_user              = p_conn_u
-          iv_password          = p_conn_p
-          iv_proxy_host        = p_prox_h
-          iv_proxy_service     = p_prox_s
-          iv_proxy_user        = p_prox_u
-          iv_proxy_password    = p_prox_p
+          iv_user              = |{ p_conn_u }|
+          iv_password          = |{ p_conn_p }|
+          iv_proxy_host        = |{ p_prox_h }|
+          iv_proxy_service     = |{ p_prox_s }|
+          iv_proxy_user        = |{ p_prox_u }|
+          iv_proxy_password    = |{ p_prox_p }|
           iv_enum_folder_logic = lv_enum_folder_logic ).
 
       ELSE.

@@ -23,18 +23,18 @@ SELECTION-SCREEN END OF SCREEN 1001.
 * Password Screen
 *-----------------------------------------------------------------------
 SELECTION-SCREEN BEGIN OF SCREEN 1002 TITLE sc_title.
-SELECTION-SCREEN BEGIN OF LINE.
-SELECTION-SCREEN COMMENT 1(10) sc_url FOR FIELD p_url.
-PARAMETERS: p_url TYPE char255 LOWER CASE VISIBLE LENGTH 70 ##SEL_WRONG.
-SELECTION-SCREEN END OF LINE.
-SELECTION-SCREEN BEGIN OF LINE.
-SELECTION-SCREEN COMMENT 1(10) sc_user FOR FIELD p_user.
-PARAMETERS: p_user TYPE char255 LOWER CASE VISIBLE LENGTH 70 ##SEL_WRONG.
-SELECTION-SCREEN END OF LINE.
-SELECTION-SCREEN BEGIN OF LINE.
-SELECTION-SCREEN COMMENT 1(10) sc_pass FOR FIELD p_pass.
-PARAMETERS: p_pass TYPE char255 LOWER CASE VISIBLE LENGTH 70 ##SEL_WRONG.
-SELECTION-SCREEN END OF LINE.
+  SELECTION-SCREEN BEGIN OF LINE.
+    SELECTION-SCREEN COMMENT 1(10) sc_url FOR FIELD p_url.
+    PARAMETERS: p_url TYPE char255 LOWER CASE VISIBLE LENGTH 70 ##SEL_WRONG.
+  SELECTION-SCREEN END OF LINE.
+  SELECTION-SCREEN BEGIN OF LINE.
+    SELECTION-SCREEN COMMENT 1(10) sc_user FOR FIELD p_user.
+    PARAMETERS: p_user TYPE char255 LOWER CASE VISIBLE LENGTH 70 ##SEL_WRONG.
+  SELECTION-SCREEN END OF LINE.
+  SELECTION-SCREEN BEGIN OF LINE.
+    SELECTION-SCREEN COMMENT 1(10) sc_pass FOR FIELD p_pass.
+    PARAMETERS: p_pass TYPE char255 LOWER CASE VISIBLE LENGTH 70 ##SEL_WRONG.
+  SELECTION-SCREEN END OF LINE.
 SELECTION-SCREEN END OF SCREEN 1002.
 
 *-----------------------------------------------------------------------
@@ -244,8 +244,17 @@ ENDFORM.
 
 INITIALIZATION.
 
+  DATA lx_error TYPE REF TO cx_root.
+
   " Initialize MBT application
-  /mbtools/cl_setup=>install( ).
+  TRY.
+      /mbtools/cl_setup_db=>install( ).
+      /mbtools/cl_setup=>install( ).
+    CATCH cx_root INTO lx_error.
+      " unexpected
+      MESSAGE lx_error TYPE 'I' DISPLAY LIKE 'E'.
+      STOP.
+  ENDTRY.
 
   " Register all installed passes, bundles, and tools
   /mbtools/cl_tool_manager=>action_passes( /mbtools/if_actions=>tool_register ).
