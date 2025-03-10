@@ -47,6 +47,7 @@ INTERFACE zif_abapgit_data_serializer DEFERRED.
 INTERFACE zif_abapgit_data_supporter DEFERRED.
 INTERFACE zif_abapgit_default_transport DEFERRED.
 INTERFACE zif_abapgit_sap_package DEFERRED.
+INTERFACE zif_abapinst_dot_abapgit DEFERRED.
 INTERFACE zif_abapgit_dot_abapgit DEFERRED.
 INTERFACE zif_abapgit_environment DEFERRED.
 INTERFACE zif_abapgit_persistence DEFERRED.
@@ -73,7 +74,6 @@ INTERFACE zif_abapgit_progress DEFERRED.
 INTERFACE zif_abapgit_sap_namespace DEFERRED.
 INTERFACE zif_abapgit_tadir DEFERRED.
 INTERFACE zif_abapinst_definitions DEFERRED.
-INTERFACE zif_abapinst_dot_abapgit DEFERRED.
 INTERFACE zif_abapgit_apack_definitions DEFERRED.
 INTERFACE zif_abapgit_function_module DEFERRED.
 INTERFACE zif_abapgit_object_enhs DEFERRED.
@@ -3111,6 +3111,39 @@ INTERFACE zif_abapgit_sap_package
       zcx_abapgit_exception .
 ENDINTERFACE.
 
+INTERFACE zif_abapinst_dot_abapgit .
+
+  TYPES:
+  " Former APACK
+    BEGIN OF ty_dependency,
+      name           TYPE string,
+      version        TYPE string,
+      sem_version    TYPE zif_abapgit_definitions=>ty_version,
+      git_url        TYPE string,
+      target_package TYPE devclass,
+    END OF ty_dependency,
+    ty_dependencies TYPE STANDARD TABLE OF ty_dependency WITH NON-UNIQUE DEFAULT KEY.
+
+  TYPES:
+    BEGIN OF ty_descriptor,
+      name           TYPE string,
+      version        TYPE string,
+      sem_version    TYPE zif_abapgit_definitions=>ty_version,
+      description    TYPE string,
+      git_url        TYPE string,
+      target_package TYPE devclass,
+      logo           TYPE string,
+    END OF ty_descriptor.
+
+  TYPES:
+    BEGIN OF ty_packaging.
+      INCLUDE TYPE ty_descriptor.
+  TYPES:
+      dependencies TYPE ty_dependencies,
+    END OF ty_packaging.
+
+ENDINTERFACE.
+
 INTERFACE zif_abapgit_dot_abapgit .
 
   TYPES:
@@ -3135,6 +3168,7 @@ INTERFACE zif_abapgit_dot_abapgit .
       version_constant      TYPE string,
       abap_language_version TYPE string,
       original_system       TYPE tadir-srcsystem,
+      packaging             TYPE zif_abapinst_dot_abapgit=>ty_packaging,
     END OF ty_dot_abapgit .
 
   CONSTANTS:
@@ -4675,39 +4709,6 @@ INTERFACE zif_abapinst_definitions .
 
 ENDINTERFACE.
 
-INTERFACE zif_abapinst_dot_abapgit .
-
-  TYPES:
-  " Former APACK
-    BEGIN OF ty_dependency,
-      name           TYPE string,
-      version        TYPE string,
-      sem_version    TYPE zif_abapgit_definitions=>ty_version,
-      git_url        TYPE string,
-      target_package TYPE devclass,
-    END OF ty_dependency,
-    ty_dependencies TYPE STANDARD TABLE OF ty_dependency WITH NON-UNIQUE DEFAULT KEY.
-
-  TYPES:
-    BEGIN OF ty_descriptor,
-      name           TYPE string,
-      version        TYPE string,
-      sem_version    TYPE zif_abapgit_definitions=>ty_version,
-      description    TYPE string,
-      git_url        TYPE string,
-      target_package TYPE devclass,
-      logo           TYPE string,
-    END OF ty_descriptor.
-
-  TYPES:
-    BEGIN OF ty_packaging.
-      INCLUDE TYPE ty_descriptor.
-  TYPES:
-      dependencies TYPE ty_dependencies,
-    END OF ty_packaging.
-
-ENDINTERFACE.
-
 INTERFACE zif_abapgit_apack_definitions  .
 
   TYPES:
@@ -5790,6 +5791,7 @@ ENDCLASS.
 
 CLASS zcl_abapgit_data_injector DEFINITION
 
+*
   CREATE PUBLIC .
 
   PUBLIC SECTION.
@@ -6053,6 +6055,16 @@ CLASS zcl_abapgit_dot_abapgit DEFINITION
     METHODS set_original_system
       IMPORTING
         !iv_original_system TYPE csequence .
+
+    METHODS get_packaging
+      RETURNING
+        VALUE(rs_packaging) TYPE zif_abapinst_dot_abapgit=>ty_packaging
+      RAISING
+        zcx_abapgit_exception.
+
+    METHODS set_packaging
+      IMPORTING
+        !is_packaging TYPE zif_abapinst_dot_abapgit=>ty_packaging.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -19285,6 +19297,20 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
     rv_original_system = ms_data-original_system.
   ENDMETHOD.
 
+  METHOD get_packaging.
+
+    FIELD-SYMBOLS <ls_dependency> LIKE LINE OF rs_packaging-dependencies.
+
+    rs_packaging = ms_data-packaging.
+
+    rs_packaging-sem_version = zcl_abapgit_version=>conv_str_to_version( rs_packaging-version ).
+
+    LOOP AT rs_packaging-dependencies ASSIGNING <ls_dependency>.
+      <ls_dependency>-sem_version = zcl_abapgit_version=>conv_str_to_version( <ls_dependency>-version ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
   METHOD get_requirements.
     rt_requirements = ms_data-requirements.
   ENDMETHOD.
@@ -19383,6 +19409,20 @@ CLASS zcl_abapgit_dot_abapgit IMPLEMENTATION.
 
   METHOD set_original_system.
     ms_data-original_system = iv_original_system.
+  ENDMETHOD.
+
+  METHOD set_packaging.
+
+    FIELD-SYMBOLS <ls_dependency> LIKE LINE OF ms_data-packaging-dependencies.
+
+    ms_data-packaging = is_packaging.
+
+    CLEAR ms_data-packaging-sem_version.
+
+    LOOP AT ms_data-packaging-dependencies ASSIGNING <ls_dependency>.
+      CLEAR <ls_dependency>-sem_version.
+    ENDLOOP.
+
   ENDMETHOD.
 
   METHOD set_requirements.
@@ -47198,20 +47238,15 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
 
     " Temporarily suppress certain messages that are not relevant for installation
 
-    CONSTANTS lc_toolflag_set TYPE funcname VALUE 'SCWG_TOOLFLAG_SET'.
+    CONSTANTS c_toolflag_set TYPE funcname VALUE 'SCWG_TOOLFLAG_SET'.
 
     DATA ls_clmcus TYPE clmcus.
 
     " Set tool flag to avoid messages
-    CALL FUNCTION 'FUNCTION_EXISTS'
-      EXPORTING
-        funcname           = lc_toolflag_set
-      EXCEPTIONS
-        function_not_exist = 1
-        OTHERS             = 2.
-    IF sy-subrc = 0.
-      CALL FUNCTION lc_toolflag_set.
-    ENDIF.
+    TRY.
+        CALL FUNCTION c_toolflag_set.
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
     " Confirm message about modification mode (DT, CLM_INFORMATION)
     " and backup old state (see _restore_messages)
@@ -47251,9 +47286,8 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
       lt_result    TYPE zif_abapgit_data_deserializer=>ty_results.
 
     CREATE OBJECT lo_support.
-*** MBT FIXME
-*    CREATE OBJECT lo_inject
-*    lo_inject->set_supporter( lo_support )
+    CREATE OBJECT lo_inject.
+    lo_inject->set_supporter( lo_support ).
 
     li_config = _find_remote_data_config( ).
 
@@ -47562,7 +47596,7 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        " FIXME: gs_packaging = go_dot->get_packaging( ).
+        gs_packaging = go_dot->get_packaging( ).
       CATCH zcx_abapgit_exception.
         CLEAR gs_packaging.
     ENDTRY.
@@ -47598,6 +47632,14 @@ CLASS zcl_abapinst_installer IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _restore_messages.
+
+    CONSTANTS c_toolflag_reset TYPE funcname VALUE 'SCWG_TOOLFLAG_RESET'.
+
+    " Reset tool flag
+    TRY.
+        CALL FUNCTION c_toolflag_reset.
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
     DELETE FROM clmcus WHERE username = sy-uname ##SUBRC_OK.
     CHECK sy-subrc >= 0. "abaplint
