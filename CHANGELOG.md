@@ -8,6 +8,13 @@ and [ISO Date Format](https://www.iso.org/iso-8601-date-and-time-format.html).
 
 ## [Unreleased]
 
+## Version [1.4.8] - 2025-10-26
+
+### Fixed
+
+- Update installer to latest abapGit dependencies
+- Tested installer on new system (without abapGit installed)
+
 ## Version [1.4.7] - 2025-03-10
 
 ### Fixed
@@ -153,7 +160,8 @@ Launch Release
 Initial Release. For details, see [Features](https://marcbernardtools.com/docs/marc-bernard-tools/features).
 
 
-[Unreleased]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.7...main
+[Unreleased]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.8...main
+[1.4.8]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.7...1.4.8
 [1.4.7]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.6...1.4.7
 [1.4.6]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.5...1.4.6
 [1.4.5]: https://github.com/Marc-Bernard-Tools/MBT-Package-Manager/compare/1.4.4...1.4.5
