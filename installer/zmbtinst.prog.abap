@@ -3250,6 +3250,11 @@ INTERFACE zif_abapgit_sap_package
       VALUE(rv_transport_layer) TYPE devlayer
     RAISING
        zcx_abapgit_exception.
+  METHODS check_object_type
+    IMPORTING
+      iv_obj_type TYPE tadir-object
+    RAISING
+      zcx_abapgit_exception.
 ENDINTERFACE.
 
 INTERFACE zif_abapinst_dot_abapgit .
@@ -29683,6 +29688,9 @@ CLASS zcl_abapgit_object_doma IMPLEMENTATION.
       WHEN zif_abapgit_object=>gc_step_id-late.
         cv_done = check_exit( cv_exit ).
 
+      WHEN zif_abapgit_object=>gc_step_id-lxe.
+        cv_done = abap_true.
+
       WHEN OTHERS.
         ASSERT 0 = 1.
     ENDCASE.
@@ -37092,6 +37100,9 @@ CLASS zcl_abapgit_object_shlp IMPLEMENTATION.
       WHEN zif_abapgit_object=>gc_step_id-late.
         cv_done = check_exit( cv_exit ).
 
+      WHEN zif_abapgit_object=>gc_step_id-lxe.
+        cv_done = abap_true.
+
       WHEN OTHERS.
         ASSERT 0 = 1.
     ENDCASE.
@@ -44417,6 +44428,32 @@ CLASS zcl_abapgit_sap_package IMPLEMENTATION.
     IF sy-subrc <> 0.
       zcx_abapgit_exception=>raise( |Package name { mv_package } is not valid| ).
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD zif_abapgit_sap_package~check_object_type.
+
+    " check package restrictions, closed package, descriptive or
+    " functional package
+    cl_pak_object_types=>check_object_type(
+      EXPORTING
+        i_working_mode         = 'I'
+        i_package_name         = mv_package
+        i_pgmid                = 'R3TR'
+        i_object_type          = iv_obj_type
+      EXCEPTIONS
+        wrong_object_type      = 1
+        package_not_extensible = 2
+        package_not_loaded     = 3
+        OTHERS                 = 4 ).
+    CASE sy-subrc.
+      WHEN 0.
+        RETURN.
+      WHEN 2.
+        zcx_abapgit_exception=>raise( |Object type { iv_obj_type } not allowed for package { mv_package }| ).
+      WHEN OTHERS.
+        zcx_abapgit_exception=>raise_t100( ).
+    ENDCASE.
 
   ENDMETHOD.
 ENDCLASS.
@@ -53366,7 +53403,7 @@ START-OF-SELECTION.
 
 **********************************************************************
 INTERFACE lif_abapmerge_marker.
-  CONSTANTS c_merge_timestamp TYPE string VALUE `2025-10-26T19:45:22Z`.
+  CONSTANTS c_merge_timestamp TYPE string VALUE `2025-10-26T22:11:54Z`.
   CONSTANTS c_abapinst_version TYPE string VALUE `1.2.0`.
 ENDINTERFACE.
 **********************************************************************
