@@ -22,7 +22,7 @@ CLASS lcl_test DEFINITION FOR TESTING
   PRIVATE SECTION.
 
     TYPES:
-      ty_bal_tt_msg TYPE STANDARD TABLE OF bal_s_msg.
+      ty_bal_tt_msg TYPE STANDARD TABLE OF bal_s_msg WITH DEFAULT KEY.
 
     DATA:
       anon_log     TYPE REF TO /mbtools/if_logger,
@@ -44,7 +44,7 @@ CLASS lcl_test DEFINITION FOR TESTING
         EXPORTING
           texts       TYPE table_of_strings
           msg_details TYPE ty_bal_tt_msg,
-format_message
+      format_message
         IMPORTING id         LIKE sy-msgid DEFAULT sy-msgid
                   no         LIKE sy-msgno DEFAULT sy-msgno
                   v1         LIKE sy-msgv1 DEFAULT sy-msgv1
@@ -52,7 +52,7 @@ format_message
                   v3         LIKE sy-msgv3 DEFAULT sy-msgv3
                   v4         LIKE sy-msgv4 DEFAULT sy-msgv4
         RETURNING VALUE(msg) TYPE string,
-can_create_anon_log FOR TESTING,
+      can_create_anon_log FOR TESTING,
       can_create_named_log FOR TESTING,
       can_reopen_log FOR TESTING,
       can_create_expiring_log_days FOR TESTING,
@@ -106,19 +106,19 @@ CLASS lcl_test IMPLEMENTATION.
 
   METHOD class_setup.
     /mbtools/cl_logger=>new(
-      object = 'ABAPUNIT'
+      object    = 'ABAPUNIT'
       subobject = ''
-      desc = 'Log saved in database' )->add( 'This message is in the database' ).
+      desc      = 'Log saved in database' )->add( 'This message is in the database' ).
   ENDMETHOD.
 
   METHOD setup.
     anon_log  = /mbtools/cl_logger=>new( ).
-    named_log = /mbtools/cl_logger=>new( object = 'ABAPUNIT'
-                                 subobject = ''
-                                 desc = `Hey it's a log` ).
-    reopened_log = /mbtools/cl_logger=>open( object = 'ABAPUNIT'
-                                     subobject = ''
-                                     desc = 'Log saved in database' ).
+    named_log = /mbtools/cl_logger=>new( object    = 'ABAPUNIT'
+                                         subobject = ''
+                                         desc      = `Hey it's a log` ).
+    reopened_log = /mbtools/cl_logger=>open( object    = 'ABAPUNIT'
+                                             subobject = ''
+                                             desc      = 'Log saved in database' ).
   ENDMETHOD.
 
   METHOD can_create_anon_log.
@@ -161,13 +161,13 @@ CLASS lcl_test IMPLEMENTATION.
     lv_exp = sy-datum + days_until_log_can_be_deleted.
 
     cl_abap_unit_assert=>assert_equals(
-      exp     = lv_exp
-      act     = act_header-aldate_del
-      msg     = 'Log is not expiring in correct amount of days' ).
+      exp = lv_exp
+      act = act_header-aldate_del
+      msg = 'Log is not expiring in correct amount of days' ).
     cl_abap_unit_assert=>assert_equals(
-      exp     = abap_true
-      act     = act_header-del_before
-      msg     = 'Log should not be deletable before expiry date' ).
+      exp = abap_true
+      act = act_header-del_before
+      msg = 'Log should not be deletable before expiry date' ).
   ENDMETHOD.
 
   METHOD can_create_expiring_log_date.
@@ -197,13 +197,13 @@ CLASS lcl_test IMPLEMENTATION.
         e_s_log      = act_header.
 
     cl_abap_unit_assert=>assert_equals(
-      exp     = lv_expire
-      act     = act_header-aldate_del
-      msg     = 'Log is not expiring on correct date' ).
+      exp = lv_expire
+      act = act_header-aldate_del
+      msg = 'Log is not expiring on correct date' ).
     cl_abap_unit_assert=>assert_equals(
-      exp     = abap_true
-      act     = act_header-del_before
-      msg     = 'Log should not be deletable before expiry date' ).
+      exp = abap_true
+      act = act_header-del_before
+      msg = 'Log should not be deletable before expiry date' ).
   ENDMETHOD.
 
   METHOD can_reopen_log.
@@ -216,14 +216,14 @@ CLASS lcl_test IMPLEMENTATION.
     DATA: created_log TYPE REF TO /mbtools/if_logger,
           handles     TYPE bal_t_logh.
     CALL FUNCTION 'BAL_GLB_MEMORY_REFRESH'.                "Close Logs
-    reopened_log = /mbtools/cl_logger=>open( object = 'ABAPUNIT'
-                                     subobject = ''
-                                     desc = 'Log saved in database'
-                                     create_if_does_not_exist = abap_true ).
-    created_log = /mbtools/cl_logger=>open( object = 'ABAPUNIT'
-                                    subobject = ''
-                                    desc = 'Log not in database'
-                                    create_if_does_not_exist = abap_true ).
+    reopened_log = /mbtools/cl_logger=>open( object                   = 'ABAPUNIT'
+                                             subobject                = ''
+                                             desc                     = 'Log saved in database'
+                                             create_if_does_not_exist = abap_true ).
+    created_log = /mbtools/cl_logger=>open( object                   = 'ABAPUNIT'
+                                            subobject                = ''
+                                            desc                     = 'Log not in database'
+                                            create_if_does_not_exist = abap_true ).
     CALL FUNCTION 'BAL_GLB_SEARCH_LOG'
       IMPORTING
         e_t_log_handle = handles.
@@ -318,8 +318,8 @@ CLASS lcl_test IMPLEMENTATION.
       EXPORTING
         i_t_lognumber = log_numbers.
 
-    get_messages( EXPORTING log_handle  = reopened_log->handle
-                  IMPORTING texts       = act_texts ).
+    get_messages( EXPORTING log_handle = reopened_log->handle
+                  IMPORTING texts      = act_texts ).
 
     READ TABLE act_texts INDEX 1 INTO act_text.
     cl_abap_unit_assert=>assert_equals(
@@ -955,7 +955,7 @@ CLASS lcl_test IMPLEMENTATION.
     ENDTRY.
 
     "Then
-    get_messages( EXPORTING log_handle = anon_log->handle
+    get_messages( EXPORTING log_handle  = anon_log->handle
                   IMPORTING msg_details = bal_msgs ).
 
     DESCRIBE TABLE bal_msgs LINES msg_count.
@@ -1123,7 +1123,7 @@ CLASS lcl_test IMPLEMENTATION.
           act_details  TYPE bal_s_msg.
 
     anon_log->add( obj_to_log = 'Here is some text'
-                   context = addl_context ).
+                   context    = addl_context ).
 
     msg_handle-log_handle = anon_log->handle.
     msg_handle-msgnumber  = '000001'.
@@ -1205,11 +1205,11 @@ CLASS lcl_test IMPLEMENTATION.
         e_s_msg        = act_details.
 
     cl_abap_unit_assert=>assert_initial(
-        act = act_details-context-value
-        msg = 'Context should only be added to first line' ).
+      act = act_details-context-value
+      msg = 'Context should only be added to first line' ).
     cl_abap_unit_assert=>assert_initial(
-        act = act_details-context-tabname
-        msg = 'Context should only be added to first line' ).
+      act = act_details-context-tabname
+      msg = 'Context should only be added to first line' ).
   ENDMETHOD.
 
   METHOD can_add_callback_sub.
@@ -1217,7 +1217,7 @@ CLASS lcl_test IMPLEMENTATION.
           msg_detail   TYPE bal_s_msg,
           exp_callback TYPE bal_s_clbk.
 
-    anon_log->add( obj_to_log = 'Message with Callback'
+    anon_log->add( obj_to_log    = 'Message with Callback'
                    callback_form = 'FORM'
                    callback_prog = 'PROGRAM' ).
 
@@ -1245,7 +1245,7 @@ CLASS lcl_test IMPLEMENTATION.
           msg_detail   TYPE bal_s_msg,
           exp_callback TYPE bal_s_clbk.
 
-    anon_log->add( obj_to_log = 'Message with Callback'
+    anon_log->add( obj_to_log  = 'Message with Callback'
                    callback_fm = 'FUNCTION' ).
 
     msg_handle-log_handle = anon_log->handle.
@@ -1508,31 +1508,31 @@ CLASS lcl_test IMPLEMENTATION.
     desc = cl_system_uuid=>create_uuid_c32_static( ).
 
     named_log = /mbtools/cl_logger=>new( object    = 'ABAPUNIT'
-                                 subobject = ''
-                                 auto_save = abap_false ).
+                                         subobject = ''
+                                         auto_save = abap_false ).
 
     named_log->set_header( desc ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = desc
-        act = named_log->header-extnumber
-        msg = 'Did not return new desc' ).
+      exp = desc
+      act = named_log->header-extnumber
+      msg = 'Did not return new desc' ).
 
     named_log->save( ).
 
     CALL FUNCTION 'BAL_GLB_MEMORY_REFRESH'.                "Close Logs
     reopened_log = /mbtools/cl_logger=>open( object    = 'ABAPUNIT'
-                                     subobject = ''
-                                     desc      = desc ).
+                                             subobject = ''
+                                             desc      = desc ).
 
     cl_abap_unit_assert=>assert_bound(
-        act = reopened_log
-        msg = 'Did not find log with new desc' ).
+      act = reopened_log
+      msg = 'Did not find log with new desc' ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = desc
-        act = reopened_log->header-extnumber
-        msg = 'Did not return new desc' ).
+      exp = desc
+      act = reopened_log->header-extnumber
+      msg = 'Did not return new desc' ).
   ENDMETHOD.
 
   METHOD can_log_callback_params.
@@ -1551,30 +1551,30 @@ CLASS lcl_test IMPLEMENTATION.
     INSERT parameter INTO TABLE callback_parameters.
 
     anon_log->a(
-        obj_to_log          = |Test W|
-        callback_fm         = 'DUMMY'
-        callback_parameters = callback_parameters ).
+      obj_to_log          = |Test W|
+      callback_fm         = 'DUMMY'
+      callback_parameters = callback_parameters ).
 
     anon_log->e(
-        obj_to_log          = |Test E|
-        callback_fm         = 'DUMMY'
-        callback_parameters = callback_parameters ).
+      obj_to_log          = |Test E|
+      callback_fm         = 'DUMMY'
+      callback_parameters = callback_parameters ).
 
     anon_log->i(
-        obj_to_log          = |Test I|
-        callback_fm         = 'DUMMY'
-        callback_parameters = callback_parameters ).
+      obj_to_log          = |Test I|
+      callback_fm         = 'DUMMY'
+      callback_parameters = callback_parameters ).
 
     anon_log->s(
-        obj_to_log          = |Test S|
-        callback_fm         = 'DUMMY'
-        callback_parameters = callback_parameters ).
+      obj_to_log          = |Test S|
+      callback_fm         = 'DUMMY'
+      callback_parameters = callback_parameters ).
 
     anon_log->w(
-        obj_to_log          = |Test W|
-        callback_form       = 'DUMMY_FORM'
-        callback_prog       = 'DUMMY_PROG'
-        callback_parameters = callback_parameters ).
+      obj_to_log          = |Test W|
+      callback_form       = 'DUMMY_FORM'
+      callback_prog       = 'DUMMY_PROG'
+      callback_parameters = callback_parameters ).
 
     get_messages(
       EXPORTING
@@ -1585,8 +1585,8 @@ CLASS lcl_test IMPLEMENTATION.
     LOOP AT act_details ASSIGNING <detail>.
 
       cl_abap_unit_assert=>assert_equals(
-          exp = callback_parameters
-          act = <detail>-params-t_par ).
+        exp = callback_parameters
+        act = <detail>-params-t_par ).
 
     ENDLOOP.
   ENDMETHOD.
@@ -1600,7 +1600,7 @@ CLASS lcl_test IMPLEMENTATION.
           message_a TYPE string.
     DATA: texts TYPE table_of_strings,
           text  TYPE string.
-    DATA: msg_details TYPE bal_tt_msg,
+    DATA: msg_details TYPE ty_bal_tt_msg,
           msg_detail  TYPE bal_s_msg.
 
     message_i = 'Info message from appended log'.
@@ -1969,10 +1969,10 @@ CLASS lcl_test IMPLEMENTATION.
         msgv4 = 'test'.
 
     "When
-    anon_log->add( obj_to_log = exception
+    anon_log->add( obj_to_log    = exception
                    callback_form = 'FORM'
                    callback_prog = 'PROGRAM'
-                   context = addl_context ).
+                   context       = addl_context ).
 
     msg_handle-log_handle = anon_log->handle.
     msg_handle-msgnumber  = '000001'.
