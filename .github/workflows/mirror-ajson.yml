@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: '0 1 * * 0'
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   run:
 
@@ -12,11 +16,9 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
+      uses: actions/setup-node@v6
     - name: Mirror Repository
       run: |
         git clone "https://github.com/Marc-Bernard-Tools/Mirror-AJSON.git"
@@ -28,10 +30,9 @@ jobs:
         rm -rf Mirror-AJSON
         git status
     - name: Open Pull Request
-      uses: peter-evans/create-pull-request@v5
+      uses: peter-evans/create-pull-request@v8
       if: github.repository == 'Marc-Bernard-Tools/MBT-Package-Manager'
       with:
-        node-version: 20
         branch: mbtools/ajson
         title: Automatic Update AJSON
         body: |
