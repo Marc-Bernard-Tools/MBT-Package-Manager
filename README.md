@@ -1,5 +1,5 @@
 ![Version](https://img.shields.io/endpoint?url=https://shield.abappm.com/github/Marc-Bernard-Tools/MBT-Package-Manager/src/%2523mbtools%2523cl_tool_bc.clas.abap&label=Version&color=blue)
-[![Slack](https://img.shields.io/badge/Join-Slack-blue)](https://communityinviter.com/apps/marc-bernard-tools/join-our-slack-community)
+[![Slack](https://img.shields.io/badge/Join-Slack-blue)](https://inviter.co/marc-bernard-tools)
 
 [![License](https://img.shields.io/github/license/Marc-Bernard-Tools/MBT-Package-Manager?label=License&color=success)](LICENSE)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?color=success)](https://github.com/Marc-Bernard-Tools/.github/blob/main/CODE_OF_CONDUCT.md)
