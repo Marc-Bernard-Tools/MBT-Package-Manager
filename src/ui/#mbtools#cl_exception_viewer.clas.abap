@@ -172,20 +172,21 @@ CLASS /mbtools/cl_exception_viewer IMPLEMENTATION.
     CALL FUNCTION 'ABAP4_CALL_TRANSACTION'
       STARTING NEW TASK 'MBT'
       EXPORTING
-        tcode                   = 'SE91'
-        mode_val                = 'E'
+        tcode                 = 'SE91'
+        mode_val              = 'E'
       TABLES
-        using_tab               = lt_bdcdata
+        using_tab             = lt_bdcdata
       EXCEPTIONS
-        system_failure          = 1 MESSAGE lv_msg
-        communication_failure   = 2 MESSAGE lv_msg
-        OTHERS                  = 3.
+        system_failure        = 1 MESSAGE lv_msg
+        communication_failure = 2 MESSAGE lv_msg
+        OTHERS                = 3.
 
-    IF sy-subrc = 1 OR sy-subrc = 2.
-      /mbtools/cx_exception=>raise( lv_msg ).
-    ELSEIF sy-subrc = 3.
-      /mbtools/cx_exception=>raise_t100( ).
-    ENDIF.
+    CASE sy-subrc.
+      WHEN 1 OR 2.
+        /mbtools/cx_exception=>raise( lv_msg ).
+      WHEN 3.
+        /mbtools/cx_exception=>raise_t100( ).
+    ENDCASE.
 
   ENDMETHOD.
 
