@@ -142,6 +142,7 @@ CLASS /mbtools/cl_exception_viewer IMPLEMENTATION.
 
     DATA: lt_bdcdata TYPE STANDARD TABLE OF bdcdata,
           ls_bdcdata LIKE LINE OF lt_bdcdata.
+    DATA lv_msg TYPE c LENGTH 200.
 
     ls_bdcdata-program  = 'SAPLWBMESSAGES'.
     ls_bdcdata-dynpro   = '0100'.
@@ -176,11 +177,13 @@ CLASS /mbtools/cl_exception_viewer IMPLEMENTATION.
       TABLES
         using_tab               = lt_bdcdata
       EXCEPTIONS
-        call_transaction_denied = 1
-        tcode_invalid           = 2
+        system_failure          = 1 MESSAGE lv_msg
+        communication_failure   = 2 MESSAGE lv_msg
         OTHERS                  = 3.
 
-    IF sy-subrc <> 0.
+    IF sy-subrc = 1 OR sy-subrc = 2.
+      /mbtools/cx_exception=>raise( lv_msg ).
+    ELSEIF sy-subrc = 3.
       /mbtools/cx_exception=>raise_t100( ).
     ENDIF.
 
