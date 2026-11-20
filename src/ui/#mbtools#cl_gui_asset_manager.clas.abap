@@ -146,7 +146,8 @@ CLASS /mbtools/cl_gui_asset_manager IMPLEMENTATION.
       IMPORTING
         value            = lv_size_c
       EXCEPTIONS
-        entry_not_exists = 1.
+        entry_not_exists = 1
+        OTHERS           = 2.
 
     IF sy-subrc IS NOT INITIAL.
       RETURN.
@@ -162,7 +163,8 @@ CLASS /mbtools/cl_gui_asset_manager IMPLEMENTATION.
         mime              = et_content
       EXCEPTIONS
         wrong_object_type = 1
-        import_error      = 2.
+        import_error      = 2
+        OTHERS            = 3.
 
     IF sy-subrc IS NOT INITIAL.
       RETURN.

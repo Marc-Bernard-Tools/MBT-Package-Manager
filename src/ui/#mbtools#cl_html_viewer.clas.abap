@@ -91,7 +91,8 @@ CLASS /mbtools/cl_html_viewer IMPLEMENTATION.
         dp_invalid_parameter   = 1
         dp_error_general       = 2
         cntl_error             = 3
-        html_syntax_notcorrect = 4 ).
+        html_syntax_notcorrect = 4
+        OTHERS                 = 5 ).
     IF sy-subrc <> 0.
       /mbtools/cx_exception=>raise( |Error loading data for HTML viewer: { iv_url }| ).
     ENDIF.
@@ -109,7 +110,8 @@ CLASS /mbtools/cl_html_viewer IMPLEMENTATION.
       EXCEPTIONS
         cntl_error                = 1
         cntl_system_error         = 2
-        illegal_event_combination = 3 ).
+        illegal_event_combination = 3
+        OTHERS                    = 4 ).
     IF sy-subrc <> 0.
       /mbtools/cx_exception=>raise( 'Error registering events for HTML viewer' ).
     ENDIF.
@@ -130,7 +132,8 @@ CLASS /mbtools/cl_html_viewer IMPLEMENTATION.
         cntl_error             = 1
         cnht_error_not_allowed = 2
         cnht_error_parameter   = 3
-        dp_error_general       = 4 ).
+        dp_error_general       = 4
+        OTHERS                 = 5 ).
     IF sy-subrc <> 0.
       /mbtools/cx_exception=>raise( 'Error showing URL in HTML viewer' ).
     ENDIF.

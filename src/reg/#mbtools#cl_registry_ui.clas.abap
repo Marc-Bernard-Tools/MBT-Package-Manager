@@ -571,7 +571,8 @@ CLASS /mbtools/cl_registry_ui IMPLEMENTATION.
       EXCEPTIONS
         cntl_error                = 1
         cntl_system_error         = 2
-        illegal_event_combination = 3 ).
+        illegal_event_combination = 3
+        OTHERS                    = 4 ).
     IF sy-subrc <> 0.
       MESSAGE 'Error registering events for tree'(019) TYPE 'E'.
     ENDIF.

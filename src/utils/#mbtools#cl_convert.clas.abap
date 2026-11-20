@@ -103,7 +103,8 @@ CLASS /mbtools/cl_convert IMPLEMENTATION.
       TABLES
         binary_tab   = it_bintab
       EXCEPTIONS
-        failed       = 1 ##FM_SUBRC_OK.
+        failed       = 1
+        OTHERS       = 2 ##FM_SUBRC_OK.
     ASSERT sy-subrc = 0.
 
   ENDMETHOD.

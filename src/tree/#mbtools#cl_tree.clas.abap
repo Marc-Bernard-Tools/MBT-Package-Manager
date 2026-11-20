@@ -811,7 +811,8 @@ CLASS /mbtools/cl_tree IMPLEMENTATION.
       EXCEPTIONS
         cntl_error                = 1
         cntl_system_error         = 2
-        illegal_event_combination = 3 ).
+        illegal_event_combination = 3
+        OTHERS                    = 4 ).
     IF sy-subrc <> 0.
       MESSAGE e000 WITH 'Error in INIT Register Events' ##NO_TEXT.
     ENDIF.
